@@ -36,7 +36,9 @@
 		Promise.all([
 			new Promise<void>((resolve) =>
 				getRealtimeLastestNewsAdded((news: News[]) => {
-					comebacks.value = news
+					comebacks.value = news.sort(
+						(a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+					)
 					newsFetching.value = false
 					resolve()
 				}),

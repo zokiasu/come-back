@@ -354,7 +354,7 @@ export function useSupabaseNews() {
 						`,
 						)
 						.gte('date', today.toISOString())
-						.order('date', { ascending: false })
+						.order('date', { ascending: true })
 
 					if (!updatedError && updatedData) {
 						// Transformer les données mises à jour
