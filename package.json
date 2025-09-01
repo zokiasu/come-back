@@ -42,7 +42,7 @@
 		"@eslint/js": "^9.34.0",
 		"@vueuse/core": "^13.7.0",
 		"animate.css": "^4.1.1",
-		"pinia": "^3.0.0",
+		"pinia": "^3.0.3",
 		"pinia-plugin-persistedstate": "^4.4.1",
 		"swiper": "^11.2.3",
 		"tailwindcss": "^4.1.2",
