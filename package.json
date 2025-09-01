@@ -22,7 +22,7 @@
 		"eslint-plugin-prettier": "^5.5.4",
 		"eslint-config-prettier": "^10.1.8",
 		"eslint": "^9.34.0",
-		"@typescript-eslint/parser": "^8.39.1",
+		"@typescript-eslint/parser": "^8.41.0",
 		"eslint-plugin-vue": "^9.17.0",
 		"picomatch": "^4.0.3",
 		"nuxt": "^4.0.3",
