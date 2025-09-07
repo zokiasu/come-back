@@ -4,19 +4,19 @@
 	})
 
 	useHead({
-		title: 'Authentification',
+		title: 'Authentication',
 		meta: [
 			{
 				name: 'description',
-				content: 'Authentification',
+				content: 'Authentication',
 			},
 		],
 	})
 
 	// Log initial
-	console.log('📄 Page authentification chargée')
+	console.log('📄 Authentication page loaded')
 
-	// Gestion des erreurs de callback
+	// Callback error handling
 	const route = useRoute()
 	const errorMessage = ref('')
 
@@ -26,18 +26,18 @@
 			switch (error) {
 				case 'timeout':
 					errorMessage.value =
-						"Délai d'attente dépassé lors de la connexion. Veuillez réessayer."
+						'Connection timeout. Please try again.'
 					break
 				case 'sync':
 					errorMessage.value =
-						'Erreur lors de la synchronisation du profil. Veuillez réessayer.'
+						'Profile synchronization error. Please try again.'
 					break
 				case 'callback':
 					errorMessage.value =
-						'Erreur lors du processus de connexion. Veuillez réessayer.'
+						'Connection process error. Please try again.'
 					break
 				default:
-					errorMessage.value = 'Une erreur est survenue. Veuillez réessayer.'
+					errorMessage.value = 'An error occurred. Please try again.'
 			}
 		}
 	})
@@ -46,7 +46,7 @@
 <template>
 	<div class="flex items-center justify-center sm:min-h-[calc(100vh-160px)]">
 		<div class="w-full md:w-1/2 lg:w-1/3">
-			<!-- Message d'erreur -->
+			<!-- Error message -->
 			<div
 				v-if="errorMessage"
 				class="mb-4 rounded-lg border border-red-200 bg-red-50 p-4"

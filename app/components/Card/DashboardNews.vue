@@ -50,7 +50,7 @@
 	const editNewsDate = ref<Date | null>(null)
 	const editNewsMessage = ref<string>('')
 
-	// Initialiser les valeurs d'édition avec les valeurs actuelles
+	// Initialize edit values with current values
 	const initEditForm = () => {
 		editNewsDate.value = props.date ? new Date(props.date) : null
 		editNewsMessage.value = props.message || ''
@@ -74,37 +74,37 @@
 		}
 	}
 
-	// Recherche d'artistes débouncée
+	// Debounced artist search
 	const debouncedSearch = useDebounce(async (query) => {
 		try {
 			const { hits } = await index.search(query)
 			artistListSearched.value = hits.slice(0, 10)
 		} catch (error) {
-			console.error('Erreur lors de la recherche:', error)
+			console.error('Error during search:', error)
 		}
 	}, 500)
 
-	// Mise à jour de la news
+	// Update news
 	const updateNewsData = async () => {
 		isUpdating.value = true
 		try {
-			// Mise à jour des données de base de la news
+			// Update basic news data
 			const updatedNews = await updateNews(props.id, {
 				date: editNewsDate.value?.toISOString() ?? props.date,
 				message: editNewsMessage.value,
 			})
 
-			// Mise à jour des relations avec les artistes
+			// Update relations with artists
 			const artistIds = artistListSelected.value.map((artist) => artist.id)
 			await updateNewsArtistsRelations(props.id, artistIds)
 
 			toast.add({
-				title: 'Succès',
-				description: 'News mise à jour avec succès',
+				title: 'Success',
+				description: 'News updated successfully',
 				color: 'success',
 			})
 
-			// Émettre un événement pour mettre à jour la liste des news
+			// Emit event to update news list
 			emit('updateNews', {
 				id: props.id,
 				message: editNewsMessage.value,
@@ -120,10 +120,10 @@
 
 			closeEditModal()
 		} catch (error) {
-			console.error('Erreur lors de la mise à jour de la news:', error)
+			console.error('Error updating news:', error)
 			toast.add({
-				title: 'Erreur',
-				description: 'Erreur lors de la mise à jour de la news',
+				title: 'Error',
+				description: 'Error updating news',
 				color: 'error',
 			})
 		} finally {
@@ -132,7 +132,7 @@
 	}
 
 	const addArtistToNews = (artist: any) => {
-		// Éviter les doublons
+		// Avoid duplicates
 		if (!artistListSelected.value.some((a) => a.id === artist.objectID)) {
 			artistListSelected.value.push({
 				id: artist.objectID,
@@ -237,7 +237,7 @@
 			</button>
 		</div>
 
-		<!-- Modal d'édition -->
+		<!-- Edit modal -->
 		<UModal
 			v-model:open="isEditModalOpen"
 			:ui="{
@@ -247,12 +247,12 @@
 		>
 			<template #content>
 				<div class="bg-cb-secondary-950 space-y-5 p-5">
-					<h3 class="text-2xl font-bold">Modifier Comeback</h3>
+					<h3 class="text-2xl font-bold">Edit Comeback</h3>
 					<div class="relative">
 						<ComebackInput
 							v-model="searchArtist"
-							label="Sélectionner artiste(s)"
-							placeholder="Rechercher un artiste"
+							label="Select artist(s)"
+							placeholder="Search for an artist"
 							@clear="clearSearch"
 						/>
 						<div
@@ -271,7 +271,7 @@
 					</div>
 
 					<div v-if="artistListSelected.length" class="flex flex-col gap-1">
-						<ComebackLabel label="Artiste(s)" />
+						<ComebackLabel label="Artist(s)" />
 						<div class="flex flex-wrap gap-5">
 							<div
 								v-for="artist in artistListSelected"
@@ -307,7 +307,7 @@
 						<ComebackInput
 							v-model="editNewsMessage"
 							label="Message"
-							placeholder="Votre message"
+							placeholder="Your message"
 							@clear="editNewsMessage = ''"
 						/>
 					</div>
@@ -317,15 +317,15 @@
 							class="bg-cb-quinary-900 hover:bg-cb-tertiary-200/30 flex-1 rounded py-2 font-semibold uppercase transition-all duration-300 ease-in-out"
 							@click="closeEditModal"
 						>
-							Annuler
+							Cancel
 						</button>
 						<button
 							:disabled="isUpdating"
 							class="bg-cb-primary-900 flex-1 rounded py-2 font-semibold uppercase transition-all duration-300 ease-in-out hover:scale-105 hover:bg-red-900"
 							@click="updateNewsData"
 						>
-							<p v-if="isUpdating">Mise à jour...</p>
-							<p v-else>Mettre à jour</p>
+							<p v-if="isUpdating">Updating...</p>
+							<p v-else>Update</p>
 						</button>
 					</div>
 				</div>

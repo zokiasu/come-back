@@ -4,14 +4,15 @@
 			<div
 				class="border-cb-primary-500 mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2"
 			></div>
-			<p class="text-lg">{{ statusMessage }}</p>
+			<p class="text-lg text-center text-gray-600">Loading</p>
 			<p v-if="debugMode" class="mt-2 text-sm text-gray-500">{{ debugInfo }}</p>
+			<p class="text-lg text-center text-gray-600">Signing in...</p>
 		</div>
 	</div>
 </template>
 
 <script setup lang="ts">
-	const statusMessage = ref('Connexion en cours...')
+	const statusMessage = ref('Verifying session...')
 	const debugInfo = ref('')
 	const debugMode = ref(false) // Activez pour debug
 
@@ -25,61 +26,61 @@
 
 	const handleAuthCallback = async () => {
 		try {
-			statusMessage.value = 'Vérification de la session...'
-			debugInfo.value = "Attente de l'utilisateur Supabase..."
+			statusMessage.value = 'Verifying session...'
+			debugInfo.value = "Waiting for Supabase user..."
 
-			// Attendre que l'utilisateur Supabase soit disponible
+			// Wait for Supabase user to be available
 			let attempts = 0
-			const maxAttempts = 30 // 30 secondes max
+			const maxAttempts = 30 // 30 seconds max
 
 			while (!user.value && attempts < maxAttempts) {
 				await new Promise((resolve) => setTimeout(resolve, 1000))
 				attempts++
-				debugInfo.value = `Tentative ${attempts}/${maxAttempts}...`
+				debugInfo.value = `Attempt ${attempts}/${maxAttempts}...`
 			}
 
 			if (!user.value) {
-				console.error('❌ Timeout: Aucun utilisateur trouvé après 30 secondes')
-				statusMessage.value = 'Erreur de connexion'
+				console.error('❤️ Timeout: No user found after 30 seconds')
+				statusMessage.value = 'Connection error'
 				await navigateTo('/authentification?error=timeout')
 				return
 			}
 
-			console.log('🔍 Callback - Utilisateur Supabase:', user.value)
-			console.log('✅ Utilisateur connecté!')
+			console.log('🔍 Callback - Supabase User:', user.value)
+			console.log('✅ User connected!')
 			console.log('📧 Email:', user.value.email)
 			console.log('🆔 ID:', user.value.id)
 
-			statusMessage.value = 'Synchronisation du profil...'
-			debugInfo.value = 'Création/mise à jour du profil utilisateur...'
+			statusMessage.value = 'Syncing profile...'
+			debugInfo.value = 'Creating/updating user profile...'
 
-			// Synchroniser le profil utilisateur
+			// Sync user profile
 			const success = await ensureUserProfile()
 
 			if (success) {
-				statusMessage.value = 'Redirection...'
-				debugInfo.value = "Connexion réussie, redirection vers l'accueil"
+				statusMessage.value = 'Redirecting...'
+				debugInfo.value = "Connection successful, redirecting to home"
 
-				// Petite pause pour que l'utilisateur voie le message de succès
+				// Brief pause so user can see success message
 				await new Promise((resolve) => setTimeout(resolve, 500))
 
 				await navigateTo('/')
 			} else {
-				console.error('❌ Erreur lors de la synchronisation du profil')
-				statusMessage.value = 'Erreur de synchronisation'
+				console.error('❌ Error during profile synchronization')
+				statusMessage.value = 'Synchronization error'
 				await navigateTo('/authentification?error=sync')
 			}
 		} catch (err: any) {
-			console.error('❌ Erreur lors du callback:', err)
-			statusMessage.value = 'Erreur de connexion'
-			debugInfo.value = err.message || 'Erreur inconnue'
+			console.error('❌ Error during callback:', err)
+			statusMessage.value = 'Connection error'
+			debugInfo.value = err.message || 'Unknown error'
 			await navigateTo('/authentification?error=callback')
 		}
 	}
 
-	// Gérer le callback d'authentification au montage du composant
+	// Handle authentication callback on component mount
 	onMounted(async () => {
-		// Petite pause pour laisser Supabase s'initialiser
+		// Brief pause to let Supabase initialize
 		await new Promise((resolve) => setTimeout(resolve, 500))
 		await handleAuthCallback()
 	})

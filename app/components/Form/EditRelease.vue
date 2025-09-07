@@ -46,7 +46,7 @@
 		{ label: 'Compilation', value: 'COMPILATION' },
 	]
 
-	// Fonction pour formater la date au format YYYY-MM-DD pour l'input date
+	// Function to format date to YYYY-MM-DD format for date input
 	const formatDateForInput = (dateString: string) => {
 		if (!dateString) return ''
 
@@ -57,7 +57,7 @@
 			// Formater au format YYYY-MM-DD
 			return date.toISOString().split('T')[0]
 		} catch (error) {
-			console.error('Erreur lors du formatage de la date:', error)
+			console.error('Error formatting date:', error)
 			return ''
 		}
 	}
@@ -77,7 +77,7 @@
 	const saveChanges = async () => {
 		if (!formData.name.trim()) {
 			toast.add({
-				title: 'Le nom de la release est requis',
+				title: 'Release name is required',
 				color: 'error',
 			})
 			return
@@ -100,19 +100,19 @@
 
 			if (result) {
 				toast.add({
-					title: 'Release mise à jour avec succès',
+					title: 'Release updated successfully',
 					color: 'success',
 				})
 
 				emit('saved', result)
 				emit('close')
 			} else {
-				throw new Error('Échec de la mise à jour')
+				throw new Error('Update failed')
 			}
 		} catch (error) {
-			console.error('Erreur lors de la mise à jour de la release:', error)
+			console.error('Error updating release:', error)
 			toast.add({
-				title: 'Erreur lors de la mise à jour',
+				title: 'Error updating',
 				color: 'error',
 			})
 		} finally {
@@ -120,7 +120,7 @@
 		}
 	}
 
-	// Watch pour mettre à jour les données du formulaire si les props changent
+	// Watch to update form data if props change
 	watch(
 		() => props,
 		(newProps) => {

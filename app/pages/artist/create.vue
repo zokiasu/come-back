@@ -1,5 +1,5 @@
 <script setup lang="ts">
-	// Réimporter CalendarDate et getLocalTimeZone
+	// Re-import CalendarDate and getLocalTimeZone
 	import { CalendarDate, DateFormatter } from '@internationalized/date'
 
 	// Internal Types
@@ -22,11 +22,10 @@
 	// Internal Stores
 	import { useUserStore } from '~/stores/user'
 
-	// Crée un type générique qui ajoute 'label' à un type existant T
+	// Creates a generic type that adds 'label' to an existing type T
 	type MenuItem<T> = T & { label: string }
 
 	const toast = useToast()
-	const router = useRouter()
 	const userStore = useUserStore()
 	const { isAdminStore } = storeToRefs(userStore)
 	const { getAllArtists, createArtist } = useSupabaseArtist()
@@ -182,7 +181,7 @@
 			gender: artistGender.value,
 			active_career: artistActiveCareer.value,
 			verified: isAdminStore.value,
-			// Re-convertir CalendarDate en ISO string
+			// Re-convert CalendarDate to ISO string
 			birth_date: birthdayToDate.value
 				? new Date(birthdayToDate.value.toString()).toISOString()
 				: null,
@@ -230,7 +229,7 @@
 		textarea.style.height = `${textarea.scrollHeight}px`
 	}
 
-	// Fonctions pour gérer les relations compagnies
+	// Functions to manage company relations
 	const addCompanyRelation = () => {
 		artistCompanies.value.push({
 			company: null,

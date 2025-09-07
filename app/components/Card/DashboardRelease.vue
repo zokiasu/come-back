@@ -1,7 +1,7 @@
 <script setup lang="ts">
 	import type { PropType } from 'vue'
 
-	// Interface pour la structure d'une plateforme
+	// Interface for platform structure
 	type Platform = {
 		name: string
 		link: string
@@ -79,7 +79,7 @@
 		return false
 	})
 
-	// FONCTIONS
+	// FUNCTIONS
 	const showImage = () => {
 		imageLoaded.value = true
 	}
@@ -99,7 +99,7 @@
 	}
 
 	const handleReleaseSaved = (updatedRelease) => {
-		// Mettre à jour les données locales si nécessaire
+		// Update local data if necessary
 		emit('updateRelease')
 		if (updatedRelease.verified) {
 			emit('release-verified')
@@ -199,7 +199,7 @@
 
 					<template #header>
 						<div class="flex items-center justify-between">
-							<h2 class="text-lg font-semibold">Éditer la Release</h2>
+							<h2 class="text-lg font-semibold">Edit Release</h2>
 						</div>
 					</template>
 

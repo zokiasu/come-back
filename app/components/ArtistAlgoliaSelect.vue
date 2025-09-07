@@ -35,7 +35,7 @@
 
 <template>
 	<div>
-		<UInput v-model="searchInput" placeholder="Recherche artiste..." class="w-full" />
+		<UInput v-model="searchInput" placeholder="Search artist..." class="w-full" />
 		<div v-if="suggestions.length" class="absolute z-10 rounded bg-white p-2 shadow">
 			<div
 				v-for="artist in suggestions"

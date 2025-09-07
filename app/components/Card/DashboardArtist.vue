@@ -89,11 +89,11 @@
 	const socialLinksEl = ref(null)
 	const platformsLinksEl = ref(null)
 
-	// Exemple de référénces réactives pour le contrôle des éléments collapse
+	// Example of reactive references for collapse element control
 	const showSocialLinks = ref(false)
 	const showPlatformsLinks = ref(false)
 
-	// Fonctions de transition
+	// Transition functions
 	function beforeEnter(el) {
 		el.style.height = '0'
 	}
@@ -306,7 +306,7 @@
 <style scoped>
 	.collapsed {
 		display: -webkit-box;
-		-webkit-line-clamp: 1; /* Limite à deux lignes */
+		-webkit-line-clamp: 1; /* Limit to one line */
 		-webkit-box-orient: vertical;
 		overflow: hidden;
 	}

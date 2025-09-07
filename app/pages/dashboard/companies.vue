@@ -512,22 +512,26 @@
 
 		<!-- Modal de confirmation de suppression -->
 		<UModal v-model:open="deleteModal.isOpen">
-			<ModalConfirmDeleteCompany
-				:company-id="deleteModal.companyId"
-				:company-name="deleteModal.companyName"
-				@close="closeDeleteModal"
-				@confirm="confirmDelete"
-			/>
+			<template #content>
+				<ModalConfirmDeleteCompany
+					:company-id="deleteModal.companyId"
+					:company-name="deleteModal.companyName"
+					@close="closeDeleteModal"
+					@confirm="confirmDelete"
+				/>
+			</template>
 		</UModal>
 
 		<!-- Modal de création/édition -->
 		<UModal v-model:open="editModal.isOpen">
-			<ModalCreateEditCompany
-				:company="editModal.company"
-				:is-creating="editModal.isCreating"
-				@close="closeEditModal"
-				@updated="onCompanyUpdated"
-			/>
+			<template #content>
+				<ModalCreateEditCompany
+					:company="editModal.company"
+					:is-creating="editModal.isCreating"
+					@close="closeEditModal"
+					@updated="onCompanyUpdated"
+				/>
+			</template>
 		</UModal>
 	</div>
 </template>

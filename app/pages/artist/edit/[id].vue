@@ -21,7 +21,7 @@
 	import { useSupabaseGeneralTags } from '~/composables/Supabase/useSupabaseGeneralTags'
 	import { useSupabaseCompanies } from '~/composables/Supabase/useSupabaseCompanies'
 
-	// Crée un type générique qui ajoute 'label' à un type existant T
+	// Creates a generic type that adds 'label' to an existing type T
 	type MenuItem<T> = T & { label: string }
 
 	// Type étendu pour l'artiste avec groupes et membres
@@ -212,14 +212,14 @@
 				type: artistToEdit.value?.type,
 				gender: artistToEdit.value?.gender,
 				active_career: artistToEdit.value?.active_career,
-				// Convertir CalendarDate en ISO string pour la BDD
+				// Re-convert CalendarDate to ISO string for the database
 				birth_date: birthdayToDate.value
 					? new Date(birthdayToDate.value.toString()).toISOString()
 					: null,
 				debut_date: debutDateToDate.value
 					? new Date(debutDateToDate.value.toString()).toISOString()
 					: null,
-				// Mapper les objets sélectionnés pour obtenir les noms (ou IDs si backend changé)
+				// Map selected objects to get names (or IDs if backend changed)
 				styles: artistStyles.value.map((style) => style.name),
 				general_tags: artistTags.value.map((tag) => tag.name),
 			}
@@ -250,26 +250,22 @@
 				selectedCompanies,
 			)
 				.then(() => {
-					toast.add({ title: 'Artiste mis à jour avec succès', color: 'success' })
+					toast.add({ title: 'Artist updated successfully', color: 'green' })
 					isUploadingEdit.value = false
-					// Optionnel: recharger les données ou naviguer
+					// Optional: reload data or navigate
 					router.push(`/artist/${route.params.id}`)
 				})
 				.catch((error: any) => {
-					console.error("Erreur lors de la mise à jour de l'artiste:", error)
+					console.error("Error updating artist:", error)
 					toast.add({
-						title: "Erreur lors de la mise à jour de l'artiste",
+						title: "Error updating artist",
 						description: error.message,
 						color: 'error',
 					})
 				})
 		} catch (error: any) {
-			console.error("Erreur lors de la mise à jour de l'artiste:", error)
-			toast.add({
-				title: "Erreur lors de la mise à jour de l'artiste",
-				description: error.message,
-				color: 'error',
-			})
+			console.error("Error updating artist:", error)
+			toast.add({ title: 'Error updating artist', color: 'red' })
 		} finally {
 			isUploadingEdit.value = false
 		}
@@ -280,7 +276,7 @@
 		textarea.style.height = `${textarea.scrollHeight}px`
 	}
 
-	// Fonctions pour gérer les relations compagnies
+	// Functions to manage company relations
 	const addCompanyRelation = () => {
 		artistCompanies.value.push({
 			company: null,

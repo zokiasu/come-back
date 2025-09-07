@@ -2,21 +2,21 @@
 	import { ref, watchEffect } from 'vue'
 	import { useDebounce } from '~/composables/useDebounce'
 
-	// Initialisation des réactifs
+	// Initialize reactive variables
 	const searchInput = ref('')
 	const datas = ref([])
 	const isOpen = ref(false)
 
-	// Utilisation de Algolia Search de manière optimisée
+	// Use Algolia Search in an optimized way
 	const { result, search } = useAlgoliaSearch('ARTISTS')
 
-	// Définition d'une fonction de recherche débattue
+	// Define a debounced search function
 	const debouncedSearch = useDebounce(async (query: any) => {
 		await useAsyncData('ssr-search-results', () => search({ query }))
 		if (!result.value) return
 		console.log(result.value.hits)
 		datas.value = result.value.hits.slice(0, 10)
-	}, 500) // Attend 500ms après le dernier appel avant d'exécuter la fonction
+	}, 500) // Wait 500ms after the last call before executing the function
 
 	watchEffect(() => {
 		if (searchInput.value.length > 2) {

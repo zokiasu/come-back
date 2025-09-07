@@ -1,6 +1,6 @@
 <template>
 	<div class="relative">
-		<!-- Champ de recherche -->
+		<!-- Search field -->
 		<UInput
 			v-model="searchQuery"
 			:placeholder="placeholder"
@@ -23,7 +23,7 @@
 			</template>
 		</UInput>
 
-		<!-- Dropdown des résultats -->
+		<!-- Results dropdown -->
 		<div
 			v-if="
 				showDropdown &&
@@ -31,7 +31,7 @@
 			"
 			class="absolute top-full right-0 left-0 z-50 mt-1 max-h-60 overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800"
 		>
-			<!-- Options d'artistes -->
+			<!-- Artist options -->
 			<div v-if="artistOptions.length > 0" class="py-1">
 				<button
 					v-for="artist in artistOptions"
@@ -48,13 +48,13 @@
 						</p>
 						<p class="text-xs text-gray-500 dark:text-gray-400">
 							{{ getArtistTypeLabel(artist.type || 'SOLO') }}
-							<span v-if="artist.verified" class="text-primary-500 ml-1">• Vérifié</span>
+							<span v-if="artist.verified" class="text-primary-500 ml-1">• Verified</span>
 						</p>
 					</div>
 				</button>
 			</div>
 
-			<!-- Message quand aucun artiste trouvé -->
+			<!-- Message when no artist found -->
 			<div
 				v-else-if="searchQuery.length > 2 && !isSearching"
 				class="px-4 py-4 text-center"
@@ -63,9 +63,9 @@
 					name="i-heroicons-magnifying-glass"
 					class="mx-auto mb-2 h-6 w-6 text-gray-400"
 				/>
-				<p class="text-sm text-gray-500">Aucun artiste trouvé pour "{{ searchQuery }}"</p>
+				<p class="text-sm text-gray-500">No artist found for "{{ searchQuery }}"</p>
 				<p class="mt-1 text-xs text-gray-400">
-					Seuls les artistes existants peuvent être sélectionnés
+					Only existing artists can be selected
 				</p>
 			</div>
 
@@ -75,7 +75,7 @@
 					name="i-heroicons-arrow-path"
 					class="mx-auto mb-2 h-5 w-5 animate-spin text-gray-400"
 				/>
-				<p class="text-sm text-gray-500">Recherche en cours...</p>
+				<p class="text-sm text-gray-500">Searching...</p>
 			</div>
 		</div>
 	</div>
@@ -92,7 +92,7 @@
 			disabled: boolean
 		}>(),
 		{
-			placeholder: 'Rechercher un artiste...',
+			placeholder: 'Search for an artist...',
 			disabled: false,
 		},
 	)
@@ -119,9 +119,9 @@
 			case 'SOLO':
 				return 'Solo'
 			case 'GROUP':
-				return 'Groupe'
+				return 'Group'
 			case 'COLLECTIVE':
-				return 'Collectif'
+				return 'Collective'
 			default:
 				return type
 		}
@@ -149,7 +149,7 @@
 
 			artistOptions.value = artists || []
 		} catch (error) {
-			console.error("Erreur lors de la recherche d'artistes:", error)
+			console.error("Error searching for artists:", error)
 			artistOptions.value = []
 		} finally {
 			isSearching.value = false
@@ -199,7 +199,7 @@
 		() => props.modelValue,
 		async (newValue) => {
 			if (newValue && !selectedArtist.value) {
-				// Charger l'artiste si on a un ID mais pas d'artiste sélectionné
+				// Load the artist if we have an ID but no selected artist
 				try {
 					const artists = await getAllArtists({ limit: 100 })
 					const artist = artists?.find((a) => a.id === newValue)
@@ -208,7 +208,7 @@
 						searchQuery.value = artist.name
 					}
 				} catch (error) {
-					console.error("Erreur lors du chargement de l'artiste:", error)
+					console.error("Error loading artist:", error)
 				}
 			} else if (!newValue) {
 				selectedArtist.value = null
