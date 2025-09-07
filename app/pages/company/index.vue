@@ -71,7 +71,10 @@
 									size="sm"
 									:disabled="isLoading"
 									:class="{ 'text-white': selectedVerified === status.value }"
-									@click="selectedVerified = selectedVerified === status.value ? null : status.value"
+									@click="
+										selectedVerified =
+											selectedVerified === status.value ? null : status.value
+									"
 								>
 									{{ status.label }}
 								</UButton>
@@ -81,9 +84,7 @@
 
 					<!-- Active filters counter and clear button -->
 					<div v-if="hasActiveFilters" class="flex items-center justify-between">
-						<p class="text-sm text-gray-400">
-							{{ activeFiltersCount }} active filter(s)
-						</p>
+						<p class="text-sm text-gray-400">{{ activeFiltersCount }} active filter(s)</p>
 						<UButton
 							variant="outline"
 							size="xs"
@@ -99,10 +100,11 @@
 		</Transition>
 
 		<!-- Results header -->
-		<div v-if="!isLoading || companies.length > 0" class="flex items-center justify-between">
-			<p class="text-sm text-gray-400">
-				{{ totalCompanies }} company(ies) found
-			</p>
+		<div
+			v-if="!isLoading || companies.length > 0"
+			class="flex items-center justify-between"
+		>
+			<p class="text-sm text-gray-400">{{ totalCompanies }} company(ies) found</p>
 		</div>
 
 		<!-- Companies grid -->
@@ -116,13 +118,15 @@
 				v-for="company in companies"
 				:key="company.id"
 				:company="company"
-				class="!min-w-full !max-w-full"
+				class="!max-w-full !min-w-full"
 			/>
 		</transition-group>
 
 		<!-- Loading state -->
 		<div v-if="isLoading && companies.length === 0" class="py-8">
-			<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
+			<div
+				class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6"
+			>
 				<SkeletonDefault
 					v-for="i in 12"
 					:key="i"
@@ -138,7 +142,10 @@
 		<div v-if="!hasMore && companies.length > 0" class="py-4 text-center text-gray-400">
 			All companies are displayed.
 		</div>
-		<div v-if="!isLoading && companies.length === 0" class="py-8 text-center text-gray-400">
+		<div
+			v-if="!isLoading && companies.length === 0"
+			class="py-8 text-center text-gray-400"
+		>
 			No companies found.
 		</div>
 	</div>
@@ -170,7 +177,7 @@
 	// Verification status options
 	const verificationStatuses = [
 		{ value: true, label: 'Verified' },
-		{ value: false, label: 'Not verified' }
+		{ value: false, label: 'Not verified' },
 	]
 
 	const fetchCompanies = async (reset = false) => {
@@ -188,7 +195,7 @@
 				limit: limit.value,
 				offset: offset,
 				orderBy: 'name',
-				orderDirection: 'asc'
+				orderDirection: 'asc',
 			})
 
 			if (reset) {
@@ -231,10 +238,7 @@
 
 	// Computed to check if there are active filters
 	const hasActiveFilters = computed(() => {
-		return (
-			selectedType.value !== null ||
-			selectedVerified.value !== null
-		)
+		return selectedType.value !== null || selectedVerified.value !== null
 	})
 
 	// Computed to count the number of active filters
@@ -284,7 +288,8 @@
 		meta: [
 			{
 				name: 'description',
-				content: 'Discover all music companies, labels, publishers and distributors on Comeback.',
+				content:
+					'Discover all music companies, labels, publishers and distributors on Comeback.',
 			},
 		],
 	})

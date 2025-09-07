@@ -91,7 +91,10 @@
 
 	// Available years (from 1800 to current year)
 	const currentYear = new Date().getFullYear()
-	const availableYears = Array.from({ length: currentYear - 1799 }, (_, i) => currentYear - i)
+	const availableYears = Array.from(
+		{ length: currentYear - 1799 },
+		(_, i) => currentYear - i,
+	)
 
 	definePageMeta({
 		middleware: ['admin'],
@@ -131,16 +134,21 @@
 				<div class="flex items-end gap-2">
 					<ComebackLabel label="Logo Preview" />
 				</div>
-				<div class="bg-cb-quaternary-950 aspect-square w-full rounded flex items-center justify-center">
+				<div
+					class="bg-cb-quaternary-950 flex aspect-square w-full items-center justify-center rounded"
+				>
 					<NuxtImg
 						v-if="companyLogoUrl"
 						:src="companyLogoUrl"
 						:alt="companyName"
 						format="webp"
 						loading="lazy"
-						class="w-full h-full object-cover rounded"
+						class="h-full w-full rounded object-cover"
 					/>
-					<div v-else class="flex items-center justify-center text-8xl font-bold text-gray-400">
+					<div
+						v-else
+						class="flex items-center justify-center text-8xl font-bold text-gray-400"
+					>
 						{{ companyName.charAt(0).toUpperCase() || '?' }}
 					</div>
 				</div>
@@ -159,7 +167,7 @@
 					label="Website"
 					placeholder="https://company.com"
 				/>
-				
+
 				<!-- Type and Year -->
 				<div class="grid grid-cols-2 gap-4">
 					<!-- Company Type -->
@@ -212,7 +220,7 @@
 
 			<!-- Company Info Card -->
 			<div class="bg-cb-quinary-900 rounded-lg p-4">
-				<h3 class="text-lg font-semibold mb-4">Preview</h3>
+				<h3 class="mb-4 text-lg font-semibold">Preview</h3>
 				<div class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
 					<div v-if="companyName" class="space-y-1">
 						<h4 class="text-sm font-semibold text-gray-300">Name</h4>
@@ -234,14 +242,20 @@
 					</div>
 					<div v-if="companyWebsite" class="space-y-1">
 						<h4 class="text-sm font-semibold text-gray-300">Website</h4>
-						<a :href="companyWebsite" target="_blank" class="text-sm text-blue-400 hover:underline">
+						<a
+							:href="companyWebsite"
+							target="_blank"
+							class="text-sm text-blue-400 hover:underline"
+						>
 							{{ companyWebsite }}
 						</a>
 					</div>
 				</div>
 				<div v-if="companyDescription" class="mt-4 space-y-1">
 					<h4 class="text-sm font-semibold text-gray-300">Description</h4>
-					<p class="text-sm text-gray-300 whitespace-pre-line">{{ companyDescription }}</p>
+					<p class="text-sm whitespace-pre-line text-gray-300">
+						{{ companyDescription }}
+					</p>
 				</div>
 			</div>
 		</div>

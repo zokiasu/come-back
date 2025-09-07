@@ -23,7 +23,8 @@
 			"Bash(find:*)",
 			"Bash(grep:*)",
 			"mcp__supabase__generate_typescript_types",
-			"Bash(git push:*)"
+			"Bash(git push:*)",
+			"WebFetch(domain:ui.nuxt.com)"
 		],
 		"deny": []
 	},

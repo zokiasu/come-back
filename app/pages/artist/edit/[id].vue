@@ -77,6 +77,11 @@
 	const validGenders = ['MALE', 'FEMALE', 'MIXTE', 'UNKNOWN', 'OTHER'] as const
 	const artistTypes = ['SOLO', 'GROUP'] as const
 
+	// État de la modal de création de company
+	const isCompanyModalOpen = ref(false)
+	// Clé pour forcer la re-render des UInputMenu des companies
+	const companiesMenuKey = ref(0)
+
 	const birthdayToDate = ref<Date | null>(null)
 	const debutDateToDate = ref<Date | null>(null)
 
@@ -294,12 +299,38 @@
 		}
 	}
 
+	// Fonction pour gérer la mise à jour après création de company
+	const handleCompanyUpdated = async () => {
+		try {
+			// Récupérer toutes les companies sans limite
+			const companiesResponse = await getAllCompanies({ limit: 1000 })
+			console.log('Companies updated:', companiesResponse)
+			companiesList.value = companiesResponse.companies
+
+			// Force re-render des UInputMenu
+			companiesMenuKey.value = companiesMenuKey.value + 1
+
+			// Fermer la modal via v-model:open
+			isCompanyModalOpen.value = false
+		} catch (error) {
+			console.error('Error updating companies list:', error)
+			// Fermer la modal même en cas d'erreur
+			isCompanyModalOpen.value = false
+			// Seule notification en cas d'erreur de mise à jour
+			toast.add({
+				title: 'Warning',
+				description: 'Company created but list update failed',
+				color: 'warning',
+			})
+		}
+	}
+
 	onMounted(async () => {
 		try {
 			artist.value = await getFullArtistById(route.params.id as string)
 			stylesList.value = await getAllMusicStyles()
 			tagsList.value = await getAllGeneralTags()
-			const companiesResponse = await getAllCompanies()
+			const companiesResponse = await getAllCompanies({ limit: 1000 })
 			companiesList.value = companiesResponse.companies
 
 			if (artist.value) {
@@ -741,6 +772,7 @@
 					<ComebackLabel label="Company Relations" />
 					<div class="flex gap-2">
 						<UModal
+							v-model:open="isCompanyModalOpen"
 							:ui="{
 								overlay: 'bg-cb-quinary-950/75',
 								content: 'ring-cb-quinary-950',
@@ -755,15 +787,9 @@
 
 							<template #content>
 								<ModalCreateEditCompany
-									:is-open="true"
 									:company="null"
 									:is-creating="true"
-									@updated="
-										async () => {
-											const companiesResponse = await getAllCompanies()
-											companiesList = companiesResponse.companies
-										}
-									"
+									@updated="handleCompanyUpdated"
 								/>
 							</template>
 						</UModal>
@@ -794,6 +820,7 @@
 										Company
 									</label>
 									<UInputMenu
+										:key="`company-menu-${index}-${companiesMenuKey}`"
 										:model-value="relation.company"
 										:items="companiesForMenu"
 										by="id"

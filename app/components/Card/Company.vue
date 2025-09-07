@@ -37,7 +37,7 @@
 
 <template>
 	<div
-		class="bg-cb-quinary-900 hover:bg-cb-quinary-800 group relative min-w-44 max-w-44 overflow-hidden rounded-lg transition-all duration-300 ease-in-out hover:scale-105 cursor-pointer"
+		class="bg-cb-quinary-900 hover:bg-cb-quinary-800 group relative max-w-44 min-w-44 cursor-pointer overflow-hidden rounded-lg transition-all duration-300 ease-in-out hover:scale-105"
 		:class="{ 'opacity-75': isPast }"
 	>
 		<NuxtLink :to="`/company/${company.id}`" class="block">
@@ -58,35 +58,49 @@
 					{{ company.name?.charAt(0).toUpperCase() || '?' }}
 				</div>
 			</div>
-			
+
 			<!-- Company info overlay -->
-			<div class="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/80 via-transparent to-transparent p-3">
+			<div
+				class="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/80 via-transparent to-transparent p-3"
+			>
 				<div class="space-y-1">
-					<h3 class="font-semibold text-white text-sm line-clamp-2">
+					<h3 class="line-clamp-2 text-sm font-semibold text-white">
 						{{ company.name }}
 					</h3>
-					<div class="flex items-center gap-1 flex-wrap">
+					<div class="flex flex-wrap items-center gap-1">
 						<!-- Type de relation ou type de compagnie -->
-						<span 
+						<span
 							class="rounded px-2 py-1 text-xs font-medium text-white"
-							:class="relationshipType ? 'bg-cb-primary-900' : isPast ? 'bg-gray-600' : 'bg-cb-primary-900'"
+							:class="
+								relationshipType
+									? 'bg-cb-primary-900'
+									: isPast
+										? 'bg-gray-600'
+										: 'bg-cb-primary-900'
+							"
 						>
 							{{ relationshipType || getCompanyTypeLabel(company.type) }}
 						</span>
 						<!-- Badge vérifié -->
 						<span
 							v-if="showVerified && company.verified"
-							class="bg-green-600 rounded px-1 py-1 text-xs font-medium text-white"
+							class="rounded bg-green-600 px-1 py-1 text-xs font-medium text-white"
 						>
 							✓
 						</span>
 					</div>
 					<!-- Localisation si pas de relationshipType (pour la liste company) -->
-					<p v-if="!relationshipType && formatLocation(company.city, company.country)" class="text-xs text-gray-300">
+					<p
+						v-if="!relationshipType && formatLocation(company.city, company.country)"
+						class="text-xs text-gray-300"
+					>
 						{{ formatLocation(company.city, company.country) }}
 					</p>
 					<!-- Année de fondation si pas de relationshipType -->
-					<p v-if="!relationshipType && company.founded_year" class="text-xs text-gray-400">
+					<p
+						v-if="!relationshipType && company.founded_year"
+						class="text-xs text-gray-400"
+					>
 						Founded in {{ company.founded_year }}
 					</p>
 				</div>

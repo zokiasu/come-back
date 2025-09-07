@@ -223,12 +223,10 @@ export function useSupabaseCompanies() {
 		}
 
 		// Pagination
-		if (options?.offset || options?.limit) {
+		if (options?.offset !== undefined || options?.limit !== undefined) {
 			const from = options?.offset || 0
 			const to = from + (options?.limit || 10) - 1
 			query = query.range(from, to)
-		} else if (options?.limit) {
-			query = query.limit(options.limit)
 		}
 
 		const { data, error, count } = await query
@@ -280,16 +278,16 @@ export function useSupabaseCompanies() {
 			query = query.neq('id', excludeId)
 		}
 
-		const { data, error } = await query.single()
+		const { data, error } = await query
 
-		if (error && error.code !== 'PGRST116') {
+		if (error) {
 			throw createError({
 				statusCode: 400,
 				message: `Erreur lors de la vérification de l'existence: ${error.message}`,
 			})
 		}
 
-		return !!data
+		return data && data.length > 0
 	}
 
 	// Lier une company à un artiste

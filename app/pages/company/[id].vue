@@ -1,7 +1,10 @@
 <script setup lang="ts">
 	import { storeToRefs } from 'pinia'
 	import { useUserStore } from '@/stores/user'
-	import type { Company, CompanyArtist } from '~/composables/Supabase/useSupabaseCompanies'
+	import type {
+		Company,
+		CompanyArtist,
+	} from '~/composables/Supabase/useSupabaseCompanies'
 	import { useSupabaseCompanies } from '~/composables/Supabase/useSupabaseCompanies'
 
 	const userStore = useUserStore()
@@ -37,13 +40,13 @@
 	const currentArtists = computed(() =>
 		companyArtists.value
 			.filter((relation) => relation.is_current)
-			.sort((a, b) => (a.artist?.name || '').localeCompare(b.artist?.name || ''))
+			.sort((a, b) => (a.artist?.name || '').localeCompare(b.artist?.name || '')),
 	)
 
 	const pastArtists = computed(() =>
 		companyArtists.value
 			.filter((relation) => !relation.is_current)
-			.sort((a, b) => (a.artist?.name || '').localeCompare(b.artist?.name || ''))
+			.sort((a, b) => (a.artist?.name || '').localeCompare(b.artist?.name || '')),
 	)
 
 	const getCompanyTypeLabel = (type: string | undefined) => {
@@ -100,14 +103,23 @@
 				@load="imageBackLoaded = true"
 			/>
 			<!-- Background avec la première lettre si pas d'image -->
-			<div v-else-if="company?.name" class="absolute inset-0 bg-cb-quaternary-950 flex items-center justify-center">
-				<span class="text-9xl font-bold text-gray-400 md:text-[12rem] lg:text-[15rem] xl:text-[18rem] 2xl:text-[20rem] opacity-20">
+			<div
+				v-else-if="company?.name"
+				class="bg-cb-quaternary-950 absolute inset-0 flex items-center justify-center"
+			>
+				<span
+					class="text-9xl font-bold text-gray-400 opacity-20 md:text-[12rem] lg:text-[15rem] xl:text-[18rem] 2xl:text-[20rem]"
+				>
 					{{ company.name.charAt(0).toUpperCase() }}
 				</span>
 			</div>
 			<div
 				class="absolute inset-0 flex items-end p-5 transition-all duration-500 ease-in-out lg:p-10 xl:p-14 2xl:px-32"
-				:class="imageBackground && imageBackLoaded ? 'bg-cb-secondary-950/60' : 'bg-cb-secondary-950/60'"
+				:class="
+					imageBackground && imageBackLoaded
+						? 'bg-cb-secondary-950/60'
+						: 'bg-cb-secondary-950/60'
+				"
 			>
 				<div class="space-y-5 lg:container lg:mx-auto lg:px-5">
 					<SkeletonDefault v-if="isFetchingCompany" class="h-14 w-80 rounded" />
@@ -117,7 +129,10 @@
 					>
 						{{ company.name }}
 					</h1>
-					<div v-if="company.type || company.founded_year" class="flex flex-wrap gap-2 font-semibold">
+					<div
+						v-if="company.type || company.founded_year"
+						class="flex flex-wrap gap-2 font-semibold"
+					>
 						<p
 							v-if="company.type"
 							class="bg-cb-quaternary-950 w-fit rounded px-3 py-1 text-xs font-semibold whitespace-nowrap uppercase"
@@ -215,7 +230,11 @@
 							is-artist
 							:artist-id="String(relation.artist?.id ?? '')"
 							:main-title="relation.artist?.name ?? 'Artiste inconnu'"
-							:sub-title="relation.relationship_type ? getCompanyTypeLabel(relation.relationship_type) : undefined"
+							:sub-title="
+								relation.relationship_type
+									? getCompanyTypeLabel(relation.relationship_type)
+									: undefined
+							"
 							:image="relation.artist?.image"
 							:object-link="`/artist/${String(relation.artist?.id ?? '')}`"
 						/>
@@ -236,7 +255,11 @@
 							is-artist
 							:artist-id="String(relation.artist?.id ?? '')"
 							:main-title="relation.artist?.name ?? 'Artiste inconnu'"
-							:sub-title="relation.relationship_type ? getCompanyTypeLabel(relation.relationship_type) : undefined"
+							:sub-title="
+								relation.relationship_type
+									? getCompanyTypeLabel(relation.relationship_type)
+									: undefined
+							"
 							:image="relation.artist?.image"
 							:object-link="`/artist/${String(relation.artist?.id ?? '')}`"
 						/>

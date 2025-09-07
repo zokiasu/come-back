@@ -79,15 +79,21 @@
 	})
 
 	const currentCompanies = computed(() => {
-		return ((artist.value && (artist.value as any)['companies']) as any[] | undefined)
-			?.filter((relation) => relation.is_current)
-			.sort((a, b) => (a.company?.name || '').localeCompare(b.company?.name || '')) || []
+		return (
+			((artist.value && (artist.value as any)['companies']) as any[] | undefined)
+				?.filter((relation) => relation.is_current)
+				.sort((a, b) => (a.company?.name || '').localeCompare(b.company?.name || '')) ||
+			[]
+		)
 	})
 
 	const pastCompanies = computed(() => {
-		return ((artist.value && (artist.value as any)['companies']) as any[] | undefined)
-			?.filter((relation) => !relation.is_current)
-			.sort((a, b) => (a.company?.name || '').localeCompare(b.company?.name || '')) || []
+		return (
+			((artist.value && (artist.value as any)['companies']) as any[] | undefined)
+				?.filter((relation) => !relation.is_current)
+				.sort((a, b) => (a.company?.name || '').localeCompare(b.company?.name || '')) ||
+			[]
+		)
 	})
 
 	const editLink = computed(() => {
