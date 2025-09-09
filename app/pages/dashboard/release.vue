@@ -1,6 +1,6 @@
 <script setup lang="ts">
 	import type { Release } from '~/types'
-	import type { ReleaseType } from '~/types/supabase'
+	import type { ReleaseType } from '~/types'
 	import { useSupabaseRelease } from '~/composables/Supabase/useSupabaseRelease'
 	import type { AlgoliaHit } from '~/types/algolia'
 	import { useDebounce } from '~/composables/useDebounce'

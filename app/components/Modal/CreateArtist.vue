@@ -5,7 +5,7 @@
 		ArtistType,
 		ArtistPlatformLink,
 		ArtistSocialLink,
-	} from '~/types/supabase'
+	} from '~/types'
 
 	import { useSupabaseArtist } from '~/composables/Supabase/useSupabaseArtist'
 
@@ -98,6 +98,52 @@
 			}
 		})
 	})
+
+	// Functions to manage platform links
+	const updatePlatformName = (index: number, event: Event) => {
+		const platform = platformList.value[index]
+		if (platform) {
+			platform.name = (event.target as HTMLInputElement).value
+		}
+	}
+
+	const updatePlatformLink = (index: number, event: Event) => {
+		const platform = platformList.value[index]
+		if (platform) {
+			platform.link = (event.target as HTMLInputElement).value
+		}
+	}
+
+	const addPlatform = () => {
+		platformList.value.push({ name: '', link: '' })
+	}
+
+	const removePlatform = (index: number) => {
+		platformList.value.splice(index, 1)
+	}
+
+	// Functions to manage social links
+	const updateSocialName = (index: number, event: Event) => {
+		const social = socialList.value[index]
+		if (social) {
+			social.name = (event.target as HTMLInputElement).value
+		}
+	}
+
+	const updateSocialLink = (index: number, event: Event) => {
+		const social = socialList.value[index]
+		if (social) {
+			social.link = (event.target as HTMLInputElement).value
+		}
+	}
+
+	const addSocial = () => {
+		socialList.value.push({ name: '', link: '' })
+	}
+
+	const removeSocial = (index: number) => {
+		socialList.value.splice(index, 1)
+	}
 
 	const sendCreateArtist = async () => {
 		isUploadingEdit.value = true
@@ -292,32 +338,26 @@
 							:value="platform.name"
 							placeholder="Platform's Name"
 							class="w-full appearance-none border-b bg-transparent transition-all duration-150 ease-in-out outline-none"
-							@input="
-								(e: Event) =>
-									(platformList[index].name = (e.target as HTMLInputElement).value)
-							"
+							@input="updatePlatformName(index, $event)"
 						/>
 						<input
 							type="text"
 							:value="platform.link"
 							placeholder="Platform's Link"
 							class="w-full appearance-none border-b bg-transparent transition-all duration-150 ease-in-out outline-none"
-							@input="
-								(e: Event) =>
-									(platformList[index].link = (e.target as HTMLInputElement).value)
-							"
+							@input="updatePlatformLink(index, $event)"
 						/>
 					</div>
 					<button
 						class="bg-cb-primary-900 rounded p-1 text-xs hover:bg-red-900"
-						@click="platformList.splice(index, 1)"
+						@click="removePlatform(index)"
 					>
 						<IconDelete class="h-5 w-5" />
 					</button>
 				</div>
 				<button
 					class="bg-cb-primary-900 w-full rounded p-2 text-xs font-semibold uppercase hover:bg-red-900"
-					@click="platformList.push({ name: '', link: '' })"
+					@click="addPlatform"
 				>
 					Add Platforms
 				</button>
@@ -332,32 +372,26 @@
 							:value="social.name"
 							placeholder="Social's Name"
 							class="w-full appearance-none border-b bg-transparent transition-all duration-150 ease-in-out outline-none"
-							@input="
-								(e: Event) =>
-									(socialList[index].name = (e.target as HTMLInputElement).value)
-							"
+							@input="updateSocialName(index, $event)"
 						/>
 						<input
 							type="text"
 							:value="social.link"
 							placeholder="Social's Link"
 							class="w-full appearance-none border-b bg-transparent transition-all duration-150 ease-in-out outline-none"
-							@input="
-								(e: Event) =>
-									(socialList[index].link = (e.target as HTMLInputElement).value)
-							"
+							@input="updateSocialLink(index, $event)"
 						/>
 					</div>
 					<button
 						class="bg-cb-primary-900 rounded p-1 text-xs hover:bg-red-900"
-						@click="socialList.splice(index, 1)"
+						@click="removeSocial(index)"
 					>
 						<IconDelete class="h-5 w-5" />
 					</button>
 				</div>
 				<button
 					class="bg-cb-primary-900 w-full rounded p-2 text-xs font-semibold uppercase hover:bg-red-900"
-					@click="socialList.push({ name: '', link: '' })"
+					@click="addSocial"
 				>
 					Add Socials
 				</button>

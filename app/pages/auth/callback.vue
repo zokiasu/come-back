@@ -14,9 +14,9 @@
 <script setup lang="ts">
 	const statusMessage = ref('Verifying session...')
 	const debugInfo = ref('')
-	const debugMode = ref(false) // Activez pour debug
+	const debugMode = ref(false) // Enable for debug
 
-	// Désactiver le middleware auth pour cette page
+	// Disable auth middleware for this page
 	definePageMeta({
 		middleware: [],
 	})

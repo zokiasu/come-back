@@ -1,7 +1,7 @@
 <script setup lang="ts">
 	import { useDebounce } from '~/composables/useDebounce'
 	import { useSupabaseCompanies } from '~/composables/Supabase/useSupabaseCompanies'
-	import type { Company } from '~/composables/Supabase/useSupabaseCompanies'
+	import type { Company } from '~/types'
 	import { useInfiniteScroll } from '@vueuse/core'
 
 	// Types
@@ -334,7 +334,7 @@
 					<p class="text-lg font-bold">{{ stats.total }}</p>
 				</div>
 				<div class="bg-cb-quinary-900 rounded p-3 text-center">
-					<p class="text-cb-tertiary-200 text-xs uppercase">Vérifiées</p>
+					<p class="text-cb-tertiary-200 text-xs uppercase">Verified</p>
 					<p class="text-lg font-bold">{{ stats.verified }}</p>
 				</div>
 				<div class="bg-cb-quinary-900 rounded p-3 text-center">
@@ -411,7 +411,7 @@
 						v-model="typeFilter"
 						class="bg-cb-quinary-900 placeholder-cb-tertiary-200 rounded border-none p-2 text-xs uppercase transition-all duration-300 ease-in-out focus:outline-none sm:w-fit"
 					>
-						<option value="">Tous les types</option>
+						<option value="">All types</option>
 						<option v-for="type in companyTypes" :key="type" :value="type">
 							{{ type }}
 						</option>
@@ -420,9 +420,9 @@
 						v-model="verifiedFilter"
 						class="bg-cb-quinary-900 placeholder-cb-tertiary-200 rounded border-none p-2 text-xs uppercase transition-all duration-300 ease-in-out focus:outline-none sm:w-fit"
 					>
-						<option value="all">Toutes</option>
-						<option value="verified">Vérifiées</option>
-						<option value="unverified">Non vérifiées</option>
+						<option value="all">All</option>
+						<option value="verified">Verified</option>
+						<option value="unverified">Unverified</option>
 					</select>
 				</div>
 				<div class="flex space-x-2">
@@ -430,11 +430,11 @@
 						v-model="sort"
 						class="bg-cb-quinary-900 placeholder-cb-tertiary-200 hover:bg-cb-tertiary-200 hover:text-cb-quinary-900 w-full rounded border-none p-2 text-xs uppercase drop-shadow-xl transition-all duration-300 ease-in-out focus:outline-none sm:w-fit"
 					>
-						<option value="name">Nom</option>
+						<option value="name">Name</option>
 						<option value="type">Type</option>
-						<option value="founded_year">Année de création</option>
-						<option value="created_at">Date de création</option>
-						<option value="updated_at">Dernière mise à jour</option>
+						<option value="founded_year">Founded year</option>
+						<option value="created_at">Creation date</option>
+						<option value="updated_at">Last update</option>
 					</select>
 					<button
 						class="bg-cb-quinary-900 placeholder-cb-tertiary-200 hover:bg-cb-tertiary-200 hover:text-cb-quinary-900 rounded border-none p-2 drop-shadow-xl transition-all duration-300 ease-in-out focus:outline-none"
@@ -479,7 +479,7 @@
 			v-else-if="!isLoading"
 			class="bg-cb-quaternary-950 w-full p-5 text-center font-semibold uppercase"
 		>
-			Aucune company trouvée
+			No company found
 		</p>
 
 		<div ref="observerTarget" class="mb-4 h-4 w-full"></div>

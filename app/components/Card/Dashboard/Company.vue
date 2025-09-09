@@ -119,11 +119,11 @@
 			<p v-else class="text-cb-tertiary-400 text-sm italic">Aucune description</p>
 		</div>
 
-		<!-- Informations détaillées -->
+		<!-- Detailed information -->
 		<div class="mb-3 space-y-2 text-xs">
 			<div v-if="foundedYear" class="flex items-center space-x-2">
 				<span class="text-cb-tertiary-200">📅</span>
-				<span class="text-cb-tertiary-300">Fondée en {{ foundedYear }}</span>
+				<span class="text-cb-tertiary-300">Founded in {{ foundedYear }}</span>
 			</div>
 			<div class="flex items-center space-x-2">
 				<span class="text-cb-tertiary-200">📍</span>
@@ -151,14 +151,14 @@
 					<button
 						class="bg-cb-primary-900 hover:bg-cb-primary-800 rounded px-2 py-1 text-xs text-white transition-colors"
 						@click="handleEdit"
-						title="Modifier la company"
+						title="Edit company"
 					>
 						✏️
 					</button>
 					<button
 						class="rounded bg-red-600 px-2 py-1 text-xs text-white transition-colors hover:bg-red-700"
 						@click="handleDelete"
-						title="Supprimer la company"
+						title="Delete company"
 					>
 						🗑️
 					</button>

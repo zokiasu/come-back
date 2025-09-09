@@ -191,7 +191,7 @@
 				id="search-input"
 				v-model="search"
 				type="text"
-				placeholder="Rechercher par artiste, utilisateur ou message"
+				placeholder="Search by artist, user or message"
 				class="bg-cb-quinary-900 placeholder-cb-tertiary-200 focus:bg-cb-tertiary-200 focus:text-cb-quinary-900 focus:placeholder-cb-quinary-900 w-full rounded border-none px-5 py-2 drop-shadow-xl transition-all duration-300 ease-in-out focus:outline-none"
 			/>
 			<section class="flex w-full flex-col gap-2 sm:flex-row sm:justify-between">

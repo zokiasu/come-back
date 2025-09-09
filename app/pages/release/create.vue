@@ -2,15 +2,15 @@
 	<div class="min-h-screen py-8">
 		<UContainer>
 			<div class="mx-auto max-w-4xl space-y-6">
-				<!-- En-tête -->
+				<!-- Header -->
 				<div>
 					<h1 class="text-tertiary mb-2 text-3xl font-bold">
-						Créer une nouvelle release
+						Create new release
 					</h1>
-					<p>Ajoutez une release manuellement avec tous ses détails et musiques</p>
+					<p>Add a release manually with all its details and music</p>
 				</div>
 
-				<!-- Formulaire principal -->
+				<!-- Main form -->
 				<UCard class="bg-cb-quinary-900">
 					<UForm
 						:schema="releaseSchema"

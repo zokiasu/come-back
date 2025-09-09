@@ -9,6 +9,9 @@ export type User = Tables<'users'>
 export type Artist = Tables<'artists'> & {
 	social_links?: any[]
 	platform_links?: any[]
+	companies?: (Tables<'artist_companies'> & {
+		company: Tables<'companies'>
+	})[]
 }
 export type Release = Tables<'releases'> & {
 	platform_links?: any[]
@@ -41,11 +44,42 @@ export type MusicUpdate = TablesUpdate<'musics'>
 export type NewsUpdate = TablesUpdate<'news'>
 
 // ===== ENUMS ET TYPES PERSONNALISÉS =====
-export type UserRole = 'USER' | 'ADMIN'
-export type ArtistType = 'SOLO' | 'GROUP' | 'COLLECTIVE'
+export type UserRole = 'USER' | 'ADMIN' | 'CONTRIBUTOR'
+export type ArtistType = 'SOLO' | 'GROUP'
+export type ArtistGender = 'MALE' | 'FEMALE' | 'MIXTE' | 'OTHER' | 'UNKNOWN'
 export type ReleaseType = 'ALBUM' | 'EP' | 'SINGLE' | 'MIXTAPE' | 'COMPILATION'
-export type MusicType = 'TRACK' | 'INSTRUMENTAL' | 'REMIX' | 'LIVE' | 'ACOUSTIC'
-export type RelationType = 'MEMBER' | 'FORMER_MEMBER' | 'COLLABORATOR' | 'FEATURE'
+export type MusicType = 'SONG'
+export type RelationType = 'MEMBER' | 'GROUP' | 'PRODUCER' | 'COMPOSER'
+
+// ===== TYPES POUR LES COMPOSABLES =====
+export type CompanyType = 'LABEL' | 'PUBLISHER' | 'DISTRIBUTOR' | 'MANAGER' | 'AGENCY' | 'STUDIO' | 'OTHER'
+
+export interface Company {
+	id: string
+	name: string
+	description?: string
+	type?: CompanyType
+	website?: string
+	city?: string
+	country?: string
+	founded_year?: number
+	logo_url?: string
+	verified?: boolean
+	created_at?: string
+	updated_at?: string
+}
+
+export interface CompanyArtist {
+	id: string
+	artist_id: string
+	company_id: string
+	relationship_type: string | null
+	start_date: string | null
+	end_date: string | null
+	is_current: boolean
+	created_at: string | null
+	updated_at: string | null
+}
 
 // ===== TYPES ALGOLIA =====
 export interface AlgoliaHit {
@@ -57,14 +91,16 @@ export interface AlgoliaHit {
 	idYoutubeMusic?: string
 	styles?: any[]
 	socialList?: any[]
+	date?: string
+	year?: number
+	artists?: any[]
+	musics?: any[]
 	platformList?: any[]
 	created_at?: string
 	updated_at?: string
 	// Propriétés spécifiques aux releases
 	artistsName?: string
 	artistsId?: string
-	date?: string
-	year?: number
 	needToBeVerified?: boolean
 	// Propriétés Algolia
 	_highlightResult?: Record<string, any>

@@ -167,11 +167,10 @@
 				>
 					<div class="flex items-center justify-between text-sm">
 						<span class="text-cb-tertiary-400">
-							En cours : {{ playlistInfo.current }}/{{ playlistInfo.total }}
+							Current: {{ playlistInfo.current }}/{{ playlistInfo.total }}
 						</span>
 						<span class="text-cb-tertiary-500">
-							{{ playlist.length }} musique{{ playlist.length > 1 ? 's' : '' }} dans la
-							file
+							{{ playlist.length }} song{{ playlist.length > 1 ? 's' : '' }} in queue
 						</span>
 					</div>
 				</div>

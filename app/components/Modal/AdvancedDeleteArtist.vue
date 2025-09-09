@@ -52,7 +52,7 @@
 		try {
 			impact.value = await getArtistDeletionImpact(props.artistId)
 		} catch (error) {
-			console.error("Erreur lors de l'analyse d'impact:", error)
+			console.error("Error during impact analysis:", error)
 		} finally {
 			isLoading.value = false
 		}
@@ -66,7 +66,7 @@
 			await deleteArtistWithMode(props.artistId, deletionMode.value)
 			emit('confirm')
 		} catch (error: any) {
-			console.error('Erreur lors de la suppression:', error)
+			console.error('Error during deletion:', error)
 		} finally {
 			isDeleting.value = false
 		}
@@ -92,7 +92,7 @@
 		<UCard>
 			<template #header>
 				<div class="flex items-center justify-between">
-					<h3 class="text-lg font-semibold text-red-600">🗑️ Suppression avancée</h3>
+					<h3 class="text-lg font-semibold text-red-600">🗑️ Advanced deletion</h3>
 					<UButton
 						color="gray"
 						variant="ghost"
@@ -104,7 +104,7 @@
 
 			<div class="space-y-4">
 				<div class="rounded-lg border border-red-200 bg-red-50 p-4">
-					<p class="text-sm font-medium text-red-800">Supprimer l'artiste :</p>
+					<p class="text-sm font-medium text-red-800">Delete artist:</p>
 					<p class="mt-1 text-lg font-bold text-red-900">
 						{{ artistName }}
 					</p>
@@ -112,18 +112,18 @@
 
 				<!-- Choix du mode de suppression -->
 				<div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
-					<h4 class="mb-3 font-semibold text-gray-800">Mode de suppression :</h4>
+					<h4 class="mb-3 font-semibold text-gray-800">Deletion mode:</h4>
 
 					<div class="space-y-3">
 						<label class="flex cursor-pointer items-start space-x-3">
 							<input v-model="deletionMode" type="radio" value="safe" class="mt-1" />
 							<div>
 								<p class="font-medium text-green-700">
-									🛡️ Suppression sécurisée (recommandé)
+									🛡️ Secure deletion (recommended)
 								</p>
 								<p class="text-sm text-gray-600">
-									Analyse le contenu et préserve les éléments partagés avec d'autres
-									artistes
+									Analyzes content and preserves elements shared with other
+									artists
 								</p>
 							</div>
 						</label>
@@ -131,9 +131,9 @@
 						<label class="flex cursor-pointer items-start space-x-3">
 							<input v-model="deletionMode" type="radio" value="simple" class="mt-1" />
 							<div>
-								<p class="font-medium text-orange-700">⚡ Suppression rapide</p>
+								<p class="font-medium text-orange-700">⚡ Quick deletion</p>
 								<p class="text-sm text-gray-600">
-									Supprime seulement les relations de l'artiste, plus rapide
+									Deletes only artist relations, faster
 								</p>
 							</div>
 						</label>
@@ -144,7 +144,7 @@
 				<div v-if="deletionMode === 'safe'">
 					<div v-if="isLoading" class="flex justify-center py-6">
 						<UIcon name="i-heroicons-arrow-path" class="h-6 w-6 animate-spin" />
-						<span class="ml-2 text-sm text-gray-600">Analyse des conséquences...</span>
+						<span class="ml-2 text-sm text-gray-600">Analyzing consequences...</span>
 					</div>
 
 					<div v-else-if="impact" class="space-y-4">
@@ -186,7 +186,7 @@
 
 			<template #footer>
 				<div class="flex justify-end space-x-3">
-					<UButton color="gray" variant="outline" @click="close">Annuler</UButton>
+					<UButton color="gray" variant="outline" @click="close">Cancel</UButton>
 					<UButton
 						:color="deletionMode === 'safe' ? 'red' : 'orange'"
 						:loading="isDeleting"
@@ -195,10 +195,10 @@
 					>
 						{{
 							isDeleting
-								? 'Suppression...'
+								? 'Deleting...'
 								: deletionMode === 'safe'
-									? 'Supprimer (sécurisé)'
-									: 'Supprimer (rapide)'
+									? 'Delete (secure)'
+									: 'Delete (quick)'
 						}}
 					</UButton>
 				</div>

@@ -10,8 +10,8 @@
 		ArtistType,
 		ArtistPlatformLink,
 		ArtistSocialLink,
-	} from '~/types/supabase'
-	import type { Company } from '~/composables/Supabase/useSupabaseCompanies'
+		Company,
+	} from '~/types'
 
 	// Internal Composables
 	import { useSupabaseArtist } from '~/composables/Supabase/useSupabaseArtist'
@@ -95,10 +95,14 @@
 
 	const companiesForMenu = computed(() => {
 		return companiesList.value.map(
-			(company): MenuItem<Company> => ({
-				...company,
-				label: company.name,
-			}),
+			(company): MenuItem<Omit<Company, 'type'>> => {
+				// eslint-disable-next-line @typescript-eslint/no-unused-vars
+				const { type, ...rest } = company
+				return {
+					...rest,
+					label: company.name,
+				}
+			},
 		)
 	})
 
@@ -246,6 +250,52 @@
 		if (artistCompanies.value[index]) {
 			artistCompanies.value[index].company = company
 		}
+	}
+
+	// Functions to manage platform links
+	const updatePlatformName = (index: number, event: Event) => {
+		const platform = artistPlatformList.value[index]
+		if (platform) {
+			platform.name = (event.target as HTMLInputElement).value
+		}
+	}
+
+	const updatePlatformLink = (index: number, event: Event) => {
+		const platform = artistPlatformList.value[index]
+		if (platform) {
+			platform.link = (event.target as HTMLInputElement).value
+		}
+	}
+
+	const addPlatform = () => {
+		artistPlatformList.value.push({ name: '', link: '' })
+	}
+
+	const removePlatform = (platform: Omit<ArtistPlatformLink, 'id' | 'created_at' | 'artist_id'>) => {
+		artistPlatformList.value.splice(artistPlatformList.value.indexOf(platform), 1)
+	}
+
+	// Functions to manage social links
+	const updateSocialName = (index: number, event: Event) => {
+		const social = artistSocialList.value[index]
+		if (social) {
+			social.name = (event.target as HTMLInputElement).value
+		}
+	}
+
+	const updateSocialLink = (index: number, event: Event) => {
+		const social = artistSocialList.value[index]
+		if (social) {
+			social.link = (event.target as HTMLInputElement).value
+		}
+	}
+
+	const addSocial = () => {
+		artistSocialList.value.push({ name: '', link: '' })
+	}
+
+	const removeSocial = (social: Omit<ArtistSocialLink, 'id' | 'created_at' | 'artist_id'>) => {
+		artistSocialList.value.splice(artistSocialList.value.indexOf(social), 1)
 	}
 
 	onMounted(async () => {
@@ -414,7 +464,7 @@
 										? 'bg-cb-primary-900 text-white'
 										: 'bg-cb-quaternary-950'
 								"
-								@click="artistGender = gender"
+								@click="artistGender = gender as ArtistGender"
 							>
 								{{ gender }}
 							</button>
@@ -444,7 +494,7 @@
 										? 'bg-cb-primary-900 text-white'
 										: 'bg-cb-quaternary-950'
 								"
-								@click="artistType = type"
+								@click="artistType = type as ArtistType"
 							>
 								{{ type }}
 							</button>
@@ -619,7 +669,7 @@
 										Company
 									</label>
 									<UInputMenu
-										:model-value="relation.company"
+										v-model="relation.company"
 										:items="companiesForMenu"
 										by="id"
 										placeholder="Select a company"
@@ -630,9 +680,7 @@
 											content: 'bg-cb-quaternary-950',
 											item: 'rounded cursor-pointer data-highlighted:before:bg-cb-primary-900/30 hover:bg-cb-primary-900',
 										}"
-										@update:model-value="
-											(company: Company) => updateCompanyInRelation(index, company)
-										"
+										@update:model-value="(company: Company) => updateCompanyInRelation(index, company)"
 									/>
 								</div>
 
@@ -793,36 +841,26 @@
 								:value="platform.name"
 								placeholder="Platform's Name"
 								class="w-full appearance-none border-b bg-transparent transition-all duration-150 ease-in-out outline-none"
-								@input="
-									(e: Event) =>
-										(artistPlatformList[index].name = (
-											e.target as HTMLInputElement
-										).value)
-								"
+								@input="updatePlatformName(index, $event)"
 							/>
 							<input
 								type="text"
 								:value="platform.link"
 								placeholder="Platform's Link"
 								class="w-full appearance-none border-b bg-transparent transition-all duration-150 ease-in-out outline-none"
-								@input="
-									(e: Event) =>
-										(artistPlatformList[index].link = (
-											e.target as HTMLInputElement
-										).value)
-								"
+								@input="updatePlatformLink(index, $event)"
 							/>
 						</div>
 						<button
 							class="bg-cb-primary-900 rounded p-5 text-xs hover:bg-red-900"
-							@click="artistPlatformList.splice(artistPlatformList.indexOf(platform), 1)"
+							@click="removePlatform(platform)"
 						>
 							Delete
 						</button>
 					</div>
 					<button
 						class="bg-cb-primary-900 w-full rounded p-2 text-xs font-semibold uppercase hover:bg-red-900"
-						@click="artistPlatformList.push({ name: '', link: '' })"
+						@click="addPlatform"
 					>
 						Add Platforms
 					</button>
@@ -841,34 +879,26 @@
 								:value="social.name"
 								placeholder="Social's Name"
 								class="w-full appearance-none border-b bg-transparent transition-all duration-150 ease-in-out outline-none"
-								@input="
-									(e: Event) =>
-										(artistSocialList[index].name =
-											(e.target as HTMLInputElement).value || '')
-								"
+								@input="updateSocialName(index, $event)"
 							/>
 							<input
 								type="text"
 								:value="social.link"
 								placeholder="Social's Link"
 								class="w-full appearance-none border-b bg-transparent transition-all duration-150 ease-in-out outline-none"
-								@input="
-									(e: Event) =>
-										(artistSocialList[index].link =
-											(e.target as HTMLInputElement).value || '')
-								"
+								@input="updateSocialLink(index, $event)"
 							/>
 						</div>
 						<button
 							class="bg-cb-primary-900 rounded p-5 text-xs hover:bg-red-900"
-							@click="artistSocialList.splice(artistSocialList.indexOf(social), 1)"
+							@click="removeSocial(social)"
 						>
 							Delete
 						</button>
 					</div>
 					<button
 						class="bg-cb-primary-900 w-full rounded p-2 text-xs font-semibold uppercase hover:bg-red-900"
-						@click="artistSocialList.push({ name: '', link: '' })"
+						@click="addSocial"
 					>
 						Add Socials
 					</button>
