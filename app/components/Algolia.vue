@@ -41,7 +41,7 @@
 			icon="material-symbols:search"
 			variant="soft"
 			title="Search"
-			class="lg:bg-cb-quaternary-950 lg:hover:bg-cb-tertiary-200/20 w-full items-center justify-center rounded-none bg-transparent px-0 text-white lg:aspect-square lg:h-full lg:rounded lg:text-xs"
+			class="lg:bg-cb-quaternary-950 lg:hover:bg-cb-tertiary-200/20 w-full items-center justify-center rounded-none bg-transparent text-white lg:aspect-square lg:h-full lg:rounded lg:text-xs"
 			@click="isOpen = true"
 		/>
 
