@@ -4,7 +4,7 @@ import type {
 	ArtistType,
 	ArtistSocialLink,
 	ArtistPlatformLink,
-} from '~/types/supabase'
+} from '~/types'
 import type { Artist } from '~/types'
 import { useGeneralFunction } from '@/composables/useGeneralFunction'
 import { useSupabaseClient } from '#imports'

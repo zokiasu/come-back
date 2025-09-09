@@ -138,10 +138,10 @@
 <template>
 	<UForm @submit="saveChanges" class="space-y-4">
 		<!-- Nom de la release -->
-		<UFormField label="Nom" name="name" required>
+		<UFormField label="Name" name="name" required>
 			<UInput
 				v-model="formData.name"
-				placeholder="Nom de la release"
+				placeholder="Release name"
 				:disabled="isLoading"
 				class="w-full"
 			/>
@@ -165,7 +165,7 @@
 		</UFormField>
 
 		<!-- Année -->
-		<UFormField label="Année" name="year">
+		<UFormField label="Year" name="year">
 			<UInput
 				v-model.number="formData.year"
 				type="number"
@@ -180,7 +180,7 @@
 		<UFormField name="verified">
 			<UCheckbox
 				v-model="formData.verified"
-				label="Release vérifiée"
+				label="Verified release"
 				:disabled="isLoading"
 			/>
 		</UFormField>
@@ -194,7 +194,7 @@
 				@click="emit('close')"
 				:disabled="isLoading"
 			>
-				Annuler
+				Cancel
 			</UButton>
 			<UButton type="submit" :loading="isLoading">Sauvegarder</UButton>
 		</div>

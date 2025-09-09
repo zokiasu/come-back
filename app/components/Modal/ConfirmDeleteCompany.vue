@@ -34,7 +34,7 @@
 <template>
 	<UCard class="w-full max-w-md">
 		<template #header>
-			<h2 class="text-lg font-semibold text-white">Confirmer la suppression</h2>
+			<h2 class="text-lg font-semibold text-white">Confirm deletion</h2>
 		</template>
 
 		<!-- Contenu -->
@@ -57,13 +57,13 @@
 				</div>
 			</div>
 			<p class="text-cb-tertiary-200 text-center">
-				Êtes-vous sûr de vouloir supprimer la company
+				Are you sure you want to delete the company
 				<span class="font-semibold text-white">"{{ companyName }}"</span>
 				?
 			</p>
 			<p class="text-cb-tertiary-400 mt-2 text-center text-sm">
-				Cette action est irréversible. Toutes les relations avec les artistes seront
-				également supprimées.
+				This action is irreversible. All relationships with artists will be
+				also deleted.
 			</p>
 		</div>
 
@@ -74,7 +74,7 @@
 				@click="handleClose"
 				:disabled="isDeleting"
 			>
-				Annuler
+				Cancel
 			</button>
 			<button
 				class="rounded bg-red-600 px-4 py-2 text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
@@ -95,9 +95,9 @@
 							d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
 						/>
 					</svg>
-					<span>Suppression...</span>
+					<span>Deleting...</span>
 				</span>
-				<span v-else>Supprimer définitivement</span>
+				<span v-else>Delete permanently</span>
 			</button>
 		</div>
 	</UCard>

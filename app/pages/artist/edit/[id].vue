@@ -1,6 +1,6 @@
 <script setup lang="ts">
 	// External Packages
-	import { CalendarDate, DateFormatter, getLocalTimeZone } from '@internationalized/date'
+	import { CalendarDate, DateFormatter } from '@internationalized/date'
 	import { storeToRefs } from 'pinia'
 	import { useUserStore } from '~/stores/user'
 
@@ -12,6 +12,7 @@
 		ArtistType,
 		ArtistPlatformLink,
 		ArtistSocialLink,
+		CompanyType,
 	} from '~/types'
 	import type { Company } from '~/composables/Supabase/useSupabaseCompanies'
 
@@ -134,6 +135,7 @@
 
 	const groupsForMenu = computed(() => {
 		return groupList.value.map((artist): MenuItem<Omit<Artist, 'type'>> => {
+			// eslint-disable-next-line @typescript-eslint/no-unused-vars
 			const { type, ...rest } = artist
 			return {
 				...rest,
@@ -144,6 +146,7 @@
 
 	const membersForMenu = computed(() => {
 		return artistsList.value.map((artist): MenuItem<Omit<Artist, 'type'>> => {
+			// eslint-disable-next-line @typescript-eslint/no-unused-vars
 			const { type, ...rest } = artist
 			return {
 				...rest,
@@ -239,10 +242,12 @@
 				updates,
 				artistSocialList.value,
 				artistPlatformList.value,
+				// eslint-disable-next-line @typescript-eslint/no-unused-vars
 				artistGroups.value.map(({ label, ...rest }) => ({
 					...rest,
 					type: 'GROUP' as const,
 				})),
+				// eslint-disable-next-line @typescript-eslint/no-unused-vars
 				artistMembers.value.map(({ label, ...rest }) => ({
 					...rest,
 					type: 'SOLO' as const,
@@ -250,27 +255,32 @@
 				selectedCompanies,
 			)
 				.then(() => {
-					toast.add({ title: 'Artist updated successfully', color: 'green' })
+					toast.add({
+						title: 'Artist updated successfully',
+						color: 'success',
+					})
 					isUploadingEdit.value = false
 					// Optional: reload data or navigate
 					router.push(`/artist/${route.params.id}`)
 				})
 				.catch((error: any) => {
-					console.error("Error updating artist:", error)
+					// Error updating artist
 					toast.add({
-						title: "Error updating artist",
+						title: 'Error updating artist',
 						description: error.message,
 						color: 'error',
 					})
 				})
-		} catch (error: any) {
-			console.error("Error updating artist:", error)
-			toast.add({ title: 'Error updating artist', color: 'red' })
+		} catch {
+			// Error updating artist
+			toast.add({
+				title: 'Error updating artist',
+				color: 'error',
+			})
 		} finally {
 			isUploadingEdit.value = false
 		}
 	}
-
 	const adjustTextarea = (textarea: HTMLTextAreaElement) => {
 		textarea.style.height = 'auto'
 		textarea.style.height = `${textarea.scrollHeight}px`
@@ -295,12 +305,58 @@
 		}
 	}
 
+	// Functions to manage platform links
+	const updatePlatformName = (index: number, event: Event) => {
+		const platform = artistPlatformList.value[index]
+		if (platform) {
+			platform.name = (event.target as HTMLInputElement).value
+		}
+	}
+
+	const updatePlatformLink = (index: number, event: Event) => {
+		const platform = artistPlatformList.value[index]
+		if (platform) {
+			platform.link = (event.target as HTMLInputElement).value
+		}
+	}
+
+	const addPlatform = () => {
+		artistPlatformList.value.push({ name: '', link: '' })
+	}
+
+	const removePlatform = (index: number) => {
+		artistPlatformList.value.splice(index, 1)
+	}
+
+	// Functions to manage social links
+	const updateSocialName = (index: number, event: Event) => {
+		const social = artistSocialList.value[index]
+		if (social) {
+			social.name = (event.target as HTMLInputElement).value || ''
+		}
+	}
+
+	const updateSocialLink = (index: number, event: Event) => {
+		const social = artistSocialList.value[index]
+		if (social) {
+			social.link = (event.target as HTMLInputElement).value || ''
+		}
+	}
+
+	const addSocial = () => {
+		artistSocialList.value.push({ name: '', link: '' })
+	}
+
+	const removeSocial = (index: number) => {
+		artistSocialList.value.splice(index, 1)
+	}
+
 	// Fonction pour gérer la mise à jour après création de company
 	const handleCompanyUpdated = async () => {
 		try {
 			// Récupérer toutes les companies sans limite
 			const companiesResponse = await getAllCompanies({ limit: 1000 })
-			console.log('Companies updated:', companiesResponse)
+			// Companies updated successfully
 			companiesList.value = companiesResponse.companies
 
 			// Force re-render des UInputMenu
@@ -308,8 +364,8 @@
 
 			// Fermer la modal via v-model:open
 			isCompanyModalOpen.value = false
-		} catch (error) {
-			console.error('Error updating companies list:', error)
+		} catch {
+			// Error updating companies list
 			// Fermer la modal même en cas d'erreur
 			isCompanyModalOpen.value = false
 			// Seule notification en cas d'erreur de mise à jour
@@ -375,10 +431,24 @@
 				// Charger les compagnies liées à l'artiste
 				artistCompanies.value =
 					artist.value.companies?.map((companyRelation) => ({
-						company: companyRelation.company,
+						company: companyRelation.company
+							? {
+									...companyRelation.company,
+									description: companyRelation.company.description ?? undefined,
+									type: companyRelation.company.type as CompanyType | undefined,
+									website: companyRelation.company.website ?? undefined,
+									city: companyRelation.company.city ?? undefined,
+									country: companyRelation.company.country ?? undefined,
+									founded_year: companyRelation.company.founded_year ?? undefined,
+									logo_url: companyRelation.company.logo_url ?? undefined,
+									verified: companyRelation.company.verified ?? undefined,
+									created_at: companyRelation.company.created_at ?? undefined,
+									updated_at: companyRelation.company.updated_at ?? undefined,
+								}
+							: null,
 						relationship_type: companyRelation.relationship_type || 'LABEL',
-						start_date: companyRelation.start_date || undefined,
-						end_date: companyRelation.end_date || undefined,
+						start_date: companyRelation.start_date ?? undefined,
+						end_date: companyRelation.end_date ?? undefined,
 						is_current: companyRelation.is_current ?? true,
 					})) || []
 
@@ -401,9 +471,9 @@
 				description.value = artist.value.description || ''
 			}
 		} catch (error: any) {
-			console.error("Erreur lors du chargement de l'artiste:", error)
+			console.error('Error loading artist:', error)
 			toast.add({
-				title: "Erreur lors du chargement de l'artiste",
+				title: 'Error loading artist',
 				description: error.message,
 				color: 'error',
 			})
@@ -458,38 +528,36 @@
 					:alt="artistToEdit.name"
 					format="webp"
 					loading="lazy"
-					class="w-full rounded object-cover"
+					class="h-32 w-32 rounded object-cover"
 				/>
-				<div v-if="!artistToEdit.id_youtube_music">
-					<UFormField label="Image personnalisée">
-						<div
-							class="border-cb-primary-900 hover:bg-cb-primary-900/10 cursor-pointer rounded border-2 border-dashed p-4 text-center transition"
-							@click="() => fileInput && fileInput.click()"
-							@dragover.prevent="isDragging = true"
-							@dragleave.prevent="isDragging = false"
-							@drop.prevent="onDrop"
-							:class="{ 'bg-cb-primary-900/20': isDragging }"
-						>
-							<input
-								ref="fileInput"
-								type="file"
-								accept="image/*"
-								class="hidden"
-								@change="onFileChange"
-							/>
-							<div v-if="!imagePreview">
-								<span class="block text-sm text-gray-400">
-									Glissez-déposez une image ici ou cliquez pour choisir un fichier
-								</span>
-							</div>
-							<img
-								v-if="imagePreview"
-								:src="imagePreview"
-								class="mx-auto mt-2 h-32 w-32 rounded object-cover"
-							/>
+				<UFormField v-if="isAdminStore" label="Image personnalisée">
+					<div
+						:class="{ 'bg-cb-primary-900/20': isDragging }"
+						class="border-cb-primary-900 hover:bg-cb-primary-900/10 cursor-pointer rounded border-2 border-dashed p-4 text-center transition"
+						@click="() => fileInput && fileInput.click()"
+						@dragover.prevent="isDragging = true"
+						@dragleave.prevent="isDragging = false"
+						@drop.prevent="onDrop"
+					>
+						<input
+							ref="fileInput"
+							type="file"
+							accept="image/*"
+							class="hidden"
+							@change="onFileChange"
+						/>
+						<div v-if="!imagePreview">
+							<span class="block text-sm text-gray-400">
+								Glissez-déposez une image ici ou cliquez pour choisir un fichier
+							</span>
 						</div>
-					</UFormField>
-				</div>
+						<img
+							v-if="imagePreview"
+							:src="imagePreview"
+							class="mx-auto mt-2 h-32 w-32 rounded object-cover"
+						/>
+					</div>
+				</UFormField>
 				<div v-else class="text-xs text-gray-500 italic">
 					L'image sera automatiquement synchronisée depuis YouTube Music.
 				</div>
@@ -865,8 +933,8 @@
 
 							<!-- Bouton de suppression -->
 							<button
-								@click="removeCompanyRelation(index)"
 								class="ml-3 rounded bg-red-600 p-2 text-xs text-white hover:bg-red-700"
+								@click="removeCompanyRelation(index)"
 							>
 								Remove
 							</button>
@@ -887,7 +955,7 @@
 					v-model="artistToEdit.description"
 					:placeholder="artistToEdit.description || 'Description'"
 					class="focus:bg-cb-tertiary-200 focus:text-cb-secondary-950 min-h-full w-full appearance-none border-b bg-transparent transition-all duration-150 ease-in-out focus:rounded focus:p-1.5 focus:outline-none"
-					@input="(e: Event) => adjustTextarea(e.target as HTMLTextAreaElement)"
+					@input="adjustTextarea($event.target as HTMLTextAreaElement)"
 				/>
 			</div>
 
@@ -996,42 +1064,26 @@
 								:value="platform.name"
 								placeholder="Platform's Name"
 								class="w-full appearance-none border-b bg-transparent transition-all duration-150 ease-in-out outline-none"
-								@input="
-									(e: Event) => {
-										if (artistPlatformList[index]) {
-											artistPlatformList[index].name = (
-												e.target as HTMLInputElement
-											).value
-										}
-									}
-								"
+								@input="updatePlatformName(index, $event)"
 							/>
 							<input
 								type="text"
 								:value="platform.link"
 								placeholder="Platform's Link"
 								class="w-full appearance-none border-b bg-transparent transition-all duration-150 ease-in-out outline-none"
-								@input="
-									(e: Event) => {
-										if (artistPlatformList[index]) {
-											artistPlatformList[index].link = (
-												e.target as HTMLInputElement
-											).value
-										}
-									}
-								"
+								@input="updatePlatformLink(index, $event)"
 							/>
 						</div>
 						<button
 							class="bg-cb-primary-900 rounded p-5 text-xs hover:bg-red-900"
-							@click="artistPlatformList.splice(index, 1)"
+							@click="removePlatform(index)"
 						>
 							Delete
 						</button>
 					</div>
 					<button
 						class="bg-cb-primary-900 w-full rounded p-2 text-xs font-semibold uppercase hover:bg-red-900"
-						@click="artistPlatformList.push({ name: '', link: '' })"
+						@click="addPlatform"
 					>
 						Add Platforms
 					</button>
@@ -1050,40 +1102,26 @@
 								:value="social.name"
 								placeholder="Social's Name"
 								class="w-full appearance-none border-b bg-transparent transition-all duration-150 ease-in-out outline-none"
-								@input="
-									(e: Event) => {
-										if (artistSocialList[index]) {
-											artistSocialList[index].name =
-												(e.target as HTMLInputElement).value || ''
-										}
-									}
-								"
+								@input="updateSocialName(index, $event)"
 							/>
 							<input
 								type="text"
 								:value="social.link"
 								placeholder="Social's Link"
 								class="w-full appearance-none border-b bg-transparent transition-all duration-150 ease-in-out outline-none"
-								@input="
-									(e: Event) => {
-										if (artistSocialList[index]) {
-											artistSocialList[index].link =
-												(e.target as HTMLInputElement).value || ''
-										}
-									}
-								"
+								@input="updateSocialLink(index, $event)"
 							/>
 						</div>
 						<button
 							class="bg-cb-primary-900 rounded p-5 text-xs hover:bg-red-900"
-							@click="artistSocialList.splice(index, 1)"
+							@click="removeSocial(index)"
 						>
 							Delete
 						</button>
 					</div>
 					<button
 						class="bg-cb-primary-900 w-full rounded p-2 text-xs font-semibold uppercase hover:bg-red-900"
-						@click="artistSocialList.push({ name: '', link: '' })"
+						@click="addSocial"
 					>
 						Add Socials
 					</button>

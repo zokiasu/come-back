@@ -644,6 +644,46 @@ export function useSupabaseMusic() {
 		}
 	}
 
+	// Récupère les derniers MV ajoutés
+	const getLatestMVs = async (count: number = 7): Promise<Music[]> => {
+		try {
+			const { data, error } = await supabase
+				.from('musics')
+				.select(
+					`
+					*,
+					artists:music_artists(
+						artist:artists(*)
+					),
+					releases:music_releases(
+						release:releases(*)
+					)
+				`,
+				)
+				.eq('ismv', true)
+				.order('date', { ascending: false, nullsFirst: false })
+				.order('created_at', { ascending: false })
+				.limit(count)
+
+			if (error) {
+				console.error('Error loading latest MVs:', error)
+				return []
+			}
+
+			// Transform the data to match the expected format
+			const transformedData = (data as any[]).map((music: any) => ({
+				...music,
+				artists: music.artists?.map((ma: any) => ma.artist) || [],
+				releases: music.releases?.map((mr: any) => mr.release) || [],
+			}))
+
+			return transformedData as Music[]
+		} catch (error) {
+			console.error('Error fetching latest MVs:', error)
+			return []
+		}
+	}
+
 	return {
 		updateMusic,
 		updateMusicArtists,
@@ -659,5 +699,6 @@ export function useSupabaseMusic() {
 		addMusicToRelease,
 		removeMusicFromRelease,
 		getMusicsByPage,
+		getLatestMVs,
 	}
 }

@@ -78,7 +78,7 @@
 					<img src="~/assets/image/logo.png" alt="Comeback" class="block h-8 w-auto" />
 				</NuxtLink>
 
-				<nav class="flex items-center justify-center gap-x-5 text-sm">
+				<div class="flex items-center justify-center gap-x-5 text-sm">
 					<NuxtLink
 						:to="`/`"
 						:class="routeIsIndex ? 'font-semibold text-white' : 'text-zinc-500'"
@@ -110,7 +110,7 @@
 					>
 						Dashboard
 					</NuxtLink>
-				</nav>
+				</div>
 
 				<div class="flex items-center justify-center gap-3">
 					<Algolia ref="algolia" />

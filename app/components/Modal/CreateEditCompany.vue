@@ -43,7 +43,7 @@
 		founded_year: '',
 	})
 
-	// Réinitialiser le formulaire
+	// Reset form
 	const resetForm = () => {
 		Object.assign(formData, {
 			name: '',
@@ -83,7 +83,7 @@
 
 	// Validation
 	const validateForm = async (): Promise<boolean> => {
-		// Réinitialiser les erreurs
+		// Reset errors
 		Object.assign(errors, {
 			name: '',
 			website: '',

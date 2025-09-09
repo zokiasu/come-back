@@ -2,10 +2,10 @@
 	<div class="space-y-6">
 		<div class="border-b border-gray-200 pb-4 dark:border-gray-700">
 			<h4 class="mb-2 text-lg font-medium text-gray-900 dark:text-white">
-				Ajouter des musiques
+				Add music
 			</h4>
 			<p class="text-sm text-gray-500 dark:text-gray-400">
-				Recherchez des musiques existantes ou créez-en de nouvelles
+				Search for existing music or create new ones
 			</p>
 		</div>
 
@@ -19,7 +19,7 @@
 						:search="searchMusics"
 						:items="musicOptions"
 						option-attribute="name"
-						placeholder="Rechercher une musique existante..."
+						placeholder="Search for existing music..."
 						:loading="isSearching"
 						:disabled="loading"
 						size="lg"
@@ -58,8 +58,8 @@
 								class="flex flex-col items-center justify-center py-6 text-sm text-gray-500 dark:text-gray-400"
 							>
 								<UIcon name="i-heroicons-magnifying-glass" class="mb-2 h-6 w-6" />
-								<span v-if="query">Aucune musique trouvée pour "{{ query }}"</span>
-								<span v-else>Tapez pour rechercher une musique</span>
+								<span v-if="query">No music found for "{{ query }}"</span>
+								<span v-else>Type to search for music</span>
 							</div>
 						</template>
 					</UInputMenu>
@@ -76,12 +76,12 @@
 										{{ selectedMusic.name }}
 									</p>
 									<p class="text-xs text-green-600 dark:text-green-400">
-										Prête à être ajoutée à la release
+										Ready to be added to the release
 									</p>
 								</div>
 							</div>
 							<UButton @click="addExistingMusic" :loading="loading" size="sm">
-								Ajouter
+								Add
 							</UButton>
 						</div>
 					</div>
@@ -97,10 +97,10 @@
 					class="space-y-4"
 				>
 					<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-						<UFormField label="Titre de la musique" name="name" required>
+						<UFormField label="Music title" name="name" required>
 							<UInput
 								v-model="newMusicForm.name"
-								placeholder="Ex: Nouvelle chanson"
+								placeholder="Ex: New song"
 								:disabled="loading"
 							/>
 						</UFormField>
@@ -115,7 +115,7 @@
 					</div>
 
 					<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-						<UFormField label="Durée (secondes)" name="duration">
+						<UFormField label="Duration (seconds)" name="duration">
 							<UInput
 								v-model.number="newMusicForm.duration"
 								type="number"
@@ -125,7 +125,7 @@
 							/>
 						</UFormField>
 
-						<UFormField label="Langue" name="language">
+						<UFormField label="Language" name="language">
 							<USelect
 								v-model="newMusicForm.language"
 								:items="languageOptions"
@@ -136,7 +136,7 @@
 
 					<!-- IDs externes optionnels -->
 					<UAccordion
-						:items="[{ label: 'Informations avancées (optionnel)', slot: 'advanced' }]"
+						:items="[{ label: 'Advanced information (optional)', slot: 'advanced' }]"
 						variant="soft"
 					>
 						<template #advanced>
@@ -202,7 +202,7 @@
 							Réinitialiser
 						</UButton>
 						<UButton type="submit" :loading="loading" icon="i-heroicons-plus">
-							Créer et ajouter
+							Create and add
 						</UButton>
 					</div>
 				</UForm>
@@ -254,12 +254,12 @@
 	const tabItems = [
 		{
 			key: 'search',
-			label: 'Rechercher',
+			label: 'Search',
 			description: 'Musiques existantes',
 		},
 		{
 			key: 'create',
-			label: 'Créer',
+			label: 'Create',
 			description: 'Nouvelle musique',
 		},
 	]
@@ -337,7 +337,7 @@
 			musicOptions.value = musics
 			return musics
 		} catch (error) {
-			console.error('Erreur lors de la recherche de musiques:', error)
+			console.error('Error searching for music:', error)
 			return []
 		} finally {
 			isSearching.value = false
@@ -349,7 +349,7 @@
 		selectedMusic.value = music
 	}
 
-	// Ajouter une musique existante
+	// Add existing music
 	const addExistingMusic = () => {
 		if (selectedMusic.value) {
 			emit('music-added', selectedMusic.value)
@@ -357,7 +357,7 @@
 		}
 	}
 
-	// Créer et ajouter une nouvelle musique
+	// Create and add new music
 	const createAndAddMusic = async () => {
 		try {
 			const musicData = {
@@ -382,16 +382,16 @@
 				resetNewMusicForm()
 
 				toast.add({
-					title: 'Musique créée avec succès',
+					title: 'Music created successfully',
 					description: `"${createdMusic.name}" a été créée.`,
 					color: 'success',
 				})
 			}
 		} catch (error) {
-			console.error('Erreur lors de la création de la musique:', error)
+			console.error('Error creating music:', error)
 			toast.add({
-				title: 'Erreur lors de la création',
-				description: 'Une erreur est survenue lors de la création de la musique.',
+				title: 'Error during creation',
+				description: 'An error occurred while creating the music.',
 				color: 'error',
 			})
 		}

@@ -109,7 +109,7 @@ export default [
 			// General rules
 			'no-unused-vars': 'off', // Use TypeScript version instead
 			'no-undef': 'warn',
-			'no-console': 'warn',
+			'no-console': ['warn', { allow: ['error'] }],
 		},
 	},
 
@@ -209,7 +209,7 @@ export default [
 			// Disable conflicting rules
 			'no-undef': 'off',
 			'no-unused-vars': 'off', // Use TypeScript version instead
-			'no-console': 'warn',
+			'no-console': ['warn', { allow: ['error'] }],
 		},
 	},
 
