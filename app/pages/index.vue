@@ -8,17 +8,19 @@
 	const { getRealtimeLastestNewsAdded } = useSupabaseNews()
 	const { getRealtimeLastestReleasesAdded } = useSupabaseRelease()
 	const { getRealtimeLastestArtistsAdded } = useSupabaseArtist()
-	const { getRandomMusics } = useSupabaseMusic()
+	const { getRandomMusics, getLatestMVs } = useSupabaseMusic()
 
 	const comebacks = ref<News[]>([])
 	const artists = ref<Artist[]>([])
 	const releases = ref<Release[]>([])
 	const musics = ref<Music[]>([])
+	const mvs = ref<Music[]>([])
 
 	const newsFetching = ref<boolean>(true)
 	const releasesFetching = ref<boolean>(true)
 	const artistsFetching = ref<boolean>(true)
 	const musicsFetching = ref<boolean>(true)
+	const mvsFetching = ref<boolean>(true)
 
 	const comebacksToday = computed<News[]>(() => {
 		return comebacks.value.filter((comeback) => {
@@ -70,6 +72,13 @@
 					resolve()
 				})
 			}),
+			new Promise<void>((resolve) => {
+				getLatestMVs(14).then((mvList) => {
+					mvs.value = mvList
+					mvsFetching.value = false
+					resolve()
+				})
+			}),
 		])
 	})
 
@@ -89,7 +98,7 @@
 				v-if="comebacks.length > 0 && !newsFetching"
 				:comeback-list="comebacks"
 			/>
-			<div v-else-if="newsFetching" class="grid grid-cols-2 gap-5 xl:grid-cols-3">
+			<div v-else-if="newsFetching" class="grid grid-cols-1 gap-5 xl:grid-cols-3">
 				<SkeletonDefault class="h-16 w-full rounded-lg" />
 				<SkeletonDefault class="h-16 w-full rounded-lg" />
 				<SkeletonDefault class="h-16 w-full rounded-lg" />
@@ -97,6 +106,7 @@
 				<SkeletonDefault class="h-16 w-full rounded-lg" />
 				<SkeletonDefault class="h-16 w-full rounded-lg" />
 			</div>
+
 			<!-- Discover Music -->
 			<div
 				v-if="musics.length > 0 && !musicsFetching"
@@ -122,6 +132,27 @@
 				<SkeletonDefault class="h-80 w-full rounded-lg" />
 				<SkeletonDefault class="h-80 w-full rounded-lg" />
 			</div>
+			
+			<!-- Latest MV -->
+			<div
+				v-if="mvs.length > 0 && !mvsFetching"
+				class="space-y-8 text-center xl:space-y-10"
+			>
+				<p class="text-xl font-bold lg:text-4xl">Latest MV</p>
+				<DiscoverMV :mvs="mvs" />
+			</div>
+			<div v-else-if="mvsFetching" class="space-y-4">
+				<p class="text-xl font-bold lg:text-4xl text-center">Latest MV</p>
+				<SkeletonDefault class="aspect-video w-full rounded-lg" />
+				<div class="flex space-x-3 justify-center">
+					<SkeletonDefault
+						v-for="i in 7"
+						:key="i"
+						class="aspect-video w-20 flex-shrink-0 rounded-lg md:w-24"
+					/>
+				</div>
+			</div>
+			
 			<!-- Recent Release -->
 			<LazyRecentReleases
 				v-if="releases.length > 0 && !releasesFetching"
@@ -140,6 +171,7 @@
 				<SkeletonDefault class="h-52 w-full rounded-lg" />
 				<SkeletonDefault class="h-52 w-full rounded-lg" />
 			</div>
+
 			<!-- Last Artist Added -->
 			<LazyArtistAdded v-if="artists.length > 0 && !artistsFetching" :artists="artists" />
 			<div
