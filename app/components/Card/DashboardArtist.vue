@@ -22,19 +22,23 @@
 		},
 		image: {
 			type: String,
-			required: true,
+			required: false,
+			default: '',
 		},
 		description: {
 			type: String,
-			required: true,
+			required: false,
+			default: '',
 		},
 		type: {
 			type: String,
-			required: true,
+			required: false,
+			default: undefined,
 		},
 		idYoutubeMusic: {
 			type: String,
-			required: true,
+			required: false,
+			default: undefined,
 		},
 		styles: {
 			type: Array,
@@ -54,28 +58,34 @@
 		},
 		createdAt: {
 			type: String,
-			required: true,
+			required: false,
+			default: undefined,
 		},
 		updatedAt: {
 			type: String,
-			required: true,
+			required: false,
+			default: undefined,
 		},
 	})
 
 	const skeleton = ref(null)
 	const showFullDescription = ref(false)
 
-	const createdAtDate = new Date(createdAt).toLocaleDateString('fr-FR', {
-		day: '2-digit',
-		month: '2-digit',
-		year: '2-digit',
-	})
+	const createdAtDate = createdAt
+		? new Date(createdAt).toLocaleDateString('fr-FR', {
+				day: '2-digit',
+				month: '2-digit',
+				year: '2-digit',
+			})
+		: ''
 
-	const updatedAtDate = new Date(updatedAt).toLocaleDateString('fr-FR', {
-		day: '2-digit',
-		month: '2-digit',
-		year: '2-digit',
-	})
+	const updatedAtDate = updatedAt
+		? new Date(updatedAt).toLocaleDateString('fr-FR', {
+				day: '2-digit',
+				month: '2-digit',
+				year: '2-digit',
+			})
+		: ''
 
 	const emit = defineEmits(['deleteArtist'])
 	const deleteArtist = () => {
@@ -83,7 +93,9 @@
 	}
 
 	const loadingDone = () => {
-		skeleton.value.classList.add('opacity-0')
+		if (skeleton.value) {
+			skeleton.value.classList.add('opacity-0')
+		}
 	}
 
 	const socialLinksEl = ref(null)

@@ -1,19 +1,13 @@
 <script setup lang="ts">
 	import { CalendarDate } from '@internationalized/date'
 
-	import algoliasearch from 'algoliasearch/lite'
 	import type { News } from '~/types'
 	import { useSupabaseNews } from '~/composables/Supabase/useSupabaseNews'
-	import { useDebounce } from '~/composables/useDebounce'
+	import { useSupabaseSearch } from '~/composables/useSupabaseSearch'
 
 	const toast = useToast()
-	const config = useRuntimeConfig()
 	const { createNews } = useSupabaseNews()
-	const client = algoliasearch(
-		config.public.ALGOLIA_APPLICATION_ID,
-		config.public.ALGOLIA_API_KEY,
-	)
-	const index = client.initIndex('ARTISTS')
+	const { searchArtistsFullText } = useSupabaseSearch()
 
 	const sendNews = ref<boolean>(false)
 	const isOpen = ref<boolean>(false)
@@ -39,8 +33,11 @@
 	// Définition d'une fonction de recherche débattue
 	const debouncedSearch = useDebounce(async (query) => {
 		try {
-			const { hits } = await index.search(query)
-			artistListSearched.value = hits.slice(0, 10)
+			const result = await searchArtistsFullText({
+				query,
+				limit: 10
+			})
+			artistListSearched.value = result.artists
 		} catch (error) {
 			console.error('Erreur lors de la recherche:', error)
 		}
@@ -80,11 +77,14 @@
 	}
 
 	const addArtistToNews = (artist: any) => {
-		artistListSelected.value.push({
-			id: artist.objectID,
-			name: artist.name,
-			picture: artist.image,
-		})
+		// Avoid duplicates
+		if (!artistListSelected.value.some((a) => a.id === artist.id)) {
+			artistListSelected.value.push({
+				id: artist.id,
+				name: artist.name,
+				picture: artist.image,
+			})
+		}
 		clearSearch()
 	}
 

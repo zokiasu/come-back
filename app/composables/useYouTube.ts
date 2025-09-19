@@ -10,8 +10,6 @@ export const useYouTube = () => {
 
 	// Fonction pour jouer une musique (utilisée maintenant par le système de playlist)
 	const playMusic = (videoId: string, musicName: string, artistName: string) => {
-		console.log('🎵 Lecture de:', { videoId, musicName, artistName })
-
 		if (!videoId) {
 			console.error('❌ ID vidéo manquant')
 			return false
@@ -40,7 +38,6 @@ export const useYouTube = () => {
 
 	// Fonction pour arrêter la musique
 	const stopMusic = () => {
-		console.log('🎵 Arrêt de la musique')
 		isPlayingVideo.value = false
 		idYoutubeVideo.value = ''
 		musicNamePlaying.value = 'Music Name'

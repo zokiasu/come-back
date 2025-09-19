@@ -141,49 +141,159 @@ const createArtistWithContribution = async (artistData: any) => {
 </template>
 ```
 
-## ⚙️ `useSupabaseAlgoliaConfig`
+## 🔍 **Recherche avec `useSupabaseSearch`**
 
-### **1. Page d'administration Algolia**
+### **1. Recherche d'artistes basique**
 
 ```vue
-<!-- Dans AlgoliaConfigPage.vue -->
 <script setup>
+	const { searchArtistsFullText } = useSupabaseSearch()
+	const searchQuery = ref('')
+	const searchResults = ref([])
+	const isLoading = ref(false)
+
+	const performSearch = async () => {
+		if (!searchQuery.value.trim()) {
+			searchResults.value = []
+			return
+		}
+
+		isLoading.value = true
+		try {
+			const result = await searchArtistsFullText({
+				query: searchQuery.value,
+				limit: 10,
+				type: 'SOLO' // optionnel
+			})
+			searchResults.value = result.artists
+		} catch (error) {
+			console.error('Erreur de recherche:', error)
+		} finally {
+			isLoading.value = false
+		}
+	}
+
+	// Recherche avec debounce
+	const debouncedSearch = useDebounce(performSearch, 300)
+	watch(searchQuery, debouncedSearch)
+</script>
+
+<template>
+	<div>
+		<input
+			v-model="searchQuery"
+			placeholder="Rechercher un artiste..."
+			class="search-input"
+		/>
+
+		<div v-if="isLoading" class="loading">
+			Recherche en cours...
+		</div>
+
+		<div v-else-if="searchResults.length" class="results">
+			<div
+				v-for="artist in searchResults"
+				:key="artist.id"
+				class="result-item"
+			>
+				<img :src="artist.image" :alt="artist.name" />
+				<h3>{{ artist.name }}</h3>
+				<p>{{ artist.description }}</p>
+			</div>
+		</div>
+
+		<div v-else-if="searchQuery.trim()" class="no-results">
+			Aucun artiste trouvé
+		</div>
+	</div>
+</template>
+```
+
+### **2. Composant de recherche réutilisable**
+
+```vue
+<!-- ArtistSearchSelect.vue -->
+<script setup>
+	const { searchArtistsFullText } = useSupabaseSearch()
+	const searchInput = ref('')
+	const suggestions = ref([])
+	const isLoading = ref(false)
+	const modelValue = defineModel('modelValue', { default: null })
+
+	const debouncedSearch = useDebounce(async (query) => {
+		if (query.length < 2) {
+			suggestions.value = []
+			return
+		}
+
+		isLoading.value = true
+		try {
+			const result = await searchArtistsFullText({
+				query,
+				limit: 10
+			})
+			suggestions.value = result.artists
+		} catch (error) {
+			console.error('Erreur de recherche:', error)
+		} finally {
+			isLoading.value = false
+		}
+	}, 300)
+
+	watch(searchInput, (value) => debouncedSearch(value))
+
+	const selectArtist = (artist) => {
+		modelValue.value = artist
+		searchInput.value = artist.name
+		suggestions.value = []
+	}
+</script>
+
+<template>
+	<div class="relative">
+		<input
+			v-model="searchInput"
+			placeholder="Rechercher un artiste..."
+			class="w-full p-2 border rounded"
+		/>
+
+		<div v-if="suggestions.length" class="absolute z-10 bg-white border shadow-lg">
+			<div
+				v-for="artist in suggestions"
+				:key="artist.id"
+				class="p-2 hover:bg-gray-100 cursor-pointer"
+				@click="selectArtist(artist)"
+			>
+				{{ artist.name }}
+			</div>
+		</div>
+	</div>
+</template>
+```
 	const {
-		getAlgoliaConfig,
-		updateAlgoliaConfig,
-		testAlgoliaConnection,
-		syncAllArtistsToAlgolia,
-		isAlgoliaEnabled,
-	} = useSupabaseAlgoliaConfig()
 
 	const config = ref({})
 	const isEnabled = ref(false)
 	const isLoading = ref(false)
 
 	onMounted(async () => {
-		config.value = await getAlgoliaConfig()
-		isEnabled.value = await isAlgoliaEnabled()
 	})
 
 	const saveConfig = async () => {
 		isLoading.value = true
 		try {
-			await updateAlgoliaConfig(config.value)
-			isEnabled.value = await isAlgoliaEnabled()
 		} finally {
 			isLoading.value = false
 		}
 	}
 
 	const testConnection = async () => {
-		const result = await testAlgoliaConnection()
 		console.log('Test result:', result)
 	}
 
 	const syncArtists = async () => {
 		isLoading.value = true
 		try {
-			await syncAllArtistsToAlgolia()
 		} finally {
 			isLoading.value = false
 		}
@@ -191,8 +301,6 @@ const createArtistWithContribution = async (artistData: any) => {
 </script>
 
 <template>
-	<div class="algolia-config">
-		<h2>Configuration Algolia</h2>
 
 		<div class="status">
 			<span :class="isEnabled ? 'status-enabled' : 'status-disabled'">
@@ -244,12 +352,9 @@ const createArtistWithContribution = async (artistData: any) => {
 </template>
 ```
 
-### **2. Composant de statut Algolia**
 
 ```vue
-<!-- Dans AlgoliaStatus.vue -->
 <script setup>
-	const { isAlgoliaEnabled, getAlgoliaConfig } = useSupabaseAlgoliaConfig()
 
 	const status = ref({
 		enabled: false,
@@ -258,9 +363,7 @@ const createArtistWithContribution = async (artistData: any) => {
 	})
 
 	onMounted(async () => {
-		const config = await getAlgoliaConfig()
 		status.value = {
-			enabled: await isAlgoliaEnabled(),
 			configured: !!(config.ALGOLIA_APPLICATION_ID && config.ALGOLIA_API_KEY),
 			indexName: config.ALGOLIA_INDEX_NAME,
 		}
@@ -268,9 +371,7 @@ const createArtistWithContribution = async (artistData: any) => {
 </script>
 
 <template>
-	<div class="algolia-status">
 		<div class="status-item">
-			<span class="label">Algolia:</span>
 			<span :class="status.enabled ? 'text-green-600' : 'text-red-600'">
 				{{ status.enabled ? 'Activé' : 'Désactivé' }}
 			</span>
@@ -292,17 +393,11 @@ const createArtistWithSync = async (artistData: any) => {
 	// Créer l'artiste
 	const artist = await createArtist(artistData)
 
-	// Synchroniser avec Algolia si activé
-	const { isAlgoliaEnabled } = useSupabaseAlgoliaConfig()
-	if (await isAlgoliaEnabled()) {
 		// Déclencher la synchronisation de cet artiste spécifique
 		try {
-			await supabase.rpc('sync_single_artist_to_algolia', {
 				artist_id: artist.id,
 			})
 		} catch (error) {
-			console.warn('Erreur de synchronisation Algolia:', error)
-			// Ne pas faire échouer la création si Algolia échoue
 		}
 	}
 
@@ -332,20 +427,16 @@ export default defineNuxtRouteMiddleware((to) => {
 ```typescript
 // Dans plugins/contributions-init.client.ts
 export default defineNuxtPlugin(async () => {
-	const { isAlgoliaEnabled } = useSupabaseAlgoliaConfig()
 
-	// Vérifier si Algolia est configuré au démarrage
-	const enabled = await isAlgoliaEnabled()
-	console.log('Algolia status:', enabled ? 'enabled' : 'disabled')
 })
 ```
 
 ## 🎯 **Points d'intégration recommandés**
 
-1. **Dashboard Admin** - Ajouter une section "Contributeurs" et "Configuration Algolia"
+1. **Dashboard Admin** - Ajouter une section "Contributeurs" et interface de gestion
 2. **Profil Utilisateur** - Afficher les contributions de l'utilisateur
 3. **Page Artiste** - Afficher les contributeurs en bas de page
 4. **Workflow de création** - Ajouter automatiquement les contributions
-5. **Settings** - Page de configuration Algolia pour les admins
+5. **Search** - Utiliser `useSupabaseSearch` pour la recherche full-text native
 
-Ces composables complètent parfaitement l'écosystème existant et offrent une gestion complète des contributions et de la configuration Algolia ! 🚀
+Ces composables offrent une gestion complète des données avec une recherche native Supabase performante ! 🚀

@@ -26,7 +26,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **UI Framework**: Nuxt UI with Tailwind CSS 4
 - **Database**: Supabase (PostgreSQL)
 - **Authentication**: Supabase Auth with Google OAuth
-- **Search**: Algolia for artist/music search
+- **Search**: Supabase full-text search for artist/music search
 - **State Management**: Pinia with persistence
 - **Styling**: Tailwind CSS with Prettier plugin
 
@@ -37,7 +37,7 @@ This is a music platform called "Comeback" that allows users to:
 - Track music releases by artists
 - Create and manage artist profiles
 - Import music from YouTube playlists
-- Search artists and music via Algolia
+- Search artists and music via Supabase full-text search
 - Admin dashboard for content management
 
 ### Directory Structure
@@ -73,7 +73,7 @@ This is a music platform called "Comeback" that allows users to:
 
 #### Search Integration
 
-- Algolia for fast artist/music search
+- Supabase PostgreSQL full-text search for fast artist/music search
 - Dedicated components for search UI
 - Real-time search with debouncing
 
@@ -108,9 +108,6 @@ Required environment variables:
 - `SUPABASE_KEY` - Supabase anon key
 - `SUPABASE_SERVICE_KEY` - Supabase service key
 - `YOUTUBE_API_KEY` - YouTube Data API key
-- `ALGOLIA_APPLICATION_ID` - Algolia application ID
-- `ALGOLIA_API_KEY` - Algolia API key
-- `ALGOLIA_INDEX_NAME` - Algolia index name
 
 ### Database Schema
 
@@ -125,7 +122,7 @@ Key tables:
 
 ### Key Features to Understand
 
-- **Artist Management**: Create, edit, search artists with Algolia
+- **Artist Management**: Create, edit, search artists with Supabase search
 - **Release Tracking**: Manual and automated release creation
 - **YouTube Integration**: Import playlists and fetch metadata
 - **Admin Dashboard**: Content management interface
@@ -210,7 +207,7 @@ Key tables:
 #### External Services Integration
 
 - **YouTube Data API v3**: For playlist import and music metadata
-- **Algolia**: Search service with InstantSearch theme
+- **Supabase Search**: PostgreSQL full-text search capabilities
 - **Google Fonts**: Poppins font family preloaded
 - **Image domains**: Configured for Google user content and i.ibb.co
 

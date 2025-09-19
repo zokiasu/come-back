@@ -4,11 +4,8 @@ export default defineNuxtPlugin(async () => {
 		// Ne pas initialiser sur la page de callback pour éviter les conflits
 		const route = useRoute()
 		if (route.path === '/auth/callback') {
-			console.log('🔐 Page de callback détectée, initialisation différée')
 			return
 		}
-
-		console.log("🔐 Initialisation de l'authentification au démarrage...")
 
 		// Attendre que Nuxt soit prêt
 		await nextTick()
@@ -35,7 +32,6 @@ export default defineNuxtPlugin(async () => {
 			}
 
 			logInfo('Authentication initialized successfully')
-			console.log('✅ Authentification initialisée')
 		} catch (error) {
 			const { logError } = useErrorLogger()
 			logError(error, 'auth-init-plugin')

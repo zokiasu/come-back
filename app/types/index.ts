@@ -81,57 +81,6 @@ export interface CompanyArtist {
 	updated_at: string | null
 }
 
-// ===== TYPES ALGOLIA =====
-export interface AlgoliaHit {
-	objectID: string
-	name?: string
-	image?: string
-	description?: string
-	type?: string
-	idYoutubeMusic?: string
-	styles?: any[]
-	socialList?: any[]
-	date?: string
-	year?: number
-	artists?: any[]
-	musics?: any[]
-	platformList?: any[]
-	created_at?: string
-	updated_at?: string
-	// Propriétés spécifiques aux releases
-	artistsName?: string
-	artistsId?: string
-	needToBeVerified?: boolean
-	// Propriétés Algolia
-	_highlightResult?: Record<string, any>
-	_snippetResult?: Record<string, any>
-	_rankingInfo?: Record<string, any>
-	_distinctSeqID?: number
-}
-
-export interface AlgoliaArtist {
-	id: string
-	name: string
-	image: string
-	description: string
-	verified: boolean
-	created_at: string
-	updated_at: string
-	styles: string[]
-	generalTags: string[]
-}
-
-export interface AlgoliaMusic {
-	id: string
-	title: string
-	youtube_id: string
-	youtube_link: string
-	description: string
-	artist: string
-	imageURL: string
-	created_at: string
-	updated_at: string
-}
 
 // ===== TYPES UTILITAIRES =====
 export interface QueryOptions {
@@ -155,7 +104,6 @@ export interface FilterOptions {
 // ===== TYPES GLOBAUX =====
 declare global {
 	interface Window {
-		algolia: any
 		enableDevLogs?: () => void
 	}
 }

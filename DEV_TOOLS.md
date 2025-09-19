@@ -13,7 +13,7 @@ Ces pages ne sont accessibles qu'en mode développement (`NODE_ENV=development`)
   - Informations sur l'environnement d'exécution
   - Test de la configuration Supabase
   - Test d'authentification
-  - Tests de connexion Supabase et Algolia
+  - Tests de connexion Supabase et recherche full-text
 - **Utilisation**: Accessible uniquement en développement local
 
 ### `/debug-simple`

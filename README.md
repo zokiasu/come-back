@@ -13,7 +13,7 @@ VueJS 3 - NuxtJS 3 - Pinia - TailwindCSS - Supabase (Database, Auth, Storage)
 ### 🎤 Gestion des artistes
 
 - **Création d'artistes** : Ajouter de nouveaux artistes avec leurs informations détaillées.
-- **Recherche d'artistes** : Utilisation d'Algolia pour une recherche rapide et pertinente.
+- **Recherche d'artistes** : Utilisation de Supabase full-text search pour une recherche rapide et pertinente.
 - **Profils d'artistes** : Pages dédiées avec informations complètes et liens sociaux.
 
 ### 🎵 Gestion des sorties musicales
@@ -65,9 +65,6 @@ SUPABASE_ANON_KEY=your_supabase_anon_key
 # YouTube API (optionnel)
 YOUTUBE_API_KEY=your_youtube_api_key
 
-# Algolia (optionnel)
-ALGOLIA_APPLICATION_ID=your_algolia_app_id
-ALGOLIA_ADMIN_API_KEY=your_algolia_admin_key
 ```
 
 ## 🚀 Déploiement

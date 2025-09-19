@@ -18,7 +18,6 @@
 	const route = useRoute()
 
 	const navbar = useTemplateRef('navbar')
-	const algolia = useTemplateRef('algolia')
 
 	const user = useSupabaseUser()
 

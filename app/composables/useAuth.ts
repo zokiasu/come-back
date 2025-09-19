@@ -81,8 +81,7 @@ export const useAuth = () => {
 					throw createError
 				}
 
-				console.log('✅ Nouvel utilisateur créé:', newUser)
-				return newUser
+					return newUser
 			} else {
 				// Mettre à jour l'utilisateur existant
 				const { data: updatedUser, error: updateError } = await supabase
@@ -97,8 +96,7 @@ export const useAuth = () => {
 					throw updateError
 				}
 
-				console.log('✅ Utilisateur mis à jour:', updatedUser)
-				return updatedUser
+					return updatedUser
 			}
 		} catch (error) {
 			console.error('Erreur dans createOrUpdateUser:', error)
@@ -113,8 +111,7 @@ export const useAuth = () => {
 	// Fonction pour synchroniser le profil utilisateur
 	const ensureUserProfile = async () => {
 		if (!user.value) {
-			console.log('❌ Aucun utilisateur Supabase connecté')
-			await resetStore()
+				await resetStore()
 			return false
 		}
 
@@ -124,12 +121,10 @@ export const useAuth = () => {
 			try {
 				isSyncing.value = true
 				syncError.value = null
-				console.log('🔄 Synchronisation du profil utilisateur...')
 
 				const userData = await createOrUpdateUser(user.value)
 				await syncUserProfile(user.value, userData)
 
-				console.log('✅ Profil synchronisé avec succès')
 				return true
 			} catch (error: any) {
 				console.error('❌ Erreur lors de la synchronisation:', error)
@@ -143,8 +138,7 @@ export const useAuth = () => {
 
 		// Si tout est déjà synchronisé
 		if (userDataStore.value && isLoginStore.value) {
-			console.log('✅ Profil utilisateur déjà synchronisé')
-			return true
+				return true
 		}
 
 		return false
@@ -171,52 +165,66 @@ export const useAuth = () => {
 
 	// Fonction d'initialisation au chargement de l'app
 	const initializeAuth = async () => {
-		console.log("🚀 Initialisation de l'authentification...")
-
 		// Si on a un utilisateur Supabase et des données dans le store
 		if (user.value && userDataStore.value && userDataStore.value.id === user.value.id) {
-			console.log('✅ Session restaurée depuis le cache')
 			return true
 		}
 
 		// Si on a un utilisateur Supabase mais pas de données dans le store
 		if (user.value) {
-			console.log('🔄 Utilisateur Supabase détecté, synchronisation...')
 			return await ensureUserProfile()
 		}
 
 		// Aucun utilisateur connecté
-		console.log('ℹ️ Aucun utilisateur connecté')
 		await resetStore()
 		return false
 	}
 
 	// Watcher pour surveiller les changements d'utilisateur Supabase
 	let isInitialized = false
+	let initPromise: Promise<any> | null = null
+
 	watch(
 		user,
 		async (newUser, oldUser) => {
 			// Initialisation une seule fois au démarrage
 			if (!isInitialized) {
 				isInitialized = true
-				await initializeAuth()
+				initPromise = initializeAuth()
+				await initPromise
 				return
 			}
 
 			// Gestion des changements d'utilisateur après l'initialisation
 			if (newUser && !oldUser) {
-				console.log('👤 Nouvelle connexion détectée')
 				await ensureUserProfile()
 			} else if (!newUser && oldUser) {
-				console.log('👋 Déconnexion détectée')
 				await resetStore()
 			} else if (newUser && oldUser && newUser.id !== oldUser.id) {
-				console.log("🔄 Changement d'utilisateur détecté")
 				await ensureUserProfile()
 			}
 		},
 		{ immediate: true },
 	)
+
+	// Fonction pour s'assurer que l'auth est initialisée (pour les middlewares)
+	const ensureAuthInitialized = async (): Promise<boolean> => {
+		// Si déjà initialisé, retourner immédiatement
+		if (isInitialized) {
+			return true
+		}
+
+		// Si une initialisation est en cours, l'attendre
+		if (initPromise) {
+			await initPromise
+			return true
+		}
+
+		// Sinon démarrer l'initialisation
+		initPromise = initializeAuth()
+		await initPromise
+		return true
+	}
 
 	return {
 		// États
@@ -231,6 +239,7 @@ export const useAuth = () => {
 		// Actions
 		ensureUserProfile,
 		initializeAuth,
+		ensureAuthInitialized,
 		logout,
 	}
 }
