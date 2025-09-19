@@ -3,7 +3,7 @@
 		<div class="space-y-2">
 			<div class="grid grid-cols-1 gap-2 md:grid-cols-2">
 				<UInput v-model="search" placeholder="Search by music name" />
-				<ArtistAlgoliaSelect v-model="selectedArtist" class="" />
+				<ArtistSearchSelect v-model="selectedArtist" class="" />
 			</div>
 
 			<div class="flex flex-col justify-between gap-2 lg:flex-row">
@@ -99,7 +99,7 @@
 <script setup lang="ts">
 	import { useSupabaseMusic } from '~/composables/Supabase/useSupabaseMusic'
 	import type { Music } from '~/types'
-	import ArtistAlgoliaSelect from '~/components/ArtistAlgoliaSelect.vue'
+	import ArtistSearchSelect from '~/components/ArtistSearchSelect.vue'
 	import { onMounted } from 'vue'
 
 	type MusicWithArtists = Music & { artists: { name: string }[] }

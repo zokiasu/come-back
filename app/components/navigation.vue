@@ -113,7 +113,7 @@
 				</div>
 
 				<div class="flex items-center justify-center gap-3">
-					<Algolia ref="algolia" />
+					<SearchModal ref="searchModal" />
 					<ModalNewsCreation v-if="user" />
 					<UButton
 						v-if="user"
