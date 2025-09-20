@@ -52,7 +52,7 @@
 				<IconCalendar class="mx-auto h-5 w-5" />
 			</NuxtLink>
 
-			<Algolia ref="algolia" />
+			<SearchModal ref="searchModal" />
 
 			<!-- <NuxtLink
 				v-if="isLoginStore && userDataStore"

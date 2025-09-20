@@ -46,11 +46,6 @@
 				return
 			}
 
-			console.log('🔍 Callback - Supabase User:', user.value)
-			console.log('✅ User connected!')
-			console.log('📧 Email:', user.value.email)
-			console.log('🆔 ID:', user.value.id)
-
 			statusMessage.value = 'Syncing profile...'
 			debugInfo.value = 'Creating/updating user profile...'
 

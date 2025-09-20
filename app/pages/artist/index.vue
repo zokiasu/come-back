@@ -175,6 +175,7 @@
 	const limit = ref(48)
 	const isLoading = ref(false)
 	const hasMore = ref(true)
+	const isInitialized = ref(false)
 
 	const tagsList = ref<GeneralTag[]>([])
 	const selectedTags = ref<string[]>([])
@@ -191,13 +192,18 @@
 	const fetchArtists = async (reset = false) => {
 		if (isLoading.value || (!hasMore.value && !reset)) return
 		isLoading.value = true
+
+
 		const result = await getArtistsByPage(page.value, limit.value, {
 			search: search.value,
 			general_tags: selectedTags.value.length > 0 ? selectedTags.value : undefined,
 			type: selectedType.value || undefined,
 			styles: selectedStyles.value.length > 0 ? selectedStyles.value : undefined,
 			gender: selectedGender.value || undefined,
+			orderBy: 'name',
+			orderDirection: 'asc',
 		})
+
 		const artistsArray = Array.isArray(result.artists) ? result.artists : []
 		if (reset) {
 			artists.value = artistsArray
@@ -209,13 +215,12 @@
 	}
 
 	watch([search, selectedTags, selectedType, selectedStyles, selectedGender], () => {
-		console.log(
-			'Watcher triggered',
-			selectedTags.value,
-			selectedType.value,
-			selectedStyles.value,
-			selectedGender.value,
-		)
+
+		// Éviter les appels pendant l'initialisation
+		if (!isInitialized.value) {
+			return
+		}
+
 		page.value = 1
 		hasMore.value = true
 		fetchArtists(true)
@@ -228,14 +233,19 @@
 	}
 
 	onMounted(async () => {
+		// S'assurer que page est à 1 au début
+		page.value = 1
+
 		tagsList.value = await getAllGeneralTags()
 		stylesList.value = await getAllMusicStyles()
-		fetchArtists(true)
+		await fetchArtists(true)
+		// Marquer comme initialisé après le premier chargement
+		isInitialized.value = true
 	})
 
 	useInfiniteScroll(window, loadMore, {
 		distance: 200,
-		canLoadMore: () => hasMore.value && !isLoading.value,
+		canLoadMore: () => hasMore.value && !isLoading.value && isInitialized.value,
 	})
 
 	const toggleTag = (tagName: string) => {

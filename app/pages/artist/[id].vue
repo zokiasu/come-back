@@ -26,7 +26,6 @@
 	onMounted(async () => {
 		try {
 			artist.value = await getFullArtistById(route.params.id as string)
-			console.log('artist', artist.value)
 			if (artist.value) {
 				const { socialLinks, platformLinks } = await getSocialAndPlatformLinksByArtistId(
 					artist.value.id,

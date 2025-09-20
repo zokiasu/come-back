@@ -5,7 +5,7 @@
 	import { useInfiniteScroll } from '@vueuse/core'
 
 	// Utilisation de Supabase uniquement pour la base de données
-	import type { AlgoliaHit } from '@/types/algolia'
+	import { useSupabaseSearch } from '~/composables/useSupabaseSearch'
 
 	// Types
 	interface FilterState {
@@ -32,11 +32,8 @@
 	const limitFetch = ref(48)
 	const typeFilter = ref<Artist['type'] | ''>('')
 	const isLoading = ref(false)
-	const useAlgoliaForSearch = ref(true)
-
-	// Algolia Search
-	const { result, search: algoliaSearch } = useAlgoliaSearch('ARTISTS')
-	const algoliaResults = ref<Artist[]>([])
+	const { searchArtistsFullText } = useSupabaseSearch()
+	const searchResults = ref<Artist[]>([])
 	const isSearching = ref(false)
 
 	// Filtres
@@ -96,44 +93,24 @@
 	}
 
 	/**
-	 * Effectue une recherche avec Algolia
+	 * Effectue une recherche avec Supabase
 	 */
-	const performAlgoliaSearch = useDebounce(async () => {
+	const performSupabaseSearch = useDebounce(async () => {
 		if (search.value.length < 2) {
-			algoliaResults.value = []
+			searchResults.value = []
 			return
 		}
 
 		isSearching.value = true
 		try {
-			await useAsyncData(`search-${search.value}`, () =>
-				algoliaSearch({ query: search.value }),
-			)
-
-			if (result.value && result.value.hits) {
-				// Convertir les résultats Algolia en format Artist Supabase
-				algoliaResults.value = result.value.hits.map((hit: AlgoliaHit) => ({
-					id: hit.objectID,
-					id_youtube_music: hit.idYoutubeMusic || '',
-					name: hit.name || '',
-					image: hit.image || 'https://i.ibb.co/wLhbFZx/Frame-255.png',
-					description: hit.description || '',
-					birth_date: null,
-					debut_date: null,
-					gender: 'UNKNOWN',
-					type: (hit.type as Artist['type']) || 'SOLO',
-					verified: false,
-					active_career: true,
-					general_tags: null,
-					styles: hit.styles || [],
-					social_links: [],
-					platform_links: [],
-					created_at: hit.createdAt?.toDate().toISOString() || new Date().toISOString(),
-					updated_at: hit.updatedAt?.toDate().toISOString() || new Date().toISOString(),
-				}))
-			}
+			const result = await searchArtistsFullText({
+				query: search.value,
+				limit: 50,
+				type: typeFilter.value || undefined
+			})
+			searchResults.value = result.artists
 		} catch (error) {
-			console.error('Erreur lors de la recherche Algolia:', error)
+			console.error('Erreur lors de la recherche:', error)
 			toast.add({
 				title: 'Erreur lors de la recherche',
 				description: 'Une erreur est survenue lors de la recherche',
@@ -153,14 +130,14 @@
 
 		try {
 			if (firstCall) {
-				currentPage.value = 1
+					currentPage.value = 1
 				artistFetch.value = []
 			}
 
-			const result = await getArtistsByPage(currentPage.value, limitFetch.value, {
+			const params = {
 				search: search.value,
 				type: typeFilter.value || undefined,
-				orderBy: sort.value,
+				orderBy: sort.value || 'name', // Forcer le tri par nom si undefined
 				orderDirection: invertSort.value ? 'desc' : 'asc',
 				isActive:
 					activeCareerFilter.value === 'all'
@@ -168,7 +145,8 @@
 						: activeCareerFilter.value === 'active'
 							? true
 							: false,
-			})
+			}
+			const result = await getArtistsByPage(currentPage.value, limitFetch.value, params)
 
 			totalArtists.value = result.total
 			totalPages.value = result.totalPages
@@ -179,7 +157,14 @@
 				artistFetch.value = [...artistFetch.value, ...result.artists]
 			}
 
-			currentPage.value++
+			// Incrémenter la page seulement si ce n'est pas le premier appel
+			// ou si on a effectivement récupéré des résultats pour la pagination
+			if (!firstCall) {
+				currentPage.value++
+			} else {
+				// Pour le premier appel, préparer la page suivante
+				currentPage.value = 2
+			}
 		} catch (error) {
 			console.error('Erreur lors de la récupération des artistes:', error)
 			toast.add({
@@ -206,19 +191,23 @@
 	}
 
 	/**
-	 * Bascule entre la recherche Algolia et Supabase
+	 * Méthode de recherche unifiée (Supabase uniquement)
 	 */
-	const toggleSearchMethod = (): void => {
-		useAlgoliaForSearch.value = !useAlgoliaForSearch.value
-
-		// Refaire la recherche avec la nouvelle méthode
+	const triggerSearch = (): void => {
 		if (search.value.length >= 2) {
-			if (useAlgoliaForSearch.value) {
-				performAlgoliaSearch()
-			} else {
-				getArtist(true)
-			}
+			performSupabaseSearch()
+		} else {
+			resetSearch()
 		}
+	}
+
+	/**
+	 * Reset la recherche et recharge tous les artistes
+	 */
+	const resetSearch = (): void => {
+		search.value = ''
+		searchResults.value = []
+		getArtist(true)
 	}
 
 	/**
@@ -234,12 +223,12 @@
 	 * Trie la liste des artistes en fonction des critères
 	 */
 	const filteredArtistList = computed(() => {
-		// Si une recherche est active et Algolia est utilisé, retourner les résultats d'Algolia
-		if (useAlgoliaForSearch.value && search.value.length >= 2) {
-			return algoliaResults.value
+		// Si une recherche est active, retourner les résultats de recherche
+		if (search.value.length >= 2) {
+			return searchResults.value
 		}
 
-		if (!artistFetch.value) return artistFetch.value
+		if (!artistFetch.value) return []
 
 		return [...artistFetch.value].sort((a, b) => {
 			if (sort.value === 'created_at') {
@@ -279,6 +268,8 @@
 
 	// Lifecycle hooks
 	onMounted(async () => {
+		// Utiliser nextTick pour s'assurer que tous les refs sont initialisés
+		await nextTick()
 		await getArtist(true)
 	})
 
@@ -294,7 +285,7 @@
 			sort,
 		],
 		async () => {
-			try {
+				try {
 				await getArtist(true)
 			} catch (error) {
 				console.error('Erreur dans le watcher:', error)
@@ -307,9 +298,10 @@
 		// Reset page to 1 when search changes
 		if (page.value !== 1) page.value = 1
 
-		if (useAlgoliaForSearch.value) {
-			performAlgoliaSearch()
-		} else {
+		if (search.value.length >= 2) {
+			performSupabaseSearch()
+		} else if (search.value.length === 0) {
+			searchResults.value = []
 			getArtist(true)
 		}
 	})
@@ -320,6 +312,8 @@
 
 	definePageMeta({
 		middleware: ['admin'],
+		// Forcer le rendu côté client pour éviter les problèmes de tri SSR
+		ssr: false
 	})
 </script>
 
@@ -332,24 +326,30 @@
 			id="searchbar"
 			class="bg-cb-secondary-950 sticky top-0 z-20 w-full space-y-2 pb-2"
 		>
-			<div class="relative">
-				<input
-					id="search-input"
-					v-model="search"
-					type="text"
-					placeholder="Search"
-					class="bg-cb-quinary-900 placeholder-cb-tertiary-200 focus:bg-cb-tertiary-200 focus:text-cb-quinary-900 focus:placeholder-cb-quinary-900 w-full rounded border-none px-5 py-2 drop-shadow-xl transition-all duration-300 ease-in-out focus:outline-none"
-				/>
+			<div class="relative flex gap-2">
+				<div class="relative flex-1">
+					<input
+						id="search-input"
+						v-model="search"
+						type="text"
+						placeholder="Search"
+						class="bg-cb-quinary-900 placeholder-cb-tertiary-200 focus:bg-cb-tertiary-200 focus:text-cb-quinary-900 focus:placeholder-cb-quinary-900 w-full rounded border-none px-5 py-2 drop-shadow-xl transition-all duration-300 ease-in-out focus:outline-none"
+					/>
+					<button
+						v-if="search.length > 0"
+						class="bg-red-500 hover:bg-red-600 text-white absolute top-1/2 right-2 -translate-y-1/2 rounded px-2 py-1 text-xs"
+						title="Effacer la recherche"
+						@click="resetSearch"
+					>
+						✕
+					</button>
+				</div>
 				<button
-					class="bg-cb-tertiary-200 text-cb-quinary-900 absolute top-1/2 right-2 -translate-y-1/2 rounded px-2 py-1 text-xs"
-					:title="
-						useAlgoliaForSearch
-							? 'Utiliser Supabase (recherche basique)'
-							: 'Utiliser Algolia (recherche avancée)'
-					"
-					@click="toggleSearchMethod"
+					class="bg-cb-tertiary-200 text-cb-quinary-900 hover:bg-cb-tertiary-300 rounded px-3 py-2 text-xs transition-all duration-300"
+					title="Recherche Supabase"
+					@click="triggerSearch"
 				>
-					{{ useAlgoliaForSearch ? 'Algolia' : 'Supabase' }}
+					Supabase
 				</button>
 			</div>
 			<div class="flex w-full flex-col gap-2 sm:flex-row sm:justify-between">
@@ -461,14 +461,14 @@
 
 		<div
 			v-if="
-				!useAlgoliaForSearch &&
+				search.length < 2 &&
 				filteredArtistList.length > 0 &&
-				artistFetch.length != 0 &&
+				artistFetch?.length &&
 				artistFetch.length != totalArtists
 			"
 			class="flex flex-col items-center space-y-2 text-xs"
 		>
-			<p>({{ artistFetch.length }} / {{ totalArtists }})</p>
+			<p>({{ artistFetch?.length || 0 }} / {{ totalArtists }})</p>
 			<div v-if="!isLoading" class="flex gap-2">
 				<button
 					class="bg-cb-quinary-900 mx-auto flex w-full gap-1 rounded px-2 py-1 uppercase hover:bg-zinc-500 md:w-fit"

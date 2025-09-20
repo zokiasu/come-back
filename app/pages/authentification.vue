@@ -13,9 +13,6 @@
 		],
 	})
 
-	// Log initial
-	console.log('📄 Authentication page loaded')
-
 	// Callback error handling
 	const route = useRoute()
 	const errorMessage = ref('')

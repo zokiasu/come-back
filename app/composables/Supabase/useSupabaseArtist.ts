@@ -652,6 +652,7 @@ export function useSupabaseArtist() {
 					ascending: options.orderDirection === 'asc',
 				})
 			} else {
+				// Tri par défaut par nom, ascendant
 				query = query.order('name', { ascending: true })
 			}
 
@@ -665,6 +666,8 @@ export function useSupabaseArtist() {
 				console.error('Erreur lors de la récupération des artistes:', error)
 				throw new Error('Erreur lors de la récupération des artistes')
 			}
+
+
 
 			// Transformer les données pour correspondre au format attendu
 			const transformedData = data.map((artist) => ({

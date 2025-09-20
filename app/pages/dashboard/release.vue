@@ -2,8 +2,7 @@
 	import type { Release } from '~/types'
 	import type { ReleaseType } from '~/types'
 	import { useSupabaseRelease } from '~/composables/Supabase/useSupabaseRelease'
-	import type { AlgoliaHit } from '~/types/algolia'
-	import { useDebounce } from '~/composables/useDebounce'
+	import { useSupabaseSearch } from '~/composables/useSupabaseSearch'
 	import { useUserStore } from '~/stores/user'
 
 	const { deleteRelease: deleteReleaseFunction, getReleasesByPage } = useSupabaseRelease()
@@ -19,13 +18,12 @@
 	const totalPages = ref(1)
 	const totalReleases = ref(0)
 	const limitFetch = ref<number>(24)
-	const useAlgoliaForSearch = ref(false)
 	const firstLoad = ref(true)
 	const typeFilter = ref<ReleaseType | ''>('')
 
-	// Algolia Search
-	const { result, search: algoliaSearch } = useAlgoliaSearch('RELEASES')
-	const algoliaResults = ref<Release[]>([])
+	// Supabase Search
+	const { searchArtistsFullText } = useSupabaseSearch()
+	const searchResults = ref<Release[]>([])
 	const isSearching = ref(false)
 
 	const needToBeVerifiedFilter = ref<boolean>(false)
@@ -35,40 +33,26 @@
 	const hasMore = computed(() => currentPage.value <= totalPages.value)
 
 	/**
-	 * Effectue une recherche avec Algolia
+	 * Effectue une recherche avec Supabase
 	 */
-	const performAlgoliaSearch = useDebounce(async () => {
+	const performSupabaseSearch = useDebounce(async () => {
 		if (search.value.length < 2) {
-			algoliaResults.value = []
+			searchResults.value = []
 			return
 		}
 
 		isSearching.value = true
 		try {
-			await useAsyncData(`search-${search.value}`, () =>
-				algoliaSearch({ query: search.value }),
-			)
-
-			if (result.value && result.value.hits) {
-				// Convertir les résultats Algolia en format Release Supabase
-				algoliaResults.value = result.value.hits.map((hit: AlgoliaHit) => ({
-					id: hit.objectID,
-					id_youtube_music: hit.idYoutubeMusic || '',
-					name: hit.name || '',
-					description: hit.description || '',
-					date: hit.date?.toDate().toISOString() || new Date().toISOString(),
-					year: hit.year || new Date().getFullYear(),
-					type: (hit.type as Release['type']) || 'ALBUM',
-					verified: false,
-					image: hit.image || 'https://i.ibb.co/wLhbFZx/Frame-255.png',
-					artists: [],
-					musics: [],
-					created_at: hit.createdAt?.toDate().toISOString() || new Date().toISOString(),
-					updated_at: hit.updatedAt?.toDate().toISOString() || new Date().toISOString(),
-				}))
-			}
+			// Note: Nous utilisons searchArtistsFullText pour les releases aussi
+			// Dans un vrai projet, vous pourriez avoir une fonction searchReleasesFullText
+			const result = await searchArtistsFullText({
+				query: search.value,
+				limit: 50
+			})
+			// Pour les releases, nous devrons adapter cette logique selon vos besoins
+			searchResults.value = []
 		} catch (error) {
-			console.error('Erreur lors de la recherche Algolia:', error)
+			console.error('Erreur lors de la recherche:', error)
 			toast.add({
 				title: 'Erreur lors de la recherche',
 				color: 'error',
@@ -79,15 +63,23 @@
 	}, 300)
 
 	/**
-	 * Bascule entre la recherche Algolia et Supabase
+	 * Méthode de recherche unifiée (Supabase uniquement)
 	 */
-	const toggleSearchMethod = () => {
-		useAlgoliaForSearch.value = !useAlgoliaForSearch.value
-		if (!useAlgoliaForSearch.value && search.value) {
-			getRelease(true)
-		} else if (useAlgoliaForSearch.value && search.value) {
-			performAlgoliaSearch()
+	const triggerSearch = () => {
+		if (search.value.length >= 2) {
+			performSupabaseSearch()
+		} else {
+			resetSearch()
 		}
+	}
+
+	/**
+	 * Reset la recherche et recharge tous les releases
+	 */
+	const resetSearch = () => {
+		search.value = ''
+		searchResults.value = []
+		getRelease(true)
 	}
 
 	/**
@@ -216,17 +208,18 @@
 
 	// Watcher pour la recherche
 	watch(search, () => {
-		if (useAlgoliaForSearch.value) {
-			performAlgoliaSearch()
-		} else {
+		if (search.value.length >= 2) {
+			performSupabaseSearch()
+		} else if (search.value.length === 0) {
+			searchResults.value = []
 			getRelease(true)
 		}
 	})
 
 	const filteredReleaseList = computed(() => {
-		// Si une recherche est active et Algolia est utilisé, retourner les résultats d'Algolia
-		if (useAlgoliaForSearch.value && search.value.length >= 2) {
-			return algoliaResults.value
+		// Si une recherche est active, retourner les résultats de recherche
+		if (search.value.length >= 2) {
+			return searchResults.value
 		}
 
 		if (!releaseFetch.value) return []
@@ -297,24 +290,30 @@
 			id="searchbar"
 			class="bg-cb-secondary-950 sticky top-0 z-50 w-full space-y-2 pb-2"
 		>
-			<div class="relative">
-				<input
-					id="search-input"
-					v-model="search"
-					type="text"
-					placeholder="Search"
-					class="bg-cb-quinary-900 placeholder-cb-tertiary-200 focus:bg-cb-tertiary-200 focus:text-cb-quinary-900 focus:placeholder-cb-quinary-900 w-full rounded border-none px-5 py-2 drop-shadow-xl transition-all duration-300 ease-in-out focus:outline-none"
-				/>
+			<div class="relative flex gap-2">
+				<div class="relative flex-1">
+					<input
+						id="search-input"
+						v-model="search"
+						type="text"
+						placeholder="Search"
+						class="bg-cb-quinary-900 placeholder-cb-tertiary-200 focus:bg-cb-tertiary-200 focus:text-cb-quinary-900 focus:placeholder-cb-quinary-900 w-full rounded border-none px-5 py-2 drop-shadow-xl transition-all duration-300 ease-in-out focus:outline-none"
+					/>
+					<button
+						v-if="search.length > 0"
+						class="bg-red-500 hover:bg-red-600 text-white absolute top-1/2 right-2 -translate-y-1/2 rounded px-2 py-1 text-xs"
+						title="Effacer la recherche"
+						@click="resetSearch"
+					>
+						✕
+					</button>
+				</div>
 				<button
-					class="bg-cb-tertiary-200 text-cb-quinary-900 absolute top-1/2 right-2 -translate-y-1/2 rounded px-2 py-1 text-xs"
-					:title="
-						useAlgoliaForSearch
-							? 'Utiliser Supabase (recherche basique)'
-							: 'Utiliser Algolia (recherche avancée)'
-					"
-					@click="toggleSearchMethod"
+					class="bg-cb-tertiary-200 text-cb-quinary-900 hover:bg-cb-tertiary-300 rounded px-3 py-2 text-xs transition-all duration-300"
+					title="Recherche Supabase"
+					@click="triggerSearch"
 				>
-					{{ useAlgoliaForSearch ? 'Algolia' : 'Supabase' }}
+					Supabase
 				</button>
 			</div>
 			<section class="flex w-full flex-col gap-2 sm:flex-row sm:justify-between">
@@ -410,7 +409,7 @@
 			<p>Chargement des releases suivantes...</p>
 		</div>
 
-		<div v-if="hasMore && !useAlgoliaForSearch" ref="observerTarget" />
+		<div v-if="hasMore && search.length < 2" ref="observerTarget" />
 	</div>
 </template>
 

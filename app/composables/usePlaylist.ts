@@ -13,8 +13,6 @@ export const usePlaylist = () => {
 	const { playMusic, stopMusic } = useYouTube()
 
 	const addToPlaylist = (videoId: string, title: string, artist: string) => {
-		console.log('🎵 Ajout à la playlist:', { videoId, title, artist })
-
 		if (!videoId) {
 			console.error("❌ ID vidéo manquant pour l'ajout à la playlist")
 			return false
@@ -45,26 +43,22 @@ export const usePlaylist = () => {
 		})
 
 		if (isFirstItem) {
-			console.log('🎵 Première musique - lecture immédiate')
 			currentIndex.value = 0
 			isPlaylistActive.value = true
 			return playMusic(videoId, title, artist)
 		} else {
-			console.log(`🎵 Musique ajoutée à la position ${playlist.value.length - 1}`)
 			return true
 		}
 	}
 
 	const playNext = () => {
 		if (!isPlaylistActive.value || playlist.value.length === 0) {
-			console.log('🎵 Playlist inactive ou vide')
 			return false
 		}
 
 		const nextIndex = currentIndex.value + 1
 
 		if (nextIndex >= playlist.value.length) {
-			console.log('🎵 Fin de playlist - arrêt du lecteur')
 			clearPlaylist()
 			stopMusic()
 			return false
@@ -73,33 +67,23 @@ export const usePlaylist = () => {
 		const nextItem = playlist.value[nextIndex]
 		currentIndex.value = nextIndex
 
-		console.log(
-			`🎵 Lecture suivante (${nextIndex + 1}/${playlist.value.length}):`,
-			nextItem,
-		)
 		return playMusic(nextItem.videoId, nextItem.title, nextItem.artist)
 	}
 
 	const playPrevious = () => {
 		if (!isPlaylistActive.value || playlist.value.length === 0) {
-			console.log('🎵 Playlist inactive ou vide')
 			return false
 		}
 
 		const previousIndex = currentIndex.value - 1
 
 		if (previousIndex < 0) {
-			console.log('🎵 Début de playlist atteint')
 			return false
 		}
 
 		const previousItem = playlist.value[previousIndex]
 		currentIndex.value = previousIndex
 
-		console.log(
-			`🎵 Lecture précédente (${previousIndex + 1}/${playlist.value.length}):`,
-			previousItem,
-		)
 		return playMusic(previousItem.videoId, previousItem.title, previousItem.artist)
 	}
 
@@ -112,7 +96,6 @@ export const usePlaylist = () => {
 		const item = playlist.value[index]
 		currentIndex.value = index
 
-		console.log(`🎵 Lecture à l'index ${index}:`, item)
 		return playMusic(item.videoId, item.title, item.artist)
 	}
 
@@ -136,12 +119,10 @@ export const usePlaylist = () => {
 			currentIndex.value -= 1
 		}
 
-		console.log('🎵 Supprimé de la playlist:', removedItem)
 		return true
 	}
 
 	const clearPlaylist = () => {
-		console.log('🎵 Vidage de la playlist')
 		playlist.value = []
 		currentIndex.value = -1
 		isPlaylistActive.value = false
