@@ -74,19 +74,24 @@
 			const firstScriptTag = document.getElementsByTagName('script')[0]
 			firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag)
 
-			// Créer une fonction globale unique pour éviter les conflits
-			const callbackName = 'onYouTubeIframeAPIReady_' + Date.now()
-			window[callbackName] = () => {
+			// Créer un callback sécurisé pour éviter la pollution globale
+			const originalCallback = window.onYouTubeIframeAPIReady
+			const callbackHandler = () => {
 				console.log('✅ YouTube API loaded successfully')
-				window.onYouTubeIframeAPIReady = window[callbackName]
+				// Restaurer le callback original s'il existait
+				if (originalCallback) {
+					window.onYouTubeIframeAPIReady = originalCallback
+				} else {
+					delete window.onYouTubeIframeAPIReady
+				}
 				resolve()
 			}
 
-			// Si onYouTubeIframeAPIReady existe déjà, on l'appelle directement
+			// Si l'API est déjà prête, exécuter directement
 			if (window.onYouTubeIframeAPIReady) {
 				window.onYouTubeIframeAPIReady()
 			} else {
-				window.onYouTubeIframeAPIReady = window[callbackName]
+				window.onYouTubeIframeAPIReady = callbackHandler
 			}
 
 			tag.onerror = () => {
@@ -140,7 +145,7 @@
 					showinfo: 0,
 					modestbranding: 1,
 					playsinline: 1,
-					origin: window.location.origin,
+					origin: import.meta.client ? window.location.origin : 'https://localhost',
 				},
 				events: {
 					onReady: (event: any) => {

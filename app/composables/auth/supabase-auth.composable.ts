@@ -17,6 +17,11 @@ export const useSupabaseAuth = () => {
 				provider: 'google',
 				options: {
 					redirectTo: `${useRequestURL().origin}/auth/callback`,
+					scopes: 'openid email profile',
+					queryParams: {
+						access_type: 'offline',
+						prompt: 'consent'
+					}
 				},
 			})
 

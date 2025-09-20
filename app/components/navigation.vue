@@ -1,6 +1,7 @@
 <script setup lang="ts">
 	import { storeToRefs } from 'pinia'
 	import { useUserStore } from '@/stores/user'
+	import { useWindowScroll } from '@vueuse/core'
 
 	// Accès sécurisé aux stores
 	let isAdminStore = ref(false)
@@ -30,10 +31,14 @@
 		(route.name as string)?.startsWith('dashboard-'),
 	)
 
-	function handleScroll() {
+	// Utiliser le composable Nuxt pour le scroll
+	const { y: scrollY } = useWindowScroll()
+
+	// Watcher réactif pour le scroll
+	watch(scrollY, (newScrollY) => {
 		if (navbar.value === null) return
 
-		if (window.scrollY > 50) {
+		if (newScrollY > 50) {
 			navbar.value.classList.add(
 				'bg-cb-secondary-950',
 				'border',
@@ -50,17 +55,7 @@
 				'shadow-zinc-700',
 			)
 		}
-	}
-
-	onMounted(() => {
-		if (navbar.value === null) return
-		handleScroll()
-		window.addEventListener('scroll', handleScroll)
-	})
-
-	onUnmounted(() => {
-		window.removeEventListener('scroll', handleScroll)
-	})
+	}, { immediate: true })
 </script>
 
 <template>

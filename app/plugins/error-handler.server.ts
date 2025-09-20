@@ -1,5 +1,5 @@
 export default defineNuxtPlugin(() => {
-	if (process.server) {
+	if (import.meta.server) {
 		const { logError } = useErrorLogger()
 
 		// Capturer les erreurs Vue côté serveur
