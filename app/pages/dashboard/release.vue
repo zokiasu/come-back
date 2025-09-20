@@ -1,11 +1,13 @@
 <script setup lang="ts">
-	import type { Release } from '~/types'
+	import type { Release, Artist } from '~/types'
 	import type { ReleaseType } from '~/types'
 	import { useSupabaseRelease } from '~/composables/Supabase/useSupabaseRelease'
+	import { useSupabaseArtist } from '~/composables/Supabase/useSupabaseArtist'
 	import { useUserStore } from '~/stores/user'
 	import { useInfiniteScroll } from '@vueuse/core'
 
 	const { deleteRelease: deleteReleaseFunction, getReleasesByPage } = useSupabaseRelease()
+	const { getAllArtists } = useSupabaseArtist()
 	const toast = useToast()
 	const userStore = useUserStore()
 
@@ -20,9 +22,17 @@
 	const limitFetch = ref<number>(24)
 	const firstLoad = ref(true)
 	const typeFilter = ref<ReleaseType | ''>('')
+	const selectedArtists = ref<string[]>([])
+	const selectedArtistsWithLabel = ref<(Artist & { label: string })[]>([])
+	const artistsList = ref<Artist[]>([])
 
-	const needToBeVerifiedFilter = ref<boolean>(false)
-	const noNeedToBeVerifiedFilter = ref<boolean>(false)
+	const artistsForMenu = computed(() => {
+		return artistsList.value.map((artist) => ({
+			...artist,
+			label: artist.name,
+		}))
+	})
+
 
 	const scrollContainer = useTemplateRef('scrollContainer')
 	const hasMore = computed(() => currentPage.value <= totalPages.value)
@@ -55,11 +65,7 @@
 				type: typeFilter.value || undefined,
 				orderBy: sort.value,
 				orderDirection: invertSort.value ? 'desc' : 'asc',
-				verified: needToBeVerifiedFilter.value
-					? false
-					: noNeedToBeVerifiedFilter.value
-						? true
-						: undefined,
+				artistIds: selectedArtists.value.length > 0 ? selectedArtists.value : undefined,
 			})
 
 			// Mettre à jour les données
@@ -127,13 +133,28 @@
 	)
 
 	// Hooks
-	onMounted(() => {
+	onMounted(async () => {
+		try {
+			// Charger seulement les artistes actifs
+			artistsList.value = await getAllArtists({ isActive: true })
+		} catch (error) {
+			console.error('Erreur lors du chargement des artistes:', error)
+			toast.add({
+				title: 'Erreur lors du chargement des artistes',
+				color: 'error',
+			})
+		}
 		// Chargement initial des releases
 		getRelease(true)
 	})
 
+	// Synchroniser selectedArtistsWithLabel avec selectedArtists
+	watch(selectedArtistsWithLabel, (newVal) => {
+		selectedArtists.value = newVal.map(artist => artist.id)
+	})
+
 	// Watchers pour les filtres
-	watch([needToBeVerifiedFilter, noNeedToBeVerifiedFilter, sort], async () => {
+	watch([sort, selectedArtists], async () => {
 		await getRelease(true)
 	})
 
@@ -162,11 +183,7 @@
 				type: typeFilter.value || undefined,
 				orderBy: sort.value,
 				orderDirection: invertSort.value ? 'desc' : 'asc',
-				verified: needToBeVerifiedFilter.value
-					? false
-					: noNeedToBeVerifiedFilter.value
-						? true
-						: undefined,
+				artistIds: selectedArtists.value.length > 0 ? selectedArtists.value : undefined,
 			})
 			releaseFetch.value = result.releases
 		} catch (error) {
@@ -189,6 +206,19 @@
 			class="bg-cb-secondary-950 sticky top-0 z-50 w-full space-y-2 pb-2"
 		>
 			<div class="relative flex gap-2">
+				<UButton
+					v-if="userStore?.isAdminStore"
+					to="/release/create"
+					icon="i-heroicons-plus"
+					variant="solid"
+					size="sm"
+					label="Créer une release"
+					title="Créer une release"
+					:ui="{
+						label: 'hidden lg:flex',
+					}"
+					class="bg-cb-primary-800 whitespace-nowrap text-white"
+				/>
 				<div class="relative flex-1">
 					<input
 						id="search-input"
@@ -206,19 +236,7 @@
 						✕
 					</button>
 				</div>
-			</div>
-			<section class="flex w-full flex-col gap-2 sm:flex-row sm:justify-between">
 				<div class="flex space-x-2">
-					<UButton
-						v-if="userStore?.isAdminStore"
-						to="/release/create"
-						icon="i-heroicons-plus"
-						variant="solid"
-						size="sm"
-						class="bg-cb-primary-800 whitespace-nowrap text-white"
-					>
-						Créer une release
-					</UButton>
 					<select
 						v-model="sort"
 						class="bg-cb-quinary-900 placeholder-cb-tertiary-200 hover:bg-cb-tertiary-200 hover:text-cb-quinary-900 w-full rounded border-none p-2 text-xs uppercase drop-shadow-xl transition-all duration-300 ease-in-out focus:outline-none sm:w-fit"
@@ -237,22 +255,39 @@
 						<icon-sort v-if="!invertSort" class="text-cb-tertiary-200 h-6 w-6" />
 						<icon-sort-reverse v-else class="text-cb-tertiary-200 h-6 w-6" />
 					</button>
-					<button
-						class="w-full rounded px-2 py-1 text-xs uppercase hover:bg-zinc-500 sm:w-fit"
-						:class="needToBeVerifiedFilter ? 'bg-cb-primary-900' : 'bg-cb-quinary-900'"
-						@click="needToBeVerifiedFilter = !needToBeVerifiedFilter"
-					>
-						Only NTBV
-					</button>
-					<button
-						class="w-full rounded px-2 py-1 text-xs uppercase hover:bg-zinc-500 sm:w-fit"
-						:class="noNeedToBeVerifiedFilter ? 'bg-cb-primary-900' : 'bg-cb-quinary-900'"
-						@click="noNeedToBeVerifiedFilter = !noNeedToBeVerifiedFilter"
-					>
-						Only NNTBV
-					</button>
 				</div>
-			</section>
+			</div>
+
+			<!-- Sélection d'artistes -->
+			<div class="flex w-full flex-col gap-2">
+				<label class="text-sm font-medium text-gray-300">
+					Filtrer par artistes
+					<span v-if="selectedArtists.length > 0" class="text-xs text-gray-400">
+						({{ selectedArtists.length }} sélectionné{{ selectedArtists.length > 1 ? 's' : '' }})
+					</span>
+				</label>
+				<UInputMenu
+					v-model="selectedArtistsWithLabel"
+					:items="artistsForMenu"
+					by="id"
+					multiple
+					placeholder="Sélectionner des artistes..."
+					searchable
+					searchable-placeholder="Rechercher un artiste..."
+					class="bg-cb-quaternary-950 text-tertiary w-full cursor-pointer ring-transparent sm:min-w-64"
+					:ui="{
+						content: 'bg-cb-quaternary-950',
+						item: 'rounded cursor-pointer data-highlighted:before:bg-cb-primary-900/30 hover:bg-cb-primary-900',
+					}"
+				/>
+				<button
+					v-if="selectedArtists.length > 0"
+					class="text-xs text-red-400 hover:text-red-300 self-start"
+					@click="selectedArtists = []; selectedArtistsWithLabel = []"
+				>
+					Effacer la sélection
+				</button>
+			</div>
 		</section>
 
 		<div
