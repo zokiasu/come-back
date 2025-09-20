@@ -81,7 +81,7 @@ export const useAuth = () => {
 					throw createError
 				}
 
-					return newUser
+				return newUser
 			} else {
 				// Mettre à jour l'utilisateur existant
 				const { data: updatedUser, error: updateError } = await supabase
@@ -96,7 +96,7 @@ export const useAuth = () => {
 					throw updateError
 				}
 
-					return updatedUser
+				return updatedUser
 			}
 		} catch (error) {
 			console.error('Erreur dans createOrUpdateUser:', error)
@@ -111,7 +111,7 @@ export const useAuth = () => {
 	// Fonction pour synchroniser le profil utilisateur
 	const ensureUserProfile = async () => {
 		if (!user.value) {
-				await resetStore()
+			await resetStore()
 			return false
 		}
 
@@ -138,7 +138,7 @@ export const useAuth = () => {
 
 		// Si tout est déjà synchronisé
 		if (userDataStore.value && isLoginStore.value) {
-				return true
+			return true
 		}
 
 		return false

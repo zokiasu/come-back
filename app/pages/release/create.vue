@@ -4,9 +4,7 @@
 			<div class="mx-auto max-w-4xl space-y-6">
 				<!-- Header -->
 				<div>
-					<h1 class="text-tertiary mb-2 text-3xl font-bold">
-						Create new release
-					</h1>
+					<h1 class="text-tertiary mb-2 text-3xl font-bold">Create new release</h1>
 					<p>Add a release manually with all its details and music</p>
 				</div>
 

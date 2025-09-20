@@ -2,8 +2,8 @@
 	import type { Release } from '~/types'
 	import type { ReleaseType } from '~/types'
 	import { useSupabaseRelease } from '~/composables/Supabase/useSupabaseRelease'
-	import { useSupabaseSearch } from '~/composables/useSupabaseSearch'
 	import { useUserStore } from '~/stores/user'
+	import { useInfiniteScroll } from '@vueuse/core'
 
 	const { deleteRelease: deleteReleaseFunction, getReleasesByPage } = useSupabaseRelease()
 	const toast = useToast()
@@ -21,64 +21,17 @@
 	const firstLoad = ref(true)
 	const typeFilter = ref<ReleaseType | ''>('')
 
-	// Supabase Search
-	const { searchArtistsFullText } = useSupabaseSearch()
-	const searchResults = ref<Release[]>([])
-	const isSearching = ref(false)
-
 	const needToBeVerifiedFilter = ref<boolean>(false)
 	const noNeedToBeVerifiedFilter = ref<boolean>(false)
 
-	const observerTarget = useTemplateRef('observerTarget')
+	const scrollContainer = useTemplateRef('scrollContainer')
 	const hasMore = computed(() => currentPage.value <= totalPages.value)
-
-	/**
-	 * Effectue une recherche avec Supabase
-	 */
-	const performSupabaseSearch = useDebounce(async () => {
-		if (search.value.length < 2) {
-			searchResults.value = []
-			return
-		}
-
-		isSearching.value = true
-		try {
-			// Note: Nous utilisons searchArtistsFullText pour les releases aussi
-			// Dans un vrai projet, vous pourriez avoir une fonction searchReleasesFullText
-			const result = await searchArtistsFullText({
-				query: search.value,
-				limit: 50
-			})
-			// Pour les releases, nous devrons adapter cette logique selon vos besoins
-			searchResults.value = []
-		} catch (error) {
-			console.error('Erreur lors de la recherche:', error)
-			toast.add({
-				title: 'Erreur lors de la recherche',
-				color: 'error',
-			})
-		} finally {
-			isSearching.value = false
-		}
-	}, 300)
-
-	/**
-	 * Méthode de recherche unifiée (Supabase uniquement)
-	 */
-	const triggerSearch = () => {
-		if (search.value.length >= 2) {
-			performSupabaseSearch()
-		} else {
-			resetSearch()
-		}
-	}
 
 	/**
 	 * Reset la recherche et recharge tous les releases
 	 */
 	const resetSearch = () => {
 		search.value = ''
-		searchResults.value = []
 		getRelease(true)
 	}
 
@@ -158,45 +111,23 @@
 		}
 	}
 
+	// Infinite scroll avec VueUse
+	useInfiniteScroll(
+		scrollContainer,
+		async () => {
+			// Charger plus de releases si possible et pas en recherche
+			if (hasMore.value && !isLoading.value && search.value.length < 2) {
+				await getRelease(false)
+			}
+		},
+		{
+			distance: 100, // Se déclenche à 100px du bas
+			direction: 'bottom',
+		}
+	)
+
 	// Hooks
 	onMounted(() => {
-		// Configuration de l'observateur d'intersection pour le chargement infini (client-only)
-		if (import.meta.client) {
-			const observer = new IntersectionObserver(
-				async ([entry]) => {
-					if (
-						entry.isIntersecting &&
-						hasMore.value &&
-						!isLoading.value &&
-						!useAlgoliaForSearch.value
-					) {
-						await getRelease()
-					}
-				},
-				{
-					rootMargin: '200px',
-					threshold: 0.1,
-				},
-			)
-
-			if (observerTarget.value) {
-				observer.observe(observerTarget.value)
-			}
-
-			watch(observerTarget, (el) => {
-				if (el) {
-					observer.observe(el)
-				}
-			})
-
-			onBeforeUnmount(() => {
-				if (observerTarget.value) {
-					observer.unobserve(observerTarget.value)
-				}
-				observer.disconnect()
-			})
-		}
-
 		// Chargement initial des releases
 		getRelease(true)
 	})
@@ -206,52 +137,19 @@
 		await getRelease(true)
 	})
 
-	// Watcher pour la recherche
+	// Watcher pour la recherche - déclenche automatiquement la recherche
+	const debouncedSearch = useDebounce(() => {
+		getRelease(true)
+	}, 300)
+
 	watch(search, () => {
-		if (search.value.length >= 2) {
-			performSupabaseSearch()
-		} else if (search.value.length === 0) {
-			searchResults.value = []
-			getRelease(true)
-		}
+		debouncedSearch()
 	})
 
 	const filteredReleaseList = computed(() => {
-		// Si une recherche est active, retourner les résultats de recherche
-		if (search.value.length >= 2) {
-			return searchResults.value
-		}
-
-		if (!releaseFetch.value) return []
-
-		return [...releaseFetch.value].sort((a, b) => {
-			if (sort.value === 'created_at') {
-				return invertSort.value
-					? new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-					: new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-			}
-			if (sort.value === 'date') {
-				return invertSort.value
-					? new Date(b.date).getTime() - new Date(a.date).getTime()
-					: new Date(a.date).getTime() - new Date(b.date).getTime()
-			}
-			if (sort.value === 'type') {
-				return invertSort.value
-					? (b.type || '').localeCompare(a.type || '')
-					: (a.type || '').localeCompare(b.type || '')
-			}
-			if (sort.value === 'name') {
-				return invertSort.value
-					? (b.name || '').localeCompare(a.name || '')
-					: (a.name || '').localeCompare(b.name || '')
-			}
-			if (sort.value === 'year') {
-				return invertSort.value
-					? (b.year || 0) - (a.year || 0)
-					: (a.year || 0) - (b.year || 0)
-			}
-			return 0
-		})
+		// Maintenant que la recherche et le tri se font côté serveur via getReleasesByPage(),
+		// on retourne simplement la liste des releases
+		return releaseFetch.value || []
 	})
 
 	/**
@@ -301,20 +199,13 @@
 					/>
 					<button
 						v-if="search.length > 0"
-						class="bg-red-500 hover:bg-red-600 text-white absolute top-1/2 right-2 -translate-y-1/2 rounded px-2 py-1 text-xs"
+						class="absolute top-1/2 right-2 -translate-y-1/2 rounded bg-red-500 px-2 py-1 text-xs text-white hover:bg-red-600"
 						title="Effacer la recherche"
 						@click="resetSearch"
 					>
 						✕
 					</button>
 				</div>
-				<button
-					class="bg-cb-tertiary-200 text-cb-quinary-900 hover:bg-cb-tertiary-300 rounded px-3 py-2 text-xs transition-all duration-300"
-					title="Recherche Supabase"
-					@click="triggerSearch"
-				>
-					Supabase
-				</button>
 			</div>
 			<section class="flex w-full flex-col gap-2 sm:flex-row sm:justify-between">
 				<div class="flex space-x-2">
@@ -364,10 +255,6 @@
 			</section>
 		</section>
 
-		<div v-if="isSearching" class="flex justify-center">
-			<p class="bg-cb-quinary-900 rounded px-4 py-2 text-center">Recherche en cours...</p>
-		</div>
-
 		<div
 			v-if="filteredReleaseList && filteredReleaseList.length > 0"
 			id="release-list"
@@ -399,62 +286,23 @@
 		</div>
 
 		<p
-			v-else-if="!isSearching"
+			v-else-if="!isLoading && !firstLoad"
 			class="bg-cb-quaternary-950 w-full p-5 text-center font-semibold uppercase"
 		>
 			Aucun release trouvé
 		</p>
 
-		<div v-if="isLoading && !firstLoad" class="flex justify-center py-4">
-			<p>Chargement des releases suivantes...</p>
-		</div>
 
-		<div v-if="hasMore && search.length < 2" ref="observerTarget" />
+		<!-- Indicateurs de chargement -->
+		<LoadingIndicator
+			:show="isLoading && firstLoad"
+			message="Chargement des releases..."
+		/>
+
+		<LoadingIndicator
+			:show="isLoading && !firstLoad"
+			message="Chargement de plus de releases..."
+		/>
 	</div>
 </template>
 
-<style scoped>
-	.loading-indicator {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		gap: 8px;
-	}
-
-	.loading-dot {
-		width: 8px;
-		height: 8px;
-		border-radius: 50%;
-		background-color: #666;
-		animation: pulse 1.5s infinite ease-in-out;
-	}
-
-	.loading-dot:nth-child(2) {
-		animation-delay: 0.3s;
-	}
-
-	.loading-dot:nth-child(3) {
-		animation-delay: 0.6s;
-	}
-
-	@keyframes pulse {
-		0%,
-		100% {
-			transform: scale(0.8);
-			opacity: 0.5;
-		}
-		50% {
-			transform: scale(1.2);
-			opacity: 1;
-		}
-	}
-
-	.fade-enter-active,
-	.fade-leave-active {
-		transition: opacity 0.3s;
-	}
-	.fade-enter-from,
-	.fade-leave-to {
-		opacity: 0;
-	}
-</style>

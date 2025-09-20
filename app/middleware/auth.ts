@@ -8,8 +8,8 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
 			await Promise.race([
 				ensureAuthInitialized(),
 				new Promise((_, reject) =>
-					setTimeout(() => reject(new Error('Auth timeout')), 5000)
-				)
+					setTimeout(() => reject(new Error('Auth timeout')), 5000),
+				),
 			])
 		} catch (error) {
 			return navigateTo('/authentification')

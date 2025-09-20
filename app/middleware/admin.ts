@@ -8,8 +8,8 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
 			await Promise.race([
 				ensureAuthInitialized(),
 				new Promise((_, reject) =>
-					setTimeout(() => reject(new Error('Auth timeout')), 5000)
-				)
+					setTimeout(() => reject(new Error('Auth timeout')), 5000),
+				),
 			])
 		} catch (error) {
 			return navigateTo('/authentification')
@@ -32,8 +32,8 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
 				}),
 				// Timeout de 10 secondes
 				new Promise((_, reject) =>
-					setTimeout(() => reject(new Error('UserData timeout')), 10000)
-				)
+					setTimeout(() => reject(new Error('UserData timeout')), 10000),
+				),
 			])
 		} catch (error) {
 			// Ne pas rediriger immédiatement, laisser les vérifications suivantes décider
@@ -54,11 +54,11 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
 	// Si on a un utilisateur Supabase mais pas encore les données utilisateur,
 	// attendre un peu plus avant de rediriger
 	if (!userData.value && user.value) {
-
 		// Dernière tentative d'attendre les données utilisateur
 		let finalAttempts = 0
-		while (!userData.value && finalAttempts < 30) { // 3 secondes supplémentaires
-			await new Promise(resolve => setTimeout(resolve, 100))
+		while (!userData.value && finalAttempts < 30) {
+			// 3 secondes supplémentaires
+			await new Promise((resolve) => setTimeout(resolve, 100))
 			finalAttempts++
 		}
 

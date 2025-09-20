@@ -31,30 +31,34 @@
 		try {
 			if (import.meta.client && window.YT) {
 				player.value = new window.YT.Player('globalPlayerContainer', {
-				videoId: idYoutubeVideo.value,
-				height: '100%',
-				width: '100%',
-				playerVars: {
-					autoplay: 1,
-					controls: 0,
-					disablekb: 1,
-					enablejsapi: 1,
-					fs: 0,
-					iv_load_policy: 3,
-					modestbranding: 1,
-					playsinline: 1,
-					rel: 0,
-					showinfo: 0,
-					origin: import.meta.client ? window.location.protocol + '//' + window.location.host : 'https://localhost',
-					widget_referrer: import.meta.client ? window.location.protocol + '//' + window.location.host : 'https://localhost',
-					host: 'https://www.youtube-nocookie.com',
-				},
-				events: {
-					onReady: onPlayerReady,
-					onStateChange: onPlayerStateChange,
-					onError: onPlayerError,
-				},
-			})
+					videoId: idYoutubeVideo.value,
+					height: '100%',
+					width: '100%',
+					playerVars: {
+						autoplay: 1,
+						controls: 0,
+						disablekb: 1,
+						enablejsapi: 1,
+						fs: 0,
+						iv_load_policy: 3,
+						modestbranding: 1,
+						playsinline: 1,
+						rel: 0,
+						showinfo: 0,
+						origin: import.meta.client
+							? window.location.protocol + '//' + window.location.host
+							: 'https://localhost',
+						widget_referrer: import.meta.client
+							? window.location.protocol + '//' + window.location.host
+							: 'https://localhost',
+						host: 'https://www.youtube-nocookie.com',
+					},
+					events: {
+						onReady: onPlayerReady,
+						onStateChange: onPlayerStateChange,
+						onError: onPlayerError,
+					},
+				})
 			}
 		} catch (error) {
 			console.error('❌ Erreur lors de la création du lecteur YouTube:', error)

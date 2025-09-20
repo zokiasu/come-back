@@ -156,5 +156,4 @@ export default defineNuxtConfig({
 			xxl: 1536,
 		},
 	},
-
 })

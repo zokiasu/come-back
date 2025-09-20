@@ -62,8 +62,7 @@
 				?
 			</p>
 			<p class="text-cb-tertiary-400 mt-2 text-center text-sm">
-				This action is irreversible. All relationships with artists will be
-				also deleted.
+				This action is irreversible. All relationships with artists will be also deleted.
 			</p>
 		</div>
 

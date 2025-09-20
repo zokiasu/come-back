@@ -106,7 +106,7 @@
 			const result = await searchArtistsFullText({
 				query: search.value,
 				limit: 50,
-				type: typeFilter.value || undefined
+				type: typeFilter.value || undefined,
 			})
 			searchResults.value = result.artists
 		} catch (error) {
@@ -130,7 +130,7 @@
 
 		try {
 			if (firstCall) {
-					currentPage.value = 1
+				currentPage.value = 1
 				artistFetch.value = []
 			}
 
@@ -285,7 +285,7 @@
 			sort,
 		],
 		async () => {
-				try {
+			try {
 				await getArtist(true)
 			} catch (error) {
 				console.error('Erreur dans le watcher:', error)
@@ -313,7 +313,7 @@
 	definePageMeta({
 		middleware: ['admin'],
 		// Forcer le rendu côté client pour éviter les problèmes de tri SSR
-		ssr: false
+		ssr: false,
 	})
 </script>
 
@@ -337,7 +337,7 @@
 					/>
 					<button
 						v-if="search.length > 0"
-						class="bg-red-500 hover:bg-red-600 text-white absolute top-1/2 right-2 -translate-y-1/2 rounded px-2 py-1 text-xs"
+						class="absolute top-1/2 right-2 -translate-y-1/2 rounded bg-red-500 px-2 py-1 text-xs text-white hover:bg-red-600"
 						title="Effacer la recherche"
 						@click="resetSearch"
 					>

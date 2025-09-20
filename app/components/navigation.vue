@@ -35,27 +35,31 @@
 	const { y: scrollY } = useWindowScroll()
 
 	// Watcher réactif pour le scroll
-	watch(scrollY, (newScrollY) => {
-		if (navbar.value === null) return
+	watch(
+		scrollY,
+		(newScrollY) => {
+			if (navbar.value === null) return
 
-		if (newScrollY > 50) {
-			navbar.value.classList.add(
-				'bg-cb-secondary-950',
-				'border',
-				'border-zinc-700',
-				'shadow',
-				'shadow-zinc-700',
-			)
-		} else {
-			navbar.value.classList.remove(
-				'bg-cb-secondary-950',
-				'border',
-				'border-zinc-700',
-				'shadow',
-				'shadow-zinc-700',
-			)
-		}
-	}, { immediate: true })
+			if (newScrollY > 50) {
+				navbar.value.classList.add(
+					'bg-cb-secondary-950',
+					'border',
+					'border-zinc-700',
+					'shadow',
+					'shadow-zinc-700',
+				)
+			} else {
+				navbar.value.classList.remove(
+					'bg-cb-secondary-950',
+					'border',
+					'border-zinc-700',
+					'shadow',
+					'shadow-zinc-700',
+				)
+			}
+		},
+		{ immediate: true },
+	)
 </script>
 
 <template>

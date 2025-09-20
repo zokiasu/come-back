@@ -193,7 +193,6 @@
 		if (isLoading.value || (!hasMore.value && !reset)) return
 		isLoading.value = true
 
-
 		const result = await getArtistsByPage(page.value, limit.value, {
 			search: search.value,
 			general_tags: selectedTags.value.length > 0 ? selectedTags.value : undefined,
@@ -215,7 +214,6 @@
 	}
 
 	watch([search, selectedTags, selectedType, selectedStyles, selectedGender], () => {
-
 		// Éviter les appels pendant l'initialisation
 		if (!isInitialized.value) {
 			return

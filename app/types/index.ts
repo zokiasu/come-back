@@ -52,7 +52,14 @@ export type MusicType = 'SONG'
 export type RelationType = 'MEMBER' | 'GROUP' | 'PRODUCER' | 'COMPOSER'
 
 // ===== TYPES POUR LES COMPOSABLES =====
-export type CompanyType = 'LABEL' | 'PUBLISHER' | 'DISTRIBUTOR' | 'MANAGER' | 'AGENCY' | 'STUDIO' | 'OTHER'
+export type CompanyType =
+	| 'LABEL'
+	| 'PUBLISHER'
+	| 'DISTRIBUTOR'
+	| 'MANAGER'
+	| 'AGENCY'
+	| 'STUDIO'
+	| 'OTHER'
 
 export interface Company {
 	id: string
@@ -80,7 +87,6 @@ export interface CompanyArtist {
 	created_at: string | null
 	updated_at: string | null
 }
-
 
 // ===== TYPES UTILITAIRES =====
 export interface QueryOptions {

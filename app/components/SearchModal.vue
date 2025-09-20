@@ -23,7 +23,7 @@
 		try {
 			const result = await searchArtistsFullText({
 				query,
-				limit: 10
+				limit: 10,
 			})
 			artists.value = result.artists
 		} catch (error) {

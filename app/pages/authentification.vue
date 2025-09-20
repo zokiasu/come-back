@@ -22,16 +22,13 @@
 		if (error) {
 			switch (error) {
 				case 'timeout':
-					errorMessage.value =
-						'Connection timeout. Please try again.'
+					errorMessage.value = 'Connection timeout. Please try again.'
 					break
 				case 'sync':
-					errorMessage.value =
-						'Profile synchronization error. Please try again.'
+					errorMessage.value = 'Profile synchronization error. Please try again.'
 					break
 				case 'callback':
-					errorMessage.value =
-						'Connection process error. Please try again.'
+					errorMessage.value = 'Connection process error. Please try again.'
 					break
 				default:
 					errorMessage.value = 'An error occurred. Please try again.'

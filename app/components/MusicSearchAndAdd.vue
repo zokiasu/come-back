@@ -1,9 +1,7 @@
 <template>
 	<div class="space-y-6">
 		<div class="border-b border-gray-200 pb-4 dark:border-gray-700">
-			<h4 class="mb-2 text-lg font-medium text-gray-900 dark:text-white">
-				Add music
-			</h4>
+			<h4 class="mb-2 text-lg font-medium text-gray-900 dark:text-white">Add music</h4>
 			<p class="text-sm text-gray-500 dark:text-gray-400">
 				Search for existing music or create new ones
 			</p>
