@@ -16,6 +16,12 @@
 		isAdminStore = ref(false)
 	}
 
+	const isClient = ref(false)
+
+	onMounted(() => {
+		isClient.value = true
+	})
+
 	const route = useRoute()
 
 	const navbar = useTemplateRef('navbar')
@@ -25,7 +31,6 @@
 	const routeIsIndex = computed(() => route.name === 'index')
 	const routeIsCalendar = computed(() => route.name === 'calendar')
 	const routeIsArtist = computed(() => route.name === 'artist')
-	const routeIsCompany = computed(() => route.name === 'company')
 
 	const routeIsDashboard = computed(() =>
 		(route.name as string)?.startsWith('dashboard-'),
@@ -96,13 +101,7 @@
 						Artists
 					</NuxtLink>
 					<NuxtLink
-						:to="`/company`"
-						:class="routeIsCompany ? 'font-semibold text-white' : 'text-zinc-500'"
-					>
-						Companies
-					</NuxtLink>
-					<NuxtLink
-						v-if="isAdminStore"
+						v-if="isAdminStore && isClient"
 						:to="`/dashboard/artist`"
 						:class="routeIsDashboard ? 'font-semibold text-white' : 'text-zinc-500'"
 					>

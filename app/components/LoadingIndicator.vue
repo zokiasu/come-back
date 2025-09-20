@@ -51,41 +51,42 @@
 				return 'w-5 h-5'
 		}
 	})
+
+	const shouldShow = computed(() => {
+		return import.meta.client && props.show
+	})
 </script>
 
 <template>
-	<ClientOnly>
-		<Teleport to="body">
-			<Transition
-				enter-active-class="transition-all duration-300 ease-out"
-				enter-from-class="opacity-0 scale-95 translate-y-2"
-				enter-to-class="opacity-100 scale-100 translate-y-0"
-				leave-active-class="transition-all duration-200 ease-in"
-				leave-from-class="opacity-100 scale-100 translate-y-0"
-				leave-to-class="opacity-0 scale-95 translate-y-2"
+	<Teleport v-if="shouldShow" to="body">
+		<Transition
+			enter-active-class="transition-all duration-300 ease-out"
+			enter-from-class="opacity-0 scale-95 translate-y-2"
+			enter-to-class="opacity-100 scale-100 translate-y-0"
+			leave-active-class="transition-all duration-200 ease-in"
+			leave-from-class="opacity-100 scale-100 translate-y-0"
+			leave-to-class="opacity-0 scale-95 translate-y-2"
+		>
+			<div
+				:class="[positionClasses, 'z-50 transform']"
 			>
 				<div
-					v-if="show"
-					:class="[positionClasses, 'z-50 transform']"
+					:class="[
+						'bg-cb-secondary-950 border-cb-tertiary-200 flex items-center rounded-full border shadow-lg backdrop-blur-sm',
+						sizeClasses,
+					]"
 				>
 					<div
 						:class="[
-							'bg-cb-secondary-950 border-cb-tertiary-200 flex items-center rounded-full border shadow-lg backdrop-blur-sm',
-							sizeClasses,
+							'animate-spin rounded-full border-2 border-cb-tertiary-200 border-t-cb-primary-500',
+							spinnerSize,
 						]"
-					>
-						<div
-							:class="[
-								'animate-spin rounded-full border-2 border-cb-tertiary-200 border-t-cb-primary-500',
-								spinnerSize,
-							]"
-						></div>
-						<span class="text-cb-tertiary-200 font-medium">{{ message }}</span>
-					</div>
+					></div>
+					<span class="text-cb-tertiary-200 font-medium">{{ message }}</span>
 				</div>
-			</Transition>
-		</Teleport>
-	</ClientOnly>
+			</div>
+		</Transition>
+	</Teleport>
 </template>
 
 <style scoped>
