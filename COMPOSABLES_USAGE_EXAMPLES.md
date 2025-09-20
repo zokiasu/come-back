@@ -163,7 +163,7 @@ const createArtistWithContribution = async (artistData: any) => {
 			const result = await searchArtistsFullText({
 				query: searchQuery.value,
 				limit: 10,
-				type: 'SOLO' // optionnel
+				type: 'SOLO', // optionnel
 			})
 			searchResults.value = result.artists
 		} catch (error) {
@@ -186,25 +186,17 @@ const createArtistWithContribution = async (artistData: any) => {
 			class="search-input"
 		/>
 
-		<div v-if="isLoading" class="loading">
-			Recherche en cours...
-		</div>
+		<div v-if="isLoading" class="loading">Recherche en cours...</div>
 
 		<div v-else-if="searchResults.length" class="results">
-			<div
-				v-for="artist in searchResults"
-				:key="artist.id"
-				class="result-item"
-			>
+			<div v-for="artist in searchResults" :key="artist.id" class="result-item">
 				<img :src="artist.image" :alt="artist.name" />
 				<h3>{{ artist.name }}</h3>
 				<p>{{ artist.description }}</p>
 			</div>
 		</div>
 
-		<div v-else-if="searchQuery.trim()" class="no-results">
-			Aucun artiste trouvé
-		</div>
+		<div v-else-if="searchQuery.trim()" class="no-results">Aucun artiste trouvé</div>
 	</div>
 </template>
 ```
@@ -230,7 +222,7 @@ const createArtistWithContribution = async (artistData: any) => {
 		try {
 			const result = await searchArtistsFullText({
 				query,
-				limit: 10
+				limit: 10,
 			})
 			suggestions.value = result.artists
 		} catch (error) {
@@ -254,14 +246,14 @@ const createArtistWithContribution = async (artistData: any) => {
 		<input
 			v-model="searchInput"
 			placeholder="Rechercher un artiste..."
-			class="w-full p-2 border rounded"
+			class="w-full rounded border p-2"
 		/>
 
-		<div v-if="suggestions.length" class="absolute z-10 bg-white border shadow-lg">
+		<div v-if="suggestions.length" class="absolute z-10 border bg-white shadow-lg">
 			<div
 				v-for="artist in suggestions"
 				:key="artist.id"
-				class="p-2 hover:bg-gray-100 cursor-pointer"
+				class="cursor-pointer p-2 hover:bg-gray-100"
 				@click="selectArtist(artist)"
 			>
 				{{ artist.name }}
@@ -270,88 +262,90 @@ const createArtistWithContribution = async (artistData: any) => {
 	</div>
 </template>
 ```
-	const {
 
-	const config = ref({})
-	const isEnabled = ref(false)
-	const isLoading = ref(false)
+    const {
 
-	onMounted(async () => {
-	})
+    const config = ref({})
+    const isEnabled = ref(false)
+    const isLoading = ref(false)
 
-	const saveConfig = async () => {
-		isLoading.value = true
-		try {
-		} finally {
-			isLoading.value = false
-		}
-	}
+    onMounted(async () => {
+    })
 
-	const testConnection = async () => {
-		console.log('Test result:', result)
-	}
+    const saveConfig = async () => {
+    	isLoading.value = true
+    	try {
+    	} finally {
+    		isLoading.value = false
+    	}
+    }
 
-	const syncArtists = async () => {
-		isLoading.value = true
-		try {
-		} finally {
-			isLoading.value = false
-		}
-	}
+    const testConnection = async () => {
+    	console.log('Test result:', result)
+    }
+
+    const syncArtists = async () => {
+    	isLoading.value = true
+    	try {
+    	} finally {
+    		isLoading.value = false
+    	}
+    }
+
 </script>
 
 <template>
 
-		<div class="status">
-			<span :class="isEnabled ? 'status-enabled' : 'status-disabled'">
-				{{ isEnabled ? '✅ Activé' : '❌ Désactivé' }}
-			</span>
-		</div>
+    	<div class="status">
+    		<span :class="isEnabled ? 'status-enabled' : 'status-disabled'">
+    			{{ isEnabled ? '✅ Activé' : '❌ Désactivé' }}
+    		</span>
+    	</div>
 
-		<form @submit.prevent="saveConfig">
-			<div class="form-group">
-				<label>Application ID</label>
-				<input v-model="config.ALGOLIA_APPLICATION_ID" type="text" required />
-			</div>
+    	<form @submit.prevent="saveConfig">
+    		<div class="form-group">
+    			<label>Application ID</label>
+    			<input v-model="config.ALGOLIA_APPLICATION_ID" type="text" required />
+    		</div>
 
-			<div class="form-group">
-				<label>API Key</label>
-				<input v-model="config.ALGOLIA_API_KEY" type="password" required />
-			</div>
+    		<div class="form-group">
+    			<label>API Key</label>
+    			<input v-model="config.ALGOLIA_API_KEY" type="password" required />
+    		</div>
 
-			<div class="form-group">
-				<label>Index Name</label>
-				<input v-model="config.ALGOLIA_INDEX_NAME" type="text" required />
-			</div>
+    		<div class="form-group">
+    			<label>Index Name</label>
+    			<input v-model="config.ALGOLIA_INDEX_NAME" type="text" required />
+    		</div>
 
-			<div class="form-group">
-				<label>
-					<input
-						v-model="config.ALGOLIA_SEARCH_ENABLED"
-						type="checkbox"
-						:true-value="'true'"
-						:false-value="'false'"
-					/>
-					Recherche activée
-				</label>
-			</div>
+    		<div class="form-group">
+    			<label>
+    				<input
+    					v-model="config.ALGOLIA_SEARCH_ENABLED"
+    					type="checkbox"
+    					:true-value="'true'"
+    					:false-value="'false'"
+    				/>
+    				Recherche activée
+    			</label>
+    		</div>
 
-			<div class="actions">
-				<button type="submit" :disabled="isLoading">
-					{{ isLoading ? 'Sauvegarde...' : 'Sauvegarder' }}
-				</button>
+    		<div class="actions">
+    			<button type="submit" :disabled="isLoading">
+    				{{ isLoading ? 'Sauvegarde...' : 'Sauvegarder' }}
+    			</button>
 
-				<button type="button" @click="testConnection">Tester la connexion</button>
+    			<button type="button" @click="testConnection">Tester la connexion</button>
 
-				<button type="button" @click="syncArtists" :disabled="isLoading">
-					Synchroniser les artistes
-				</button>
-			</div>
-		</form>
-	</div>
+    			<button type="button" @click="syncArtists" :disabled="isLoading">
+    				Synchroniser les artistes
+    			</button>
+    		</div>
+    	</form>
+    </div>
+
 </template>
 ```
-
 
 ```vue
 <script setup>
@@ -426,9 +420,7 @@ export default defineNuxtRouteMiddleware((to) => {
 
 ```typescript
 // Dans plugins/contributions-init.client.ts
-export default defineNuxtPlugin(async () => {
-
-})
+export default defineNuxtPlugin(async () => {})
 ```
 
 ## 🎯 **Points d'intégration recommandés**

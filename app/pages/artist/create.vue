@@ -94,16 +94,14 @@
 	})
 
 	const companiesForMenu = computed(() => {
-		return companiesList.value.map(
-			(company): MenuItem<Omit<Company, 'type'>> => {
-				// eslint-disable-next-line @typescript-eslint/no-unused-vars
-				const { type, ...rest } = company
-				return {
-					...rest,
-					label: company.name,
-				}
-			},
-		)
+		return companiesList.value.map((company): MenuItem<Omit<Company, 'type'>> => {
+			// eslint-disable-next-line @typescript-eslint/no-unused-vars
+			const { type, ...rest } = company
+			return {
+				...rest,
+				label: company.name,
+			}
+		})
 	})
 
 	const groupsForMenu = computed(() => {
@@ -271,7 +269,9 @@
 		artistPlatformList.value.push({ name: '', link: '' })
 	}
 
-	const removePlatform = (platform: Omit<ArtistPlatformLink, 'id' | 'created_at' | 'artist_id'>) => {
+	const removePlatform = (
+		platform: Omit<ArtistPlatformLink, 'id' | 'created_at' | 'artist_id'>,
+	) => {
 		artistPlatformList.value.splice(artistPlatformList.value.indexOf(platform), 1)
 	}
 
@@ -294,7 +294,9 @@
 		artistSocialList.value.push({ name: '', link: '' })
 	}
 
-	const removeSocial = (social: Omit<ArtistSocialLink, 'id' | 'created_at' | 'artist_id'>) => {
+	const removeSocial = (
+		social: Omit<ArtistSocialLink, 'id' | 'created_at' | 'artist_id'>,
+	) => {
 		artistSocialList.value.splice(artistSocialList.value.indexOf(social), 1)
 	}
 
@@ -680,7 +682,9 @@
 											content: 'bg-cb-quaternary-950',
 											item: 'rounded cursor-pointer data-highlighted:before:bg-cb-primary-900/30 hover:bg-cb-primary-900',
 										}"
-										@update:model-value="(company: Company) => updateCompanyInRelation(index, company)"
+										@update:model-value="
+											(company: Company) => updateCompanyInRelation(index, company)
+										"
 									/>
 								</div>
 

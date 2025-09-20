@@ -667,8 +667,6 @@ export function useSupabaseArtist() {
 				throw new Error('Erreur lors de la récupération des artistes')
 			}
 
-
-
 			// Transformer les données pour correspondre au format attendu
 			const transformedData = data.map((artist) => ({
 				...artist,

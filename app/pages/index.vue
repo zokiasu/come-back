@@ -132,7 +132,7 @@
 				<SkeletonDefault class="h-80 w-full rounded-lg" />
 				<SkeletonDefault class="h-80 w-full rounded-lg" />
 			</div>
-			
+
 			<!-- Latest MV -->
 			<div
 				v-if="mvs.length > 0 && !mvsFetching"
@@ -142,9 +142,9 @@
 				<DiscoverMV :mvs="mvs" />
 			</div>
 			<div v-else-if="mvsFetching" class="space-y-4">
-				<p class="text-xl font-bold lg:text-4xl text-center">Latest MV</p>
+				<p class="text-center text-xl font-bold lg:text-4xl">Latest MV</p>
 				<SkeletonDefault class="aspect-video w-full rounded-lg" />
-				<div class="flex space-x-3 justify-center">
+				<div class="flex justify-center space-x-3">
 					<SkeletonDefault
 						v-for="i in 7"
 						:key="i"
@@ -152,7 +152,7 @@
 					/>
 				</div>
 			</div>
-			
+
 			<!-- Recent Release -->
 			<LazyRecentReleases
 				v-if="releases.length > 0 && !releasesFetching"

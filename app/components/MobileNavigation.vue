@@ -28,6 +28,12 @@
 		}
 		return `/profile/${userDataStore.value.id}`
 	})
+
+	const isClient = ref(false)
+
+	onMounted(() => {
+		isClient.value = true
+	})
 </script>
 
 <template>
@@ -63,7 +69,7 @@
 			</NuxtLink> -->
 
 			<NuxtLink
-				v-if="isAdminStore"
+				v-if="isAdminStore && isClient"
 				to="/dashboard/artist"
 				class="flex w-full items-center justify-center py-2 transition-all duration-500 ease-in-out hover:bg-zinc-500/50"
 			>
@@ -71,14 +77,14 @@
 			</NuxtLink>
 
 			<NuxtLink
-				v-if="!isLoginStore"
+				v-if="!isLoginStore && isClient"
 				to="/authentification"
 				class="flex w-full items-center justify-center py-2 transition-all duration-500 ease-in-out hover:bg-zinc-500/50"
 			>
 				<IconAccount class="mx-auto h-5 w-5" />
 			</NuxtLink>
 
-			<ModalNewsCreation v-else />
+			<ModalNewsCreation v-if="isLoginStore && isClient" />
 		</div>
 	</div>
 </template>

@@ -150,7 +150,15 @@
 			/>
 		</transition-group>
 
-		<div v-if="isLoading" class="py-4 text-center">Loading...</div>
+		<LoadingIndicator
+			:show="isLoading && firstLoad"
+			message="Chargement des artistes..."
+		/>
+
+		<LoadingIndicator
+			:show="isLoading && !firstLoad"
+			message="Chargement de plus d'artistes..."
+		/>
 		<div v-if="!hasMore && artists.length > 0" class="py-4 text-center text-gray-400">
 			All artists are displayed.
 		</div>
@@ -176,6 +184,7 @@
 	const isLoading = ref(false)
 	const hasMore = ref(true)
 	const isInitialized = ref(false)
+	const firstLoad = ref(true)
 
 	const tagsList = ref<GeneralTag[]>([])
 	const selectedTags = ref<string[]>([])
@@ -193,6 +202,11 @@
 		if (isLoading.value || (!hasMore.value && !reset)) return
 		isLoading.value = true
 
+		if (reset) {
+			firstLoad.value = true
+		} else {
+			firstLoad.value = false
+		}
 
 		const result = await getArtistsByPage(page.value, limit.value, {
 			search: search.value,
@@ -210,12 +224,13 @@
 		} else {
 			artists.value = [...artists.value, ...artistsArray]
 		}
+		// Il y a plus d'éléments si on a reçu exactement le nombre demandé
 		hasMore.value = artistsArray.length === limit.value
 		isLoading.value = false
+
 	}
 
 	watch([search, selectedTags, selectedType, selectedStyles, selectedGender], () => {
-
 		// Éviter les appels pendant l'initialisation
 		if (!isInitialized.value) {
 			return
@@ -243,10 +258,14 @@
 		isInitialized.value = true
 	})
 
-	useInfiniteScroll(window, loadMore, {
-		distance: 200,
-		canLoadMore: () => hasMore.value && !isLoading.value && isInitialized.value,
-	})
+	useInfiniteScroll(
+		() => import.meta.client ? window : null,
+		loadMore,
+		{
+			distance: 200,
+			canLoadMore: () => hasMore.value && !isLoading.value,
+		}
+	)
 
 	const toggleTag = (tagName: string) => {
 		if (selectedTags.value.includes(tagName)) {

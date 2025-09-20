@@ -17,6 +17,11 @@ export const useSupabaseAuth = () => {
 				provider: 'google',
 				options: {
 					redirectTo: `${useRequestURL().origin}/auth/callback`,
+					scopes: 'openid email profile',
+					queryParams: {
+						access_type: 'offline',
+						prompt: 'consent',
+					},
 				},
 			})
 
@@ -24,7 +29,6 @@ export const useSupabaseAuth = () => {
 				console.error('❌ Erreur OAuth:', authError)
 				throw authError
 			}
-
 		} catch (err: any) {
 			console.error('❌ Erreur lors de la connexion Google:', err)
 			error.value = err.message || 'Erreur de connexion'
@@ -39,12 +43,10 @@ export const useSupabaseAuth = () => {
 			const { ensureUserProfile } = useAuth()
 
 			if (user.value) {
-
 				// Synchroniser le profil utilisateur
 				await ensureUserProfile()
 
 				await navigateTo('/')
-			} else {
 			}
 		} catch (err: any) {
 			console.error('❌ Erreur lors du callback:', err)

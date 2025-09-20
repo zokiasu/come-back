@@ -1,6 +1,7 @@
 <script setup lang="ts">
 	import type { Release } from '~/types'
 	import { useSupabaseRelease } from '~/composables/Supabase/useSupabaseRelease'
+	import { useWindowScroll } from '@vueuse/core'
 
 	const { getReleasesByMonthAndYear } = useSupabaseRelease()
 
@@ -28,15 +29,19 @@
 	const onlySingles = ref<boolean>(false)
 	const loading = ref<boolean>(true)
 
-	function handleScrollCalendar() {
-		if (import.meta.client) {
-			if (window.scrollY > 50) {
+	// Utiliser le composable Nuxt pour le scroll
+	const { y: scrollY } = useWindowScroll()
+
+	// Watcher réactif pour le bouton back-to-top
+	watch(scrollY, (newScrollY) => {
+		if (import.meta.client && backTop.value) {
+			if (newScrollY > 50) {
 				backTop.value.classList.remove('hidden')
 			} else {
 				backTop.value.classList.add('hidden')
 			}
 		}
-	}
+	})
 
 	const switchTypeFilter = async (type: string) => {
 		if (type === 'ALBUM') {
@@ -90,9 +95,7 @@
 			})
 		})
 
-		if (import.meta.client) {
-			window.addEventListener('scroll', handleScrollCalendar)
-		}
+		// Plus besoin d'addEventListener, useWindowScroll() s'en charge
 	})
 
 	watch([currentYear, currentMonth], async () => {

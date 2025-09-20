@@ -29,31 +29,37 @@
 		console.log('🎵 Création du lecteur YouTube avec vidéo:', idYoutubeVideo.value)
 
 		try {
-			player.value = new window.YT.Player('globalPlayerContainer', {
-				videoId: idYoutubeVideo.value,
-				height: '100%',
-				width: '100%',
-				playerVars: {
-					autoplay: 1,
-					controls: 0,
-					disablekb: 1,
-					enablejsapi: 1,
-					fs: 0,
-					iv_load_policy: 3,
-					modestbranding: 1,
-					playsinline: 1,
-					rel: 0,
-					showinfo: 0,
-					origin: window.location.protocol + '//' + window.location.host,
-					widget_referrer: window.location.protocol + '//' + window.location.host,
-					host: 'https://www.youtube-nocookie.com',
-				},
-				events: {
-					onReady: onPlayerReady,
-					onStateChange: onPlayerStateChange,
-					onError: onPlayerError,
-				},
-			})
+			if (import.meta.client && window.YT) {
+				player.value = new window.YT.Player('globalPlayerContainer', {
+					videoId: idYoutubeVideo.value,
+					height: '100%',
+					width: '100%',
+					playerVars: {
+						autoplay: 1,
+						controls: 0,
+						disablekb: 1,
+						enablejsapi: 1,
+						fs: 0,
+						iv_load_policy: 3,
+						modestbranding: 1,
+						playsinline: 1,
+						rel: 0,
+						showinfo: 0,
+						origin: import.meta.client
+							? window.location.protocol + '//' + window.location.host
+							: 'https://localhost',
+						widget_referrer: import.meta.client
+							? window.location.protocol + '//' + window.location.host
+							: 'https://localhost',
+						host: 'https://www.youtube-nocookie.com',
+					},
+					events: {
+						onReady: onPlayerReady,
+						onStateChange: onPlayerStateChange,
+						onError: onPlayerError,
+					},
+				})
+			}
 		} catch (error) {
 			console.error('❌ Erreur lors de la création du lecteur YouTube:', error)
 			errorDetected.value = true
@@ -163,13 +169,28 @@
 
 		console.log('🎵 Initialisation du lecteur YouTube...')
 
-		// Vérifier si YouTube est bloqué
-		if (
-			window.navigator &&
-			window.navigator.userAgent &&
-			(window.navigator.userAgent.includes('uBlock') ||
-				window.navigator.userAgent.includes('AdBlock'))
-		) {
+		// Détecter les bloqueurs de publicités de manière plus robuste
+		const detectAdBlocker = () => {
+			if (!import.meta.client) return false
+
+			try {
+				// Créer un élément test qui serait bloqué par les ad-blockers
+				const testEl = document.createElement('div')
+				testEl.innerHTML = '&nbsp;'
+				testEl.className = 'adsbox'
+				testEl.style.cssText = 'position:absolute;left:-999px;'
+				document.body.appendChild(testEl)
+
+				const isBlocked = testEl.offsetHeight === 0
+				document.body.removeChild(testEl)
+
+				return isBlocked
+			} catch {
+				return false
+			}
+		}
+
+		if (detectAdBlocker()) {
 			console.warn('⚠️ Bloqueur de publicités détecté')
 			errorDetected.value = true
 			errorMessage.value =

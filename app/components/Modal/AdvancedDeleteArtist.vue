@@ -52,7 +52,7 @@
 		try {
 			impact.value = await getArtistDeletionImpact(props.artistId)
 		} catch (error) {
-			console.error("Error during impact analysis:", error)
+			console.error('Error during impact analysis:', error)
 		} finally {
 			isLoading.value = false
 		}
@@ -118,12 +118,9 @@
 						<label class="flex cursor-pointer items-start space-x-3">
 							<input v-model="deletionMode" type="radio" value="safe" class="mt-1" />
 							<div>
-								<p class="font-medium text-green-700">
-									🛡️ Secure deletion (recommended)
-								</p>
+								<p class="font-medium text-green-700">🛡️ Secure deletion (recommended)</p>
 								<p class="text-sm text-gray-600">
-									Analyzes content and preserves elements shared with other
-									artists
+									Analyzes content and preserves elements shared with other artists
 								</p>
 							</div>
 						</label>
@@ -132,9 +129,7 @@
 							<input v-model="deletionMode" type="radio" value="simple" class="mt-1" />
 							<div>
 								<p class="font-medium text-orange-700">⚡ Quick deletion</p>
-								<p class="text-sm text-gray-600">
-									Deletes only artist relations, faster
-								</p>
+								<p class="text-sm text-gray-600">Deletes only artist relations, faster</p>
 							</div>
 						</label>
 					</div>

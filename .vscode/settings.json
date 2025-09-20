@@ -28,5 +28,13 @@
 		"editor.defaultFormatter": "esbenp.prettier-vscode",
 		"editor.tabSize": 2
 	},
-	"postman.settings.dotenv-detection-notification-visibility": false
+	"postman.settings.dotenv-detection-notification-visibility": false,
+	"terminal.integrated.defaultProfile.windows": "WSL",
+	"terminal.integrated.profiles.windows": {
+		"WSL": {
+			"path": "wsl.exe",
+			"args": ["-d", "Ubuntu"],
+			"icon": "terminal-ubuntu"
+		}
+	}
 }

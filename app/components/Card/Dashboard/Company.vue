@@ -60,7 +60,7 @@
 	}
 
 	const openWebsite = () => {
-		if (props.website) {
+		if (props.website && import.meta.client) {
 			window.open(props.website, '_blank')
 		}
 	}

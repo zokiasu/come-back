@@ -1,6 +1,7 @@
 <script setup lang="ts">
 	import { storeToRefs } from 'pinia'
 	import { useUserStore } from '@/stores/user'
+	import { useWindowScroll } from '@vueuse/core'
 
 	// Accès sécurisé aux stores
 	let isAdminStore = ref(false)
@@ -15,6 +16,12 @@
 		isAdminStore = ref(false)
 	}
 
+	const isClient = ref(false)
+
+	onMounted(() => {
+		isClient.value = true
+	})
+
 	const route = useRoute()
 
 	const navbar = useTemplateRef('navbar')
@@ -24,43 +31,40 @@
 	const routeIsIndex = computed(() => route.name === 'index')
 	const routeIsCalendar = computed(() => route.name === 'calendar')
 	const routeIsArtist = computed(() => route.name === 'artist')
-	const routeIsCompany = computed(() => route.name === 'company')
 
 	const routeIsDashboard = computed(() =>
 		(route.name as string)?.startsWith('dashboard-'),
 	)
 
-	function handleScroll() {
-		if (navbar.value === null) return
+	// Utiliser le composable Nuxt pour le scroll
+	const { y: scrollY } = useWindowScroll()
 
-		if (window.scrollY > 50) {
-			navbar.value.classList.add(
-				'bg-cb-secondary-950',
-				'border',
-				'border-zinc-700',
-				'shadow',
-				'shadow-zinc-700',
-			)
-		} else {
-			navbar.value.classList.remove(
-				'bg-cb-secondary-950',
-				'border',
-				'border-zinc-700',
-				'shadow',
-				'shadow-zinc-700',
-			)
-		}
-	}
+	// Watcher réactif pour le scroll
+	watch(
+		scrollY,
+		(newScrollY) => {
+			if (navbar.value === null) return
 
-	onMounted(() => {
-		if (navbar.value === null) return
-		handleScroll()
-		window.addEventListener('scroll', handleScroll)
-	})
-
-	onUnmounted(() => {
-		window.removeEventListener('scroll', handleScroll)
-	})
+			if (newScrollY > 50) {
+				navbar.value.classList.add(
+					'bg-cb-secondary-950',
+					'border',
+					'border-zinc-700',
+					'shadow',
+					'shadow-zinc-700',
+				)
+			} else {
+				navbar.value.classList.remove(
+					'bg-cb-secondary-950',
+					'border',
+					'border-zinc-700',
+					'shadow',
+					'shadow-zinc-700',
+				)
+			}
+		},
+		{ immediate: true },
+	)
 </script>
 
 <template>
@@ -97,13 +101,7 @@
 						Artists
 					</NuxtLink>
 					<NuxtLink
-						:to="`/company`"
-						:class="routeIsCompany ? 'font-semibold text-white' : 'text-zinc-500'"
-					>
-						Companies
-					</NuxtLink>
-					<NuxtLink
-						v-if="isAdminStore"
+						v-if="isAdminStore && isClient"
 						:to="`/dashboard/artist`"
 						:class="routeIsDashboard ? 'font-semibold text-white' : 'text-zinc-500'"
 					>

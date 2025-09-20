@@ -32,6 +32,7 @@
 	const limitFetch = ref(48)
 	const typeFilter = ref<Artist['type'] | ''>('')
 	const isLoading = ref(false)
+	const firstLoad = ref(true)
 	const { searchArtistsFullText } = useSupabaseSearch()
 	const searchResults = ref<Artist[]>([])
 	const isSearching = ref(false)
@@ -47,7 +48,6 @@
 	const activeCareerFilter = ref<'all' | 'active' | 'inactive'>('all')
 
 	// Computed
-	const observerTarget = useTemplateRef('observerTarget')
 	const hasMore = computed(() => currentPage.value <= totalPages.value)
 
 	// État pour le modal de confirmation
@@ -106,7 +106,7 @@
 			const result = await searchArtistsFullText({
 				query: search.value,
 				limit: 50,
-				type: typeFilter.value || undefined
+				type: typeFilter.value || undefined,
 			})
 			searchResults.value = result.artists
 		} catch (error) {
@@ -130,8 +130,11 @@
 
 		try {
 			if (firstCall) {
-					currentPage.value = 1
+				currentPage.value = 1
 				artistFetch.value = []
+				firstLoad.value = true
+			} else {
+				firstLoad.value = false
 			}
 
 			const params = {
@@ -285,7 +288,7 @@
 			sort,
 		],
 		async () => {
-				try {
+			try {
 				await getArtist(true)
 			} catch (error) {
 				console.error('Erreur dans le watcher:', error)
@@ -313,7 +316,7 @@
 	definePageMeta({
 		middleware: ['admin'],
 		// Forcer le rendu côté client pour éviter les problèmes de tri SSR
-		ssr: false
+		ssr: false,
 	})
 </script>
 
@@ -337,7 +340,7 @@
 					/>
 					<button
 						v-if="search.length > 0"
-						class="bg-red-500 hover:bg-red-600 text-white absolute top-1/2 right-2 -translate-y-1/2 rounded px-2 py-1 text-xs"
+						class="absolute top-1/2 right-2 -translate-y-1/2 rounded bg-red-500 px-2 py-1 text-xs text-white hover:bg-red-600"
 						title="Effacer la recherche"
 						@click="resetSearch"
 					>
@@ -457,8 +460,6 @@
 			No artist found
 		</p>
 
-		<div ref="observerTarget" class="mb-4 h-4 w-full"></div>
-
 		<div
 			v-if="
 				search.length < 2 &&
@@ -477,13 +478,18 @@
 					<p>Load All</p>
 				</button>
 			</div>
-			<p
-				v-else
-				class="bg-cb-quinary-900 mx-auto flex w-full gap-1 rounded px-2 py-1 uppercase hover:bg-zinc-500 md:w-fit"
-			>
-				Loading...
-			</p>
 		</div>
+
+		<!-- Indicateurs de chargement -->
+		<LoadingIndicator
+			:show="isLoading && firstLoad"
+			message="Chargement des artistes..."
+		/>
+
+		<LoadingIndicator
+			:show="isLoading && !firstLoad"
+			message="Chargement de plus d'artistes..."
+		/>
 
 		<!-- Modal de confirmation de suppression -->
 		<ModalConfirmDeleteArtist

@@ -404,26 +404,50 @@ export function useSupabaseRelease() {
 			orderBy?: keyof Release
 			orderDirection?: 'asc' | 'desc'
 			verified?: boolean
+			artistIds?: string[]
 		},
 	) => {
 		try {
 			// Calculer l'offset
 			const offset = (page - 1) * limit
 
-			// Construire la requête de base avec les relations
-			let query = supabase.from('releases').select(
-				`
-					*,
-					artists:artist_releases(
-						artist:artists(*)
-					),
-					musics:music_releases(
-						music:musics(*)
-					),
-					platform_links:release_platform_links(*)
-				`,
-				{ count: 'exact' },
-			)
+			let query
+
+			// Si on filtre par artistes, on doit faire une requête différente
+			if (options?.artistIds && options.artistIds.length > 0) {
+				// Requête avec jointure interne sur artist_releases pour filtrer
+				query = supabase
+					.from('releases')
+					.select(
+						`
+						*,
+						artists:artist_releases!inner(
+							artist:artists(*)
+						),
+						musics:music_releases(
+							music:musics(*)
+						),
+						platform_links:release_platform_links(*)
+					`,
+					{ count: 'exact' }
+					)
+					.in('artist_releases.artist_id', options.artistIds)
+			} else {
+				// Requête normale sans filtre d'artiste
+				query = supabase.from('releases').select(
+					`
+						*,
+						artists:artist_releases(
+							artist:artists(*)
+						),
+						musics:music_releases(
+							music:musics(*)
+						),
+						platform_links:release_platform_links(*)
+					`,
+					{ count: 'exact' },
+				)
+			}
 
 			// Ajouter les filtres si présents
 			if (options?.search) {

@@ -1,11 +1,13 @@
 <script setup lang="ts">
-	import type { Release } from '~/types'
+	import type { Release, Artist } from '~/types'
 	import type { ReleaseType } from '~/types'
 	import { useSupabaseRelease } from '~/composables/Supabase/useSupabaseRelease'
-	import { useSupabaseSearch } from '~/composables/useSupabaseSearch'
+	import { useSupabaseArtist } from '~/composables/Supabase/useSupabaseArtist'
 	import { useUserStore } from '~/stores/user'
+	import { useInfiniteScroll } from '@vueuse/core'
 
 	const { deleteRelease: deleteReleaseFunction, getReleasesByPage } = useSupabaseRelease()
+	const { getAllArtists } = useSupabaseArtist()
 	const toast = useToast()
 	const userStore = useUserStore()
 
@@ -20,65 +22,26 @@
 	const limitFetch = ref<number>(24)
 	const firstLoad = ref(true)
 	const typeFilter = ref<ReleaseType | ''>('')
+	const selectedArtists = ref<string[]>([])
+	const selectedArtistsWithLabel = ref<(Artist & { label: string })[]>([])
+	const artistsList = ref<Artist[]>([])
 
-	// Supabase Search
-	const { searchArtistsFullText } = useSupabaseSearch()
-	const searchResults = ref<Release[]>([])
-	const isSearching = ref(false)
+	const artistsForMenu = computed(() => {
+		return artistsList.value.map((artist) => ({
+			...artist,
+			label: artist.name,
+		}))
+	})
 
-	const needToBeVerifiedFilter = ref<boolean>(false)
-	const noNeedToBeVerifiedFilter = ref<boolean>(false)
 
-	const observerTarget = useTemplateRef('observerTarget')
+	const scrollContainer = useTemplateRef('scrollContainer')
 	const hasMore = computed(() => currentPage.value <= totalPages.value)
-
-	/**
-	 * Effectue une recherche avec Supabase
-	 */
-	const performSupabaseSearch = useDebounce(async () => {
-		if (search.value.length < 2) {
-			searchResults.value = []
-			return
-		}
-
-		isSearching.value = true
-		try {
-			// Note: Nous utilisons searchArtistsFullText pour les releases aussi
-			// Dans un vrai projet, vous pourriez avoir une fonction searchReleasesFullText
-			const result = await searchArtistsFullText({
-				query: search.value,
-				limit: 50
-			})
-			// Pour les releases, nous devrons adapter cette logique selon vos besoins
-			searchResults.value = []
-		} catch (error) {
-			console.error('Erreur lors de la recherche:', error)
-			toast.add({
-				title: 'Erreur lors de la recherche',
-				color: 'error',
-			})
-		} finally {
-			isSearching.value = false
-		}
-	}, 300)
-
-	/**
-	 * Méthode de recherche unifiée (Supabase uniquement)
-	 */
-	const triggerSearch = () => {
-		if (search.value.length >= 2) {
-			performSupabaseSearch()
-		} else {
-			resetSearch()
-		}
-	}
 
 	/**
 	 * Reset la recherche et recharge tous les releases
 	 */
 	const resetSearch = () => {
 		search.value = ''
-		searchResults.value = []
 		getRelease(true)
 	}
 
@@ -102,11 +65,7 @@
 				type: typeFilter.value || undefined,
 				orderBy: sort.value,
 				orderDirection: invertSort.value ? 'desc' : 'asc',
-				verified: needToBeVerifiedFilter.value
-					? false
-					: noNeedToBeVerifiedFilter.value
-						? true
-						: undefined,
+				artistIds: selectedArtists.value.length > 0 ? selectedArtists.value : undefined,
 			})
 
 			// Mettre à jour les données
@@ -158,100 +117,60 @@
 		}
 	}
 
-	// Hooks
-	onMounted(() => {
-		// Configuration de l'observateur d'intersection pour le chargement infini (client-only)
-		if (import.meta.client) {
-			const observer = new IntersectionObserver(
-				async ([entry]) => {
-					if (
-						entry.isIntersecting &&
-						hasMore.value &&
-						!isLoading.value &&
-						!useAlgoliaForSearch.value
-					) {
-						await getRelease()
-					}
-				},
-				{
-					rootMargin: '200px',
-					threshold: 0.1,
-				},
-			)
-
-			if (observerTarget.value) {
-				observer.observe(observerTarget.value)
+	// Infinite scroll avec VueUse
+	useInfiniteScroll(
+		scrollContainer,
+		async () => {
+			// Charger plus de releases si possible et pas en recherche
+			if (hasMore.value && !isLoading.value && search.value.length < 2) {
+				await getRelease(false)
 			}
+		},
+		{
+			distance: 100, // Se déclenche à 100px du bas
+			direction: 'bottom',
+		}
+	)
 
-			watch(observerTarget, (el) => {
-				if (el) {
-					observer.observe(el)
-				}
-			})
-
-			onBeforeUnmount(() => {
-				if (observerTarget.value) {
-					observer.unobserve(observerTarget.value)
-				}
-				observer.disconnect()
+	// Hooks
+	onMounted(async () => {
+		try {
+			// Charger seulement les artistes actifs
+			artistsList.value = await getAllArtists({ isActive: true })
+		} catch (error) {
+			console.error('Erreur lors du chargement des artistes:', error)
+			toast.add({
+				title: 'Erreur lors du chargement des artistes',
+				color: 'error',
 			})
 		}
-
 		// Chargement initial des releases
 		getRelease(true)
 	})
 
+	// Synchroniser selectedArtistsWithLabel avec selectedArtists
+	watch(selectedArtistsWithLabel, (newVal) => {
+		selectedArtists.value = newVal.map(artist => artist.id)
+	})
+
 	// Watchers pour les filtres
-	watch([needToBeVerifiedFilter, noNeedToBeVerifiedFilter, sort], async () => {
+	watch([sort, selectedArtists], async () => {
 		await getRelease(true)
 	})
 
-	// Watcher pour la recherche
+	// Watcher pour la recherche - déclenche automatiquement la recherche
+	const debouncedSearch = useDebounce(() => {
+		getRelease(true)
+	}, 300)
+
 	watch(search, () => {
-		if (search.value.length >= 2) {
-			performSupabaseSearch()
-		} else if (search.value.length === 0) {
-			searchResults.value = []
-			getRelease(true)
-		}
+		debouncedSearch()
 	})
 
 	const filteredReleaseList = computed(() => {
-		// Si une recherche est active, retourner les résultats de recherche
-		if (search.value.length >= 2) {
-			return searchResults.value
-		}
-
-		if (!releaseFetch.value) return []
-
-		return [...releaseFetch.value].sort((a, b) => {
-			if (sort.value === 'created_at') {
-				return invertSort.value
-					? new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-					: new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-			}
-			if (sort.value === 'date') {
-				return invertSort.value
-					? new Date(b.date).getTime() - new Date(a.date).getTime()
-					: new Date(a.date).getTime() - new Date(b.date).getTime()
-			}
-			if (sort.value === 'type') {
-				return invertSort.value
-					? (b.type || '').localeCompare(a.type || '')
-					: (a.type || '').localeCompare(b.type || '')
-			}
-			if (sort.value === 'name') {
-				return invertSort.value
-					? (b.name || '').localeCompare(a.name || '')
-					: (a.name || '').localeCompare(b.name || '')
-			}
-			if (sort.value === 'year') {
-				return invertSort.value
-					? (b.year || 0) - (a.year || 0)
-					: (a.year || 0) - (b.year || 0)
-			}
-			return 0
-		})
+		// Maintenant que la recherche et le tri se font côté serveur via getReleasesByPage(),
+		// on retourne simplement la liste des releases
+		return releaseFetch.value || []
 	})
 
 	/**
@@ -264,11 +183,7 @@
 				type: typeFilter.value || undefined,
 				orderBy: sort.value,
 				orderDirection: invertSort.value ? 'desc' : 'asc',
-				verified: needToBeVerifiedFilter.value
-					? false
-					: noNeedToBeVerifiedFilter.value
-						? true
-						: undefined,
+				artistIds: selectedArtists.value.length > 0 ? selectedArtists.value : undefined,
 			})
 			releaseFetch.value = result.releases
 		} catch (error) {
@@ -291,6 +206,19 @@
 			class="bg-cb-secondary-950 sticky top-0 z-50 w-full space-y-2 pb-2"
 		>
 			<div class="relative flex gap-2">
+				<UButton
+					v-if="userStore?.isAdminStore"
+					to="/release/create"
+					icon="i-heroicons-plus"
+					variant="solid"
+					size="sm"
+					label="Créer une release"
+					title="Créer une release"
+					:ui="{
+						label: 'hidden lg:flex',
+					}"
+					class="bg-cb-primary-800 whitespace-nowrap text-white"
+				/>
 				<div class="relative flex-1">
 					<input
 						id="search-input"
@@ -301,33 +229,14 @@
 					/>
 					<button
 						v-if="search.length > 0"
-						class="bg-red-500 hover:bg-red-600 text-white absolute top-1/2 right-2 -translate-y-1/2 rounded px-2 py-1 text-xs"
+						class="absolute top-1/2 right-2 -translate-y-1/2 rounded bg-red-500 px-2 py-1 text-xs text-white hover:bg-red-600"
 						title="Effacer la recherche"
 						@click="resetSearch"
 					>
 						✕
 					</button>
 				</div>
-				<button
-					class="bg-cb-tertiary-200 text-cb-quinary-900 hover:bg-cb-tertiary-300 rounded px-3 py-2 text-xs transition-all duration-300"
-					title="Recherche Supabase"
-					@click="triggerSearch"
-				>
-					Supabase
-				</button>
-			</div>
-			<section class="flex w-full flex-col gap-2 sm:flex-row sm:justify-between">
 				<div class="flex space-x-2">
-					<UButton
-						v-if="userStore?.isAdminStore"
-						to="/release/create"
-						icon="i-heroicons-plus"
-						variant="solid"
-						size="sm"
-						class="bg-cb-primary-800 whitespace-nowrap text-white"
-					>
-						Créer une release
-					</UButton>
 					<select
 						v-model="sort"
 						class="bg-cb-quinary-900 placeholder-cb-tertiary-200 hover:bg-cb-tertiary-200 hover:text-cb-quinary-900 w-full rounded border-none p-2 text-xs uppercase drop-shadow-xl transition-all duration-300 ease-in-out focus:outline-none sm:w-fit"
@@ -346,27 +255,40 @@
 						<icon-sort v-if="!invertSort" class="text-cb-tertiary-200 h-6 w-6" />
 						<icon-sort-reverse v-else class="text-cb-tertiary-200 h-6 w-6" />
 					</button>
-					<button
-						class="w-full rounded px-2 py-1 text-xs uppercase hover:bg-zinc-500 sm:w-fit"
-						:class="needToBeVerifiedFilter ? 'bg-cb-primary-900' : 'bg-cb-quinary-900'"
-						@click="needToBeVerifiedFilter = !needToBeVerifiedFilter"
-					>
-						Only NTBV
-					</button>
-					<button
-						class="w-full rounded px-2 py-1 text-xs uppercase hover:bg-zinc-500 sm:w-fit"
-						:class="noNeedToBeVerifiedFilter ? 'bg-cb-primary-900' : 'bg-cb-quinary-900'"
-						@click="noNeedToBeVerifiedFilter = !noNeedToBeVerifiedFilter"
-					>
-						Only NNTBV
-					</button>
 				</div>
-			</section>
-		</section>
+			</div>
 
-		<div v-if="isSearching" class="flex justify-center">
-			<p class="bg-cb-quinary-900 rounded px-4 py-2 text-center">Recherche en cours...</p>
-		</div>
+			<!-- Sélection d'artistes -->
+			<div class="flex w-full flex-col gap-2">
+				<label class="text-sm font-medium text-gray-300">
+					Filtrer par artistes
+					<span v-if="selectedArtists.length > 0" class="text-xs text-gray-400">
+						({{ selectedArtists.length }} sélectionné{{ selectedArtists.length > 1 ? 's' : '' }})
+					</span>
+				</label>
+				<UInputMenu
+					v-model="selectedArtistsWithLabel"
+					:items="artistsForMenu"
+					by="id"
+					multiple
+					placeholder="Sélectionner des artistes..."
+					searchable
+					searchable-placeholder="Rechercher un artiste..."
+					class="bg-cb-quaternary-950 text-tertiary w-full cursor-pointer ring-transparent sm:min-w-64"
+					:ui="{
+						content: 'bg-cb-quaternary-950',
+						item: 'rounded cursor-pointer data-highlighted:before:bg-cb-primary-900/30 hover:bg-cb-primary-900',
+					}"
+				/>
+				<button
+					v-if="selectedArtists.length > 0"
+					class="text-xs text-red-400 hover:text-red-300 self-start"
+					@click="selectedArtists = []; selectedArtistsWithLabel = []"
+				>
+					Effacer la sélection
+				</button>
+			</div>
+		</section>
 
 		<div
 			v-if="filteredReleaseList && filteredReleaseList.length > 0"
@@ -399,62 +321,23 @@
 		</div>
 
 		<p
-			v-else-if="!isSearching"
+			v-else-if="!isLoading && !firstLoad"
 			class="bg-cb-quaternary-950 w-full p-5 text-center font-semibold uppercase"
 		>
 			Aucun release trouvé
 		</p>
 
-		<div v-if="isLoading && !firstLoad" class="flex justify-center py-4">
-			<p>Chargement des releases suivantes...</p>
-		</div>
 
-		<div v-if="hasMore && search.length < 2" ref="observerTarget" />
+		<!-- Indicateurs de chargement -->
+		<LoadingIndicator
+			:show="isLoading && firstLoad"
+			message="Chargement des releases..."
+		/>
+
+		<LoadingIndicator
+			:show="isLoading && !firstLoad"
+			message="Chargement de plus de releases..."
+		/>
 	</div>
 </template>
 
-<style scoped>
-	.loading-indicator {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		gap: 8px;
-	}
-
-	.loading-dot {
-		width: 8px;
-		height: 8px;
-		border-radius: 50%;
-		background-color: #666;
-		animation: pulse 1.5s infinite ease-in-out;
-	}
-
-	.loading-dot:nth-child(2) {
-		animation-delay: 0.3s;
-	}
-
-	.loading-dot:nth-child(3) {
-		animation-delay: 0.6s;
-	}
-
-	@keyframes pulse {
-		0%,
-		100% {
-			transform: scale(0.8);
-			opacity: 0.5;
-		}
-		50% {
-			transform: scale(1.2);
-			opacity: 1;
-		}
-	}
-
-	.fade-enter-active,
-	.fade-leave-active {
-		transition: opacity 0.3s;
-	}
-	.fade-enter-from,
-	.fade-leave-to {
-		opacity: 0;
-	}
-</style>

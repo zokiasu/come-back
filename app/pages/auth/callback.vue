@@ -4,9 +4,9 @@
 			<div
 				class="border-cb-primary-500 mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2"
 			></div>
-			<p class="text-lg text-center text-gray-600">Loading</p>
+			<p class="text-center text-lg text-gray-600">Loading</p>
 			<p v-if="debugMode" class="mt-2 text-sm text-gray-500">{{ debugInfo }}</p>
-			<p class="text-lg text-center text-gray-600">Signing in...</p>
+			<p class="text-center text-lg text-gray-600">Signing in...</p>
 		</div>
 	</div>
 </template>
@@ -27,7 +27,7 @@
 	const handleAuthCallback = async () => {
 		try {
 			statusMessage.value = 'Verifying session...'
-			debugInfo.value = "Waiting for Supabase user..."
+			debugInfo.value = 'Waiting for Supabase user...'
 
 			// Wait for Supabase user to be available
 			let attempts = 0
@@ -54,7 +54,7 @@
 
 			if (success) {
 				statusMessage.value = 'Redirecting...'
-				debugInfo.value = "Connection successful, redirecting to home"
+				debugInfo.value = 'Connection successful, redirecting to home'
 
 				// Brief pause so user can see success message
 				await new Promise((resolve) => setTimeout(resolve, 500))

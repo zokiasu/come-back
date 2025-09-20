@@ -1,6 +1,7 @@
 <script setup lang="ts">
 	import type { News } from '~/types'
 	import { useSupabaseNews } from '~/composables/Supabase/useSupabaseNews'
+	import { useInfiniteScroll } from '@vueuse/core'
 
 	const toast = useToast()
 	const { getAllNews, deleteNews: deleteNewsFunction } = useSupabaseNews()
@@ -14,7 +15,8 @@
 	const currentPage = ref(1)
 	const totalPages = ref(1)
 	const totalNews = ref(0)
-	const observerTarget = useTemplateRef('observerTarget')
+	const firstLoad = ref(true)
+	const scrollContainer = useTemplateRef('scrollContainer')
 	const hasMore = computed(() => currentPage.value <= totalPages.value)
 
 	const fetchNews = async (firstCall = false) => {
@@ -26,6 +28,9 @@
 			if (firstCall) {
 				currentPage.value = 1
 				newsFetch.value = []
+				firstLoad.value = true
+			} else {
+				firstLoad.value = false
 			}
 
 			// Récupérer les news pour la page courante
@@ -62,37 +67,23 @@
 		}
 	}
 
-	onMounted(() => {
-		// Configuration de l'observateur d'intersection pour le chargement infini
-		const observer = new IntersectionObserver(
-			async ([entry]) => {
-				if (entry.isIntersecting && hasMore.value && !isLoading.value) {
-					await fetchNews()
-				}
-			},
-			{
-				rootMargin: '200px',
-				threshold: 0.1,
-			},
-		)
-
-		if (observerTarget.value) {
-			observer.observe(observerTarget.value)
+	// Infinite scroll avec VueUse
+	useInfiniteScroll(
+		scrollContainer,
+		async () => {
+			// Charger plus de news si possible
+			if (hasMore.value && !isLoading.value) {
+				await fetchNews(false)
+			}
+		},
+		{
+			distance: 100, // Se déclenche à 100px du bas
+			direction: 'bottom',
 		}
+	)
 
-		watch(observerTarget, (el) => {
-			if (el) {
-				observer.observe(el)
-			}
-		})
-
-		onBeforeUnmount(() => {
-			if (observerTarget.value) {
-				observer.unobserve(observerTarget.value)
-			}
-			observer.disconnect()
-		})
-
+	// Hooks
+	onMounted(() => {
 		// Chargement initial des news
 		fetchNews(true)
 	})
@@ -224,11 +215,10 @@
 			</section>
 		</section>
 
-		<div v-if="isLoading && currentPage === 1" class="flex justify-center py-4">
-			<p class="bg-cb-quinary-900 rounded px-4 py-2 text-center">
-				Chargement des news...
-			</p>
-		</div>
+		<LoadingIndicator
+			:show="isLoading && firstLoad"
+			message="Chargement des news..."
+		/>
 
 		<transition-group
 			v-if="filteredNewsList.length > 0"
@@ -258,11 +248,11 @@
 			Aucune news trouvée
 		</p>
 
-		<div v-if="isLoading && currentPage > 1" class="flex justify-center py-4">
-			<p>Chargement des news suivantes...</p>
-		</div>
+		<LoadingIndicator
+			:show="isLoading && !firstLoad"
+			message="Chargement de plus de news..."
+		/>
 
-		<div v-if="hasMore" ref="observerTarget" />
 	</div>
 </template>
 
