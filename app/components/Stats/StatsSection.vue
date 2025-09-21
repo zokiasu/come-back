@@ -1,24 +1,26 @@
 <template>
   <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-    <div class="flex items-center justify-between mb-4">
+    <div class="flex items-start justify-between mb-6">
       <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
         {{ section.title }}
       </h2>
-      <div v-if="loading" class="flex items-center space-x-2">
-        <LoadingIndicator size="sm" />
-        <span class="text-sm text-gray-500 dark:text-gray-400">
-          Chargement...
-        </span>
-      </div>
-    </div>
-
-    <!-- Period Indicator -->
-    <div v-if="periodDisplay" class="mb-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg px-3 py-2">
-      <div class="flex items-center space-x-2">
-        <UIcon name="i-heroicons-calendar-days" class="w-4 h-4 text-blue-600 dark:text-blue-400" />
-        <p class="text-sm text-blue-700 dark:text-blue-300">
-          Période : {{ periodDisplay }}
-        </p>
+      <div class="flex items-center space-x-3">
+        <!-- Period Indicator -->
+        <div v-if="periodDisplay" class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg px-3 py-1.5">
+          <div class="flex items-center space-x-2">
+            <UIcon name="i-heroicons-calendar-days" class="w-4 h-4 text-blue-600 dark:text-blue-400" />
+            <p class="text-sm text-blue-700 dark:text-blue-300">
+              {{ periodDisplay }}
+            </p>
+          </div>
+        </div>
+        <!-- Loading Indicator -->
+        <div v-if="loading" class="flex items-center space-x-2">
+          <LoadingIndicator size="sm" />
+          <span class="text-sm text-gray-500 dark:text-gray-400">
+            Chargement...
+          </span>
+        </div>
       </div>
     </div>
 
