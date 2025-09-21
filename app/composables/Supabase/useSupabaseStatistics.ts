@@ -83,7 +83,7 @@ export function useSupabaseStatistics() {
 
     try {
       // Appel des fonctions SQL optimisées en parallèle
-      const [demographicsData, topReleasesData, topMusicsData] = await Promise.all([
+      const [demographicsData, topReleasesData, topMusicsData, artistsData] = await Promise.all([
         // Statistiques démographiques
         supabase.rpc('get_artist_demographics'),
 
@@ -101,7 +101,10 @@ export function useSupabaseStatistics() {
           start_date: startDate ? startDate.toISOString().split('T')[0] : null,
           end_date: endDate ? endDate.toISOString().split('T')[0] : null,
           limit_count: 10
-        })
+        }),
+
+        // Données pour statistiques par genre et qualité
+        supabase.from('artists').select('styles, verified, image, description, birth_date, debut_date, general_tags')
       ])
 
       // Traitement des statistiques démographiques (directement depuis SQL)
@@ -123,10 +126,60 @@ export function useSupabaseStatistics() {
         }
       })
 
+      // Statistiques par genre musical
+      const genreStats = new Map()
+      const totalArtists = artistsData?.data?.length || 0
+
+      artistsData?.data?.forEach(artist => {
+        if (artist.styles && artist.styles.length > 0) {
+          artist.styles.forEach(style => {
+            genreStats.set(style, (genreStats.get(style) || 0) + 1)
+          })
+        } else {
+          genreStats.set('Non défini', (genreStats.get('Non défini') || 0) + 1)
+        }
+      })
+
+      // Statistiques de qualité des profils
+      let verifiedCount = 0
+      let withImageCount = 0
+      let completeProfilesCount = 0
+
+      artistsData?.data?.forEach(artist => {
+        if (artist.verified) verifiedCount++
+        if (artist.image) withImageCount++
+
+        // Profil complet = au moins 5 champs sur 7 remplis
+        const filledFields = [
+          artist.description,
+          artist.birth_date,
+          artist.debut_date,
+          artist.image,
+          artist.styles?.length > 0,
+          artist.general_tags?.length > 0,
+          artist.verified
+        ].filter(Boolean).length
+
+        if (filledFields >= 5) completeProfilesCount++
+      })
+
       return {
         typeStats,
         genderStats,
         statusStats,
+        genreStats: Array.from(genreStats.entries())
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 10)
+          .map(([genre, count]) => ({ genre, count })),
+        qualityStats: {
+          verificationRate: Math.round((verifiedCount / totalArtists) * 100),
+          imageRate: Math.round((withImageCount / totalArtists) * 100),
+          completionRate: Math.round((completeProfilesCount / totalArtists) * 100),
+          totalArtists,
+          verifiedArtists: verifiedCount,
+          artistsWithImages: withImageCount,
+          completeProfiles: completeProfilesCount
+        },
         topReleases: topReleasesData?.data?.map(item => ({
           name: item.artist_name,
           count: item.release_count
@@ -142,6 +195,16 @@ export function useSupabaseStatistics() {
         typeStats: [],
         genderStats: [],
         statusStats: [],
+        genreStats: [],
+        qualityStats: {
+          verificationRate: 0,
+          imageRate: 0,
+          completionRate: 0,
+          totalArtists: 0,
+          verifiedArtists: 0,
+          artistsWithImages: 0,
+          completeProfiles: 0
+        },
         topReleases: [],
         topMusics: []
       }
@@ -475,21 +538,30 @@ export function useSupabaseStatistics() {
               color: 'green'
             },
             {
-              title: 'Artistes Actifs',
-              value: generalStatsData.active_artists || 0,
-              icon: 'i-heroicons-check-circle',
+              title: 'Profils Vérifiés',
+              value: `${artistGeneral.qualityStats.verificationRate}%`,
+              icon: 'i-heroicons-check-badge',
               color: 'green'
             },
             {
-              title: 'Artistes Inactifs',
-              value: generalStatsData.inactive_artists || 0,
-              icon: 'i-heroicons-x-circle',
-              color: 'red'
+              title: 'Profils Complets',
+              value: `${artistGeneral.qualityStats.completionRate}%`,
+              icon: 'i-heroicons-clipboard-document-check',
+              color: 'blue'
             }
           ],
           charts: [
             {
-              title: 'Répartition par Genre',
+              title: 'Répartition par Genre Musical',
+              data: {
+                labels: artistGeneral.genreStats.map(s => s.genre),
+                data: artistGeneral.genreStats.map(s => s.count),
+                type: 'bar'
+              },
+              description: 'Top 10 des genres musicaux les plus représentés'
+            },
+            {
+              title: 'Répartition Hommes/Femmes',
               data: {
                 labels: artistGeneral.genderStats.map(s => s.gender),
                 data: artistGeneral.genderStats.map(s => s.count),
@@ -497,21 +569,17 @@ export function useSupabaseStatistics() {
               }
             },
             {
-              title: 'Statut de Carrière',
+              title: 'Qualité des Profils',
               data: {
-                labels: artistGeneral.statusStats.map(s => s.status),
-                data: artistGeneral.statusStats.map(s => s.count),
-                type: 'pie'
-              }
-            },
-            {
-              title: 'Évolution des Releases',
-              data: {
-                labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun'],
-                data: [10, 15, 12, 20, 18, 25],
-                type: 'line'
+                labels: ['Vérifiés', 'Avec Image', 'Profils Complets'],
+                data: [
+                  artistGeneral.qualityStats.verificationRate,
+                  artistGeneral.qualityStats.imageRate,
+                  artistGeneral.qualityStats.completionRate
+                ],
+                type: 'bar'
               },
-              description: 'Données temporaires - en développement'
+              description: 'Pourcentages de complétude et qualité des profils'
             }
           ],
           topLists: [
