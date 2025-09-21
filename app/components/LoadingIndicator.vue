@@ -68,6 +68,7 @@
 			leave-to-class="opacity-0 scale-95 translate-y-2"
 		>
 			<div
+				v-if="shouldShow"
 				:class="[positionClasses, 'z-50 transform']"
 			>
 				<div

@@ -134,6 +134,21 @@
 				<UIcon name="i-heroicons-building-office" class="h-4 w-4" />
 				<p v-if="!collapseMenu">Companies</p>
 			</NuxtLink>
+			<NuxtLink
+				to="/admin/stats"
+				title="Statistiques"
+				class="flex items-center gap-2 rounded py-3 transition-all duration-300 ease-in-out"
+				:class="{
+					'bg-cb-quinary-900 font-semibold text-white':
+						routeN.name === 'admin-stats',
+					'hover:bg-cb-quinary-900 text-zinc-500': routeN.name !== 'admin-stats',
+					'px-5': !collapseMenu,
+					'flex-col': collapseMenu,
+				}"
+			>
+				<UIcon name="i-heroicons-chart-bar" class="h-4 w-4" />
+				<p v-if="!collapseMenu">Statistiques</p>
+			</NuxtLink>
 		</nav>
 		<div class="w-full overflow-hidden">
 			<NuxtPage />

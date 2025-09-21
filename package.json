@@ -41,6 +41,7 @@
 		"@tailwindcss/vite": "^4.1.2",
 		"@vueuse/core": "^13.3.0",
 		"animate.css": "^4.1.1",
+		"chart.js": "^4.5.0",
 		"pinia": "^3.0.0",
 		"pinia-plugin-persistedstate": "^4.4.1",
 		"swiper": "^11.2.3",
