@@ -97,20 +97,14 @@ export function useSupabaseStatistics() {
 
         // Top artistes par musiques avec filtrage temporel
         supabase.rpc('get_top_artists_by_musics', {
-          filter_year: filters.year || null,
-          start_date: startDate ? startDate.toISOString().split('T')[0] : null,
-          end_date: endDate ? endDate.toISOString().split('T')[0] : null,
-          limit_count: 10
-        }),
-
         // Données pour statistiques par genre et qualité
-        supabase.from('artists').select('styles, verified, image, description, birth_date, debut_date, general_tags')
+        supabase
+          .from('artists')
+          .select(
+            'styles, verified, image, description, birth_date, debut_date, general_tags, type, gender'
+          )
       ])
 
-      // Traitement des statistiques démographiques (directement depuis SQL)
-      const typeStats = []
-      const genderStats = []
-      const statusStats = []
 
       demographicsData?.data?.forEach(item => {
         switch (item.stat_type) {

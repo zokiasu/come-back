@@ -21,8 +21,6 @@ export interface ChartData {
 export interface TopListItem {
   id: string
   name: string
-  value: number
-  subtitle?: string
   image?: string
   badge?: string
 }
@@ -34,6 +32,7 @@ export interface StatSection {
     title: string
     data: ChartData
     description?: string
+    layout?: 'full' | 'half'
   }>
   topLists?: Array<{
     title: string

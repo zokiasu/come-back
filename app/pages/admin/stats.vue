@@ -50,10 +50,10 @@
           </div>
           <div class="flex items-end">
             <UButton
-              @click="refreshStats"
               :loading="loading"
               variant="solid"
               color="primary"
+              @click="refreshStats"
             >
               Actualiser
             </UButton>
@@ -61,47 +61,51 @@
         </div>
       </div>
 
-      <!-- Loading State -->
       <div v-if="loading" class="text-center py-12">
         <LoadingIndicator size="lg" />
       </div>
 
       <!-- Stats Grid -->
       <div v-else class="space-y-8">
-        <!-- Vue d'ensemble -->
-        <StatsSection
+        <StatsOverviewSection
           :section="generalStats"
           :loading="loading"
           :period-display="currentPeriodDisplay"
         />
 
-        <!-- Statistiques par Artistes -->
-        <StatsSection
+        <StatsArtistsSection
           :section="artistStats"
           :loading="loading"
           :period-display="currentPeriodDisplay"
         />
 
-        <!-- Statistiques des Companies -->
-        <StatsSection
+        <StatsCompaniesSection
           :section="companyStats"
           :loading="loading"
           :period-display="currentPeriodDisplay"
         />
 
-        <!-- Statistiques Musicales -->
-        <StatsSection
+        <StatsMusicSection
           :section="musicStats"
           :loading="loading"
           :period-display="currentPeriodDisplay"
         />
       </div>
+
     </div>
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { computed, onMounted, ref, watch } from 'vue'
+import { useToast } from '#imports'
 import { useSupabaseStatistics } from '~/composables/Supabase/useSupabaseStatistics'
+import StatsOverviewSection from '~/components/Stats/sections/StatsOverviewSection.vue'
+import StatsArtistsSection from '~/components/Stats/sections/StatsArtistsSection.vue'
+import StatsCompaniesSection from '~/components/Stats/sections/StatsCompaniesSection.vue'
+import StatsMusicSection from '~/components/Stats/sections/StatsMusicSection.vue'
+import LoadingIndicator from '~/components/LoadingIndicator.vue'
+import type { StatSection, StatsFilters } from '~/types/stats'
 
 definePageMeta({
   middleware: ['auth', 'admin'],
@@ -110,13 +114,11 @@ definePageMeta({
 
 const { getStatistics } = useSupabaseStatistics()
 
-// Reactive data
 const loading = ref(false)
-const selectedPeriod = ref('all')
-const selectedYear = ref(null)
-const selectedMonth = ref(null)
+const selectedPeriod = ref<StatsFilters['period']>('all')
+const selectedYear = ref<number | null>(null)
+const selectedMonth = ref<number | null>(null)
 
-// Options pour les filtres
 const periodOptions = [
   { value: 'all', label: 'Toute la période' },
   { value: 'year', label: 'Cette année' },
@@ -126,15 +128,15 @@ const periodOptions = [
 
 const yearOptions = computed(() => {
   const currentYear = new Date().getFullYear()
-  const years = []
+  const years: Array<{ value: number; label: string }> = []
   for (let year = currentYear; year >= 2020; year--) {
     years.push({ value: year, label: year.toString() })
   }
   return [{ value: null, label: 'Toutes les années' }, ...years]
 })
 
-const monthOptions = computed(() => {
-  const months = [
+const monthOptions = computed(() => (
+  [
     { value: null, label: 'Tous les mois' },
     { value: 0, label: 'Janvier' },
     { value: 1, label: 'Février' },
@@ -149,10 +151,8 @@ const monthOptions = computed(() => {
     { value: 10, label: 'Novembre' },
     { value: 11, label: 'Décembre' }
   ]
-  return months
-})
+))
 
-// Affichage de la période actuelle
 const currentPeriodDisplay = computed(() => {
   const now = new Date()
   const currentYear = now.getFullYear()
@@ -166,23 +166,26 @@ const currentPeriodDisplay = computed(() => {
     if (selectedPeriod.value === 'month' && selectedMonth.value !== null) {
       const monthName = monthOptions.value.find(m => m.value === selectedMonth.value)?.label
       return `${monthName} ${selectedYear.value}`
-    } else if (selectedPeriod.value === 'year' || selectedPeriod.value === 'all') {
+    }
+
+    if (selectedPeriod.value === 'year' || selectedPeriod.value === 'all') {
       return `Année ${selectedYear.value}`
     }
   }
 
   switch (selectedPeriod.value) {
-    case 'week':
+    case 'week': {
       const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
       return `Du ${oneWeekAgo.toLocaleDateString('fr-FR')} au ${now.toLocaleDateString('fr-FR')}`
-    case 'month':
+    }
+    case 'month': {
       if (selectedMonth.value !== null) {
         const monthName = monthOptions.value.find(m => m.value === selectedMonth.value)?.label
         return `${monthName} ${currentYear} (mois spécifique)`
-      } else {
-        const monthName = monthOptions.value.find(m => m.value === currentMonth)?.label
-        return `${monthName} ${currentYear} (en cours)`
       }
+      const monthName = monthOptions.value.find(m => m.value === currentMonth)?.label
+      return `${monthName} ${currentYear} (en cours)`
+    }
     case 'year':
       return `${currentYear} (en cours)`
     default:
@@ -190,24 +193,28 @@ const currentPeriodDisplay = computed(() => {
   }
 })
 
-// Stats data
-const generalStats = ref({})
-const artistStats = ref({})
-const companyStats = ref({})
-const musicStats = ref({})
+const createEmptySection = (): StatSection => ({
+  title: '',
+  cards: [],
+  charts: [],
+  topLists: []
+})
 
-// Méthodes
+const generalStats = ref<StatSection>(createEmptySection())
+const artistStats = ref<StatSection>(createEmptySection())
+const companyStats = ref<StatSection>(createEmptySection())
+const musicStats = ref<StatSection>(createEmptySection())
+
 const refreshStats = async () => {
   loading.value = true
   try {
-    const filters = {
+    const filters: StatsFilters = {
       period: selectedPeriod.value,
       year: selectedYear.value,
       month: selectedMonth.value
     }
 
     const stats = await getStatistics(filters)
-
     generalStats.value = stats.general
     artistStats.value = stats.artists
     companyStats.value = stats.companies
@@ -218,27 +225,23 @@ const refreshStats = async () => {
     toast.add({
       title: 'Erreur',
       description: 'Impossible de charger les statistiques',
-      color: 'red'
+      color: 'error'
     })
   } finally {
     loading.value = false
   }
 }
 
-// Watchers
-watch([selectedPeriod], ([newPeriod]) => {
-  // Réinitialiser le mois seulement si on change de période et que ce n'est plus 'month'
+watch(selectedPeriod, newPeriod => {
   if (newPeriod !== 'month') {
     selectedMonth.value = null
   }
 })
 
-// Lifecycle
 onMounted(() => {
   refreshStats()
 })
 
-// SEO
 useSeoMeta({
   title: 'Statistiques - Admin - Comeback',
   description: 'Tableau de bord des statistiques de la plateforme Comeback'
