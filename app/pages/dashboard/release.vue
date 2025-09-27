@@ -33,7 +33,6 @@
 		}))
 	})
 
-
 	const scrollContainer = useTemplateRef('scrollContainer')
 	const hasMore = computed(() => currentPage.value <= totalPages.value)
 
@@ -43,6 +42,14 @@
 	const resetSearch = () => {
 		search.value = ''
 		getRelease(true)
+	}
+
+	/**
+	 * Efface la sélection d'artistes
+	 */
+	const clearArtistSelection = () => {
+		selectedArtists.value = []
+		selectedArtistsWithLabel.value = []
 	}
 
 	/**
@@ -129,7 +136,7 @@
 		{
 			distance: 100, // Se déclenche à 100px du bas
 			direction: 'bottom',
-		}
+		},
 	)
 
 	// Hooks
@@ -150,7 +157,7 @@
 
 	// Synchroniser selectedArtistsWithLabel avec selectedArtists
 	watch(selectedArtistsWithLabel, (newVal) => {
-		selectedArtists.value = newVal.map(artist => artist.id)
+		selectedArtists.value = newVal.map((artist) => artist.id)
 	})
 
 	// Watchers pour les filtres
@@ -263,7 +270,9 @@
 				<label class="text-sm font-medium text-gray-300">
 					Filtrer par artistes
 					<span v-if="selectedArtists.length > 0" class="text-xs text-gray-400">
-						({{ selectedArtists.length }} sélectionné{{ selectedArtists.length > 1 ? 's' : '' }})
+						({{ selectedArtists.length }} sélectionné{{
+							selectedArtists.length > 1 ? 's' : ''
+						}})
 					</span>
 				</label>
 				<UInputMenu
@@ -282,8 +291,8 @@
 				/>
 				<button
 					v-if="selectedArtists.length > 0"
-					class="text-xs text-red-400 hover:text-red-300 self-start"
-					@click="selectedArtists = []; selectedArtistsWithLabel = []"
+					class="self-start text-xs text-red-400 hover:text-red-300"
+					@click="clearArtistSelection"
 				>
 					Effacer la sélection
 				</button>
@@ -327,7 +336,6 @@
 			Aucun release trouvé
 		</p>
 
-
 		<!-- Indicateurs de chargement -->
 		<LoadingIndicator
 			:show="isLoading && firstLoad"
@@ -340,4 +348,3 @@
 		/>
 	</div>
 </template>
-

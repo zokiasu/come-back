@@ -139,8 +139,7 @@
 				title="Statistiques"
 				class="flex items-center gap-2 rounded py-3 transition-all duration-300 ease-in-out"
 				:class="{
-					'bg-cb-quinary-900 font-semibold text-white':
-						routeN.name === 'admin-stats',
+					'bg-cb-quinary-900 font-semibold text-white': routeN.name === 'admin-stats',
 					'hover:bg-cb-quinary-900 text-zinc-500': routeN.name !== 'admin-stats',
 					'px-5': !collapseMenu,
 					'flex-col': collapseMenu,

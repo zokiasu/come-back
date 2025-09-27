@@ -429,7 +429,7 @@ export function useSupabaseRelease() {
 						),
 						platform_links:release_platform_links(*)
 					`,
-					{ count: 'exact' }
+						{ count: 'exact' },
 					)
 					.in('artist_releases.artist_id', options.artistIds)
 			} else {

@@ -227,7 +227,6 @@
 		// Il y a plus d'éléments si on a reçu exactement le nombre demandé
 		hasMore.value = artistsArray.length === limit.value
 		isLoading.value = false
-
 	}
 
 	watch([search, selectedTags, selectedType, selectedStyles, selectedGender], () => {
@@ -258,14 +257,10 @@
 		isInitialized.value = true
 	})
 
-	useInfiniteScroll(
-		() => import.meta.client ? window : null,
-		loadMore,
-		{
-			distance: 200,
-			canLoadMore: () => hasMore.value && !isLoading.value,
-		}
-	)
+	useInfiniteScroll(() => (import.meta.client ? window : null), loadMore, {
+		distance: 200,
+		canLoadMore: () => hasMore.value && !isLoading.value,
+	})
 
 	const toggleTag = (tagName: string) => {
 		if (selectedTags.value.includes(tagName)) {

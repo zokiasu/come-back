@@ -6,12 +6,12 @@ Le composant `LoadingIndicator` est un indicateur de chargement réutilisable qu
 
 ## Props
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `message` | `string` | `'Chargement...'` | Message à afficher à côté du spinner |
-| `position` | `'bottom' \| 'center' \| 'top' \| 'responsive'` | `'responsive'` | Position de l'indicateur sur l'écran |
-| `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | Taille de l'indicateur |
-| `show` | `boolean` | `true` | Contrôle la visibilité de l'indicateur |
+| Prop       | Type                                            | Default           | Description                            |
+| ---------- | ----------------------------------------------- | ----------------- | -------------------------------------- |
+| `message`  | `string`                                        | `'Chargement...'` | Message à afficher à côté du spinner   |
+| `position` | `'bottom' \| 'center' \| 'top' \| 'responsive'` | `'responsive'`    | Position de l'indicateur sur l'écran   |
+| `size`     | `'sm' \| 'md' \| 'lg'`                          | `'md'`            | Taille de l'indicateur                 |
+| `show`     | `boolean`                                       | `true`            | Contrôle la visibilité de l'indicateur |
 
 ### Positions disponibles
 
@@ -23,74 +23,53 @@ Le composant `LoadingIndicator` est un indicateur de chargement réutilisable qu
 ## Exemples d'utilisation
 
 ### Utilisation basique (responsive par défaut)
+
 ```vue
 <!-- S'affiche en haut sur mobile, en bas sur desktop -->
 <LoadingIndicator :show="isLoading" />
 ```
 
 ### Avec message personnalisé
+
 ```vue
-<LoadingIndicator
-  :show="isLoading"
-  message="Chargement des données..."
-/>
+<LoadingIndicator :show="isLoading" message="Chargement des données..." />
 ```
 
 ### Positions fixes (non-responsive)
+
 ```vue
 <!-- Toujours en haut -->
-<LoadingIndicator
-  :show="isLoading"
-  message="Sauvegarde..."
-  position="top"
-/>
+<LoadingIndicator :show="isLoading" message="Sauvegarde..." position="top" />
 
 <!-- Toujours en bas -->
-<LoadingIndicator
-  :show="isLoading"
-  message="Synchronisation..."
-  position="bottom"
-/>
+<LoadingIndicator :show="isLoading" message="Synchronisation..." position="bottom" />
 
 <!-- Toujours au centre -->
-<LoadingIndicator
-  :show="isLoading"
-  message="Traitement en cours..."
-  position="center"
-/>
+<LoadingIndicator :show="isLoading" message="Traitement en cours..." position="center" />
 ```
 
 ### Différentes tailles
+
 ```vue
 <!-- Petit indicateur -->
-<LoadingIndicator
-  :show="isLoading"
-  message="Sauvegarde..."
-  size="sm"
-/>
+<LoadingIndicator :show="isLoading" message="Sauvegarde..." size="sm" />
 
 <!-- Grand indicateur -->
-<LoadingIndicator
-  :show="isLoading"
-  message="Chargement des fichiers..."
-  size="lg"
-/>
+<LoadingIndicator :show="isLoading" message="Chargement des fichiers..." size="lg" />
 ```
 
 ### Exemple complet (comme dans release.vue)
+
 ```vue
 <template>
-  <!-- Premier chargement -->
-  <LoadingIndicator
-    :show="isLoading && firstLoad"
-    message="Chargement des releases..."
-  />
+	<!-- Premier chargement -->
+	<LoadingIndicator :show="isLoading && firstLoad" message="Chargement des releases..." />
 
-  <!-- Chargement scroll infini -->
-  <LoadingIndicator
-    :show="isLoading && !firstLoad"
-    message="Chargement de plus de releases..."
-  />
+	<!-- Chargement scroll infini -->
+	<LoadingIndicator
+		:show="isLoading && !firstLoad"
+		message="Chargement de plus de releases..."
+	/>
 </template>
 ```
 
@@ -105,6 +84,7 @@ Le composant `LoadingIndicator` est un indicateur de chargement réutilisable qu
 ## Design
 
 L'indicateur utilise les classes CSS suivantes du thème :
+
 - `bg-cb-secondary-950` : Arrière-plan foncé
 - `border-cb-tertiary-200` : Bordure claire
 - `text-cb-tertiary-200` : Texte clair

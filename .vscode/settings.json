@@ -28,6 +28,10 @@
 		"editor.defaultFormatter": "esbenp.prettier-vscode",
 		"editor.tabSize": 2
 	},
+	"typescript.preferences.includePackageJsonAutoImports": "auto",
+	"typescript.suggest.autoImports": true,
+	"typescript.validate.enable": true,
+	"typescript.preferences.includeTypescriptAutoImports": "auto",
 	"postman.settings.dotenv-detection-notification-visibility": false,
 	"terminal.integrated.defaultProfile.windows": "WSL",
 	"terminal.integrated.profiles.windows": {

@@ -1,18 +1,18 @@
 <script setup lang="ts">
-const route = useRoute()
-const collapseMenu = ref(true)
-const menuCollapsable = ref(null)
+	const route = useRoute()
+	const collapseMenu = ref(true)
+	const menuCollapsable = ref(null)
 
-const collapseMenuToggle = () => {
-	collapseMenu.value = !collapseMenu.value
-}
+	const collapseMenuToggle = () => {
+		collapseMenu.value = !collapseMenu.value
+	}
 </script>
 
 <template>
-	<div class="min-h-screen flex gap-2 p-2">
+	<div class="flex min-h-screen gap-2 p-2">
 		<nav
 			ref="menuCollapsable"
-			class="bg-cb-quaternary-950 flex h-full flex-col gap-2 rounded p-2 drop-shadow-xl transition-all duration-300 ease-in-out sticky top-2 z-50"
+			class="bg-cb-quaternary-950 sticky top-2 z-50 flex h-full flex-col gap-2 rounded p-2 drop-shadow-xl transition-all duration-300 ease-in-out"
 			:class="collapseMenu ? 'w-12' : 'w-80'"
 		>
 			<div
@@ -34,8 +34,7 @@ const collapseMenuToggle = () => {
 				title="Statistiques"
 				class="flex items-center gap-2 rounded py-3 transition-all duration-300 ease-in-out"
 				:class="{
-					'bg-cb-quinary-900 font-semibold text-white':
-						route.name === 'admin-stats',
+					'bg-cb-quinary-900 font-semibold text-white': route.name === 'admin-stats',
 					'hover:bg-cb-quinary-900 text-zinc-500': route.name !== 'admin-stats',
 					'px-5': !collapseMenu,
 					'flex-col': collapseMenu,
@@ -61,7 +60,7 @@ const collapseMenuToggle = () => {
 			</NuxtLink>
 
 			<!-- Separateur -->
-			<div class="border-t border-cb-quinary-800 my-2" />
+			<div class="border-cb-quinary-800 my-2 border-t" />
 
 			<!-- Retour à l'accueil -->
 			<NuxtLink
