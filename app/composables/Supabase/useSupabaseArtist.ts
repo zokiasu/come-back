@@ -4,13 +4,35 @@ import type {
 	ArtistType,
 	ArtistSocialLink,
 	ArtistPlatformLink,
+	Artist,
 } from '~/types'
-import type { Artist } from '~/types'
+import type { Database, TablesInsert, TablesUpdate } from '~/types/supabase'
 import { useGeneralFunction } from '@/composables/useGeneralFunction'
 import { useSupabaseClient } from '#imports'
 
+// Types pour les réponses RPC
+interface RPCExclusiveContentResponse {
+	exclusive_releases?: Array<any>
+	exclusive_musics?: Array<any>
+	exclusive_news?: Array<any>
+}
+
+interface RPCDeletionAnalysisResponse {
+	message?: string
+	success?: boolean
+	details?: {
+		impact_analysis?: any
+	}
+}
+
+interface RPCDeletionResponse {
+	success?: boolean
+	message?: string
+	artist_name?: string
+}
+
 export function useSupabaseArtist() {
-	const supabase = useSupabaseClient()
+	const supabase = useSupabaseClient<Database>()
 	const toast = useToast()
 
 	// Vérifie si un artiste existe avec l'ID YouTube Music
@@ -35,22 +57,13 @@ export function useSupabaseArtist() {
 
 	// Crée un nouvel artiste
 	const createArtist = async (
-		data: Omit<
-			Artist,
-			'id' | 'created_at' | 'updated_at' | 'social_links' | 'platform_links'
-		>,
-		artistSocials: Omit<ArtistSocialLink, 'id' | 'created_at' | 'artist_id'>[],
-		artistPlatforms: Omit<ArtistPlatformLink, 'id' | 'created_at' | 'artist_id'>[],
+		data: TablesInsert<'artists'>,
+		artistSocials: TablesInsert<'artist_social_links'>[],
+		artistPlatforms: TablesInsert<'artist_platform_links'>[],
 		artistGroups: Artist[],
 		artistMembers: Artist[],
-		artistCompanies?: {
-			company_id: string
-			relationship_type?: string
-			start_date?: string
-			end_date?: string
-			is_current?: boolean
-		}[],
-	) => {
+		artistCompanies?: TablesInsert<'artist_companies'>[],
+	): Promise<Artist> => {
 		if (data.id_youtube_music && (await artistExistInSupabase(data.id_youtube_music))) {
 			toast.add({
 				title: 'Cet artiste existe déjà dans la base de données.',
@@ -77,10 +90,11 @@ export function useSupabaseArtist() {
 
 		// Ajout des liens sociaux
 		if (artistSocials?.length) {
-			const socialLinksWithArtistId = artistSocials.map((link) => ({
-				...link,
-				artist_id: artist.id,
-			}))
+			const socialLinksWithArtistId: TablesInsert<'artist_social_links'>[] =
+				artistSocials.map((link) => ({
+					...link,
+					artist_id: artist.id,
+				}))
 
 			const { error: socialError } = await supabase
 				.from('artist_social_links')
@@ -93,10 +107,11 @@ export function useSupabaseArtist() {
 
 		// Ajout des liens de plateformes
 		if (artistPlatforms?.length) {
-			const platformLinksWithArtistId = artistPlatforms.map((link) => ({
-				...link,
-				artist_id: artist.id,
-			}))
+			const platformLinksWithArtistId: TablesInsert<'artist_platform_links'>[] =
+				artistPlatforms.map((link) => ({
+					...link,
+					artist_id: artist.id,
+				}))
 
 			const { error: platformError } = await supabase
 				.from('artist_platform_links')
@@ -109,11 +124,13 @@ export function useSupabaseArtist() {
 
 		// Ajout des relations avec les groupes (artiste comme membre)
 		if (artistGroups?.length) {
-			const groupRelations = artistGroups.map((group) => ({
-				group_id: group.id,
-				member_id: artist.id,
-				relation_type: 'MEMBER',
-			}))
+			const groupRelations: TablesInsert<'artist_relations'>[] = artistGroups.map(
+				(group) => ({
+					group_id: group.id,
+					member_id: artist.id,
+					relation_type: 'MEMBER' as const,
+				}),
+			)
 
 			const { error: groupError } = await supabase
 				.from('artist_relations')
@@ -126,11 +143,13 @@ export function useSupabaseArtist() {
 
 		// Ajout des relations avec les membres (artiste comme groupe)
 		if (artistMembers?.length) {
-			const memberRelations = artistMembers.map((member) => ({
-				group_id: artist.id,
-				member_id: member.id,
-				relation_type: 'GROUP',
-			}))
+			const memberRelations: TablesInsert<'artist_relations'>[] = artistMembers.map(
+				(member) => ({
+					group_id: artist.id,
+					member_id: member.id,
+					relation_type: 'GROUP' as const,
+				}),
+			)
 
 			const { error: memberError } = await supabase
 				.from('artist_relations')
@@ -143,16 +162,12 @@ export function useSupabaseArtist() {
 
 		// Ajout des relations avec les compagnies
 		if (artistCompanies?.length) {
-			const companyRelations = artistCompanies.map((company) => ({
-				company_id: company.company_id,
-				artist_id: artist.id,
-				relationship_type: company.relationship_type || null,
-				start_date: company.start_date || null,
-				end_date: company.end_date || null,
-				is_current: company.is_current ?? true,
-				created_at: new Date().toISOString(),
-				updated_at: new Date().toISOString(),
-			}))
+			const companyRelations: TablesInsert<'artist_companies'>[] = artistCompanies.map(
+				(company) => ({
+					...company,
+					artist_id: artist.id,
+				}),
+			)
 
 			const { error: companyError } = await supabase
 				.from('artist_companies')
@@ -172,19 +187,13 @@ export function useSupabaseArtist() {
 	// Met à jour un artiste
 	const updateArtist = async (
 		artistId: string,
-		updates: Partial<Artist>,
-		socialLinks?: Omit<ArtistSocialLink, 'id' | 'created_at' | 'artist_id'>[],
-		platformLinks?: Omit<ArtistPlatformLink, 'id' | 'created_at' | 'artist_id'>[],
+		updates: TablesUpdate<'artists'>,
+		socialLinks?: TablesInsert<'artist_social_links'>[],
+		platformLinks?: TablesInsert<'artist_platform_links'>[],
 		artistGroups?: Artist[],
 		artistMembers?: Artist[],
-		artistCompanies?: {
-			company_id: string
-			relationship_type?: string
-			start_date?: string
-			end_date?: string
-			is_current?: boolean
-		}[],
-	) => {
+		artistCompanies?: TablesInsert<'artist_companies'>[],
+	): Promise<Artist> => {
 		const { data: artist, error } = await supabase
 			.from('artists')
 			.update(updates)
@@ -202,10 +211,11 @@ export function useSupabaseArtist() {
 
 		// Ajouter les nouveaux liens sociaux
 		if (socialLinks?.length) {
-			const socialLinksWithArtistId = socialLinks.map((link) => ({
-				...link,
-				artist_id: artist.id,
-			}))
+			const socialLinksWithArtistId: TablesInsert<'artist_social_links'>[] =
+				socialLinks.map((link) => ({
+					...link,
+					artist_id: artist.id,
+				}))
 
 			const { error: socialError } = await supabase
 				.from('artist_social_links')
@@ -221,10 +231,11 @@ export function useSupabaseArtist() {
 
 		// Ajouter les nouveaux liens de plateformes
 		if (platformLinks?.length) {
-			const platformLinksWithArtistId = platformLinks.map((link) => ({
-				...link,
-				artist_id: artist.id,
-			}))
+			const platformLinksWithArtistId: TablesInsert<'artist_platform_links'>[] =
+				platformLinks.map((link) => ({
+					...link,
+					artist_id: artist.id,
+				}))
 
 			const { error: platformError } = await supabase
 				.from('artist_platform_links')
@@ -243,11 +254,13 @@ export function useSupabaseArtist() {
 
 		// Ajouter les nouvelles relations avec les groupes
 		if (artistGroups?.length) {
-			const groupRelations = artistGroups.map((group) => ({
-				group_id: group.id,
-				member_id: artist.id,
-				relation_type: 'MEMBER',
-			}))
+			const groupRelations: TablesInsert<'artist_relations'>[] = artistGroups.map(
+				(group) => ({
+					group_id: group.id,
+					member_id: artist.id,
+					relation_type: 'MEMBER' as const,
+				}),
+			)
 
 			const { error: groupError } = await supabase
 				.from('artist_relations')
@@ -260,11 +273,13 @@ export function useSupabaseArtist() {
 
 		// Ajouter les nouvelles relations avec les membres
 		if (artistMembers?.length) {
-			const memberRelations = artistMembers.map((member) => ({
-				group_id: artist.id,
-				member_id: member.id,
-				relation_type: 'GROUP',
-			}))
+			const memberRelations: TablesInsert<'artist_relations'>[] = artistMembers.map(
+				(member) => ({
+					group_id: artist.id,
+					member_id: member.id,
+					relation_type: 'GROUP' as const,
+				}),
+			)
 
 			const { error: memberError } = await supabase
 				.from('artist_relations')
@@ -280,16 +295,12 @@ export function useSupabaseArtist() {
 
 		// Ajouter les nouvelles relations avec les compagnies
 		if (artistCompanies?.length) {
-			const companyRelations = artistCompanies.map((company) => ({
-				company_id: company.company_id,
-				artist_id: artist.id,
-				relationship_type: company.relationship_type || null,
-				start_date: company.start_date || null,
-				end_date: company.end_date || null,
-				is_current: company.is_current ?? true,
-				created_at: new Date().toISOString(),
-				updated_at: new Date().toISOString(),
-			}))
+			const companyRelations: TablesInsert<'artist_companies'>[] = artistCompanies.map(
+				(company) => ({
+					...company,
+					artist_id: artist.id,
+				}),
+			)
 
 			const { error: companyError } = await supabase
 				.from('artist_companies')
@@ -319,9 +330,10 @@ export function useSupabaseArtist() {
 			}
 
 			return {
-				exclusiveReleases: data.exclusive_releases || [],
-				exclusiveMusics: data.exclusive_musics || [],
-				exclusiveNews: data.exclusive_news || [],
+				exclusiveReleases:
+					(data as RPCExclusiveContentResponse)?.exclusive_releases || [],
+				exclusiveMusics: (data as RPCExclusiveContentResponse)?.exclusive_musics || [],
+				exclusiveNews: (data as RPCExclusiveContentResponse)?.exclusive_news || [],
 			}
 		} catch (error) {
 			console.error("Erreur lors de l'analyse d'impact:", error)
@@ -343,15 +355,15 @@ export function useSupabaseArtist() {
 
 			toast.add({
 				title: 'Artiste supprimé',
-				description: data.message,
+				description: (data as RPCDeletionAnalysisResponse)?.message,
 				color: 'success',
 			})
 
 			return {
-				success: data.success,
-				message: data.message,
-				details: data.details,
-				impact: data.details?.impact_analysis,
+				success: (data as RPCDeletionAnalysisResponse)?.success,
+				message: (data as RPCDeletionAnalysisResponse)?.message,
+				details: (data as RPCDeletionAnalysisResponse)?.details,
+				impact: (data as RPCDeletionAnalysisResponse)?.details?.impact_analysis,
 			}
 		} catch (error: any) {
 			console.error("Erreur lors de la suppression de l'artiste:", error)
@@ -378,14 +390,14 @@ export function useSupabaseArtist() {
 
 			toast.add({
 				title: 'Artiste supprimé',
-				description: data.message,
+				description: (data as RPCDeletionAnalysisResponse)?.message,
 				color: 'success',
 			})
 
 			return {
-				success: data.success,
-				message: data.message,
-				artist_name: data.artist_name,
+				success: (data as RPCDeletionAnalysisResponse)?.success,
+				message: (data as RPCDeletionAnalysisResponse)?.message,
+				artist_name: (data as RPCDeletionResponse)?.artist_name,
 			}
 		} catch (error: any) {
 			console.error("Erreur lors de la suppression de l'artiste:", error)
@@ -625,8 +637,8 @@ export function useSupabaseArtist() {
 			}
 
 			// Filtrage par gender
-			if (options?.gender) {
-				query = query.eq('gender', options.gender)
+			if (options?.gender && options.gender !== 'UNKNOWN') {
+				query = query.eq('gender', options.gender as ArtistGender)
 			}
 
 			// Filtrage par tags (OU)

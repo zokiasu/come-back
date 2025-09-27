@@ -1,21 +1,9 @@
-import type { QueryOptions, FilterOptions } from '~/types'
+import type { QueryOptions, FilterOptions, ContributionType } from '~/types'
+import type { Database, TablesInsert, TablesUpdate, Tables } from '~/types/supabase'
 
-interface UserArtistContribution {
-	user_id: string
-	artist_id: string
-	contribution_type: 'CREATOR' | 'EDITOR'
-	created_at: string | null
-	user?: {
-		id: string
-		name: string
-		email: string
-		photo_url: string | null
-	}
-	artist?: {
-		id: string
-		name: string
-		image: string | null
-	}
+type UserArtistContribution = Tables<'user_artist_contributions'> & {
+	user?: Tables<'users'>
+	artist?: Tables<'artists'>
 }
 
 interface ContributionsResponse {
@@ -27,7 +15,7 @@ interface ContributionsResponse {
 }
 
 export function useSupabaseUserArtistContributions() {
-	const supabase = useSupabaseClient()
+	const supabase = useSupabaseClient<Database>()
 	const toast = useToast()
 
 	// Ajouter une contribution utilisateur pour un artiste

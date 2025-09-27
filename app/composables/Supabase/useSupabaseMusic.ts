@@ -1,5 +1,26 @@
-import type { QueryOptions, FilterOptions, MusicType, Music } from '~/types'
+import type {
+	QueryOptions,
+	FilterOptions,
+	MusicType,
+	Music,
+	Artist,
+	Release,
+} from '~/types'
 import type { Database } from '~/types/supabase'
+
+// Types pour les données jointes
+interface ArtistJunction {
+	artist: Artist
+}
+
+interface ReleaseJunction {
+	release: Release
+}
+
+interface MusicWithRelations extends Music {
+	artists?: ArtistJunction[]
+	releases?: ReleaseJunction[]
+}
 
 export function useSupabaseMusic() {
 	const supabase = useSupabaseClient<Database>()
@@ -157,7 +178,7 @@ export function useSupabaseMusic() {
 		if (options?.type) {
 			// Limitation : la colonne 'type' dans Supabase n'accepte que 'SONG'
 			// Cast temporaire car MusicType ne contient pas 'SONG' dans le projet
-			if ((options.type as any) === 'SONG') {
+			if (options.type === 'SONG') {
 				query = query.eq('type', 'SONG')
 			}
 		}
@@ -232,9 +253,9 @@ export function useSupabaseMusic() {
 
 			return {
 				...((music || {}) as object),
-				artists: (artists as any[])?.map((a) => a.artist) || [],
-				releases: (releases as any[])?.map((r) => r.release) || [],
-			} as unknown as Music
+				artists: (artists as ArtistJunction[])?.map((a) => a.artist) || [],
+				releases: (releases as ReleaseJunction[])?.map((r) => r.release) || [],
+			} as Music
 		} catch (error) {
 			console.error('Erreur lors de la récupération des données de la musique:', error)
 			return null
@@ -317,7 +338,7 @@ export function useSupabaseMusic() {
 			}
 
 			// Transformer les données
-			const formattedData = (detailedMusics as any[]).map((music: any) => ({
+			const formattedData = (detailedMusics as MusicWithRelations[]).map((music) => ({
 				...music,
 				artists: music.artists?.map((a: any) => a.artist) || [],
 				releases: music.releases?.map((r: any) => r.release) || [],
@@ -377,7 +398,7 @@ export function useSupabaseMusic() {
 			}
 
 			// Transformer les données
-			const formattedData = (detailedMusics as any[]).map((music: any) => ({
+			const formattedData = (detailedMusics as MusicWithRelations[]).map((music) => ({
 				...music,
 				artists: music.artists?.map((a: any) => a.artist) || [],
 				releases: music.releases?.map((r: any) => r.release) || [],
@@ -419,7 +440,7 @@ export function useSupabaseMusic() {
 			if (artistIds && artistIds.length > 0) {
 				const { error: artistError } = await supabase.from('music_artists').insert(
 					artistIds.map((artistId, index) => ({
-						music_id: (music as any).id,
+						music_id: music.id,
 						artist_id: artistId,
 						is_primary: index === 0, // Le premier artiste est considéré comme principal
 					})) as Database['public']['Tables']['music_artists']['Insert'][],
@@ -428,10 +449,7 @@ export function useSupabaseMusic() {
 				if (artistError) {
 					console.error("Erreur lors de l'ajout des artistes:", artistError)
 					// On supprime la musique créée si l'ajout des artistes échoue
-					await supabase
-						.from('musics')
-						.delete()
-						.eq('id', (music as any).id)
+					await supabase.from('musics').delete().eq('id', music.id)
 					toast.add({
 						title: "Erreur lors de l'ajout des artistes",
 						color: 'error',
@@ -521,7 +539,6 @@ export function useSupabaseMusic() {
 		},
 	) => {
 		try {
-			console.log('Requête musics sans filtre', { page, limit, options })
 			// Calculer l'offset
 			const offset = (page - 1) * limit
 
@@ -559,7 +576,7 @@ export function useSupabaseMusic() {
 			if (options?.type) {
 				// Limitation : la colonne 'type' dans Supabase n'accepte que 'SONG'
 				// Cast temporaire car MusicType ne contient pas 'SONG' dans le projet
-				if ((options.type as any) === 'SONG') {
+				if (options.type === 'SONG') {
 					query = query.eq('type', 'SONG')
 				}
 			}
@@ -594,7 +611,6 @@ export function useSupabaseMusic() {
 			let data = result.data
 			const error = result.error
 			let count = result.count
-			console.log('Résultat musics', { data, error, count })
 
 			if (error) {
 				console.error('Erreur lors de la récupération des musiques:', error)
@@ -671,7 +687,7 @@ export function useSupabaseMusic() {
 			}
 
 			// Transform the data to match the expected format
-			const transformedData = (data as any[]).map((music: any) => ({
+			const transformedData = (data as MusicWithRelations[]).map((music) => ({
 				...music,
 				artists: music.artists?.map((ma: any) => ma.artist) || [],
 				releases: music.releases?.map((mr: any) => mr.release) || [],

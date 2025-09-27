@@ -1,4 +1,30 @@
 <script setup lang="ts">
+	import type { ArtistSocialLink, ArtistPlatformLink } from '~/types'
+
+	interface Props {
+		id: string
+		name: string
+		image?: string
+		description?: string
+		type?: string
+		idYoutubeMusic?: string
+		styles: string[]
+		socialList: ArtistSocialLink[]
+		platformList: ArtistPlatformLink[]
+		isActive: boolean
+		createdAt?: string
+		updatedAt?: string
+	}
+
+	const props = withDefaults(defineProps<Props>(), {
+		image: '',
+		description: '',
+		type: undefined,
+		idYoutubeMusic: undefined,
+		createdAt: undefined,
+		updatedAt: undefined,
+	})
+
 	const {
 		id,
 		image,
@@ -11,64 +37,9 @@
 		platformList,
 		createdAt,
 		updatedAt,
-	} = defineProps({
-		id: {
-			type: String,
-			required: true,
-		},
-		name: {
-			type: String,
-			required: true,
-		},
-		image: {
-			type: String,
-			required: false,
-			default: '',
-		},
-		description: {
-			type: String,
-			required: false,
-			default: '',
-		},
-		type: {
-			type: String,
-			required: false,
-			default: undefined,
-		},
-		idYoutubeMusic: {
-			type: String,
-			required: false,
-			default: undefined,
-		},
-		styles: {
-			type: Array,
-			required: true,
-		},
-		socialList: {
-			type: Array,
-			required: true,
-		},
-		platformList: {
-			type: Array,
-			required: true,
-		},
-		isActive: {
-			type: Boolean,
-			required: true,
-		},
-		createdAt: {
-			type: String,
-			required: false,
-			default: undefined,
-		},
-		updatedAt: {
-			type: String,
-			required: false,
-			default: undefined,
-		},
-	})
+	} = props
 
-	const skeleton = ref(null)
+	const skeleton = ref<HTMLElement | null>(null)
 	const showFullDescription = ref(false)
 
 	const createdAtDate = createdAt
@@ -106,32 +77,38 @@
 	const showPlatformsLinks = ref(false)
 
 	// Transition functions
-	function beforeEnter(el) {
-		el.style.height = '0'
+	function beforeEnter(el: Element) {
+		const element = el as HTMLElement
+		element.style.height = '0'
 	}
 
-	function enter(el, done) {
-		el.style.transition = 'height .3s ease'
-		el.style.height = el.scrollHeight + 'px'
-		el.addEventListener('transitionend', done, { once: true })
+	function enter(el: Element, done: () => void) {
+		const element = el as HTMLElement
+		element.style.transition = 'height .3s ease'
+		element.style.height = element.scrollHeight + 'px'
+		element.addEventListener('transitionend', done, { once: true })
 	}
 
-	function afterEnter(el) {
-		el.style.height = ''
+	function afterEnter(el: Element) {
+		const element = el as HTMLElement
+		element.style.height = ''
 	}
 
-	function beforeLeave(el) {
-		el.style.height = el.scrollHeight + 'px'
+	function beforeLeave(el: Element) {
+		const element = el as HTMLElement
+		element.style.height = element.scrollHeight + 'px'
 	}
 
-	function leave(el, done) {
-		el.style.transition = 'height .3s ease'
-		el.style.height = '0'
-		el.addEventListener('transitionend', done, { once: true })
+	function leave(el: Element, done: () => void) {
+		const element = el as HTMLElement
+		element.style.transition = 'height .3s ease'
+		element.style.height = '0'
+		element.addEventListener('transitionend', done, { once: true })
 	}
 
-	function afterLeave(el) {
-		el.style.height = ''
+	function afterLeave(el: Element) {
+		const element = el as HTMLElement
+		element.style.height = ''
 	}
 </script>
 
@@ -218,7 +195,7 @@
 						<div v-if="socialList.length" class="flex flex-col space-y-1.5">
 							<a
 								v-for="social in socialList"
-								:key="social"
+								:key="social.id"
 								:href="social.link"
 								target="_blank"
 								class="bg-cb-quinary-900 overflow-hidden rounded text-xs"
@@ -272,7 +249,7 @@
 						>
 							<a
 								v-for="platform in platformList"
-								:key="platform"
+								:key="platform.id"
 								:href="platform.link"
 								target="_blank"
 								class="bg-cb-quinary-900 overflow-hidden rounded text-xs"

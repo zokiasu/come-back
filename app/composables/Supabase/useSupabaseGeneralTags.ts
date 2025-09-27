@@ -1,13 +1,13 @@
 import type { QueryOptions, FilterOptions, GeneralTag } from '~/types'
+import type { Database, TablesInsert, TablesUpdate } from '~/types/supabase'
 
 export function useSupabaseGeneralTags() {
-	const supabase = useSupabaseClient()
-	const toast = useToast()
+	const supabase = useSupabaseClient<Database>()
 
 	// Crée un nouveau tag
 	const createGeneralTag = async (
-		data: Omit<GeneralTag, 'id' | 'created_at' | 'updated_at'>,
-	) => {
+		data: TablesInsert<'general_tags'>,
+	): Promise<GeneralTag> => {
 		const { data: tag, error } = await supabase
 			.from('general_tags')
 			.insert(data)
@@ -23,7 +23,10 @@ export function useSupabaseGeneralTags() {
 	}
 
 	// Met à jour un tag
-	const updateGeneralTag = async (id: string, updates: Partial<GeneralTag>) => {
+	const updateGeneralTag = async (
+		id: string,
+		updates: TablesUpdate<'general_tags'>,
+	): Promise<GeneralTag> => {
 		const { data, error } = await supabase
 			.from('general_tags')
 			.update(updates)
@@ -52,7 +55,9 @@ export function useSupabaseGeneralTags() {
 	}
 
 	// Récupère tous les tags
-	const getAllGeneralTags = async (options?: QueryOptions & FilterOptions) => {
+	const getAllGeneralTags = async (
+		options?: QueryOptions & FilterOptions,
+	): Promise<GeneralTag[]> => {
 		let query = supabase.from('general_tags').select('*')
 
 		if (options?.search) {
@@ -86,7 +91,7 @@ export function useSupabaseGeneralTags() {
 	}
 
 	// Récupère un tag par son ID
-	const getGeneralTagById = async (id: string) => {
+	const getGeneralTagById = async (id: string): Promise<GeneralTag> => {
 		const { data, error } = await supabase
 			.from('general_tags')
 			.select('*')

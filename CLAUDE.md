@@ -86,6 +86,16 @@ This is a music platform called "Comeback" that allows users to:
 - Use TypeScript throughout (interfaces over types)
 - Follow Vue 3 + Nuxt 3 best practices
 
+#### TypeScript Best Practices
+
+- **AVOID `as any` and `as unknown` castings**: Always prefer proper TypeScript interfaces and types
+- Create specific interfaces for RPC responses, API data, and complex objects
+- Use union types (`string | null`) instead of generic castings
+- For Supabase data, use generated types from `~/types/supabase.ts`
+- When dealing with unknown data structures, create appropriate interfaces rather than casting
+- Only use type assertions (`as Type`) when you're certain of the type structure
+- Document any necessary type assertions with comments explaining why they're needed
+
 #### Data Fetching
 
 - Use `useFetch` for SSR-compatible requests

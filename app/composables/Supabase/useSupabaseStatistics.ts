@@ -1,10 +1,78 @@
-import type {
-	DashboardStats,
-	StatsFilters,
-	TopContributor,
-	ContributionTypeStats,
-	UserRoleStats,
-} from '~/types/stats'
+import type { DashboardStats, StatsFilters } from '~/types/stats'
+import type { Database } from '~/types'
+
+// Types pour les réponses Supabase
+type SupabaseResponse<T> = {
+	data: T | null
+	error: any
+}
+
+// Types pour les appels RPC basés sur le schéma Supabase
+interface RPCDemographicsItem {
+	stat_type: 'type' | 'gender' | 'status'
+	category: string
+	count_value: number
+}
+
+interface RPCTopArtist {
+	artist_name: string
+	release_count: number
+	music_count: number
+}
+
+interface RPCGeneralStats {
+	total_artists: number
+	total_releases: number
+	total_musics: number
+	total_companies: number
+	active_artists: number
+	inactive_artists: number
+}
+
+interface RPCTemporalData {
+	period_label: string
+	count_value: number
+}
+
+// Types spécifiques pour les requêtes Supabase
+type ArtistStatsRow = Pick<
+	Database['public']['Tables']['artists']['Row'],
+	| 'styles'
+	| 'verified'
+	| 'image'
+	| 'description'
+	| 'birth_date'
+	| 'debut_date'
+	| 'general_tags'
+	| 'type'
+	| 'gender'
+>
+
+type ArtistTemporalRow = Pick<
+	Database['public']['Tables']['artists']['Row'],
+	'created_at' | 'debut_date' | 'birth_date'
+>
+
+type ReleaseYearRow = Pick<
+	Database['public']['Tables']['releases']['Row'],
+	'year' | 'type'
+>
+
+type ReleaseTypeRow = Pick<Database['public']['Tables']['releases']['Row'], 'type'>
+
+type MusicYearRow = Pick<Database['public']['Tables']['musics']['Row'], 'release_year'>
+
+type MusicStatsRow = Pick<
+	Database['public']['Tables']['musics']['Row'],
+	'duration' | 'ismv' | 'id_youtube_music'
+>
+
+type MusicReleaseRow = Pick<
+	Database['public']['Tables']['music_releases']['Row'],
+	'release_id'
+>
+
+type CompanyRow = Pick<Database['public']['Tables']['companies']['Row'], 'id' | 'name'>
 
 export function useSupabaseStatistics() {
 	const supabase = useSupabaseClient()
@@ -58,29 +126,6 @@ export function useSupabaseStatistics() {
 
 	// 📊 STATISTIQUES PAR ARTISTES
 
-	// Helper pour construire les conditions SQL de filtrage temporel
-	const buildDateConditions = (
-		filters: StatsFilters,
-		releaseTable = 'r',
-		musicTable = 'm',
-	) => {
-		const { startDate, endDate } = buildDateFilter(filters)
-		let releaseCondition = '1=1'
-		let musicCondition = '1=1'
-
-		if (filters.year && (filters.period === 'year' || filters.period === 'all')) {
-			releaseCondition = `EXTRACT(YEAR FROM ${releaseTable}.date) = ${filters.year}`
-			musicCondition = `${musicTable}.release_year = ${filters.year}`
-		} else if (startDate && endDate) {
-			const startDateStr = startDate.toISOString().split('T')[0]
-			const endDateStr = endDate.toISOString().split('T')[0]
-			releaseCondition = `${releaseTable}.date >= '${startDateStr}' AND ${releaseTable}.date <= '${endDateStr}'`
-			musicCondition = `${musicTable}.date >= '${startDateStr}' AND ${musicTable}.date <= '${endDateStr}'`
-		}
-
-		return { releaseCondition, musicCondition }
-	}
-
 	// Statistiques générales avec fonctions SQL optimisées (version finale)
 	const getArtistGeneralStats = async (filters: StatsFilters) => {
 		const { startDate, endDate } = buildDateFilter(filters)
@@ -95,7 +140,9 @@ export function useSupabaseStatistics() {
 			const [demographicsData, topReleasesData, topMusicsData, artistsData] =
 				await Promise.all([
 					// Statistiques démographiques
-					supabase.rpc('get_artist_demographics'),
+					supabase.rpc('get_artist_demographics') as Promise<
+						SupabaseResponse<RPCDemographicsItem[]>
+					>,
 
 					// Top artistes par releases avec filtrage temporel
 					supabase.rpc('get_top_artists_by_releases', {
@@ -103,7 +150,7 @@ export function useSupabaseStatistics() {
 						start_date: startDate ? startDate.toISOString().split('T')[0] : null,
 						end_date: endDate ? endDate.toISOString().split('T')[0] : null,
 						limit_count: 10,
-					}),
+					}) as Promise<SupabaseResponse<RPCTopArtist[]>>,
 
 					// Top artistes par musiques avec filtrage temporel
 					supabase.rpc('get_top_artists_by_musics', {
@@ -111,14 +158,14 @@ export function useSupabaseStatistics() {
 						start_date: startDate ? startDate.toISOString().split('T')[0] : null,
 						end_date: endDate ? endDate.toISOString().split('T')[0] : null,
 						limit_count: 10,
-					}),
+					}) as Promise<SupabaseResponse<RPCTopArtist[]>>,
 
 					// Données pour statistiques par genre et qualité
 					supabase
 						.from('artists')
 						.select(
 							'styles, verified, image, description, birth_date, debut_date, general_tags, type, gender',
-						),
+						) as Promise<SupabaseResponse<ArtistStatsRow[]>>,
 				])
 
 			// Traitement des données démographiques
@@ -165,8 +212,8 @@ export function useSupabaseStatistics() {
 					artist.birth_date,
 					artist.debut_date,
 					artist.image,
-					artist.styles?.length > 0,
-					artist.general_tags?.length > 0,
+					artist.styles?.length && artist.styles.length > 0,
+					artist.general_tags?.length && artist.general_tags.length > 0,
 					artist.verified,
 				].filter(Boolean).length
 
@@ -191,12 +238,12 @@ export function useSupabaseStatistics() {
 					completeProfiles: completeProfilesCount,
 				},
 				topReleases:
-					topReleasesData?.data?.map((item) => ({
+					topReleasesData?.data?.map((item: RPCTopArtist) => ({
 						name: item.artist_name,
 						count: item.release_count,
 					})) || [],
 				topMusics:
-					topMusicsData?.data?.map((item) => ({
+					topMusicsData?.data?.map((item: RPCTopArtist) => ({
 						name: item.artist_name,
 						count: item.music_count,
 					})) || [],
@@ -233,7 +280,7 @@ export function useSupabaseStatistics() {
 		const debutYears: Record<number, number> = {}
 		const birthPeriods: Record<string, number> = {}
 
-		artistsData?.forEach((artist) => {
+		artistsData?.forEach((artist: ArtistTemporalRow) => {
 			// Évolution création
 			if (artist.created_at) {
 				const year = new Date(artist.created_at).getFullYear()
@@ -289,7 +336,7 @@ export function useSupabaseStatistics() {
 		> = {}
 		const musicsByYear: Record<number, number> = {}
 
-		releasesData?.forEach((release) => {
+		releasesData?.forEach((release: ReleaseYearRow) => {
 			const year = release.year!
 			releasesByYear[year] = (releasesByYear[year] || 0) + 1
 
@@ -297,10 +344,11 @@ export function useSupabaseStatistics() {
 				releaseTypesByYear[year] = { ALBUM: 0, SINGLE: 0, EP: 0, COMPILATION: 0 }
 			}
 			const yearData = releaseTypesByYear[year]
-			yearData[release.type || 'SINGLE']++
+			const releaseType = (release.type || 'SINGLE') as keyof typeof yearData
+			yearData[releaseType]++
 		})
 
-		musicsData?.forEach((music) => {
+		musicsData?.forEach((music: MusicYearRow) => {
 			const year = music.release_year!
 			musicsByYear[year] = (musicsByYear[year] || 0) + 1
 		})
@@ -346,7 +394,7 @@ export function useSupabaseStatistics() {
 					count: 0,
 				}
 			}
-			companyArtistCount[relation.company_id].count++
+			companyArtistCount[relation.company_id]!.count++
 
 			// Relations par type
 			const relType = relation.relationship_type || 'UNKNOWN'
@@ -394,7 +442,7 @@ export function useSupabaseStatistics() {
 
 		// Traitement
 		const releaseTypes: Record<string, number> = {}
-		releasesData?.forEach((release) => {
+		releasesData?.forEach((release: ReleaseTypeRow) => {
 			const type = release.type || 'UNKNOWN'
 			releaseTypes[type] = (releaseTypes[type] || 0) + 1
 		})
@@ -417,7 +465,7 @@ export function useSupabaseStatistics() {
 
 		// Nombre de tracks par release
 		const tracksPerRelease: Record<string, number> = {}
-		trackCountData?.forEach((item) => {
+		trackCountData?.forEach((item: MusicReleaseRow) => {
 			tracksPerRelease[item.release_id] = (tracksPerRelease[item.release_id] || 0) + 1
 		})
 
@@ -428,7 +476,7 @@ export function useSupabaseStatistics() {
 		let youtubeMusicCount = 0
 		const totalMusics = musicsData?.length || 0
 
-		musicsData?.forEach((music) => {
+		musicsData?.forEach((music: MusicStatsRow) => {
 			if (music.duration) {
 				totalDuration += music.duration
 				durationCount++
@@ -481,24 +529,26 @@ export function useSupabaseStatistics() {
 					filter_year: filters.year || null,
 					start_date: startDate ? startDate.toISOString().split('T')[0] : null,
 					end_date: endDate ? endDate.toISOString().split('T')[0] : null,
-				}),
+				}) as Promise<SupabaseResponse<RPCGeneralStats[]>>,
 
 				// Companies simple (en attendant une fonction dédiée)
-				supabase.from('companies').select('id, name').limit(10),
+				supabase.from('companies').select('id, name').limit(10) as Promise<
+					SupabaseResponse<CompanyRow[]>
+				>,
 
 				// Données temporelles des releases
 				supabase.rpc('get_releases_temporal_stats', {
 					period_type: temporalPeriodType,
 					filter_year: filters.year || null,
 					filter_month: isMonthlyView ? filters.month : null,
-				}),
+				}) as Promise<SupabaseResponse<RPCTemporalData[]>>,
 
 				// Données temporelles des musiques
 				supabase.rpc('get_musics_temporal_stats_with_fallback', {
 					period_type: temporalPeriodType,
 					filter_year: filters.year || null,
 					filter_month: isMonthlyView ? filters.month : null,
-				}),
+				}) as Promise<SupabaseResponse<RPCTemporalData[]>>,
 			])
 
 			// Traitement des données depuis SQL
@@ -527,14 +577,16 @@ export function useSupabaseStatistics() {
 							`
             *,
             artist_releases!inner(
-              artist_companies!inner(
-                company_id
+              artists!inner(
+                artist_companies!inner(
+                  company_id
+                )
               )
             )
           `,
 							{ count: 'exact', head: true },
 						)
-						.eq('artist_releases.artist_companies.company_id', comp.id)
+						.eq('artist_releases.artists.artist_companies.company_id', comp.id)
 
 					return {
 						company_id: comp.id,
@@ -639,21 +691,25 @@ export function useSupabaseStatistics() {
 					topLists: [
 						{
 							title: 'Top Artistes - Releases',
-							items: artistGeneral.topReleases.map((artist, index) => ({
-								id: `release-${index}`,
-								name: artist.name,
-								value: artist.count,
-								subtitle: `${artist.count} releases`,
-							})),
+							items: artistGeneral.topReleases.map(
+								(artist: { name: string; count: number }, index: number) => ({
+									id: `release-${index}`,
+									name: artist.name,
+									value: artist.count,
+									subtitle: `${artist.count} releases`,
+								}),
+							),
 						},
 						{
 							title: 'Top Artistes - Musiques',
-							items: artistGeneral.topMusics.map((artist, index) => ({
-								id: `music-${index}`,
-								name: artist.name,
-								value: artist.count,
-								subtitle: `${artist.count} musiques`,
-							})),
+							items: artistGeneral.topMusics.map(
+								(artist: { name: string; count: number }, index: number) => ({
+									id: `music-${index}`,
+									name: artist.name,
+									value: artist.count,
+									subtitle: `${artist.count} musiques`,
+								}),
+							),
 						},
 					],
 				},
@@ -700,8 +756,13 @@ export function useSupabaseStatistics() {
 							title: `Évolution des Releases ${isMonthlyView ? 'par jour' : 'par mois'}`,
 							data: {
 								labels:
-									releasesTemporalData?.data?.map((item) => item.period_label) || [],
-								data: releasesTemporalData?.data?.map((item) => item.count_value) || [],
+									releasesTemporalData?.data?.map(
+										(item: RPCTemporalData) => item.period_label,
+									) || [],
+								data:
+									releasesTemporalData?.data?.map(
+										(item: RPCTemporalData) => item.count_value,
+									) || [],
 								type: 'line',
 							},
 							description: isMonthlyView
@@ -711,8 +772,14 @@ export function useSupabaseStatistics() {
 						{
 							title: `Évolution des Musiques ${isMonthlyView ? 'par jour' : 'par mois'}`,
 							data: {
-								labels: musicsTemporalData?.data?.map((item) => item.period_label) || [],
-								data: musicsTemporalData?.data?.map((item) => item.count_value) || [],
+								labels:
+									musicsTemporalData?.data?.map(
+										(item: RPCTemporalData) => item.period_label,
+									) || [],
+								data:
+									musicsTemporalData?.data?.map(
+										(item: RPCTemporalData) => item.count_value,
+									) || [],
 								type: 'line',
 							},
 							description: isMonthlyView
@@ -727,7 +794,7 @@ export function useSupabaseStatistics() {
 			toast.add({
 				title: 'Erreur',
 				description: 'Impossible de charger les statistiques',
-				color: 'red',
+				color: 'error',
 			})
 			throw error
 		}

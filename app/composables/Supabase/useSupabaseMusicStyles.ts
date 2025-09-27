@@ -1,13 +1,13 @@
 import type { QueryOptions, FilterOptions, MusicStyle } from '~/types'
+import type { Database, TablesInsert, TablesUpdate } from '~/types/supabase'
 
 export function useSupabaseMusicStyles() {
-	const supabase = useSupabaseClient()
-	const toast = useToast()
+	const supabase = useSupabaseClient<Database>()
 
 	// Crée un nouveau style
 	const createMusicStyle = async (
-		data: Omit<MusicStyle, 'id' | 'created_at' | 'updated_at'>,
-	) => {
+		data: TablesInsert<'music_styles'>,
+	): Promise<MusicStyle> => {
 		const { data: style, error } = await supabase
 			.from('music_styles')
 			.insert(data)
@@ -23,7 +23,10 @@ export function useSupabaseMusicStyles() {
 	}
 
 	// Met à jour un style
-	const updateMusicStyle = async (id: string, updates: Partial<MusicStyle>) => {
+	const updateMusicStyle = async (
+		id: string,
+		updates: TablesUpdate<'music_styles'>,
+	): Promise<MusicStyle> => {
 		const { data, error } = await supabase
 			.from('music_styles')
 			.update(updates)
@@ -52,7 +55,9 @@ export function useSupabaseMusicStyles() {
 	}
 
 	// Récupère tous les styles
-	const getAllMusicStyles = async (options?: QueryOptions & FilterOptions) => {
+	const getAllMusicStyles = async (
+		options?: QueryOptions & FilterOptions,
+	): Promise<MusicStyle[]> => {
 		let query = supabase.from('music_styles').select('*')
 
 		if (options?.search) {
@@ -86,7 +91,7 @@ export function useSupabaseMusicStyles() {
 	}
 
 	// Récupère un style par son ID
-	const getMusicStyleById = async (id: string) => {
+	const getMusicStyleById = async (id: string): Promise<MusicStyle> => {
 		const { data, error } = await supabase
 			.from('music_styles')
 			.select('*')

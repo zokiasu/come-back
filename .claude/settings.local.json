@@ -28,7 +28,9 @@
 			"Bash(wsl:*)",
 			"WebFetch(domain:docs.claude.com)",
 			"Bash(claude mcp:*)",
-			"Bash(curl:*)"
+			"Bash(curl:*)",
+			"Bash(supabase:*)",
+			"Bash(npx nuxi typecheck:*)"
 		],
 		"deny": []
 	},

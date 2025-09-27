@@ -1,6 +1,12 @@
 <script setup lang="ts">
-	import type { Release, Artist } from '~/types'
-	import type { ReleaseType } from '~/types'
+	import type {
+		Release,
+		Artist,
+		ReleaseType,
+		PaginatedReleaseResponse,
+		ReleaseWithRelations,
+		ArtistMenuItem,
+	} from '~/types'
 	import { useSupabaseRelease } from '~/composables/Supabase/useSupabaseRelease'
 	import { useSupabaseArtist } from '~/composables/Supabase/useSupabaseArtist'
 	import { useUserStore } from '~/stores/user'
@@ -11,26 +17,26 @@
 	const toast = useToast()
 	const userStore = useUserStore()
 
-	const releaseFetch = ref<Release[]>([])
+	const releaseFetch = ref<ReleaseWithRelations[]>([])
 	const search = ref<string>('')
 	const sort = ref<keyof Release>('date')
 	const invertSort = ref<boolean>(true)
 	const isLoading = ref<boolean>(false)
-	const currentPage = ref(1)
-	const totalPages = ref(1)
-	const totalReleases = ref(0)
+	const currentPage = ref<number>(1)
+	const totalPages = ref<number>(1)
+	const totalReleases = ref<number>(0)
 	const limitFetch = ref<number>(24)
-	const firstLoad = ref(true)
+	const firstLoad = ref<boolean>(true)
 	const typeFilter = ref<ReleaseType | ''>('')
 	const selectedArtists = ref<string[]>([])
-	const selectedArtistsWithLabel = ref<(Artist & { label: string })[]>([])
+	const selectedArtistsWithLabel = ref<ArtistMenuItem[]>([])
 	const artistsList = ref<Artist[]>([])
 
 	const artistsForMenu = computed(() => {
 		return artistsList.value.map((artist) => ({
 			...artist,
 			label: artist.name,
-		}))
+		})) as any[]
 	})
 
 	const scrollContainer = useTemplateRef('scrollContainer')
@@ -55,7 +61,7 @@
 	/**
 	 * Récupère les releases depuis Supabase
 	 */
-	const getRelease = async (firstCall = false): Promise<void> => {
+	const getRelease = async (firstCall: boolean = false): Promise<void> => {
 		if (isLoading.value) return
 		isLoading.value = true
 
@@ -67,13 +73,17 @@
 			}
 
 			// Récupérer les releases pour la page courante
-			const result = await getReleasesByPage(currentPage.value, limitFetch.value, {
-				search: search.value,
-				type: typeFilter.value || undefined,
-				orderBy: sort.value,
-				orderDirection: invertSort.value ? 'desc' : 'asc',
-				artistIds: selectedArtists.value.length > 0 ? selectedArtists.value : undefined,
-			})
+			const result: PaginatedReleaseResponse = await getReleasesByPage(
+				currentPage.value,
+				limitFetch.value,
+				{
+					search: search.value || undefined,
+					type: typeFilter.value || undefined,
+					orderBy: sort.value,
+					orderDirection: invertSort.value ? 'desc' : 'asc',
+					artistIds: selectedArtists.value.length > 0 ? selectedArtists.value : undefined,
+				},
+			)
 
 			// Mettre à jour les données
 			totalReleases.value = result.total
@@ -99,7 +109,7 @@
 		}
 	}
 
-	const deleteRelease = async (id: string) => {
+	const deleteRelease = async (id: string): Promise<void> => {
 		try {
 			const res = await deleteReleaseFunction(id)
 			if (res) {
@@ -156,7 +166,7 @@
 	})
 
 	// Synchroniser selectedArtistsWithLabel avec selectedArtists
-	watch(selectedArtistsWithLabel, (newVal) => {
+	watch(selectedArtistsWithLabel, (newVal: ArtistMenuItem[]) => {
 		selectedArtists.value = newVal.map((artist) => artist.id)
 	})
 
@@ -183,15 +193,19 @@
 	/**
 	 * Charge tous les releases
 	 */
-	const loadAllReleases = async () => {
+	const loadAllReleases = async (): Promise<void> => {
 		try {
-			const result = await getReleasesByPage(1, totalReleases.value, {
-				search: search.value,
-				type: typeFilter.value || undefined,
-				orderBy: sort.value,
-				orderDirection: invertSort.value ? 'desc' : 'asc',
-				artistIds: selectedArtists.value.length > 0 ? selectedArtists.value : undefined,
-			})
+			const result: PaginatedReleaseResponse = await getReleasesByPage(
+				1,
+				totalReleases.value,
+				{
+					search: search.value || undefined,
+					type: typeFilter.value || undefined,
+					orderBy: sort.value,
+					orderDirection: invertSort.value ? 'desc' : 'asc',
+					artistIds: selectedArtists.value.length > 0 ? selectedArtists.value : undefined,
+				},
+			)
 			releaseFetch.value = result.releases
 		} catch (error) {
 			console.error('Erreur lors du chargement de tous les releases:', error)
@@ -311,18 +325,18 @@
 			>
 				<LazyCardDashboardRelease
 					:id="release.id"
-					:image="release.image"
+					:image="release.image || undefined"
 					:name="release.name"
 					:description="release.description || ''"
-					:type="release.type"
-					:id-youtube-music="release.id_youtube_music"
+					:type="release.type || ''"
+					:id-youtube-music="release.id_youtube_music || ''"
 					:artists-name="release.artists?.[0]?.name || ''"
 					:artists="release.artists || []"
 					:musics="release.musics || []"
-					:created-at="release.created_at"
-					:date="release.date"
+					:created-at="release.created_at || undefined"
+					:date="release.date || ''"
 					:need-to-be-verified="!release.verified"
-					:year-released="release.year"
+					:year-released="release.year || 0"
 					:platform-list="[]"
 					@delete-release="deleteRelease"
 				/>

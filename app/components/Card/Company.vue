@@ -1,5 +1,5 @@
 <script setup lang="ts">
-	import type { Company } from '~/composables/Supabase/useSupabaseCompanies'
+	import type { Company } from '~/types'
 
 	interface Props {
 		company: Company
@@ -14,7 +14,7 @@
 		showVerified: true,
 	})
 
-	const getCompanyTypeLabel = (type: string | undefined) => {
+	const getCompanyTypeLabel = (type: string | null | undefined) => {
 		const labels = {
 			LABEL: 'Label',
 			PUBLISHER: 'Publisher',
@@ -27,7 +27,7 @@
 		return labels[type as keyof typeof labels] || type || 'Not specified'
 	}
 
-	const formatLocation = (city?: string, country?: string) => {
+	const formatLocation = (city?: string | null, country?: string | null) => {
 		if (city && country) return `${city}, ${country}`
 		if (city) return city
 		if (country) return country
