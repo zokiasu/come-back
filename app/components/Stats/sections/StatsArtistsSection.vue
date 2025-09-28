@@ -1,5 +1,5 @@
 <template>
-	<section class="rounded-lg bg-white p-6 shadow-sm dark:bg-gray-800">
+	<section class="bg-cb-quinary-900 space-y-4 rounded-lg p-4">
 		<StatsSectionHeader
 			:title="section.title"
 			:loading="loading"
@@ -8,46 +8,64 @@
 
 		<div
 			v-if="section.cards?.length"
-			class="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4"
+			class="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4"
 		>
 			<StatsCard v-for="card in section.cards" :key="card.title" :card="card" />
 		</div>
 
-		<div class="grid grid-cols-1 gap-6 xl:grid-cols-3">
-			<div class="space-y-6 xl:col-span-2">
+		<div class="space-y-6">
+			<!-- Graphique des genres musicaux -->
+			<div v-if="genreChart" class="bg-cb-quaternary-950 rounded-lg p-4">
+				<h3 class="mb-4 text-lg font-medium text-white">
+					{{ genreChart.title }}
+				</h3>
+				<StatsChart :data="genreChart.data" :height="300" />
+				<p v-if="genreChart.description" class="text-cb-tertiary-200 mt-3 text-sm">
+					{{ genreChart.description }}
+				</p>
+			</div>
+
+			<!-- Graphiques de répartition Hommes/Femmes -->
+			<div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
 				<div
-					v-for="chart in primaryCharts"
+					v-for="chart in genderCharts"
 					:key="chart.title"
-					class="rounded-lg bg-gray-50 p-4 dark:bg-gray-700"
+					class="bg-cb-quaternary-950 rounded-lg p-4"
 				>
-					<h3 class="mb-4 text-lg font-medium text-gray-900 dark:text-white">
+					<h3 class="mb-4 text-lg font-medium text-white">
 						{{ chart.title }}
 					</h3>
-					<StatsChart :data="chart.data" :height="300" />
-					<p
-						v-if="chart.description"
-						class="mt-3 text-sm text-gray-500 dark:text-gray-400"
-					>
+					<StatsChart :data="chart.data" :height="280" />
+					<p v-if="chart.description" class="text-cb-tertiary-200 mt-3 text-sm">
 						{{ chart.description }}
 					</p>
 				</div>
 			</div>
-			<div class="space-y-6">
-				<div v-if="secondaryChart" class="rounded-lg bg-gray-50 p-4 dark:bg-gray-700">
-					<h3 class="mb-4 text-lg font-medium text-gray-900 dark:text-white">
-						{{ secondaryChart.title }}
+
+			<!-- Graphique qualité et top lists -->
+			<div class="grid grid-cols-1 gap-4 xl:grid-cols-3">
+				<div v-if="qualityChart" class="bg-cb-quaternary-950 rounded-lg p-4">
+					<h3 class="mb-4 text-lg font-medium text-white">
+						{{ qualityChart.title }}
 					</h3>
-					<StatsChart :data="secondaryChart.data" :height="280" />
+					<StatsChart :data="qualityChart.data" :height="300" />
+					<p v-if="qualityChart.description" class="text-cb-tertiary-200 mt-3 text-sm">
+						{{ qualityChart.description }}
+					</p>
 				</div>
-				<div
-					v-for="list in section.topLists || []"
-					:key="list.title"
-					class="rounded-lg bg-gray-50 p-4 dark:bg-gray-700"
-				>
-					<h3 class="mb-4 text-lg font-medium text-gray-900 dark:text-white">
-						{{ list.title }}
-					</h3>
-					<TopList :items="list.items" :limit="list.limit" />
+				<div class="space-y-4 xl:col-span-2">
+					<div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+						<div
+							v-for="list in section.topLists || []"
+							:key="list.title"
+							class="bg-cb-quaternary-950 rounded-lg p-4"
+						>
+							<h3 class="mb-4 text-lg font-medium text-white">
+								{{ list.title }}
+							</h3>
+							<TopList :items="list.items" :limit="list.limit" />
+						</div>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -74,8 +92,7 @@
 		periodDisplay: undefined,
 	})
 
-	const primaryCharts = computed(
-		() => props.section.charts?.filter((_, index) => index !== 1) || [],
-	)
-	const secondaryChart = computed(() => props.section.charts?.[1])
+	const genreChart = computed(() => props.section.charts?.[0])
+	const genderCharts = computed(() => props.section.charts?.slice(1, 4) || [])
+	const qualityChart = computed(() => props.section.charts?.[4])
 </script>

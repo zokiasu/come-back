@@ -78,6 +78,19 @@ export function useSupabaseStatistics() {
 	const supabase = useSupabaseClient()
 	const toast = useToast()
 
+	// Palette de couleurs cohérentes pour les genres
+	const getGenderColors = (genderStats: Array<{ gender: string; count: number }>) => {
+		const colorMap: Record<string, string> = {
+			MALE: '#3B82F6', // blue-500
+			FEMALE: '#EC4899', // pink-500
+			MIXTE: '#8B5CF6', // violet-500
+			OTHER: '#10B981', // emerald-500
+			UNKNOWN: '#94A3B8', // slate-400
+		}
+
+		return genderStats.map((stat) => colorMap[stat.gender] || '#94A3B8')
+	}
+
 	// Helper pour construire les filtres de date
 	const buildDateFilter = (filters: StatsFilters) => {
 		const now = new Date()
@@ -183,6 +196,21 @@ export function useSupabaseStatistics() {
 				}
 			})
 
+			// Statistiques de genre par type d'artiste (solo vs groupe)
+			const soloGenderStats: Record<string, number> = {}
+			const groupGenderStats: Record<string, number> = {}
+
+			artistsData?.data?.forEach((artist) => {
+				const gender = artist.gender || 'UNKNOWN'
+				const type = artist.type || 'UNKNOWN'
+
+				if (type === 'SOLO') {
+					soloGenderStats[gender] = (soloGenderStats[gender] || 0) + 1
+				} else if (type === 'GROUP') {
+					groupGenderStats[gender] = (groupGenderStats[gender] || 0) + 1
+				}
+			})
+
 			// Statistiques par genre musical
 			const genreStats: Record<string, number> = {}
 			const totalArtists = artistsData?.data?.length || 0
@@ -223,6 +251,14 @@ export function useSupabaseStatistics() {
 			return {
 				typeStats,
 				genderStats,
+				soloGenderStats: Object.entries(soloGenderStats).map(([gender, count]) => ({
+					gender,
+					count,
+				})),
+				groupGenderStats: Object.entries(groupGenderStats).map(([gender, count]) => ({
+					gender,
+					count,
+				})),
 				statusStats,
 				genreStats: Object.entries(genreStats)
 					.sort((a, b) => b[1] - a[1])
@@ -253,6 +289,8 @@ export function useSupabaseStatistics() {
 			return {
 				typeStats: [],
 				genderStats: [],
+				soloGenderStats: [],
+				groupGenderStats: [],
 				statusStats: [],
 				genreStats: [],
 				qualityStats: {
@@ -667,12 +705,34 @@ export function useSupabaseStatistics() {
 							description: 'Top 10 des genres musicaux les plus représentés',
 						},
 						{
-							title: 'Répartition Hommes/Femmes',
+							title: 'Répartition Hommes/Femmes (Globale)',
 							data: {
 								labels: artistGeneral.genderStats.map((s) => s.gender),
 								data: artistGeneral.genderStats.map((s) => s.count),
+								colors: getGenderColors(artistGeneral.genderStats),
 								type: 'doughnut',
 							},
+							description: 'Répartition par genre pour tous les artistes',
+						},
+						{
+							title: 'Répartition Hommes/Femmes (Artistes Solo)',
+							data: {
+								labels: artistGeneral.soloGenderStats.map((s) => s.gender),
+								data: artistGeneral.soloGenderStats.map((s) => s.count),
+								colors: getGenderColors(artistGeneral.soloGenderStats),
+								type: 'doughnut',
+							},
+							description: 'Répartition par genre pour les artistes solo uniquement',
+						},
+						{
+							title: 'Répartition Hommes/Femmes (Groupes)',
+							data: {
+								labels: artistGeneral.groupGenderStats.map((s) => s.gender),
+								data: artistGeneral.groupGenderStats.map((s) => s.count),
+								colors: getGenderColors(artistGeneral.groupGenderStats),
+								type: 'doughnut',
+							},
+							description: 'Répartition par genre pour les groupes uniquement',
 						},
 						{
 							title: 'Qualité des Profils',

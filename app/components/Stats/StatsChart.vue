@@ -10,7 +10,7 @@
 			/>
 
 			<template #fallback>
-				<div class="h-full animate-pulse rounded-md bg-gray-100 dark:bg-gray-800" />
+				<div class="bg-cb-quaternary-900 h-full animate-pulse rounded-md" />
 			</template>
 		</ClientOnly>
 	</div>
@@ -81,7 +81,7 @@
 				labels: {
 					usePointStyle: true,
 					padding: 15,
-					color: 'rgb(107, 114, 128)',
+					color: 'rgb(185, 193, 201)',
 					font: {
 						size: 12,
 					},
@@ -128,11 +128,11 @@
 							y: {
 								beginAtZero: true,
 								grid: {
-									color: 'rgb(229, 231, 235)',
-									borderColor: 'rgb(209, 213, 219)',
+									color: 'rgb(75, 85, 99)',
+									borderColor: 'rgb(107, 114, 128)',
 								},
 								ticks: {
-									color: 'rgb(107, 114, 128)',
+									color: 'rgb(185, 193, 201)',
 								},
 							},
 							x: {
@@ -140,7 +140,7 @@
 									display: false,
 								},
 								ticks: {
-									color: 'rgb(107, 114, 128)',
+									color: 'rgb(185, 193, 201)',
 								},
 							},
 						},
@@ -173,20 +173,20 @@
 							y: {
 								beginAtZero: true,
 								grid: {
-									color: 'rgb(229, 231, 235)',
-									borderColor: 'rgb(209, 213, 219)',
+									color: 'rgb(75, 85, 99)',
+									borderColor: 'rgb(107, 114, 128)',
 								},
 								ticks: {
-									color: 'rgb(107, 114, 128)',
+									color: 'rgb(185, 193, 201)',
 								},
 							},
 							x: {
 								grid: {
-									color: 'rgb(229, 231, 235)',
-									borderColor: 'rgb(209, 213, 219)',
+									color: 'rgb(75, 85, 99)',
+									borderColor: 'rgb(107, 114, 128)',
 								},
 								ticks: {
-									color: 'rgb(107, 114, 128)',
+									color: 'rgb(185, 193, 201)',
 								},
 							},
 						},

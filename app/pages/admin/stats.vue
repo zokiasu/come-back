@@ -1,102 +1,116 @@
 <template>
-	<div class="min-h-screen bg-gray-50 dark:bg-gray-900">
-		<div class="container mx-auto px-4 py-8">
-			<div class="mb-8">
-				<h1 class="mb-2 text-3xl font-bold text-gray-900 dark:text-white">
-					Tableau de Bord des Statistiques
-				</h1>
-				<p class="text-gray-600 dark:text-gray-300">
-					Vue d'ensemble des données de la plateforme Comeback
+	<div class="bg-cb-secondary-950 relative h-full space-y-3 p-5">
+		<!-- Header Section -->
+		<section class="sticky top-0 z-20 w-full space-y-4 pb-4">
+			<div class="space-y-2">
+				<h1 class="text-2xl font-bold text-white">Tableau de Bord des Statistiques</h1>
+				<p class="text-cb-tertiary-200 text-sm">
+					{{ currentPeriodDisplay }}
 				</p>
 			</div>
 
 			<!-- Filtres temporels -->
-			<div class="mb-8 rounded-lg bg-white p-6 shadow-sm dark:bg-gray-800">
-				<h2 class="mb-4 text-lg font-semibold text-gray-900 dark:text-white">Filtres</h2>
-				<div class="grid grid-cols-1 gap-4 md:grid-cols-4">
-					<div>
-						<label
-							class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
-						>
-							Période
-						</label>
-						<USelect
+			<div class="bg-cb-quinary-900 space-y-4 rounded-lg p-4">
+				<h2 class="text-sm font-semibold text-white uppercase">Filtres</h2>
+				<div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+					<div class="space-y-1">
+						<label class="text-cb-tertiary-200 text-xs uppercase">Période</label>
+						<select
 							v-model="selectedPeriod"
-							:items="periodOptions"
-							placeholder="Sélectionner une période"
+							class="bg-cb-quaternary-950 placeholder-cb-tertiary-200 hover:bg-cb-tertiary-200 hover:text-cb-quinary-900 w-full rounded border-none p-2 text-xs transition-all duration-300 ease-in-out focus:outline-none"
 							@change="refreshStats"
-						/>
-					</div>
-					<div>
-						<label
-							class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
 						>
-							Année
-						</label>
-						<USelect
+							<option
+								v-for="option in periodOptions"
+								:key="option.value"
+								:value="option.value"
+							>
+								{{ option.label }}
+							</option>
+						</select>
+					</div>
+					<div class="space-y-1">
+						<label class="text-cb-tertiary-200 text-xs uppercase">Année</label>
+						<select
 							v-model="selectedYear"
-							:items="yearOptions"
-							placeholder="Toutes les années"
+							class="bg-cb-quaternary-950 placeholder-cb-tertiary-200 hover:bg-cb-tertiary-200 hover:text-cb-quinary-900 w-full rounded border-none p-2 text-xs transition-all duration-300 ease-in-out focus:outline-none"
 							@change="refreshStats"
-						/>
-					</div>
-					<div>
-						<label
-							class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
 						>
-							Mois
-						</label>
-						<USelect
+							<option
+								v-for="option in yearOptions"
+								:key="option.value"
+								:value="option.value"
+							>
+								{{ option.label }}
+							</option>
+						</select>
+					</div>
+					<div class="space-y-1">
+						<label class="text-cb-tertiary-200 text-xs uppercase">Mois</label>
+						<select
 							v-model="selectedMonth"
-							:items="monthOptions"
-							placeholder="Tous les mois"
 							:disabled="selectedPeriod !== 'month'"
+							class="bg-cb-quaternary-950 placeholder-cb-tertiary-200 hover:bg-cb-tertiary-200 hover:text-cb-quinary-900 w-full rounded border-none p-2 text-xs transition-all duration-300 ease-in-out focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
 							@change="refreshStats"
-						/>
+						>
+							<option
+								v-for="option in monthOptions"
+								:key="option.value"
+								:value="option.value"
+							>
+								{{ option.label }}
+							</option>
+						</select>
 					</div>
 					<div class="flex items-end">
-						<UButton
-							:loading="loading"
-							variant="solid"
-							color="primary"
+						<button
+							:disabled="loading"
+							class="bg-cb-primary-900 hover:bg-cb-primary-800 w-full rounded px-3 py-2 text-xs font-medium text-white transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-50"
 							@click="refreshStats"
 						>
-							Actualiser
-						</UButton>
+							<span v-if="loading">Actualisation...</span>
+							<span v-else>Actualiser</span>
+						</button>
 					</div>
 				</div>
 			</div>
+		</section>
 
-			<div v-if="loading" class="py-12 text-center">
-				<LoadingIndicator size="lg" />
+		<!-- Loading State -->
+		<div v-if="loading" class="bg-cb-quaternary-950 rounded-lg p-8">
+			<div class="flex flex-col items-center space-y-4">
+				<div
+					class="border-cb-primary-900 h-8 w-8 animate-spin rounded-full border-b-2"
+				></div>
+				<p class="text-cb-tertiary-200 text-sm">Chargement des statistiques...</p>
 			</div>
+		</div>
 
-			<!-- Stats Grid -->
-			<div v-else class="space-y-8">
-				<StatsOverviewSection
-					:section="generalStats"
-					:loading="loading"
-					:period-display="currentPeriodDisplay"
-				/>
+		<!-- Stats Grid -->
+		<div v-else class="space-y-6">
+			<StatsOverviewSection
+				:section="generalStats"
+				:loading="loading"
+				:period-display="currentPeriodDisplay"
+			/>
 
-				<StatsArtistsSection
-					:section="artistStats"
-					:loading="loading"
-					:period-display="currentPeriodDisplay"
-				/>
+			<StatsArtistsSection
+				:section="artistStats"
+				:loading="loading"
+				:period-display="currentPeriodDisplay"
+			/>
 
-				<StatsCompaniesSection
-					:section="companyStats"
-					:loading="loading"
-					:period-display="currentPeriodDisplay"
-				/>
+			<StatsCompaniesSection
+				:section="companyStats"
+				:loading="loading"
+				:period-display="currentPeriodDisplay"
+			/>
 
-				<StatsMusicSection
-					:section="musicStats"
-					:loading="loading"
-					:period-display="currentPeriodDisplay"
-				/>
-			</div>
+			<StatsMusicSection
+				:section="musicStats"
+				:loading="loading"
+				:period-display="currentPeriodDisplay"
+			/>
 		</div>
 	</div>
 </template>
@@ -109,7 +123,6 @@
 	import StatsArtistsSection from '~/components/Stats/sections/StatsArtistsSection.vue'
 	import StatsCompaniesSection from '~/components/Stats/sections/StatsCompaniesSection.vue'
 	import StatsMusicSection from '~/components/Stats/sections/StatsMusicSection.vue'
-	import LoadingIndicator from '~/components/LoadingIndicator.vue'
 	import type { StatSection, StatsFilters } from '~/types/stats'
 
 	definePageMeta({

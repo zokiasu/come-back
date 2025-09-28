@@ -1,5 +1,5 @@
 <template>
-	<section class="rounded-lg bg-white p-6 shadow-sm dark:bg-gray-800">
+	<section class="bg-cb-quinary-900 space-y-4 rounded-lg p-4">
 		<StatsSectionHeader
 			:title="section.title"
 			:loading="loading"

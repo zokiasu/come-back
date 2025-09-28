@@ -1,6 +1,6 @@
 <template>
 	<div
-		class="rounded-lg border border-gray-200 bg-white p-6 transition-shadow duration-200 hover:shadow-md dark:border-gray-700 dark:bg-gray-800"
+		class="bg-cb-quaternary-950 hover:bg-cb-quaternary-900 rounded-lg p-4 transition-all duration-200"
 		:class="cardColorClass"
 	>
 		<div class="flex items-center justify-between">
@@ -10,17 +10,17 @@
 						<Icon :name="card.icon" class="h-6 w-6 text-white" />
 					</div>
 					<div>
-						<h3 class="text-sm font-medium text-gray-600 dark:text-gray-400">
+						<h3 class="text-cb-tertiary-200 text-sm font-medium">
 							{{ card.title }}
 						</h3>
-						<p class="text-2xl font-bold text-gray-900 dark:text-white">
+						<p class="text-2xl font-bold text-white">
 							{{ formattedValue }}
 						</p>
 					</div>
 				</div>
 
 				<div v-if="card.subtitle" class="mt-2">
-					<p class="text-sm text-gray-500 dark:text-gray-400">
+					<p class="text-cb-tertiary-200 text-sm">
 						{{ card.subtitle }}
 					</p>
 				</div>
