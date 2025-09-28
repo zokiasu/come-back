@@ -7,9 +7,7 @@
 
 	const props = defineProps<Props>()
 
-	const {
-		artist,
-	} = props
+	const { artist } = props
 
 	const skeleton = ref<HTMLElement | null>(null)
 	const showFullDescription = ref(false)
