@@ -1,4 +1,5 @@
 import type { News, QueryOptions, FilterOptions } from '~/types'
+import type { Database, TablesInsert, TablesUpdate } from '~/types/supabase'
 
 interface NewsResponse {
 	news: News[]
@@ -9,14 +10,14 @@ interface NewsResponse {
 }
 
 export function useSupabaseNews() {
-	const supabase = useSupabaseClient()
+	const supabase = useSupabaseClient<Database>()
 	const toast = useToast()
 
 	// Crée une nouvelle news
 	const createNews = async (
-		data: Omit<News, 'id' | 'created_at' | 'updated_at' | 'artists'>,
+		data: TablesInsert<'news'>,
 		artistIds: string[],
-	) => {
+	): Promise<News> => {
 		if (!artistIds || artistIds.length === 0) {
 			throw new Error('Les artistes sont requis pour créer une news')
 		}
@@ -48,14 +49,16 @@ export function useSupabaseNews() {
 			throw new Error('Erreur lors de la création de la news')
 		}
 
+		const junctionInserts: TablesInsert<'news_artists_junction'>[] = artistIds.map(
+			(artistId) => ({
+				news_id: news.id,
+				artist_id: artistId,
+			}),
+		)
+
 		const { data: junctionData, error: junctionError } = await supabase
 			.from('news_artists_junction')
-			.insert(
-				artistIds.map((artistId) => ({
-					news_id: news.id,
-					artist_id: artistId,
-				})),
-			)
+			.insert(junctionInserts)
 			.select()
 
 		if (junctionError) {
@@ -72,7 +75,10 @@ export function useSupabaseNews() {
 	}
 
 	// Met à jour une news
-	const updateNews = async (id: string, updates: Partial<News>) => {
+	const updateNews = async (
+		id: string,
+		updates: TablesUpdate<'news'>,
+	): Promise<News | null> => {
 		const { data, error } = await supabase
 			.from('news')
 			.update(updates)
@@ -117,14 +123,16 @@ export function useSupabaseNews() {
 			// 2. Si nous avons de nouveaux artistes à ajouter
 			if (artistIds && artistIds.length > 0) {
 				// Créer les nouvelles relations
+				const junctionInserts: TablesInsert<'news_artists_junction'>[] = artistIds.map(
+					(artistId) => ({
+						news_id: id,
+						artist_id: artistId,
+					}),
+				)
+
 				const { error: insertError } = await supabase
 					.from('news_artists_junction')
-					.insert(
-						artistIds.map((artistId) => ({
-							news_id: id,
-							artist_id: artistId,
-						})),
-					)
+					.insert(junctionInserts)
 
 				if (insertError) {
 					console.error(
@@ -263,7 +271,7 @@ export function useSupabaseNews() {
 	}
 
 	// Récupère une news avec tous ses détails
-	const getNewsById = async (id: string) => {
+	const getNewsById = async (id: string): Promise<News | null> => {
 		if (!id) return null
 
 		const { data, error } = await supabase

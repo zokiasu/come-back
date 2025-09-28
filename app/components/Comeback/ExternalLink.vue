@@ -6,7 +6,12 @@
 		target="_blank"
 		class="bg-cb-quaternary-950 hover:bg-cb-quinary-900 flex items-center gap-2 rounded px-3.5 py-2.5 text-xs"
 	>
-		<img :src="icon" :alt="name" class="h-4 w-4" />
+		<img
+			:src="faviconUrl"
+			:alt="`${name} favicon`"
+			class="h-4 w-4"
+			@error="handleFaviconError"
+		/>
 		<p class="hidden text-xs font-semibold uppercase md:block">{{ name }}</p>
 	</NuxtLink>
 </template>
@@ -23,37 +28,39 @@
 		},
 	})
 
-	const icon = computed(() => {
-		if (link.includes('youtube') && link.includes('music.')) {
-			return '/youtube_music.png'
-		} else if (link.includes('youtube')) {
-			return '/youtube.png'
-		} else if (link.includes('apple') && link.includes('music')) {
-			return '/apple_music.png'
-		} else if (link.includes('amazon') && link.includes('music')) {
-			return '/amazon_music.png'
-		} else if (link.includes('spotify')) {
-			return '/spotify.png'
-		} else if (link.includes('tidal')) {
-			return '/tidal.png'
-		} else if (link.includes('soundcloud')) {
-			return '/sound_cloud.png'
-		} else if (link.includes('facebook')) {
-			return '/facebook.png'
-		} else if (link.includes('instagram')) {
-			return '/instagram.png'
-		} else if (link.includes('twitter') || link.includes('x.com')) {
-			return '/x.png'
-		} else if (link.includes('tiktok')) {
-			return '/tiktok.png'
-		} else if (link.includes('snapchat')) {
-			return '/snapchat.png'
-		} else if (link.includes('weibo')) {
-			return '/weibo.png'
-		} else if (link.includes('deezer')) {
-			return '/deezer.png'
-		} else {
+	const faviconError = ref(false)
+	const faviconAttempt = ref(0)
+
+	const faviconUrl = computed(() => {
+		try {
+			const url = new URL(link)
+			const domain = url.hostname
+
+			// Liste des services de favicon à essayer
+			const faviconServices = [
+				`https://www.google.com/s2/favicons?domain=${domain}&sz=64`,
+				`https://icons.duckduckgo.com/ip3/${domain}.ico`,
+				`https://${domain}/favicon.ico`,
+			]
+
+			// Si on a épuisé toutes les tentatives ou qu'il y a eu une erreur
+			if (faviconError.value || faviconAttempt.value >= faviconServices.length) {
+				return '/default.png'
+			}
+
+			return faviconServices[faviconAttempt.value]
+		} catch {
+			// Si l'URL n'est pas valide, utilise l'icône par défaut
 			return '/default.png'
 		}
 	})
+
+	const handleFaviconError = () => {
+		// Essaie le prochain service de favicon
+		if (faviconAttempt.value < 2) {
+			faviconAttempt.value++
+		} else {
+			faviconError.value = true
+		}
+	}
 </script>

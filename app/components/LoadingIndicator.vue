@@ -67,9 +67,7 @@
 			leave-from-class="opacity-100 scale-100 translate-y-0"
 			leave-to-class="opacity-0 scale-95 translate-y-2"
 		>
-			<div
-				:class="[positionClasses, 'z-50 transform']"
-			>
+			<div v-if="shouldShow" :class="[positionClasses, 'z-50 transform']">
 				<div
 					:class="[
 						'bg-cb-secondary-950 border-cb-tertiary-200 flex items-center rounded-full border shadow-lg backdrop-blur-sm',
@@ -78,7 +76,7 @@
 				>
 					<div
 						:class="[
-							'animate-spin rounded-full border-2 border-cb-tertiary-200 border-t-cb-primary-500',
+							'border-cb-tertiary-200 border-t-cb-primary-500 animate-spin rounded-full border-2',
 							spinnerSize,
 						]"
 					></div>

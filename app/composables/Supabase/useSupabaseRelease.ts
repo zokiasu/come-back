@@ -7,16 +7,17 @@ import type {
 	ReleaseWithRelations,
 	ReleasePlatformLink,
 } from '~/types'
+import type { Database, TablesInsert, TablesUpdate } from '~/types/supabase'
 
 export function useSupabaseRelease() {
-	const supabase = useSupabaseClient()
+	const supabase = useSupabaseClient<Database>()
 	const toast = useToast()
 
 	// Met à jour une release
 	const updateRelease = async (
 		id: string,
-		updates: Partial<Release>,
-		platformLinks?: Omit<ReleasePlatformLink, 'id' | 'created_at' | 'release_id'>[],
+		updates: TablesUpdate<'releases'>,
+		platformLinks?: TablesInsert<'release_platform_links'>[],
 	): Promise<Release | null> => {
 		const { data, error } = await supabase
 			.from('releases')
@@ -429,7 +430,7 @@ export function useSupabaseRelease() {
 						),
 						platform_links:release_platform_links(*)
 					`,
-					{ count: 'exact' }
+						{ count: 'exact' },
 					)
 					.in('artist_releases.artist_id', options.artistIds)
 			} else {
@@ -506,9 +507,9 @@ export function useSupabaseRelease() {
 
 	// Créer une release avec relations artistes
 	const createReleaseWithDetails = async (
-		releaseData: Partial<Release>,
+		releaseData: TablesInsert<'releases'>,
 		artistIds: string[],
-		platformLinks?: Omit<ReleasePlatformLink, 'id' | 'created_at' | 'release_id'>[],
+		platformLinks?: TablesInsert<'release_platform_links'>[],
 	): Promise<Release | null> => {
 		try {
 			// 1. Créer la release

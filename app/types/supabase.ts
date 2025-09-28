@@ -780,9 +780,40 @@ export type Database = {
 				Args: { firebase_id: string }
 				Returns: string
 			}
+			get_artist_demographics: {
+				Args: Record<PropertyKey, never>
+				Returns: {
+					category: string
+					count_value: number
+					stat_type: string
+				}[]
+			}
 			get_contributions_stats: {
 				Args: Record<PropertyKey, never>
 				Returns: Json
+			}
+			get_general_stats: {
+				Args: { end_date?: string; filter_year?: number; start_date?: string }
+				Returns: {
+					active_artists: number
+					inactive_artists: number
+					total_artists: number
+					total_companies: number
+					total_musics: number
+					total_releases: number
+				}[]
+			}
+			get_musics_temporal_stats_with_fallback: {
+				Args: {
+					filter_month?: number
+					filter_year?: number
+					period_type?: string
+				}
+				Returns: {
+					count_value: number
+					period_date: string
+					period_label: string
+				}[]
 			}
 			get_random_music_ids: {
 				Args: { count_param: number }
@@ -794,6 +825,44 @@ export type Database = {
 				Args: { artist_id_param: string; count_param: number }
 				Returns: {
 					id: string
+				}[]
+			}
+			get_releases_temporal_stats: {
+				Args: {
+					filter_month?: number
+					filter_year?: number
+					period_type?: string
+				}
+				Returns: {
+					count_value: number
+					period_date: string
+					period_label: string
+				}[]
+			}
+			get_top_artists_by_musics: {
+				Args: {
+					end_date?: string
+					filter_year?: number
+					limit_count?: number
+					start_date?: string
+				}
+				Returns: {
+					artist_id: string
+					artist_name: string
+					music_count: number
+				}[]
+			}
+			get_top_artists_by_releases: {
+				Args: {
+					end_date?: string
+					filter_year?: number
+					limit_count?: number
+					start_date?: string
+				}
+				Returns: {
+					artist_id: string
+					artist_name: string
+					release_count: number
 				}[]
 			}
 			get_top_contributors: {
@@ -863,7 +932,10 @@ export type Database = {
 			}
 			set_algolia_config: {
 				Args: Record<PropertyKey, never> | { p_api_key: string; p_app_id: string }
-				Returns: undefined
+				Returns: {
+					new_value: string
+					setting_name: string
+				}[]
 			}
 			sync_all_artists_to_algolia: {
 				Args: Record<PropertyKey, never>

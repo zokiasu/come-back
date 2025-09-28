@@ -25,7 +25,12 @@
 			"mcp__supabase__generate_typescript_types",
 			"Bash(git push:*)",
 			"WebFetch(domain:ui.nuxt.com)",
-			"Bash(wsl:*)"
+			"Bash(wsl:*)",
+			"WebFetch(domain:docs.claude.com)",
+			"Bash(claude mcp:*)",
+			"Bash(curl:*)",
+			"Bash(supabase:*)",
+			"Bash(npx nuxi typecheck:*)"
 		],
 		"deny": []
 	},

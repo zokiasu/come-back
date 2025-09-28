@@ -436,19 +436,8 @@
 		>
 			<CardDashboardArtist
 				v-for="artist in filteredArtistList"
-				:id="artist.id"
 				:key="artist.id"
-				:image="artist.image ?? undefined"
-				:name="artist.name"
-				:description="artist.description || ''"
-				:type="artist.type ?? undefined"
-				:id-youtube-music="artist.id_youtube_music ?? undefined"
-				:styles="artist.styles || []"
-				:social-list="artist.social_links ?? []"
-				:platform-list="artist.platform_links ?? []"
-				:is-active="artist.active_career ?? false"
-				:created-at="artist.created_at ?? undefined"
-				:updated-at="artist.updated_at ?? undefined"
+				:artist="artist"
 				@delete-artist="openDeleteModal"
 			/>
 		</transition-group>

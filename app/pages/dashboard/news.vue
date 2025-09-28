@@ -79,7 +79,7 @@
 		{
 			distance: 100, // Se déclenche à 100px du bas
 			direction: 'bottom',
-		}
+		},
 	)
 
 	// Hooks
@@ -215,10 +215,7 @@
 			</section>
 		</section>
 
-		<LoadingIndicator
-			:show="isLoading && firstLoad"
-			message="Chargement des news..."
-		/>
+		<LoadingIndicator :show="isLoading && firstLoad" message="Chargement des news..." />
 
 		<transition-group
 			v-if="filteredNewsList.length > 0"
@@ -252,7 +249,6 @@
 			:show="isLoading && !firstLoad"
 			message="Chargement de plus de news..."
 		/>
-
 	</div>
 </template>
 

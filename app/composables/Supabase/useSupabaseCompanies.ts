@@ -1,46 +1,5 @@
-import type { QueryOptions, FilterOptions } from '~/types'
-
-export interface Company {
-	id: string
-	name: string
-	description?: string
-	type?: 'LABEL' | 'PUBLISHER' | 'DISTRIBUTOR' | 'MANAGER' | 'AGENCY' | 'STUDIO' | 'OTHER'
-	website?: string
-	founded_year?: number
-	country?: string
-	city?: string
-	logo_url?: string
-	verified?: boolean
-	created_at?: string
-	updated_at?: string
-}
-
-export interface CompanyArtist {
-	id: string
-	company_id: string
-	artist_id: string
-	relationship_type?:
-		| 'LABEL'
-		| 'PUBLISHER'
-		| 'DISTRIBUTOR'
-		| 'MANAGER'
-		| 'AGENCY'
-		| 'STUDIO'
-		| 'OTHER'
-	start_date?: string
-	end_date?: string
-	is_current?: boolean
-	created_at?: string
-	updated_at?: string
-	company?: Company
-	artist?: {
-		id: string
-		name: string
-		image?: string
-		type?: string
-		verified?: boolean
-	}
-}
+import type { QueryOptions, FilterOptions, Company, CompanyArtist, Artist } from '~/types'
+import type { Database, TablesInsert, TablesUpdate } from '~/types/supabase'
 
 interface CompaniesResponse {
 	companies: Company[]
@@ -51,10 +10,10 @@ interface CompaniesResponse {
 }
 
 export function useSupabaseCompanies() {
-	const supabase = useSupabaseClient()
+	const supabase = useSupabaseClient<Database>()
 	const toast = useToast()
 
-	// Types de companies disponibles
+	// Types de companies disponibles (depuis les types Supabase constants)
 	const companyTypes = [
 		'LABEL',
 		'PUBLISHER',
@@ -78,17 +37,11 @@ export function useSupabaseCompanies() {
 
 	// Créer une nouvelle company
 	const createCompany = async (
-		companyData: Omit<Company, 'id' | 'created_at' | 'updated_at'>,
-	) => {
+		companyData: TablesInsert<'companies'>,
+	): Promise<Company> => {
 		const { data, error } = await supabase
 			.from('companies')
-			.insert([
-				{
-					...companyData,
-					created_at: new Date().toISOString(),
-					updated_at: new Date().toISOString(),
-				},
-			])
+			.insert(companyData)
 			.select()
 			.single()
 
@@ -111,17 +64,17 @@ export function useSupabaseCompanies() {
 			color: 'success',
 		})
 
-		return data
+		return data as Company
 	}
 
 	// Mettre à jour une company
-	const updateCompany = async (companyId: string, companyData: Partial<Company>) => {
+	const updateCompany = async (
+		companyId: string,
+		companyData: TablesUpdate<'companies'>,
+	): Promise<Company> => {
 		const { data, error } = await supabase
 			.from('companies')
-			.update({
-				...companyData,
-				updated_at: new Date().toISOString(),
-			})
+			.update(companyData)
 			.eq('id', companyId)
 			.select()
 			.single()
@@ -145,7 +98,7 @@ export function useSupabaseCompanies() {
 			color: 'success',
 		})
 
-		return data
+		return data as Company
 	}
 
 	// Supprimer une company
@@ -252,7 +205,7 @@ export function useSupabaseCompanies() {
 	}
 
 	// Récupérer une company par ID
-	const getCompanyById = async (companyId: string) => {
+	const getCompanyById = async (companyId: string): Promise<Company> => {
 		const { data, error } = await supabase
 			.from('companies')
 			.select('*')
@@ -267,7 +220,7 @@ export function useSupabaseCompanies() {
 			})
 		}
 
-		return data
+		return data as Company
 	}
 
 	// Vérifier si une company existe par nom
@@ -294,32 +247,30 @@ export function useSupabaseCompanies() {
 	const linkCompanyToArtist = async (
 		companyId: string,
 		artistId: string,
-		relationshipType?: CompanyArtist['relationship_type'],
+		relationshipType?: string,
 		options?: {
 			startDate?: string
 			endDate?: string
 			isCurrent?: boolean
 		},
-	) => {
+	): Promise<CompanyArtist> => {
+		const insertData: TablesInsert<'artist_companies'> = {
+			company_id: companyId,
+			artist_id: artistId,
+			relationship_type: relationshipType || null,
+			start_date: options?.startDate || null,
+			end_date: options?.endDate || null,
+			is_current: options?.isCurrent ?? true,
+		}
+
 		const { data, error } = await supabase
 			.from('artist_companies')
-			.insert([
-				{
-					company_id: companyId,
-					artist_id: artistId,
-					relationship_type: relationshipType || null,
-					start_date: options?.startDate || null,
-					end_date: options?.endDate || null,
-					is_current: options?.isCurrent ?? true,
-					created_at: new Date().toISOString(),
-					updated_at: new Date().toISOString(),
-				},
-			])
+			.insert(insertData)
 			.select(
 				`
 				*,
-				company:companies!artist_companies_company_id_fkey(*),
-				artist:artists!artist_companies_artist_id_fkey(id, name, image, type, verified)
+				company:companies(*),
+				artist:artists(id, name, image, type, verified)
 			`,
 			)
 			.single()
@@ -343,7 +294,7 @@ export function useSupabaseCompanies() {
 			color: 'success',
 		})
 
-		return data
+		return data as CompanyArtist
 	}
 
 	// Supprimer une liaison company-artiste
@@ -378,20 +329,17 @@ export function useSupabaseCompanies() {
 	// Mettre à jour une relation company-artiste
 	const updateCompanyArtistRelation = async (
 		relationId: string,
-		updates: Partial<CompanyArtist>,
-	) => {
+		updates: TablesUpdate<'artist_companies'>,
+	): Promise<CompanyArtist> => {
 		const { data, error } = await supabase
 			.from('artist_companies')
-			.update({
-				...updates,
-				updated_at: new Date().toISOString(),
-			})
+			.update(updates)
 			.eq('id', relationId)
 			.select(
 				`
 				*,
-				company:companies!artist_companies_company_id_fkey(*),
-				artist:artists!artist_companies_artist_id_fkey(id, name, image, type, verified)
+				company:companies(*),
+				artist:artists(id, name, image, type, verified)
 			`,
 			)
 			.single()
@@ -415,17 +363,17 @@ export function useSupabaseCompanies() {
 			color: 'success',
 		})
 
-		return data
+		return data as CompanyArtist
 	}
 
 	// Récupérer les artistes d'une company
-	const getCompanyArtists = async (companyId: string) => {
+	const getCompanyArtists = async (companyId: string): Promise<CompanyArtist[]> => {
 		const { data, error } = await supabase
 			.from('artist_companies')
 			.select(
 				`
 				*,
-				artist:artists!artist_companies_artist_id_fkey(
+				artist:artists(
 					id,
 					name,
 					image,
@@ -446,17 +394,17 @@ export function useSupabaseCompanies() {
 			})
 		}
 
-		return data || []
+		return (data as CompanyArtist[]) || []
 	}
 
 	// Récupérer les companies d'un artiste
-	const getArtistCompanies = async (artistId: string) => {
+	const getArtistCompanies = async (artistId: string): Promise<CompanyArtist[]> => {
 		const { data, error } = await supabase
 			.from('artist_companies')
 			.select(
 				`
 				*,
-				company:companies!artist_companies_company_id_fkey(*)
+				company:companies(*)
 			`,
 			)
 			.eq('artist_id', artistId)
@@ -470,7 +418,7 @@ export function useSupabaseCompanies() {
 			})
 		}
 
-		return data || []
+		return (data as CompanyArtist[]) || []
 	}
 
 	// Statistiques des companies

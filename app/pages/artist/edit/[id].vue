@@ -126,7 +126,7 @@
 
 	const companiesForMenu = computed(() => {
 		return companiesList.value.map(
-			(company): MenuItem<Company> => ({
+			(company: { name: any }): MenuItem<Company> => ({
 				...company,
 				label: company.name,
 			}),
@@ -306,14 +306,20 @@
 	}
 
 	// Functions to manage platform links
-	const updatePlatformName = (index: number, event: Event) => {
+	const updatePlatformName = (
+		index: number,
+		event: Event | { target: { value: string } },
+	) => {
 		const platform = artistPlatformList.value[index]
 		if (platform) {
 			platform.name = (event.target as HTMLInputElement).value
 		}
 	}
 
-	const updatePlatformLink = (index: number, event: Event) => {
+	const updatePlatformLink = (
+		index: number,
+		event: Event | { target: { value: string } },
+	) => {
 		const platform = artistPlatformList.value[index]
 		if (platform) {
 			platform.link = (event.target as HTMLInputElement).value
@@ -329,14 +335,20 @@
 	}
 
 	// Functions to manage social links
-	const updateSocialName = (index: number, event: Event) => {
+	const updateSocialName = (
+		index: number,
+		event: Event | { target: { value: string } },
+	) => {
 		const social = artistSocialList.value[index]
 		if (social) {
 			social.name = (event.target as HTMLInputElement).value || ''
 		}
 	}
 
-	const updateSocialLink = (index: number, event: Event) => {
+	const updateSocialLink = (
+		index: number,
+		event: Event | { target: { value: string } },
+	) => {
 		const social = artistSocialList.value[index]
 		if (social) {
 			social.link = (event.target as HTMLInputElement).value || ''
@@ -528,7 +540,7 @@
 					:alt="artistToEdit.name"
 					format="webp"
 					loading="lazy"
-					class="h-32 w-32 rounded object-cover"
+					class="aspect-video rounded object-cover"
 				/>
 				<UFormField v-if="isAdminStore" label="Image personnalisée">
 					<div
@@ -563,7 +575,7 @@
 				</div>
 			</div>
 			<!-- Name & Id YTM & Birthday & Debut Date -->
-			<div class="grid grid-cols-1 gap-5 md:grid-cols-2 2xl:grid-cols-1">
+			<div class="flex flex-col gap-5 md:grid md:grid-cols-2 2xl:flex">
 				<ComebackInput
 					v-model="artistToEdit.id"
 					label="Unique Id"
@@ -610,7 +622,7 @@
 									:model-value="parseToCalendarDate(birthdayToDate)"
 									:min-date="new Date(1900, 0, 1)"
 									@update:model-value="
-										(value) => {
+										(value: { toString: () => string | number | Date }) => {
 											if (value) {
 												birthdayToDate = new Date(value.toString())
 											} else {
@@ -640,7 +652,7 @@
 									:model-value="parseToCalendarDate(debutDateToDate)"
 									:min-date="new Date(2000, 0, 1)"
 									@update:model-value="
-										(value) => {
+										(value: { toString: () => string | number | Date }) => {
 											if (value) {
 												debutDateToDate = new Date(value.toString())
 											} else {
@@ -1050,82 +1062,41 @@
 
 			<!-- Platforms & Socials -->
 			<div class="grid grid-cols-1 gap-5 lg:grid-cols-2">
-				<!-- Platforms -->
-				<div class="w-full space-y-2">
-					<ComebackLabel label="Platforms" />
-					<div
-						v-for="(platform, index) in artistPlatformList"
-						:key="index + '_platform'"
-						class="flex w-full gap-1"
-					>
-						<div class="bg-cb-quinary-900 w-full space-y-3 rounded p-2 text-xs">
-							<input
-								type="text"
-								:value="platform.name"
-								placeholder="Platform's Name"
-								class="w-full appearance-none border-b bg-transparent transition-all duration-150 ease-in-out outline-none"
-								@input="updatePlatformName(index, $event)"
-							/>
-							<input
-								type="text"
-								:value="platform.link"
-								placeholder="Platform's Link"
-								class="w-full appearance-none border-b bg-transparent transition-all duration-150 ease-in-out outline-none"
-								@input="updatePlatformLink(index, $event)"
-							/>
-						</div>
-						<button
-							class="bg-cb-primary-900 rounded p-5 text-xs hover:bg-red-900"
-							@click="removePlatform(index)"
-						>
-							Delete
-						</button>
-					</div>
-					<button
-						class="bg-cb-primary-900 w-full rounded p-2 text-xs font-semibold uppercase hover:bg-red-900"
-						@click="addPlatform"
-					>
-						Add Platforms
-					</button>
-				</div>
-				<!-- Socials -->
-				<div class="w-full space-y-2">
-					<ComebackLabel label="Socials" />
-					<div
-						v-for="(social, index) in artistSocialList"
-						:key="index + '_social'"
-						class="flex w-full gap-2"
-					>
-						<div class="bg-cb-quinary-900 w-full space-y-3 rounded p-2 text-xs">
-							<input
-								type="text"
-								:value="social.name"
-								placeholder="Social's Name"
-								class="w-full appearance-none border-b bg-transparent transition-all duration-150 ease-in-out outline-none"
-								@input="updateSocialName(index, $event)"
-							/>
-							<input
-								type="text"
-								:value="social.link"
-								placeholder="Social's Link"
-								class="w-full appearance-none border-b bg-transparent transition-all duration-150 ease-in-out outline-none"
-								@input="updateSocialLink(index, $event)"
-							/>
-						</div>
-						<button
-							class="bg-cb-primary-900 rounded p-5 text-xs hover:bg-red-900"
-							@click="removeSocial(index)"
-						>
-							Delete
-						</button>
-					</div>
-					<button
-						class="bg-cb-primary-900 w-full rounded p-2 text-xs font-semibold uppercase hover:bg-red-900"
-						@click="addSocial"
-					>
-						Add Socials
-					</button>
-				</div>
+				<LinkManager
+					:items="artistPlatformList"
+					label="Platforms"
+					name-placeholder="Platform's Name"
+					link-placeholder="Platform's Link"
+					key-prefix="platform"
+					@add-item="addPlatform"
+					@remove-item="removePlatform"
+					@update-name="
+						(index: any, name: any) =>
+							updatePlatformName(index, { target: { value: name } })
+					"
+					@update-link="
+						(index: any, link: any) =>
+							updatePlatformLink(index, { target: { value: link } })
+					"
+				/>
+
+				<LinkManager
+					:items="artistSocialList"
+					label="Socials"
+					name-placeholder="Social's Name"
+					link-placeholder="Social's Link"
+					key-prefix="social"
+					@add-item="addSocial"
+					@remove-item="removeSocial"
+					@update-name="
+						(index: any, name: any) =>
+							updateSocialName(index, { target: { value: name } })
+					"
+					@update-link="
+						(index: any, link: any) =>
+							updateSocialLink(index, { target: { value: link } })
+					"
+				/>
 			</div>
 		</div>
 

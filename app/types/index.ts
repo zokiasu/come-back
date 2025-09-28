@@ -7,17 +7,28 @@ export type { Database, Tables, TablesInsert, TablesUpdate }
 // Types de base Supabase avec alias plus courts
 export type User = Tables<'users'>
 export type Artist = Tables<'artists'> & {
-	social_links?: any[]
-	platform_links?: any[]
+	social_links?: Tables<'artist_social_links'>[]
+	platform_links?: Tables<'artist_platform_links'>[]
 	companies?: (Tables<'artist_companies'> & {
 		company: Tables<'companies'>
 	})[]
+	groups?: Tables<'artists'>[]
+	members?: Tables<'artists'>[]
+	releases?: Tables<'releases'>[]
 }
 export type Release = Tables<'releases'> & {
-	platform_links?: any[]
+	platform_links?: Tables<'release_platform_links'>[]
+	artists?: Tables<'artists'>[]
+	musics?: Tables<'musics'>[]
 }
-export type Music = Tables<'musics'>
-export type News = Tables<'news'>
+export type Music = Tables<'musics'> & {
+	artists?: Tables<'artists'>[]
+	releases?: Tables<'releases'>[]
+}
+export type News = Tables<'news'> & {
+	artists?: Tables<'artists'>[]
+	user?: Tables<'users'>
+}
 export type MusicStyle = Tables<'music_styles'>
 export type GeneralTag = Tables<'general_tags'>
 export type ArtistSocialLink = Tables<'artist_social_links'>
@@ -28,6 +39,7 @@ export type ArtistRelease = Tables<'artist_releases'>
 export type MusicArtist = Tables<'music_artists'>
 export type MusicRelease = Tables<'music_releases'>
 export type NewsArtist = Tables<'news_artists_junction'>
+export type Company = Tables<'companies'>
 
 // Types pour les insertions
 export type UserInsert = TablesInsert<'users'>
@@ -44,48 +56,20 @@ export type MusicUpdate = TablesUpdate<'musics'>
 export type NewsUpdate = TablesUpdate<'news'>
 
 // ===== ENUMS ET TYPES PERSONNALISÉS =====
-export type UserRole = 'USER' | 'ADMIN' | 'CONTRIBUTOR'
-export type ArtistType = 'SOLO' | 'GROUP'
-export type ArtistGender = 'MALE' | 'FEMALE' | 'MIXTE' | 'OTHER' | 'UNKNOWN'
-export type ReleaseType = 'ALBUM' | 'EP' | 'SINGLE' | 'MIXTAPE' | 'COMPILATION'
-export type MusicType = 'SONG'
-export type RelationType = 'MEMBER' | 'GROUP' | 'PRODUCER' | 'COMPOSER'
+// Utiliser les types Supabase directement avec des alias
+export type UserRole = Database['public']['Enums']['user_role']
+export type ArtistType = Database['public']['Enums']['artist_type']
+export type ArtistGender = Database['public']['Enums']['gender']
+export type ReleaseType = Database['public']['Enums']['release_type']
+export type MusicType = Database['public']['Enums']['music_type']
+export type RelationType = Database['public']['Enums']['relation_type']
+export type ContributionType = Database['public']['Enums']['contribution_type']
 
 // ===== TYPES POUR LES COMPOSABLES =====
-export type CompanyType =
-	| 'LABEL'
-	| 'PUBLISHER'
-	| 'DISTRIBUTOR'
-	| 'MANAGER'
-	| 'AGENCY'
-	| 'STUDIO'
-	| 'OTHER'
-
-export interface Company {
-	id: string
-	name: string
-	description?: string
-	type?: CompanyType
-	website?: string
-	city?: string
-	country?: string
-	founded_year?: number
-	logo_url?: string
-	verified?: boolean
-	created_at?: string
-	updated_at?: string
-}
-
-export interface CompanyArtist {
-	id: string
-	artist_id: string
-	company_id: string
-	relationship_type: string | null
-	start_date: string | null
-	end_date: string | null
-	is_current: boolean
-	created_at: string | null
-	updated_at: string | null
+// Types étendus pour les relations
+export type CompanyArtist = Tables<'artist_companies'> & {
+	company?: Company
+	artist?: Artist
 }
 
 // ===== TYPES UTILITAIRES =====
@@ -126,11 +110,32 @@ export interface UseSupabaseReturn<T> {
 }
 
 export type ReleaseWithRelations = Release & {
-	artists: Artist[]
-	musics: Music[]
-	platform_links: ReleasePlatformLink[]
+	artists?: Artist[]
+	musics?: Music[]
+	platform_links?: ReleasePlatformLink[]
 }
 
 export type ReleaseWithArtists = Release & {
-	artists: Artist[]
+	artists?: Artist[]
+}
+
+export interface PaginatedResponse<T> {
+	releases: T[]
+	total: number
+	page: number
+	limit: number
+	totalPages: number
+}
+
+export type PaginatedReleaseResponse = PaginatedResponse<ReleaseWithRelations>
+
+// Type pour les composants UI
+export type InputMenuItem = {
+	id?: string
+	label?: string
+	[key: string]: any
+}
+
+export type ArtistMenuItem = Artist & {
+	label: string
 }
