@@ -1,57 +1,29 @@
 <script setup lang="ts">
-	import type { ArtistSocialLink, ArtistPlatformLink } from '~/types'
+	import type { Artist } from '~/types'
 
 	interface Props {
-		id: string
-		name: string
-		image?: string
-		description?: string
-		type?: string
-		idYoutubeMusic?: string
-		styles: string[]
-		socialList: ArtistSocialLink[]
-		platformList: ArtistPlatformLink[]
-		isActive: boolean
-		createdAt?: string
-		updatedAt?: string
+		artist: Artist
 	}
 
-	const props = withDefaults(defineProps<Props>(), {
-		image: '',
-		description: '',
-		type: undefined,
-		idYoutubeMusic: undefined,
-		createdAt: undefined,
-		updatedAt: undefined,
-	})
+	const props = defineProps<Props>()
 
 	const {
-		id,
-		image,
-		name,
-		description,
-		type,
-		idYoutubeMusic,
-		styles,
-		socialList,
-		platformList,
-		createdAt,
-		updatedAt,
+		artist,
 	} = props
 
 	const skeleton = ref<HTMLElement | null>(null)
 	const showFullDescription = ref(false)
 
-	const createdAtDate = createdAt
-		? new Date(createdAt).toLocaleDateString('fr-FR', {
+	const createdAtDate = artist.created_at
+		? new Date(artist.created_at).toLocaleDateString('fr-FR', {
 				day: '2-digit',
 				month: '2-digit',
 				year: '2-digit',
 			})
 		: ''
 
-	const updatedAtDate = updatedAt
-		? new Date(updatedAt).toLocaleDateString('fr-FR', {
+	const updatedAtDate = artist.updated_at
+		? new Date(artist.updated_at).toLocaleDateString('fr-FR', {
 				day: '2-digit',
 				month: '2-digit',
 				year: '2-digit',
@@ -60,7 +32,7 @@
 
 	const emit = defineEmits(['deleteArtist'])
 	const deleteArtist = () => {
-		emit('deleteArtist', id)
+		emit('deleteArtist', artist.id)
 	}
 
 	const loadingDone = () => {
@@ -116,22 +88,23 @@
 	<div class="bg-cb-quaternary-950 flex h-full w-full flex-col justify-between rounded">
 		<div class="flex justify-between border-b border-zinc-500 p-2 text-xs">
 			<div class="flex items-center gap-1">
-				<p v-if="!isActive" class="text-xs text-red-500">[Inactive]</p>
+				<p v-if="!artist.active_career" class="text-xs text-red-500">[Inactive]</p>
+				<p>[{{ artist.gender }}]</p>
 				<NuxtLink
-					:to="'/artist/' + id"
+					:to="'/artist/' + artist.id"
 					target="_blank"
 					class="hover:text-cb-primary-900 font-semibold"
 				>
-					{{ name }}
+					{{ artist.name }}
 				</NuxtLink>
 			</div>
-			<p class="text-xs">[ {{ type }} ]</p>
+			<p class="text-xs">[ {{ artist.type }} ]</p>
 		</div>
 
 		<div class="flex flex-col space-y-2 p-3">
 			<NuxtImg
-				:src="image"
-				:alt="name"
+				:src="artist.image"
+				:alt="artist.name"
 				format="webp"
 				loading="lazy"
 				class="aspect-video w-full rounded bg-zinc-500 object-cover"
@@ -140,19 +113,19 @@
 
 			<div>
 				<p
-					v-if="description"
+					v-if="artist.description"
 					:class="{ collapsed: !showFullDescription }"
 					class="cursor-pointer text-xs"
 					@click="showFullDescription = !showFullDescription"
 				>
-					{{ description }}
+					{{ artist.description }}
 				</p>
 				<p v-else class="text-cb-primary-900 text-xs">No description</p>
 			</div>
 
-			<div v-if="styles.length" class="flex flex-wrap gap-1">
+			<div v-if="artist.styles.length" class="flex flex-wrap gap-1">
 				<p
-					v-for="style in styles"
+					v-for="style in artist.styles"
 					:key="style"
 					class="bg-cb-quinary-900 rounded px-2 py-1 text-xs uppercase"
 				>
@@ -170,8 +143,8 @@
 				>
 					<p class="text-xs font-semibold uppercase">
 						Socials
-						<span :class="{ 'text-cb-primary-900': socialList.length === 0 }">
-							({{ socialList.length }})
+						<span :class="{ 'text-cb-primary-900': artist.social_links.length === 0 }">
+							({{ artist.social_links.length }})
 						</span>
 					</p>
 					<IconPlus v-if="!showSocialLinks" class="h-4 w-4" />
@@ -192,9 +165,9 @@
 						ref="socialLinksEl"
 						class="collapse-content overflow-hidden"
 					>
-						<div v-if="socialList.length" class="flex flex-col space-y-1.5">
+						<div v-if="artist.social_links.length" class="flex flex-col space-y-1.5">
 							<a
-								v-for="social in socialList"
+								v-for="social in artist.social_links"
 								:key="social.id"
 								:href="social.link"
 								target="_blank"
@@ -221,8 +194,8 @@
 				>
 					<p class="text-xs font-semibold uppercase">
 						Platforms
-						<span :class="{ 'text-cb-primary-900': platformList.length === 0 }">
-							({{ platformList.length }})
+						<span :class="{ 'text-cb-primary-900': artist.platform_links.length === 0 }">
+							({{ artist.platform_links.length }})
 						</span>
 					</p>
 					<IconPlus v-if="!showPlatformsLinks" class="h-4 w-4" />
@@ -244,11 +217,11 @@
 						class="collapse-content overflow-hidden"
 					>
 						<div
-							v-if="platformList.length"
+							v-if="artist.platform_links.length"
 							class="flex flex-col space-y-1 overflow-hidden"
 						>
 							<a
-								v-for="platform in platformList"
+								v-for="platform in artist.platform_links"
 								:key="platform.id"
 								:href="platform.link"
 								target="_blank"
@@ -272,7 +245,7 @@
 
 			<div class="grid grid-cols-2 gap-1">
 				<UButton
-					:to="'/artist/edit/' + id"
+					:to="'/artist/edit/' + artist.id"
 					target="_blank"
 					label="Edit"
 					class="bg-cb-quinary-900 justify-center rounded px-2 py-1 text-xs font-normal text-white uppercase hover:bg-zinc-500"
