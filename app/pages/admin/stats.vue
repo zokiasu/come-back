@@ -94,6 +94,12 @@
 				:period-display="currentPeriodDisplay"
 			/>
 
+			<StatsMusicSection
+				:section="musicStats"
+				:loading="loading"
+				:period-display="currentPeriodDisplay"
+			/>
+
 			<StatsArtistsSection
 				:section="artistStats"
 				:loading="loading"
@@ -102,12 +108,6 @@
 
 			<StatsCompaniesSection
 				:section="companyStats"
-				:loading="loading"
-				:period-display="currentPeriodDisplay"
-			/>
-
-			<StatsMusicSection
-				:section="musicStats"
 				:loading="loading"
 				:period-display="currentPeriodDisplay"
 			/>

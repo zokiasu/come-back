@@ -15,18 +15,15 @@
 				<div
 					v-for="chart in section.charts"
 					:key="chart.title"
-					class="flex flex-col rounded-lg bg-gray-50 p-4 dark:bg-gray-700"
+					class="bg-cb-quaternary-950 flex flex-col rounded-lg p-4"
 				>
-					<h3 class="mb-4 text-lg font-medium text-gray-900 dark:text-white">
+					<h3 class="mb-4 text-lg font-medium">
 						{{ chart.title }}
 					</h3>
 					<div class="flex-1">
 						<StatsChart :data="chart.data" :height="280" />
 					</div>
-					<p
-						v-if="chart.description"
-						class="mt-4 text-sm text-gray-500 dark:text-gray-400"
-					>
+					<p v-if="chart.description" class="mt-4 text-sm opacity-70">
 						{{ chart.description }}
 					</p>
 				</div>

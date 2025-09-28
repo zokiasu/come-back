@@ -5,27 +5,27 @@
 			:loading="loading"
 			:period-display="periodDisplay"
 		/>
+		<div v-if="section.cards?.length || section.topLists?.length" class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+			<div v-if="section.cards?.length">
+				<StatsCard v-for="card in section.cards" :key="card.title" :card="card" />
+			</div>
 
-		<div v-if="section.cards?.length" class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-			<StatsCard v-for="card in section.cards" :key="card.title" :card="card" />
-		</div>
-
-		<div v-if="section.topLists?.length" class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-			<div
-				v-for="list in section.topLists"
-				:key="list.title"
-				class="rounded-lg bg-gray-50 p-4 dark:bg-gray-700"
-			>
-				<h3 class="mb-4 text-lg font-medium text-gray-900 dark:text-white">
-					{{ list.title }}
-				</h3>
-				<TopList :items="list.items" :limit="list.limit" />
+			<div v-if="section.topLists?.length">
+				<div
+					v-for="list in section.topLists"
+					:key="list.title"
+					class="rounded-lg bg-cb-quaternary-950 p-4"
+				>
+					<h3 class="mb-4 text-lg font-medium">
+						{{ list.title }}
+					</h3>
+					<TopList :items="list.items" :limit="list.limit" />
+				</div>
 			</div>
 		</div>
-
 		<div
 			v-if="!section.cards?.length && !section.topLists?.length"
-			class="text-center text-sm text-gray-500 dark:text-gray-400"
+			class="text-center text-sm opacity-70"
 		>
 			Aucune donnée disponible pour cette période.
 		</div>
