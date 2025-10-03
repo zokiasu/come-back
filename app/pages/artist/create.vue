@@ -448,7 +448,7 @@
 					</div>
 					<div class="flex gap-2">
 						<div
-							v-for="gender in ['MALE', 'FEMALE', 'MIXTE', 'UNKNOWN', 'OTHER']"
+							v-for="gender in ['MALE', 'FEMALE', 'MIXTE', 'UNKNOWN']"
 							:key="gender"
 							class="flex w-full items-center gap-2"
 						>

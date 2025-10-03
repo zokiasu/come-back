@@ -192,7 +192,7 @@
 	const selectedType = ref<string | null>(null)
 	const stylesList = ref<MusicStyle[]>([])
 	const selectedStyles = ref<string[]>([])
-	const genderList = ['MALE', 'FEMALE', 'MIXTE', 'OTHER', 'UNKNOWN']
+	const genderList = ['MALE', 'FEMALE', 'MIXTE', 'UNKNOWN']
 	const selectedGender = ref<string | null>(null)
 
 	// State for filter expansion
@@ -320,7 +320,6 @@
 			MALE: 'Male',
 			FEMALE: 'Female',
 			MIXTE: 'Mixed',
-			OTHER: 'Other',
 			UNKNOWN: 'Unknown',
 		}
 		return labels[gender] || gender
