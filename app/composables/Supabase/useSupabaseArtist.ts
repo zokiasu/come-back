@@ -2,12 +2,9 @@ import type {
 	QueryOptions,
 	FilterOptions,
 	ArtistType,
-	ArtistSocialLink,
-	ArtistPlatformLink,
 	Artist,
 } from '~/types'
 import type { Database, TablesInsert, TablesUpdate } from '~/types/supabase'
-import { useGeneralFunction } from '@/composables/useGeneralFunction'
 import { useSupabaseClient } from '#imports'
 
 // Types pour les réponses RPC
@@ -192,7 +189,7 @@ export function useSupabaseArtist() {
 		platformLinks?: TablesInsert<'artist_platform_links'>[],
 		artistGroups?: Artist[],
 		artistMembers?: Artist[],
-		artistCompanies?: TablesInsert<'artist_companies'>[],
+		artistCompanies?: Omit<TablesInsert<'artist_companies'>, 'artist_id'>[],
 	): Promise<Artist> => {
 		const { data: artist, error } = await supabase
 			.from('artists')
@@ -540,23 +537,34 @@ export function useSupabaseArtist() {
 	}
 
 	const getSocialAndPlatformLinksByArtistId = async (id: string) => {
-		const { data: socialLinks, error: socialLinksError } = await supabase
-			.from('artist_social_links')
-			.select('*')
-			.eq('artist_id', id)
+		try {
+			const { data: socialLinks, error: socialLinksError } = await supabase
+				.from('artist_social_links')
+				.select('*')
+				.eq('artist_id', id)
 
-		if (socialLinksError) throw socialLinksError
+			if (socialLinksError) {
+				console.error('Error fetching social links:', socialLinksError)
+				throw socialLinksError
+			}
 
-		const { data: platformLinks, error: platformLinksError } = await supabase
-			.from('artist_platform_links')
-			.select('*')
-			.eq('artist_id', id)
+			const { data: platformLinks, error: platformLinksError } = await supabase
+				.from('artist_platform_links')
+				.select('*')
+				.eq('artist_id', id)
 
-		if (platformLinksError) throw platformLinksError
+			if (platformLinksError) {
+				console.error('Error fetching platform links:', platformLinksError)
+				throw platformLinksError
+			}
 
-		return {
-			socialLinks: socialLinks || [],
-			platformLinks: platformLinks || [],
+			return {
+				socialLinks: socialLinks || [],
+				platformLinks: platformLinks || [],
+			}
+		} catch (error) {
+			console.error('Error in getSocialAndPlatformLinksByArtistId:', error)
+			throw error
 		}
 	}
 
@@ -607,6 +615,7 @@ export function useSupabaseArtist() {
 			general_tags?: string[]
 			styles?: string[]
 			gender?: string
+			isActive?: boolean
 		},
 	) => {
 		try {
@@ -657,6 +666,9 @@ export function useSupabaseArtist() {
 			} else if (options?.isActive === false) {
 				query = query.or('active_career.is.false,active_career.is.null')
 			}
+
+			// Filtre pour n'avoir que les artistes avec un id_youtube_music
+			query = query.not('id_youtube_music', 'is', null)
 
 			// Ajouter le tri
 			if (options?.orderBy) {
