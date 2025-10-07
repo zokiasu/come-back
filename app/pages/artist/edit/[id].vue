@@ -224,6 +224,13 @@
 				return
 			}
 
+			const currentArtistId = artist.value?.id
+			if (!currentArtistId) {
+				toast.add({ title: 'Artist not loaded', color: 'error' })
+				isUploadingEdit.value = false
+				return
+			}
+
 			const updates: Partial<Artist> = {
 				name: artistToEdit.value?.name,
 				// image: artistToEdit.value?.image, // L'image n'est pas modifiable ici
@@ -244,10 +251,11 @@
 				general_tags: artistTags.value.map((tag) => tag.name),
 			}
 
-			const selectedCompanies: Omit<TablesInsert<'artist_companies'>, 'artist_id'>[] =
+			const selectedCompanies: TablesInsert<'artist_companies'>[] =
 				artistCompanies.value
 					.filter((relation) => relation.company !== null)
 					.map((relation) => ({
+						artist_id: currentArtistId,
 						company_id: relation.company!.id,
 						relationship_type: relation.relationship_type,
 						start_date: relation.start_date,
@@ -256,7 +264,7 @@
 					}))
 
 			await updateArtist(
-				artist.value?.id || '',
+				currentArtistId,
 				updates,
 				artistSocialList.value,
 				artistPlatformList.value,
