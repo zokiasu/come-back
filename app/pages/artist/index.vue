@@ -72,6 +72,33 @@
 								</UButton>
 							</div>
 						</div>
+
+						<!-- Activity -->
+						<div>
+							<label class="mb-3 block text-sm font-medium text-gray-300">Activity</label>
+							<div class="flex flex-wrap gap-2">
+								<UButton
+									:variant="selectedActivity === true ? 'solid' : 'outline'"
+									:color="selectedActivity === true ? 'primary' : 'neutral'"
+									size="sm"
+									:disabled="isLoading"
+									:class="{ 'text-white': selectedActivity === true }"
+									@click="toggleActivity(true)"
+								>
+									Active
+								</UButton>
+								<UButton
+									:variant="selectedActivity === false ? 'solid' : 'outline'"
+									:color="selectedActivity === false ? 'primary' : 'neutral'"
+									size="sm"
+									:disabled="isLoading"
+									:class="{ 'text-white': selectedActivity === false }"
+									@click="toggleActivity(false)"
+								>
+									Inactive
+								</UButton>
+							</div>
+						</div>
 					</div>
 
 					<!-- Tags -->
@@ -175,7 +202,6 @@
 </template>
 
 <script setup lang="ts">
-	import { ref, watch, onMounted, computed } from 'vue'
 	import { useSupabaseArtist } from '@/composables/Supabase/useSupabaseArtist'
 	import { useSupabaseGeneralTags } from '@/composables/Supabase/useSupabaseGeneralTags'
 	import { useSupabaseMusicStyles } from '@/composables/Supabase/useSupabaseMusicStyles'
@@ -205,6 +231,7 @@
 	const stylesList = ref<MusicStyle[]>([])
 	const selectedStyles = ref<string[]>([])
 	const selectedGender = ref<ArtistGender | null>(null)
+	const selectedActivity = ref<boolean | null>(true)
 
 	// State for filter expansion
 	const filtersExpanded = ref(false)
@@ -225,7 +252,7 @@
 			type: selectedType.value || undefined,
 			styles: selectedStyles.value.length > 0 ? selectedStyles.value : undefined,
 			gender: selectedGender.value || undefined,
-			isActive: true,
+			isActive: selectedActivity.value !== null ? selectedActivity.value : undefined,
 			orderBy: 'name',
 			orderDirection: 'asc',
 		})
@@ -238,12 +265,12 @@
 			artists.value = [...artists.value, ...artistsArray]
 		}
 		
-		// Il y a plus d'éléments si on a reçu exactement le nombre demandé
+		// Il n'y a plus d'éléments si on a reçu exactement le nombre demandé
 		hasMore.value = artistsArray.length === limit.value
 		isLoading.value = false
 	}
 
-	watch([search, selectedTags, selectedType, selectedStyles, selectedGender], () => {
+	watch([search, selectedTags, selectedType, selectedStyles, selectedGender, selectedActivity], () => {
 		// Éviter les appels pendant l'initialisation
 		if (!isInitialized.value) {
 			return
@@ -297,12 +324,21 @@
 		}
 	}
 
+	const toggleActivity = (isActive: boolean) => {
+		if (selectedActivity.value === isActive) {
+			selectedActivity.value = null
+		} else {
+			selectedActivity.value = isActive
+		}
+	}
+
 	// Function to clear all filters
 	const clearAllFilters = () => {
 		selectedTags.value = []
 		selectedType.value = null
 		selectedStyles.value = []
 		selectedGender.value = null
+		selectedActivity.value = null
 	}
 
 	// Computed to check if there are active filters
@@ -311,7 +347,8 @@
 			selectedTags.value.length > 0 ||
 			selectedType.value !== null ||
 			selectedStyles.value.length > 0 ||
-			selectedGender.value !== null
+			selectedGender.value !== null ||
+			selectedActivity.value !== null
 		)
 	})
 

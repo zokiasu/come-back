@@ -2,12 +2,9 @@ import type {
 	QueryOptions,
 	FilterOptions,
 	ArtistType,
-	ArtistSocialLink,
-	ArtistPlatformLink,
 	Artist,
 } from '~/types'
 import type { Database, TablesInsert, TablesUpdate } from '~/types/supabase'
-import { useGeneralFunction } from '@/composables/useGeneralFunction'
 import { useSupabaseClient } from '#imports'
 
 // Types pour les réponses RPC
