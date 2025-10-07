@@ -107,6 +107,13 @@
 					>
 						Dashboard
 					</NuxtLink>
+					<NuxtLink
+						v-if="isAdminStore && isClient"
+						:to="`/newdashboard`"
+						:class="routeIsDashboard ? 'font-semibold text-white' : 'text-zinc-500'"
+					>
+						New Dashboard
+					</NuxtLink>
 				</div>
 
 				<div class="flex items-center justify-center gap-3">

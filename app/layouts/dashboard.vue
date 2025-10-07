@@ -1,9 +1,17 @@
 <script setup lang="ts">
 const open = ref(true)
+
+const links = [
+  {
+    label: 'Dashboard',
+    icon: 'heroicons:home',
+    to: '/newdashboard',
+  },
+]
 </script>
 
 <template>
-  <UDashboardGroup unit="rem">
+  <UDashboardGroup unit="rem" class="bg-cb-secondary-950 text-cb-tertiary-200">
     <UDashboardSidebar
       id="default"
       v-model:open="open"
@@ -11,31 +19,18 @@ const open = ref(true)
       resizable
     >
       <template #header>
-        <IconComeback />
+				<div class="flex items-center justify-center w-full">
+					<img src="~/assets/image/logo.png" alt="Comeback" class="block h-10" />
+				</div>
       </template>
 
-      <template #default="{ collapsed }">
-        <UDashboardSearchButton :collapsed="collapsed" class="bg-transparent ring-default" />
-
+      <template #default>
         <UNavigationMenu
-          :collapsed="collapsed"
-          :items="links[0]"
+          :items="links"
           orientation="vertical"
           tooltip
           popover
         />
-
-        <UNavigationMenu
-          :collapsed="collapsed"
-          :items="links[1]"
-          orientation="vertical"
-          tooltip
-          class="mt-auto"
-        />
-      </template>
-
-      <template #footer="{ collapsed }">
-        <UserMenu :collapsed="collapsed" />
       </template>
     </UDashboardSidebar>
 

@@ -34,7 +34,7 @@
 	},
 	"dependencies": {
 		"@eslint/js": "^9.31.0",
-		"@nuxt/ui": "^3.0.2",
+		"@nuxt/ui": "^4.0.0",
 		"@nuxtjs/supabase": "^1.5.3",
 		"@pinia/nuxt": "^0.11.1",
 		"@supabase/supabase-js": "^2.49.1",
