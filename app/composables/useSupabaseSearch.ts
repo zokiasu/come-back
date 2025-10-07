@@ -24,7 +24,18 @@ export function useSupabaseSearch() {
 
 		let supabaseQuery = supabase
 			.from('artists')
-			.select('*', { count: 'exact' })
+			.select(
+				`
+				*,
+				social_links:artist_social_links(*),
+				platform_links:artist_platform_links(*),
+				companies:artist_companies(
+					*,
+					company:companies(*)
+				)
+			`,
+				{ count: 'exact' },
+			)
 			.ilike('name', `%${query.trim()}%`)
 			.order('name', { ascending: true })
 			.limit(limit)
@@ -41,13 +52,22 @@ export function useSupabaseSearch() {
 			throw error
 		}
 
+		// Transformer les données pour assurer que les tableaux sont toujours définis
+		const transformedData = (data || []).map((artist) => ({
+			...artist,
+			social_links: artist.social_links || [],
+			platform_links: artist.platform_links || [],
+			companies: artist.companies || [],
+			styles: artist.styles || [],
+		}))
+
 		return {
-			artists: data || [],
+			artists: transformedData as Artist[],
 			totalCount: count || 0,
 		}
 	}
 
-	// Enhanced search with PostgreSQL full-text search (if available)
+	// Enhanced search with PostgreSQL full-text search
 	const searchArtistsFullText = async (options: SearchOptions): Promise<SearchResult> => {
 		const { query, limit = 10, type } = options
 
@@ -56,7 +76,7 @@ export function useSupabaseSearch() {
 		}
 
 		try {
-			// Try full-text search first (requires tsvector setup on database)
+			// Use the RPC function for optimized search
 			const { data: rpcData, error: rpcError } = await supabase.rpc(
 				'search_artists_fulltext',
 				{
@@ -66,14 +86,28 @@ export function useSupabaseSearch() {
 				},
 			)
 
-			if (!rpcError && rpcData) {
+			if (rpcError) {
+				console.error('RPC search error, falling back to ILIKE:', rpcError)
+				return searchArtists(options)
+			}
+
+			if (rpcData) {
+				// Transformer les données JSON en objets
+				const transformedData = rpcData.map((artist: any) => ({
+					...artist,
+					social_links: artist.social_links || [],
+					platform_links: artist.platform_links || [],
+					companies: artist.companies || [],
+					styles: artist.styles || [],
+				}))
+
 				return {
-					artists: rpcData,
+					artists: transformedData as Artist[],
 					totalCount: rpcData.length,
 				}
 			}
 		} catch (error) {
-			console.warn('Full-text search not available, falling back to ILIKE search')
+			console.error('Full-text search error, falling back to ILIKE search:', error)
 		}
 
 		// Fallback to regular ILIKE search

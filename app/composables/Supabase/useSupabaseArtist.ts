@@ -616,6 +616,10 @@ export function useSupabaseArtist() {
 			styles?: string[]
 			gender?: string
 			isActive?: boolean
+			onlyWithoutDesc?: boolean
+			onlyWithoutSocials?: boolean
+			onlyWithoutPlatforms?: boolean
+			onlyWithoutStyles?: boolean
 		},
 	) => {
 		try {
@@ -667,6 +671,24 @@ export function useSupabaseArtist() {
 				query = query.or('active_career.is.false,active_career.is.null')
 			}
 
+			// Filtres "only without"
+			if (options?.onlyWithoutDesc) {
+				query = query.or('description.is.null,description.eq.')
+			}
+
+			if (options?.onlyWithoutSocials) {
+				// On ne peut pas directement filtrer sur les relations, on devra filtrer côté client
+				// Mais on peut au moins trier pour avoir les plus récents en premier
+			}
+
+			if (options?.onlyWithoutPlatforms) {
+				// Même problème que pour les socials
+			}
+
+			if (options?.onlyWithoutStyles) {
+				query = query.or('styles.is.null,styles.eq.{}')
+			}
+
 			// Filtre pour n'avoir que les artistes avec un id_youtube_music
 			query = query.not('id_youtube_music', 'is', null)
 
@@ -692,12 +714,25 @@ export function useSupabaseArtist() {
 			}
 
 			// Transformer les données pour correspondre au format attendu
-			const transformedData = data.map((artist) => ({
+			let transformedData = data.map((artist) => ({
 				...artist,
 				social_links: artist.social_links || [],
 				platform_links: artist.platform_links || [],
 				companies: artist.companies || [],
 			}))
+
+			// Filtrage côté client pour les relations (socials et platforms)
+			if (options?.onlyWithoutSocials) {
+				transformedData = transformedData.filter(
+					(artist) => !artist.social_links || artist.social_links.length === 0,
+				)
+			}
+
+			if (options?.onlyWithoutPlatforms) {
+				transformedData = transformedData.filter(
+					(artist) => !artist.platform_links || artist.platform_links.length === 0,
+				)
+			}
 
 			return {
 				artists: transformedData as Artist[],

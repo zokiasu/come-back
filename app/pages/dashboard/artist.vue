@@ -148,6 +148,10 @@
 						: activeCareerFilter.value === 'active'
 							? true
 							: false,
+				onlyWithoutDesc: filterState.onlyWithoutDesc,
+				onlyWithoutSocials: filterState.onlyWithoutSocials,
+				onlyWithoutPlatforms: filterState.onlyWithoutPlatforms,
+				onlyWithoutStyles: filterState.onlyWithoutStyles,
 			}
 			const result = await getArtistsByPage(currentPage.value, limitFetch.value, params)
 
@@ -184,13 +188,16 @@
 	 * Change l'état des filtres "only without"
 	 */
 	const changeOnlyFilter = (filter: keyof FilterState): void => {
-		// Réinitialise tous les filtres
-		Object.keys(filterState).forEach((key) => {
-			filterState[key as keyof FilterState] = false
-		})
-
-		// Active uniquement le filtre sélectionné
-		filterState[filter] = !filterState[filter]
+		// Si le filtre cliqué est déjà actif, on le désactive simplement
+		if (filterState[filter]) {
+			filterState[filter] = false
+		} else {
+			// Sinon, réinitialise tous les filtres et active celui-ci
+			Object.keys(filterState).forEach((key) => {
+				filterState[key as keyof FilterState] = false
+			})
+			filterState[filter] = true
+		}
 	}
 
 	/**
@@ -330,29 +337,20 @@
 			class="bg-cb-secondary-950 sticky top-0 z-20 w-full space-y-2 pb-2"
 		>
 			<div class="relative flex gap-2">
-				<div class="relative flex-1">
-					<input
-						id="search-input"
-						v-model="search"
-						type="text"
-						placeholder="Search"
-						class="bg-cb-quinary-900 placeholder-cb-tertiary-200 focus:bg-cb-tertiary-200 focus:text-cb-quinary-900 focus:placeholder-cb-quinary-900 w-full rounded border-none px-5 py-2 drop-shadow-xl transition-all duration-300 ease-in-out focus:outline-none"
-					/>
-					<button
-						v-if="search.length > 0"
-						class="absolute top-1/2 right-2 -translate-y-1/2 rounded bg-red-500 px-2 py-1 text-xs text-white hover:bg-red-600"
-						title="Effacer la recherche"
-						@click="resetSearch"
-					>
-						✕
-					</button>
-				</div>
+				<input
+					id="search-input"
+					v-model="search"
+					type="text"
+					placeholder="Search"
+					class="bg-cb-quinary-900 placeholder-cb-tertiary-200 focus:bg-cb-tertiary-200 focus:text-cb-quinary-900 focus:placeholder-cb-quinary-900 w-full rounded border-none px-5 py-2 drop-shadow-xl transition-all duration-300 ease-in-out focus:outline-none"
+				/>
 				<button
-					class="bg-cb-tertiary-200 text-cb-quinary-900 hover:bg-cb-tertiary-300 rounded px-3 py-2 text-xs transition-all duration-300"
-					title="Recherche Supabase"
-					@click="triggerSearch"
+					v-if="search.length > 0"
+					class="absolute top-1/2 right-2 -translate-y-1/2 rounded bg-red-500 px-2 py-1 text-xs text-white hover:bg-red-600"
+					title="Effacer la recherche"
+					@click="resetSearch"
 				>
-					Supabase
+					✕
 				</button>
 			</div>
 			<div class="flex w-full flex-col gap-2 sm:flex-row sm:justify-between">
