@@ -2,12 +2,9 @@ import type {
 	QueryOptions,
 	FilterOptions,
 	ArtistType,
-	ArtistSocialLink,
-	ArtistPlatformLink,
 	Artist,
 } from '~/types'
 import type { Database, TablesInsert, TablesUpdate } from '~/types/supabase'
-import { useGeneralFunction } from '@/composables/useGeneralFunction'
 import { useSupabaseClient } from '#imports'
 
 // Types pour les réponses RPC
@@ -607,6 +604,7 @@ export function useSupabaseArtist() {
 			general_tags?: string[]
 			styles?: string[]
 			gender?: string
+			isActive?: boolean
 		},
 	) => {
 		try {
@@ -657,6 +655,9 @@ export function useSupabaseArtist() {
 			} else if (options?.isActive === false) {
 				query = query.or('active_career.is.false,active_career.is.null')
 			}
+
+			// Filtre pour n'avoir que les artistes avec un id_youtube_music
+			query = query.not('id_youtube_music', 'is', null)
 
 			// Ajouter le tri
 			if (options?.orderBy) {

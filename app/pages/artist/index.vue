@@ -42,12 +42,12 @@
 								<UButton
 									v-for="type in artistTypes"
 									:key="type"
-									@click="selectedType = selectedType === type ? null : type"
 									:variant="selectedType === type ? 'solid' : 'outline'"
 									:color="selectedType === type ? 'primary' : 'neutral'"
 									size="sm"
 									:disabled="isLoading"
 									:class="{ 'text-white': selectedType === type }"
+									@click="selectedType = selectedType === type ? null : type"
 								>
 									{{ type === 'SOLO' ? 'Solo' : 'Group' }}
 								</UButton>
@@ -59,16 +59,43 @@
 							<label class="mb-3 block text-sm font-medium text-gray-300">Gender</label>
 							<div class="flex flex-wrap gap-2">
 								<UButton
-									v-for="gender in genderList"
+									v-for="gender in artistGenders"
 									:key="gender"
-									@click="toggleGender(gender)"
 									:variant="selectedGender === gender ? 'solid' : 'outline'"
 									:color="selectedGender === gender ? 'primary' : 'neutral'"
 									size="sm"
 									:disabled="isLoading"
 									:class="{ 'text-white': selectedGender === gender }"
+									@click="toggleGender(gender)"
 								>
 									{{ formatGenderLabel(gender) }}
+								</UButton>
+							</div>
+						</div>
+
+						<!-- Activity -->
+						<div>
+							<label class="mb-3 block text-sm font-medium text-gray-300">Activity</label>
+							<div class="flex flex-wrap gap-2">
+								<UButton
+									:variant="selectedActivity === true ? 'solid' : 'outline'"
+									:color="selectedActivity === true ? 'primary' : 'neutral'"
+									size="sm"
+									:disabled="isLoading"
+									:class="{ 'text-white': selectedActivity === true }"
+									@click="toggleActivity(true)"
+								>
+									Active
+								</UButton>
+								<UButton
+									:variant="selectedActivity === false ? 'solid' : 'outline'"
+									:color="selectedActivity === false ? 'primary' : 'neutral'"
+									size="sm"
+									:disabled="isLoading"
+									:class="{ 'text-white': selectedActivity === false }"
+									@click="toggleActivity(false)"
+								>
+									Inactive
 								</UButton>
 							</div>
 						</div>
@@ -86,7 +113,6 @@
 							<UBadge
 								v-for="tag in tagsList"
 								:key="tag.id"
-								@click="toggleTag(tag.name)"
 								:variant="selectedTags.includes(tag.name) ? 'solid' : 'soft'"
 								:color="selectedTags.includes(tag.name) ? 'primary' : 'neutral'"
 								class="cursor-pointer transition-all hover:scale-105"
@@ -94,6 +120,7 @@
 									'cursor-not-allowed opacity-50': isLoading,
 									'text-white': selectedTags.includes(tag.name),
 								}"
+								@click="toggleTag(tag.name)"
 							>
 								{{ tag.name }}
 							</UBadge>
@@ -112,7 +139,6 @@
 							<UBadge
 								v-for="style in stylesList"
 								:key="style.id"
-								@click="toggleStyle(style.name)"
 								:variant="selectedStyles.includes(style.name) ? 'solid' : 'soft'"
 								:color="selectedStyles.includes(style.name) ? 'primary' : 'neutral'"
 								class="cursor-pointer transition-all hover:scale-105"
@@ -120,10 +146,20 @@
 									'cursor-not-allowed opacity-50': isLoading,
 									'text-white': selectedStyles.includes(style.name),
 								}"
+								@click="toggleStyle(style.name)"
 							>
 								{{ style.name }}
 							</UBadge>
 						</div>
+					</div>
+
+					<div v-if="hasActiveFilters" class="flex justify-center w-full">
+						<UButton
+							label="Clear filters"
+							variant="outline"
+							size="sm"
+							@click="clearAllFilters"
+						/>
 					</div>
 				</div>
 			</UCard>
@@ -166,20 +202,23 @@
 </template>
 
 <script setup lang="ts">
-	import { ref, watch, onMounted, computed } from 'vue'
 	import { useSupabaseArtist } from '@/composables/Supabase/useSupabaseArtist'
 	import { useSupabaseGeneralTags } from '@/composables/Supabase/useSupabaseGeneralTags'
 	import { useSupabaseMusicStyles } from '@/composables/Supabase/useSupabaseMusicStyles'
 	import { useInfiniteScroll } from '@vueuse/core'
-	import type { Artist, GeneralTag, MusicStyle } from '~/types'
+	import type { Artist, ArtistType, ArtistGender, GeneralTag, MusicStyle } from '~/types'
 
 	const { getArtistsByPage } = useSupabaseArtist()
 	const { getAllGeneralTags } = useSupabaseGeneralTags()
 	const { getAllMusicStyles } = useSupabaseMusicStyles()
 
+	// Enum values for template usage
+	const artistTypes: ArtistType[] = ['SOLO', 'GROUP']
+	const artistGenders: ArtistGender[] = ['MALE', 'FEMALE', 'MIXTE', 'OTHER', 'UNKNOWN']
+
 	const artists = ref<Artist[]>([])
 	const search = ref('')
-	const page = ref(1)
+	const page = ref(0)
 	const limit = ref(48)
 	const isLoading = ref(false)
 	const hasMore = ref(true)
@@ -188,12 +227,11 @@
 
 	const tagsList = ref<GeneralTag[]>([])
 	const selectedTags = ref<string[]>([])
-	const artistTypes = ['SOLO', 'GROUP']
-	const selectedType = ref<string | null>(null)
+	const selectedType = ref<ArtistType | null>(null)
 	const stylesList = ref<MusicStyle[]>([])
 	const selectedStyles = ref<string[]>([])
-	const genderList = ['MALE', 'FEMALE', 'MIXTE', 'OTHER', 'UNKNOWN']
-	const selectedGender = ref<string | null>(null)
+	const selectedGender = ref<ArtistGender | null>(null)
+	const selectedActivity = ref<boolean | null>(true)
 
 	// State for filter expansion
 	const filtersExpanded = ref(false)
@@ -214,22 +252,25 @@
 			type: selectedType.value || undefined,
 			styles: selectedStyles.value.length > 0 ? selectedStyles.value : undefined,
 			gender: selectedGender.value || undefined,
+			isActive: selectedActivity.value !== null ? selectedActivity.value : undefined,
 			orderBy: 'name',
 			orderDirection: 'asc',
 		})
 
 		const artistsArray = Array.isArray(result.artists) ? result.artists : []
+
 		if (reset) {
 			artists.value = artistsArray
 		} else {
 			artists.value = [...artists.value, ...artistsArray]
 		}
-		// Il y a plus d'éléments si on a reçu exactement le nombre demandé
+		
+		// Il n'y a plus d'éléments si on a reçu exactement le nombre demandé
 		hasMore.value = artistsArray.length === limit.value
 		isLoading.value = false
 	}
 
-	watch([search, selectedTags, selectedType, selectedStyles, selectedGender], () => {
+	watch([search, selectedTags, selectedType, selectedStyles, selectedGender, selectedActivity], () => {
 		// Éviter les appels pendant l'initialisation
 		if (!isInitialized.value) {
 			return
@@ -247,9 +288,6 @@
 	}
 
 	onMounted(async () => {
-		// S'assurer que page est à 1 au début
-		page.value = 1
-
 		tagsList.value = await getAllGeneralTags()
 		stylesList.value = await getAllMusicStyles()
 		await fetchArtists(true)
@@ -278,12 +316,29 @@
 		}
 	}
 
-	const toggleGender = (gender: string) => {
+	const toggleGender = (gender: ArtistGender) => {
 		if (selectedGender.value === gender) {
 			selectedGender.value = null
 		} else {
 			selectedGender.value = gender
 		}
+	}
+
+	const toggleActivity = (isActive: boolean) => {
+		if (selectedActivity.value === isActive) {
+			selectedActivity.value = null
+		} else {
+			selectedActivity.value = isActive
+		}
+	}
+
+	// Function to clear all filters
+	const clearAllFilters = () => {
+		selectedTags.value = []
+		selectedType.value = null
+		selectedStyles.value = []
+		selectedGender.value = null
+		selectedActivity.value = null
 	}
 
 	// Computed to check if there are active filters
@@ -292,27 +347,10 @@
 			selectedTags.value.length > 0 ||
 			selectedType.value !== null ||
 			selectedStyles.value.length > 0 ||
-			selectedGender.value !== null
+			selectedGender.value !== null ||
+			selectedActivity.value !== null
 		)
 	})
-
-	// Computed to count the number of active filters
-	const activeFiltersCount = computed(() => {
-		let count = 0
-		if (selectedTags.value.length > 0) count += selectedTags.value.length
-		if (selectedType.value !== null) count++
-		if (selectedStyles.value.length > 0) count += selectedStyles.value.length
-		if (selectedGender.value !== null) count++
-		return count
-	})
-
-	// Function to clear all filters
-	const clearAllFilters = () => {
-		selectedTags.value = []
-		selectedType.value = null
-		selectedStyles.value = []
-		selectedGender.value = null
-	}
 
 	// Function to format gender labels
 	const formatGenderLabel = (gender: string) => {
