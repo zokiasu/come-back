@@ -607,9 +607,11 @@ export function useSupabaseArtist() {
 			general_tags?: string[]
 			styles?: string[]
 			gender?: string
+			isActive?: boolean
 		},
 	) => {
 		try {
+			console.log('getArtistsByPage', page, limit, options)
 			// Calculer l'offset
 			const offset = (page - 1) * limit
 
@@ -657,6 +659,9 @@ export function useSupabaseArtist() {
 			} else if (options?.isActive === false) {
 				query = query.or('active_career.is.false,active_career.is.null')
 			}
+
+			// Filtre pour n'avoir que les artistes avec un id_youtube_music
+			query = query.not('id_youtube_music', 'is', null)
 
 			// Ajouter le tri
 			if (options?.orderBy) {

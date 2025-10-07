@@ -42,12 +42,12 @@
 								<UButton
 									v-for="type in artistTypes"
 									:key="type"
-									@click="selectedType = selectedType === type ? null : type"
 									:variant="selectedType === type ? 'solid' : 'outline'"
 									:color="selectedType === type ? 'primary' : 'neutral'"
 									size="sm"
 									:disabled="isLoading"
 									:class="{ 'text-white': selectedType === type }"
+									@click="selectedType = selectedType === type ? null : type"
 								>
 									{{ type === 'SOLO' ? 'Solo' : 'Group' }}
 								</UButton>
@@ -59,14 +59,14 @@
 							<label class="mb-3 block text-sm font-medium text-gray-300">Gender</label>
 							<div class="flex flex-wrap gap-2">
 								<UButton
-									v-for="gender in genderList"
+									v-for="gender in artistGenders"
 									:key="gender"
-									@click="toggleGender(gender)"
 									:variant="selectedGender === gender ? 'solid' : 'outline'"
 									:color="selectedGender === gender ? 'primary' : 'neutral'"
 									size="sm"
 									:disabled="isLoading"
 									:class="{ 'text-white': selectedGender === gender }"
+									@click="toggleGender(gender)"
 								>
 									{{ formatGenderLabel(gender) }}
 								</UButton>
@@ -86,7 +86,6 @@
 							<UBadge
 								v-for="tag in tagsList"
 								:key="tag.id"
-								@click="toggleTag(tag.name)"
 								:variant="selectedTags.includes(tag.name) ? 'solid' : 'soft'"
 								:color="selectedTags.includes(tag.name) ? 'primary' : 'neutral'"
 								class="cursor-pointer transition-all hover:scale-105"
@@ -94,6 +93,7 @@
 									'cursor-not-allowed opacity-50': isLoading,
 									'text-white': selectedTags.includes(tag.name),
 								}"
+								@click="toggleTag(tag.name)"
 							>
 								{{ tag.name }}
 							</UBadge>
@@ -112,7 +112,6 @@
 							<UBadge
 								v-for="style in stylesList"
 								:key="style.id"
-								@click="toggleStyle(style.name)"
 								:variant="selectedStyles.includes(style.name) ? 'solid' : 'soft'"
 								:color="selectedStyles.includes(style.name) ? 'primary' : 'neutral'"
 								class="cursor-pointer transition-all hover:scale-105"
@@ -120,6 +119,7 @@
 									'cursor-not-allowed opacity-50': isLoading,
 									'text-white': selectedStyles.includes(style.name),
 								}"
+								@click="toggleStyle(style.name)"
 							>
 								{{ style.name }}
 							</UBadge>
@@ -171,15 +171,19 @@
 	import { useSupabaseGeneralTags } from '@/composables/Supabase/useSupabaseGeneralTags'
 	import { useSupabaseMusicStyles } from '@/composables/Supabase/useSupabaseMusicStyles'
 	import { useInfiniteScroll } from '@vueuse/core'
-	import type { Artist, GeneralTag, MusicStyle } from '~/types'
+	import type { Artist, ArtistType, ArtistGender, GeneralTag, MusicStyle } from '~/types'
 
 	const { getArtistsByPage } = useSupabaseArtist()
 	const { getAllGeneralTags } = useSupabaseGeneralTags()
 	const { getAllMusicStyles } = useSupabaseMusicStyles()
 
+	// Enum values for template usage
+	const artistTypes: ArtistType[] = ['SOLO', 'GROUP']
+	const artistGenders: ArtistGender[] = ['MALE', 'FEMALE', 'MIXTE', 'OTHER', 'UNKNOWN']
+
 	const artists = ref<Artist[]>([])
 	const search = ref('')
-	const page = ref(1)
+	const page = ref(0)
 	const limit = ref(48)
 	const isLoading = ref(false)
 	const hasMore = ref(true)
@@ -188,12 +192,10 @@
 
 	const tagsList = ref<GeneralTag[]>([])
 	const selectedTags = ref<string[]>([])
-	const artistTypes = ['SOLO', 'GROUP']
-	const selectedType = ref<string | null>(null)
+	const selectedType = ref<ArtistType>('SOLO')
 	const stylesList = ref<MusicStyle[]>([])
 	const selectedStyles = ref<string[]>([])
-	const genderList = ['MALE', 'FEMALE', 'MIXTE', 'OTHER', 'UNKNOWN']
-	const selectedGender = ref<string | null>(null)
+	const selectedGender = ref<ArtistGender>('UNKNOWN')
 
 	// State for filter expansion
 	const filtersExpanded = ref(false)
@@ -214,6 +216,7 @@
 			type: selectedType.value || undefined,
 			styles: selectedStyles.value.length > 0 ? selectedStyles.value : undefined,
 			gender: selectedGender.value || undefined,
+			isActive: true,
 			orderBy: 'name',
 			orderDirection: 'asc',
 		})
@@ -224,6 +227,7 @@
 		} else {
 			artists.value = [...artists.value, ...artistsArray]
 		}
+		console.log('artists', artists.value)
 		// Il y a plus d'éléments si on a reçu exactement le nombre demandé
 		hasMore.value = artistsArray.length === limit.value
 		isLoading.value = false
@@ -235,7 +239,7 @@
 			return
 		}
 
-		page.value = 1
+		page.value = 0
 		hasMore.value = true
 		fetchArtists(true)
 	})
@@ -247,9 +251,6 @@
 	}
 
 	onMounted(async () => {
-		// S'assurer que page est à 1 au début
-		page.value = 1
-
 		tagsList.value = await getAllGeneralTags()
 		stylesList.value = await getAllMusicStyles()
 		await fetchArtists(true)
