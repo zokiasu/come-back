@@ -125,6 +125,15 @@
 							</UBadge>
 						</div>
 					</div>
+
+					<div v-if="hasActiveFilters" class="flex justify-center w-full">
+						<UButton
+							label="Clear filters"
+							variant="outline"
+							size="sm"
+							@click="clearAllFilters"
+						/>
+					</div>
 				</div>
 			</UCard>
 		</Transition>
@@ -192,10 +201,10 @@
 
 	const tagsList = ref<GeneralTag[]>([])
 	const selectedTags = ref<string[]>([])
-	const selectedType = ref<ArtistType>('SOLO')
+	const selectedType = ref<ArtistType | null>(null)
 	const stylesList = ref<MusicStyle[]>([])
 	const selectedStyles = ref<string[]>([])
-	const selectedGender = ref<ArtistGender>('UNKNOWN')
+	const selectedGender = ref<ArtistGender | null>(null)
 
 	// State for filter expansion
 	const filtersExpanded = ref(false)
@@ -222,12 +231,13 @@
 		})
 
 		const artistsArray = Array.isArray(result.artists) ? result.artists : []
+
 		if (reset) {
 			artists.value = artistsArray
 		} else {
 			artists.value = [...artists.value, ...artistsArray]
 		}
-		console.log('artists', artists.value)
+		
 		// Il y a plus d'éléments si on a reçu exactement le nombre demandé
 		hasMore.value = artistsArray.length === limit.value
 		isLoading.value = false
@@ -239,7 +249,7 @@
 			return
 		}
 
-		page.value = 0
+		page.value = 1
 		hasMore.value = true
 		fetchArtists(true)
 	})
@@ -279,12 +289,20 @@
 		}
 	}
 
-	const toggleGender = (gender: string) => {
+	const toggleGender = (gender: ArtistGender) => {
 		if (selectedGender.value === gender) {
 			selectedGender.value = null
 		} else {
 			selectedGender.value = gender
 		}
+	}
+
+	// Function to clear all filters
+	const clearAllFilters = () => {
+		selectedTags.value = []
+		selectedType.value = null
+		selectedStyles.value = []
+		selectedGender.value = null
 	}
 
 	// Computed to check if there are active filters
@@ -296,24 +314,6 @@
 			selectedGender.value !== null
 		)
 	})
-
-	// Computed to count the number of active filters
-	const activeFiltersCount = computed(() => {
-		let count = 0
-		if (selectedTags.value.length > 0) count += selectedTags.value.length
-		if (selectedType.value !== null) count++
-		if (selectedStyles.value.length > 0) count += selectedStyles.value.length
-		if (selectedGender.value !== null) count++
-		return count
-	})
-
-	// Function to clear all filters
-	const clearAllFilters = () => {
-		selectedTags.value = []
-		selectedType.value = null
-		selectedStyles.value = []
-		selectedGender.value = null
-	}
 
 	// Function to format gender labels
 	const formatGenderLabel = (gender: string) => {

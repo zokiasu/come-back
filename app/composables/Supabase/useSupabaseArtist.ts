@@ -611,7 +611,6 @@ export function useSupabaseArtist() {
 		},
 	) => {
 		try {
-			console.log('getArtistsByPage', page, limit, options)
 			// Calculer l'offset
 			const offset = (page - 1) * limit
 
