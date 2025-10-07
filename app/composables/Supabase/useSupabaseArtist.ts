@@ -189,7 +189,7 @@ export function useSupabaseArtist() {
 		platformLinks?: TablesInsert<'artist_platform_links'>[],
 		artistGroups?: Artist[],
 		artistMembers?: Artist[],
-		artistCompanies?: TablesInsert<'artist_companies'>[],
+		artistCompanies?: Omit<TablesInsert<'artist_companies'>, 'artist_id'>[],
 	): Promise<Artist> => {
 		const { data: artist, error } = await supabase
 			.from('artists')
@@ -537,23 +537,34 @@ export function useSupabaseArtist() {
 	}
 
 	const getSocialAndPlatformLinksByArtistId = async (id: string) => {
-		const { data: socialLinks, error: socialLinksError } = await supabase
-			.from('artist_social_links')
-			.select('*')
-			.eq('artist_id', id)
+		try {
+			const { data: socialLinks, error: socialLinksError } = await supabase
+				.from('artist_social_links')
+				.select('*')
+				.eq('artist_id', id)
 
-		if (socialLinksError) throw socialLinksError
+			if (socialLinksError) {
+				console.error('Error fetching social links:', socialLinksError)
+				throw socialLinksError
+			}
 
-		const { data: platformLinks, error: platformLinksError } = await supabase
-			.from('artist_platform_links')
-			.select('*')
-			.eq('artist_id', id)
+			const { data: platformLinks, error: platformLinksError } = await supabase
+				.from('artist_platform_links')
+				.select('*')
+				.eq('artist_id', id)
 
-		if (platformLinksError) throw platformLinksError
+			if (platformLinksError) {
+				console.error('Error fetching platform links:', platformLinksError)
+				throw platformLinksError
+			}
 
-		return {
-			socialLinks: socialLinks || [],
-			platformLinks: platformLinks || [],
+			return {
+				socialLinks: socialLinks || [],
+				platformLinks: platformLinks || [],
+			}
+		} catch (error) {
+			console.error('Error in getSocialAndPlatformLinksByArtistId:', error)
+			throw error
 		}
 	}
 

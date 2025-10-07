@@ -12,9 +12,9 @@
 		ArtistType,
 		ArtistPlatformLink,
 		ArtistSocialLink,
-		CompanyType,
+		Company,
+		TablesInsert,
 	} from '~/types'
-	import type { Company } from '~/composables/Supabase/useSupabaseCompanies'
 
 	// Internal Composables
 	import { useSupabaseArtist } from '~/composables/Supabase/useSupabaseArtist'
@@ -65,7 +65,7 @@
 	const artistTags = ref<MenuItem<GeneralTag>[]>([])
 	const artistCompanies = ref<
 		{
-			company: Company | null
+			company: MenuItem<Company> | null
 			relationship_type: string
 			start_date?: string
 			end_date?: string
@@ -126,7 +126,7 @@
 
 	const companiesForMenu = computed(() => {
 		return companiesList.value.map(
-			(company: { name: any }): MenuItem<Company> => ({
+			(company: Company): MenuItem<Company> => ({
 				...company,
 				label: company.name,
 			}),
@@ -166,6 +166,23 @@
 		} catch (e) {
 			console.error('Failed to parse date:', date, e)
 			return null
+		}
+	}
+
+	// --- Date update handlers ---
+	const onBirthdayUpdate = (value: CalendarDate | null) => {
+		if (value) {
+			birthdayToDate.value = new Date(value.toString())
+		} else {
+			birthdayToDate.value = null
+		}
+	}
+
+	const onDebutDateUpdate = (value: CalendarDate | null) => {
+		if (value) {
+			debutDateToDate.value = new Date(value.toString())
+		} else {
+			debutDateToDate.value = null
 		}
 	}
 
@@ -227,15 +244,16 @@
 				general_tags: artistTags.value.map((tag) => tag.name),
 			}
 
-			const selectedCompanies = artistCompanies.value
-				.filter((relation) => relation.company !== null)
-				.map((relation) => ({
-					company_id: relation.company!.id,
-					relationship_type: relation.relationship_type,
-					start_date: relation.start_date,
-					end_date: relation.end_date,
-					is_current: relation.is_current,
-				}))
+			const selectedCompanies: Omit<TablesInsert<'artist_companies'>, 'artist_id'>[] =
+				artistCompanies.value
+					.filter((relation) => relation.company !== null)
+					.map((relation) => ({
+						company_id: relation.company!.id,
+						relationship_type: relation.relationship_type,
+						start_date: relation.start_date,
+						end_date: relation.end_date,
+						is_current: relation.is_current,
+					}))
 
 			await updateArtist(
 				artist.value?.id || '',
@@ -299,7 +317,7 @@
 		artistCompanies.value.splice(index, 1)
 	}
 
-	const updateCompanyInRelation = (index: number, company: Company) => {
+	const updateCompanyInRelation = (index: number, company: MenuItem<Company>) => {
 		if (artistCompanies.value[index]) {
 			artistCompanies.value[index].company = company
 		}
@@ -400,12 +418,26 @@
 			if (artist.value) {
 				artistToEdit.value = { ...artist.value }
 
-				const { socialLinks, platformLinks } = await getSocialAndPlatformLinksByArtistId(
-					artist.value.id,
-				)
+				try {
+					const { socialLinks, platformLinks } =
+						await getSocialAndPlatformLinksByArtistId(artist.value.id)
 
-				artistPlatformList.value = platformLinks || []
-				artistSocialList.value = socialLinks || []
+					// S'assurer que les tableaux ne sont jamais undefined
+					artistPlatformList.value =
+						platformLinks && platformLinks.length > 0 ? platformLinks : []
+					artistSocialList.value =
+						socialLinks && socialLinks.length > 0 ? socialLinks : []
+				} catch (linkError) {
+					console.error('Error loading social and platform links:', linkError)
+					// Initialiser avec des tableaux vides en cas d'erreur
+					artistPlatformList.value = []
+					artistSocialList.value = []
+					toast.add({
+						title: 'Warning',
+						description: 'Could not load all artist links',
+						color: 'warning',
+					})
+				}
 				artistGroups.value =
 					artist.value.groups?.map((group) => ({
 						...group,
@@ -446,21 +478,14 @@
 						company: companyRelation.company
 							? {
 									...companyRelation.company,
-									description: companyRelation.company.description ?? undefined,
-									type: companyRelation.company.type as CompanyType | undefined,
-									website: companyRelation.company.website ?? undefined,
-									city: companyRelation.company.city ?? undefined,
-									country: companyRelation.company.country ?? undefined,
-									founded_year: companyRelation.company.founded_year ?? undefined,
-									logo_url: companyRelation.company.logo_url ?? undefined,
-									verified: companyRelation.company.verified ?? undefined,
-									created_at: companyRelation.company.created_at ?? undefined,
-									updated_at: companyRelation.company.updated_at ?? undefined,
+									label: companyRelation.company.name,
 								}
 							: null,
 						relationship_type: companyRelation.relationship_type || 'LABEL',
-						start_date: companyRelation.start_date ?? undefined,
-						end_date: companyRelation.end_date ?? undefined,
+						...(companyRelation.start_date
+							? { start_date: companyRelation.start_date }
+							: {}),
+						...(companyRelation.end_date ? { end_date: companyRelation.end_date } : {}),
 						is_current: companyRelation.is_current ?? true,
 					})) || []
 
@@ -621,15 +646,7 @@
 									class="bg-cb-quinary-900 rounded p-1"
 									:model-value="parseToCalendarDate(birthdayToDate)"
 									:min-date="new Date(1900, 0, 1)"
-									@update:model-value="
-										(value: { toString: () => string | number | Date }) => {
-											if (value) {
-												birthdayToDate = new Date(value.toString())
-											} else {
-												birthdayToDate = null
-											}
-										}
-									"
+									@update:model-value="onBirthdayUpdate"
 								/>
 							</template>
 						</UPopover>
@@ -651,15 +668,7 @@
 									class="bg-cb-quinary-900 rounded p-1"
 									:model-value="parseToCalendarDate(debutDateToDate)"
 									:min-date="new Date(2000, 0, 1)"
-									@update:model-value="
-										(value: { toString: () => string | number | Date }) => {
-											if (value) {
-												debutDateToDate = new Date(value.toString())
-											} else {
-												debutDateToDate = null
-											}
-										}
-									"
+									@update:model-value="onDebutDateUpdate"
 								/>
 							</template>
 						</UPopover>
