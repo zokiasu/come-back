@@ -5,7 +5,7 @@
 	const searchInput = ref('')
 	const suggestions = ref<Artist[]>([])
 	const isLoading = ref(false)
-	const modelValue = defineModel('modelValue', { default: null })
+	const modelValue = defineModel<Artist | null>('modelValue', { default: null })
 
 	const { searchArtistsFullText } = useSupabaseSearch()
 

@@ -1,5 +1,5 @@
 import type { DashboardStats, StatsFilters } from '~/types/stats'
-import type { Database } from '~/types'
+import type { Database } from '~/types/supabase'
 
 // Types pour les réponses Supabase
 type SupabaseResponse<T> = {
