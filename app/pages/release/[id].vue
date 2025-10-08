@@ -130,7 +130,7 @@
 
 				// Récupérer les suggestions
 				suggestedReleases.value = (await getSuggestedReleases(
-					release.value.artists[0]?.id,
+					release.value.artists[0]?.id ?? '',
 					release.value.id,
 				)) as ReleaseWithArtists[]
 			}
@@ -214,11 +214,11 @@
 								</h1>
 								<div v-if="release.artists" class="flex items-center gap-2">
 									<NuxtLink
-										:to="`/artist/${release.artists[0].id}`"
+										:to="`/artist/${release.artists[0]?.id}`"
 										class="hover:bg-cb-secondary-950 flex items-center gap-2 rounded-full transition-all duration-300 ease-in-out hover:px-3 hover:py-0.5"
 									>
 										<p class="text-sm font-semibold">
-											{{ release.artists[0].name }}
+											{{ release.artists[0]?.name }}
 										</p>
 									</NuxtLink>
 									<p>-</p>
@@ -255,7 +255,7 @@
 														<option value="SINGLE">SINGLE</option>
 													</select>
 												</div>
-												<ComebackInput v-model="release.year" label="Year" />
+												<ComebackInput v-model="release.year as any" label="Year" />
 											</div>
 
 											<div class="flex flex-col gap-1">
@@ -293,7 +293,7 @@
 														</div>
 														<ComebackInput
 															v-if="music.ismv"
-															v-model="music.id_youtube_music"
+															v-model="music.id_youtube_music as any"
 															:value="
 																music.id_youtube_music !== null
 																	? String(music.id_youtube_music)
@@ -320,7 +320,7 @@
 			</section>
 
 			<section class="container mx-auto space-y-12 p-5 py-5 md:px-10 xl:px-0">
-				<CardDefault v-if="release.platform_links.length" name="Link">
+				<CardDefault v-if="release.platform_links?.length" name="Link">
 					<div class="flex flex-wrap gap-2">
 						<ComebackExternalLink
 							v-for="platform in release.platform_links"
@@ -359,7 +359,7 @@
 
 				<!-- Suggestions -->
 				<section v-if="suggestedReleases.length && release.artists" class="space-y-2">
-					<CardDefault :name="`Autres releases de ${release.artists[0].name}`">
+					<CardDefault :name="`Autres releases de ${release.artists[0]?.name}`">
 						<div class="flex gap-4">
 							<CardObject
 								v-for="otherRelease in suggestedReleases"

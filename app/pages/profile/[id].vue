@@ -18,7 +18,7 @@
 				<p class="text-sm italic">{{ profileData.role }}</p>
 			</div>
 			<NuxtLink
-				v-if="route.params.id === userDataStore.id"
+				v-if="route.params.id === userDataStore?.id"
 				to="/settings/profile"
 				class="bg-cb-secondary-950 absolute top-5 right-5 rounded px-2 py-1 text-xs font-semibold uppercase"
 			>
@@ -64,21 +64,22 @@
 	import { storeToRefs } from 'pinia'
 	import { useUserStore } from '@/stores/user'
 	import { useSupabaseFunction } from '~/composables/useSupabaseFunction'
+	import type { User } from '~/types'
 
 	const route = useRoute()
 	const { userDataStore } = storeToRefs(useUserStore())
 	const { getUserData } = useSupabaseFunction()
 
-	const createdAt = ref(null)
-	const rankings = ref(null)
-	const profileData = ref(null)
+	const createdAt = ref<string | null>(null)
+	const rankings = ref<any[] | null>(null)
+	const profileData = ref<User | null>(null)
 
 	const isProfile = computed(() => {
-		return route.params.id === profileData.value.id
+		return route.params.id === profileData.value?.id
 	})
 
 	onMounted(async () => {
-		profileData.value = await getUserData(route.params.id)
+		profileData.value = await getUserData(String(route.params.id))
 		if (profileData.value?.created_at) {
 			createdAt.value = new Date(profileData.value.created_at).toLocaleDateString(
 				'fr-FR',
@@ -90,6 +91,11 @@
 			)
 		}
 	})
+
+	const deleteRanking = (id: string) => {
+		// TODO: Implement ranking deletion
+		console.log('Delete ranking:', id)
+	}
 
 	definePageMeta({
 		middleware: ['auth'],
