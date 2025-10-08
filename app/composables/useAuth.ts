@@ -72,7 +72,7 @@ export const useAuth = () => {
 
 				const { data: newUser, error: createError } = await supabase
 					.from('users')
-					.insert([userData])
+					.insert([userData as any])
 					.select()
 					.single()
 
@@ -86,7 +86,7 @@ export const useAuth = () => {
 				// Mettre à jour l'utilisateur existant
 				const { data: updatedUser, error: updateError } = await supabase
 					.from('users')
-					.update(userData)
+					.update(userData as any)
 					.eq('id', authUser.id)
 					.select()
 					.single()

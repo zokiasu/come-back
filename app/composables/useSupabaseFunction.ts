@@ -13,7 +13,7 @@ export function useSupabaseFunction() {
 				.update({
 					...user,
 					updated_at: new Date().toISOString(),
-				})
+				} as any)
 				.eq('id', user.id)
 				.select()
 				.single()
@@ -23,7 +23,7 @@ export function useSupabaseFunction() {
 				throw error
 			}
 
-			userStore.setUserData(data)
+			userStore.setUserData(data as any)
 			return data
 		} catch (error) {
 			console.error('Error updating document:', error)
