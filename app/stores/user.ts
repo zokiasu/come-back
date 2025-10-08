@@ -70,6 +70,7 @@ export const useUserStore = defineStore(
 	{
 		persist: {
 			storage: import.meta.client ? localStorage : undefined,
+			// @ts-expect-error - paths is a valid option for pinia-plugin-persistedstate
 			paths: ['userDataStore', 'isLoginStore', 'isAdminStore'],
 			// On ne persiste pas supabaseUserStore car il contient des données sensibles
 			// et Supabase gère sa propre persistance via les cookies

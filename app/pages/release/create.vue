@@ -84,7 +84,7 @@
 						<!-- Artiste principal -->
 						<UFormField label="Artiste principal" name="artistId" required>
 							<ArtistSearchSelect
-								v-model="formState.artistId"
+								v-model="formState.artistId as any"
 								:disabled="isSubmitting"
 								placeholder="Rechercher un artiste..."
 								@artist-selected="onArtistSelected"

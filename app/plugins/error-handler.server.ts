@@ -9,6 +9,7 @@ export default defineNuxtPlugin(() => {
 		})
 
 		// Capturer les erreurs de rendu
+		// @ts-expect-error - render:error hook exists but not in types
 		app.hook('render:error', (error, context) => {
 			logError(error, `ssr-render-error-${String(context)}`)
 		})
