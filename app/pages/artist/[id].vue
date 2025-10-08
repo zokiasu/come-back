@@ -273,11 +273,11 @@
 					>
 						<MusicDisplay
 							v-for="song in musicDiscover"
-							:key="song.id_youtube_music"
+							:key="song.id_youtube_music ?? ''"
 							:artist-id="''"
-							:artist-name="artist.name"
-							:music-id="song.id_youtube_music"
-							:music-name="song.name"
+							:artist-name="artist.name ?? ''"
+							:music-id="song.id_youtube_music ?? ''"
+							:music-name="song.name ?? ''"
 							:music-image="song?.thumbnails[0]?.url"
 							:duration="song?.duration?.toString() || '0'"
 							class="bg-cb-quinary-900 w-full"
@@ -323,7 +323,7 @@
 							is-artist
 							:artist-id="String(soloMember.id ?? '')"
 							:main-title="soloMember.name"
-							:image="soloMember.image"
+							:image="soloMember.image ?? undefined"
 							:object-link="`/artist/${String(soloMember.id ?? '')}`"
 						/>
 					</transition-group>
@@ -354,12 +354,12 @@
 					>
 						<CardObject
 							v-for="release in albumEpRelease"
-							:key="release.id_youtube_music"
+							:key="release.id_youtube_music ?? ''"
 							:artist-id="artist.id"
 							:main-title="release.name"
 							:image="release.image ?? undefined"
-							:release-date="release.date"
-							:release-type="release.type"
+							:release-date="release.date ?? undefined"
+							:release-type="release.type ?? undefined"
 							:object-link="`/release/${release.id}`"
 							is-release-display
 							date-always-display
@@ -377,12 +377,12 @@
 					>
 						<CardObject
 							v-for="release in singleRelease"
-							:key="release.id_youtube_music"
+							:key="release.id_youtube_music ?? ''"
 							:artist-id="artist.id"
 							:main-title="release.name"
-							:image="release.image"
-							:release-date="release.date"
-							:release-type="release.type"
+							:image="release.image ?? undefined"
+							:release-date="release.date ?? undefined"
+							:release-type="release.type ?? undefined"
 							:object-link="`/release/${release.id}`"
 							is-release-display
 							date-always-display
@@ -404,7 +404,7 @@
 							is-artist
 							:artist-id="String(groupMember.id ?? '')"
 							:main-title="groupMember.name"
-							:image="groupMember.image"
+							:image="groupMember.image ?? undefined"
 							:object-link="`/artist/${String(groupMember.id ?? '')}`"
 						/>
 					</transition-group>
@@ -424,7 +424,7 @@
 							is-artist
 							:artist-id="String(group.id ?? '')"
 							:main-title="group.name"
-							:image="group.image"
+							:image="group.image ?? undefined"
 							:object-link="`/artist/${String(group.id ?? '')}`"
 						/>
 					</transition-group>
@@ -443,7 +443,7 @@
 							v-for="relation in currentCompanies"
 							:key="`current_company_${relation.company?.id}`"
 							:company="relation.company"
-							:relationship-type="relation.relationship_type"
+							:relationship-type="relation.relationship_type ?? undefined"
 							:is-past="false"
 						/>
 					</transition-group>
@@ -462,7 +462,7 @@
 							v-for="relation in pastCompanies"
 							:key="`past_company_${relation.company?.id}`"
 							:company="relation.company"
-							:relationship-type="relation.relationship_type"
+							:relationship-type="relation.relationship_type ?? undefined"
 							:is-past="true"
 						/>
 					</transition-group>
