@@ -53,7 +53,7 @@ export function useSupabaseSearch() {
 		}
 
 		// Transformer les données pour assurer que les tableaux sont toujours définis
-		const transformedData = (data || []).map((artist) => ({
+		const transformedData = (data || []).map((artist: any) => ({
 			...artist,
 			social_links: artist.social_links || [],
 			platform_links: artist.platform_links || [],
@@ -77,14 +77,14 @@ export function useSupabaseSearch() {
 
 		try {
 			// Use the RPC function for optimized search
-			const { data: rpcData, error: rpcError } = await supabase.rpc(
+			const { data: rpcData, error: rpcError } = (await supabase.rpc(
 				'search_artists_fulltext',
 				{
 					search_query: query.trim(),
 					result_limit: limit,
 					artist_type: type || null,
-				},
-			)
+				} as any,
+			)) as { data: any[] | null; error: any }
 
 			if (rpcError) {
 				console.error('RPC search error, falling back to ILIKE:', rpcError)

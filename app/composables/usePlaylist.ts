@@ -65,8 +65,9 @@ export const usePlaylist = () => {
 		}
 
 		const nextItem = playlist.value[nextIndex]
-		currentIndex.value = nextIndex
+		if (!nextItem) return false
 
+		currentIndex.value = nextIndex
 		return playMusic(nextItem.videoId, nextItem.title, nextItem.artist)
 	}
 
@@ -82,8 +83,9 @@ export const usePlaylist = () => {
 		}
 
 		const previousItem = playlist.value[previousIndex]
-		currentIndex.value = previousIndex
+		if (!previousItem) return false
 
+		currentIndex.value = previousIndex
 		return playMusic(previousItem.videoId, previousItem.title, previousItem.artist)
 	}
 
@@ -94,8 +96,9 @@ export const usePlaylist = () => {
 		}
 
 		const item = playlist.value[index]
-		currentIndex.value = index
+		if (!item) return false
 
+		currentIndex.value = index
 		return playMusic(item.videoId, item.title, item.artist)
 	}
 
