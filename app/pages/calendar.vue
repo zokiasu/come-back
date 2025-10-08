@@ -91,7 +91,7 @@
 		await getReleasesByMonthAndYear(currentMonth.value, currentYear.value).then((res) => {
 			loading.value = false
 			releases.value = res.sort((a, b) => {
-				return new Date(b.date).getTime() - new Date(a.date).getTime()
+				return new Date(b.date || '').getTime() - new Date(a.date || '').getTime()
 			})
 		})
 
@@ -108,7 +108,7 @@
 			if (a.date === b.date) {
 				return a.name.localeCompare(b.name)
 			}
-			return new Date(b.date).getTime() - new Date(a.date).getTime()
+			return new Date(b.date || '').getTime() - new Date(a.date || '').getTime()
 		})
 	})
 
@@ -235,13 +235,13 @@
 		>
 			<CardObject
 				v-for="release in releasesDisplayed"
-				:key="release.id_youtube_music"
-				:artist-id="release.artists?.[0]?.id"
+				:key="release.id_youtube_music ?? ''"
+				:artist-id="release.artists?.[0]?.id ?? ''"
 				:main-title="release.name"
 				:sub-title="release.artists?.[0]?.name"
-				:image="release.image"
-				:release-date="release.date"
-				:release-type="release.type"
+				:image="release.image ?? undefined"
+				:release-date="release.date ?? undefined"
+				:release-type="release.type ?? undefined"
 				:object-link="`/release/${release.id}`"
 				date-always-display
 				class="!min-w-full"
