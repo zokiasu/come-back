@@ -192,7 +192,7 @@
 					<div class="flex justify-end space-x-3 pt-4">
 						<UButton
 							type="button"
-							color="gray"
+							color="neutral"
 							variant="soft"
 							@click="resetNewMusicForm"
 							:disabled="loading"

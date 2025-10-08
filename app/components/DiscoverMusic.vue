@@ -66,7 +66,7 @@
 						{{ music.name }}
 					</NuxtLink>
 					<p v-if="music.artists && music.artists.length > 0">
-						{{ music.artists[0].name }}
+						{{ music.artists[0]?.name }}
 					</p>
 				</div>
 				<div class="flex justify-end">

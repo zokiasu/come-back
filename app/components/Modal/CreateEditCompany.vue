@@ -1,6 +1,6 @@
 <script setup lang="ts">
 	import { useSupabaseCompanies } from '~/composables/Supabase/useSupabaseCompanies'
-	import type { Company } from '~/composables/Supabase/useSupabaseCompanies'
+	import type { Company } from '~/types'
 
 	interface Props {
 		company?: Company | null

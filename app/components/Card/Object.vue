@@ -5,7 +5,7 @@
 			artistId: string
 			mainTitle: string
 			subTitle?: string
-			image: string
+			image?: string
 			objectLink: string
 			releaseDate?: string
 			releaseType?: string
@@ -16,6 +16,7 @@
 			isArtist: false,
 			artistId: '',
 			subTitle: '',
+			image: undefined,
 			releaseDate: '',
 			releaseType: '',
 			isReleaseDisplay: false,
