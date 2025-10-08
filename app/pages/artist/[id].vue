@@ -47,39 +47,35 @@
 
 	const members = computed(
 		() =>
-			((artist.value && (artist.value as any)['members']) as any[] | undefined)
+			artist.value?.members
 				?.filter((member) => member.type === 'SOLO')
 				.sort((a, b) => a.name.localeCompare(b.name)) || [],
 	)
 
 	const subUnitMembers = computed(
 		() =>
-			((artist.value && (artist.value as any)['members']) as any[] | undefined)
+			artist.value?.members
 				?.filter((member) => member.type === 'GROUP')
 				.sort((a, b) => a.name.localeCompare(b.name)) || [],
 	)
 
 	const singleRelease = computed(() => {
 		const singles =
-			((artist.value && (artist.value as any)['releases']) as any[] | undefined)?.filter(
-				(release) => release.type === 'SINGLE',
-			) || []
+			artist.value?.releases?.filter((release) => release.type === 'SINGLE') || []
 		singles.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 		return singles
 	})
 
 	const albumEpRelease = computed(() => {
 		const albums =
-			((artist.value && (artist.value as any)['releases']) as any[] | undefined)?.filter(
-				(release) => release.type !== 'SINGLE',
-			) || []
+			artist.value?.releases?.filter((release) => release.type !== 'SINGLE') || []
 		albums.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 		return albums
 	})
 
 	const currentCompanies = computed(() => {
 		return (
-			((artist.value && (artist.value as any)['companies']) as any[] | undefined)
+			artist.value?.companies
 				?.filter((relation) => relation.is_current)
 				.sort((a, b) => (a.company?.name || '').localeCompare(b.company?.name || '')) ||
 			[]
@@ -88,7 +84,7 @@
 
 	const pastCompanies = computed(() => {
 		return (
-			((artist.value && (artist.value as any)['companies']) as any[] | undefined)
+			artist.value?.companies
 				?.filter((relation) => !relation.is_current)
 				.sort((a, b) => (a.company?.name || '').localeCompare(b.company?.name || '')) ||
 			[]
@@ -415,7 +411,7 @@
 				</CardDefault>
 			</div>
 
-			<div v-if="(artist as any)['groups']?.length && !isFetchingArtist">
+			<div v-if="artist.groups?.length && !isFetchingArtist">
 				<CardDefault name="Group">
 					<transition-group
 						name="list-complete"
@@ -423,7 +419,7 @@
 						class="scrollBarLight flex snap-x snap-mandatory gap-3 overflow-x-auto pb-3 xl:flex-wrap"
 					>
 						<CardObject
-							v-for="group in (artist as any)['groups']"
+							v-for="group in artist.groups"
 							:key="`artistMembers_` + String(group.id ?? '')"
 							is-artist
 							:artist-id="String(group.id ?? '')"
