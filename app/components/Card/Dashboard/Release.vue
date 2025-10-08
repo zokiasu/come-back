@@ -1,62 +1,36 @@
 <script setup lang="ts">
-	import type { PropType } from 'vue'
-
 	// Interface for platform structure
 	type Platform = {
 		name: string
 		link: string
 	}
 
-	const props = defineProps({
-		id: {
-			type: String,
-			required: true,
-		},
-		artistsName: {
-			type: String,
-			required: true,
-		},
-		createdAt: {
-			type: String,
-			required: false,
-			default: null,
-		},
-		date: {
-			type: String,
-			required: true,
-		},
-		idYoutubeMusic: {
-			type: String,
-			required: true,
-		},
-		image: {
-			type: String,
-			required: false,
-			default: '',
-		},
-		name: {
-			type: String,
-			required: true,
-		},
-		needToBeVerified: {
-			type: Boolean,
-			required: true,
-		},
-		platformList: {
-			type: Array as PropType<Platform[]>,
-			required: true,
-		},
-		type: {
-			type: String,
-			required: true,
-		},
-		yearReleased: {
-			type: Number,
-			required: true,
-		},
+	interface Props {
+		id: string
+		artistsName: string
+		createdAt?: string
+		date: string
+		idYoutubeMusic: string
+		image?: string
+		name: string
+		needToBeVerified: boolean
+		platformList: Platform[]
+		type: string
+		yearReleased: number
+	}
+
+	const props = withDefaults(defineProps<Props>(), {
+		createdAt: undefined,
+		image: '',
 	})
 
-	const emit = defineEmits(['deleteRelease', 'updateRelease', 'release-verified'])
+	interface Emits {
+		(e: 'deleteRelease', id: string): void
+		(e: 'updateRelease', id: string): void
+		(e: 'release-verified', id: string): void
+	}
+
+	const emit = defineEmits<Emits>()
 
 	const showModal = ref(false)
 	const imageLoaded = ref(false)
