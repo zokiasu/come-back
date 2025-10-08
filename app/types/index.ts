@@ -112,10 +112,10 @@ declare global {
 export interface UseSupabaseReturn<T> {
 	data: Ref<T[]>
 	loading: Ref<boolean>
-	error: Ref<string | undefined>
+	error: Ref<string | null>
 	fetch: () => Promise<void>
-	create: (item: Partial<T>) => Promise<T | undefined>
-	update: (id: string, updates: Partial<T>) => Promise<T | undefined>
+	create: (item: Partial<T>) => Promise<T | null>
+	update: (id: string, updates: Partial<T>) => Promise<T | null>
 	delete: (id: string) => Promise<boolean>
 }
 
