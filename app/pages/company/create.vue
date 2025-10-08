@@ -1,6 +1,6 @@
 <script setup lang="ts">
 	import { storeToRefs } from 'pinia'
-	import type { Company } from '~/composables/Supabase/useSupabaseCompanies'
+	import type { Company } from '~/types'
 	import { useSupabaseCompanies } from '~/composables/Supabase/useSupabaseCompanies'
 	import { useUserStore } from '~/stores/user'
 

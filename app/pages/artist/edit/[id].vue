@@ -16,12 +16,6 @@
 		TablesInsert,
 	} from '~/types'
 
-	// Internal Composables
-	import { useSupabaseArtist } from '~/composables/Supabase/useSupabaseArtist'
-	import { useSupabaseMusicStyles } from '~/composables/Supabase/useSupabaseMusicStyles'
-	import { useSupabaseGeneralTags } from '~/composables/Supabase/useSupabaseGeneralTags'
-	import { useSupabaseCompanies } from '~/composables/Supabase/useSupabaseCompanies'
-
 	// Creates a generic type that adds 'label' to an existing type T
 	type MenuItem<T> = T & { label: string }
 
@@ -251,23 +245,30 @@
 				general_tags: artistTags.value.map((tag) => tag.name),
 			}
 
-			const selectedCompanies: TablesInsert<'artist_companies'>[] =
-				artistCompanies.value
-					.filter((relation) => relation.company !== null)
-					.map((relation) => ({
-						artist_id: currentArtistId,
-						company_id: relation.company!.id,
-						relationship_type: relation.relationship_type,
-						start_date: relation.start_date,
-						end_date: relation.end_date,
-						is_current: relation.is_current,
-					}))
+			const selectedCompanies: TablesInsert<'artist_companies'>[] = artistCompanies.value
+				.filter((relation) => relation.company !== null)
+				.map((relation) => ({
+					artist_id: currentArtistId,
+					company_id: relation.company!.id,
+					relationship_type: relation.relationship_type,
+					start_date: relation.start_date,
+					end_date: relation.end_date,
+					is_current: relation.is_current,
+				}))
+
+			// Filter out empty platform and social links before sending
+			const validPlatformLinks = artistPlatformList.value.filter(
+				(link) => link.name?.trim() && link.link?.trim(),
+			)
+			const validSocialLinks = artistSocialList.value.filter(
+				(link) => link.name?.trim() && link.link?.trim(),
+			)
 
 			await updateArtist(
 				currentArtistId,
 				updates,
-				artistSocialList.value,
-				artistPlatformList.value,
+				validSocialLinks,
+				validPlatformLinks,
 				// eslint-disable-next-line @typescript-eslint/no-unused-vars
 				artistGroups.value.map(({ label, ...rest }) => ({
 					...rest,
