@@ -68,15 +68,15 @@
 	}
 
 	const onReleaseVerified = () => {
-		emit('updateRelease')
-		emit('release-verified')
+		emit('updateRelease', props.id)
+		emit('release-verified', props.id)
 	}
 
-	const handleReleaseSaved = (updatedRelease) => {
+	const handleReleaseSaved = (updatedRelease: { verified: boolean }) => {
 		// Update local data if necessary
-		emit('updateRelease')
+		emit('updateRelease', props.id)
 		if (updatedRelease.verified) {
-			emit('release-verified')
+			emit('release-verified', props.id)
 		}
 	}
 </script>

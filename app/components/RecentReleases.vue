@@ -20,7 +20,7 @@
 						? release.artists.map((artist) => artist.name).join(', ')
 						: 'Unknown'
 				"
-				:image="release.image"
+				:image="release.image ?? undefined"
 				:release-date="release.date"
 				:release-type="release.type"
 				:object-link="`/release/${release.id}`"
