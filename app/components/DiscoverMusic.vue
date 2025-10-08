@@ -18,22 +18,38 @@
 	const playVideo = (videoId: string) => {
 		addToPlaylist(videoId, props.music.name, props.music?.artists?.[0]?.name || '')
 	}
+
+	const thumbnailUrl = computed(() => {
+		if (
+			Array.isArray(props.music.thumbnails) &&
+			props.music.thumbnails[2] &&
+			typeof props.music.thumbnails[2] === 'object' &&
+			'url' in props.music.thumbnails[2]
+		) {
+			return (props.music.thumbnails[2] as { url: string }).url
+		}
+		return ''
+	})
 </script>
 
 <template>
 	<div v-if="music && music?.artists">
 		<UButton
 			class="bg-cb-quinary-900 text-cb-tertiary-200 hover:text-cb-primary-900 relative aspect-square max-h-96 w-full overflow-hidden rounded-lg !p-0 drop-shadow-lg"
-			@click="playVideo(music.id_youtube_music)"
+			@click="playVideo(music.id_youtube_music ?? '')"
 		>
-			<div v-if="music.thumbnails?.length" class="relative h-full w-full">
+			<div
+				v-if="Array.isArray(music.thumbnails) && music.thumbnails.length > 0"
+				class="relative h-full w-full"
+			>
 				<div
 					class="bg-cb-quinary-900 absolute inset-0 h-full w-full"
 					:class="imageLoaded ? 'opacity-0' : 'opacity-100'"
 				/>
 				<NuxtImg
+					v-if="thumbnailUrl"
 					:alt="music.name"
-					:src="music.thumbnails?.[2]?.url"
+					:src="thumbnailUrl"
 					class="h-full w-full rounded object-cover"
 					@load="imageLoaded = true"
 				/>

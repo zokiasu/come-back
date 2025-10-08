@@ -93,7 +93,7 @@
 							⚠️ Confirmer la suppression
 						</h3>
 						<UButton
-							color="gray"
+							color="neutral"
 							variant="ghost"
 							icon="i-heroicons-x-mark-20-solid"
 							@click="close"
@@ -214,9 +214,9 @@
 
 				<template #footer>
 					<div class="flex justify-end space-x-3">
-						<UButton color="gray" variant="outline" @click="close">Annuler</UButton>
+						<UButton color="neutral" variant="outline" @click="close">Annuler</UButton>
 						<UButton
-							color="red"
+							color="error"
 							:loading="isDeleting"
 							:disabled="isLoading || !impact"
 							@click="confirmDelete"

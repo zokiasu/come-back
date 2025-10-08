@@ -15,7 +15,7 @@
 	const imageLoaded = ref(false)
 	const isPlaying = ref(false)
 	const showThumbnail = ref(true)
-	const player = ref(null)
+	const player = ref<YT.Player | null>(null)
 	const playerContainer = useTemplateRef('playerContainer')
 	const isPlayerReady = ref(false)
 
@@ -72,7 +72,9 @@
 			const tag = document.createElement('script')
 			tag.src = 'https://www.youtube.com/iframe_api'
 			const firstScriptTag = document.getElementsByTagName('script')[0]
-			firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag)
+			if (firstScriptTag?.parentNode) {
+				firstScriptTag.parentNode.insertBefore(tag, firstScriptTag)
+			}
 
 			// Créer un callback sécurisé pour éviter la pollution globale
 			const originalCallback = window.onYouTubeIframeAPIReady
@@ -148,12 +150,12 @@
 					origin: import.meta.client ? window.location.origin : 'https://localhost',
 				},
 				events: {
-					onReady: (event: any) => {
+					onReady: (event: YT.PlayerEvent) => {
 						console.log('✅ YouTube player ready')
 						isPlayerReady.value = true
 						isPlaying.value = true
 					},
-					onStateChange: (event: any) => {
+					onStateChange: (event: YT.OnStateChangeEvent) => {
 						console.log('🔄 Player state changed:', event.data)
 						if (event.data === window.YT.PlayerState.ENDED) {
 							console.log('⏹️ Video ended')
