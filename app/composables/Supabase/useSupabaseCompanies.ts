@@ -1,13 +1,5 @@
-import type {
-	QueryOptions,
-	FilterOptions,
-	Company,
-	CompanyArtist,
-	Artist,
-	Database,
-	TablesInsert,
-	TablesUpdate,
-} from '~/types'
+import type { QueryOptions, FilterOptions, Company, CompanyArtist, Artist } from '~/types'
+import type { Database, TablesInsert, TablesUpdate } from '~/types/supabase'
 
 interface CompaniesResponse {
 	companies: Company[]

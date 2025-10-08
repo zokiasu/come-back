@@ -1,8 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // ===== TYPES SUPABASE =====
-// Import et réexport des types générés par Supabase
+// Import des types générés par Supabase (utilisés en interne uniquement)
 import type { Database, Tables, TablesInsert, TablesUpdate } from './supabase'
-export type { Database, Tables, TablesInsert, TablesUpdate }
+
+// Note: Database, Tables, TablesInsert, TablesUpdate doivent être importés
+// directement depuis '~/types/supabase' dans vos fichiers pour éviter les duplications
+// Ces types ne sont PAS réexportés pour éviter les warnings de duplication
 
 // Types de base Supabase avec alias plus courts
 export type User = Tables<'users'>

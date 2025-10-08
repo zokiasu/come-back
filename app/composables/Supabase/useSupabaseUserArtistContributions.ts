@@ -1,12 +1,5 @@
-import type {
-	QueryOptions,
-	FilterOptions,
-	ContributionType,
-	Database,
-	TablesInsert,
-	TablesUpdate,
-	Tables,
-} from '~/types'
+import type { QueryOptions, FilterOptions, ContributionType } from '~/types'
+import type { Database, TablesInsert, TablesUpdate, Tables } from '~/types/supabase'
 
 type UserArtistContribution = Tables<'user_artist_contributions'> & {
 	user?: Tables<'users'>

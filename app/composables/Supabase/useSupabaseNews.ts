@@ -1,11 +1,5 @@
-import type {
-	News,
-	QueryOptions,
-	FilterOptions,
-	Database,
-	TablesInsert,
-	TablesUpdate,
-} from '~/types'
+import type { News, QueryOptions, FilterOptions } from '~/types'
+import type { Database, TablesInsert, TablesUpdate } from '~/types/supabase'
 
 interface NewsResponse {
 	news: News[]

@@ -1,12 +1,5 @@
-import type {
-	QueryOptions,
-	FilterOptions,
-	ArtistType,
-	Artist,
-	Database,
-	TablesInsert,
-	TablesUpdate,
-} from '~/types'
+import type { QueryOptions, FilterOptions, ArtistType, Artist } from '~/types'
+import type { Database, TablesInsert, TablesUpdate } from '~/types/supabase'
 import { useSupabaseClient } from '#imports'
 
 // Types pour les réponses RPC

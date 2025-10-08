@@ -1,10 +1,7 @@
 <script setup lang="ts">
 	import { storeToRefs } from 'pinia'
 	import { useUserStore } from '@/stores/user'
-	import type {
-		Company,
-		CompanyArtist,
-	} from '~/types'
+	import type { Company, CompanyArtist } from '~/types'
 	import { useSupabaseCompanies } from '~/composables/Supabase/useSupabaseCompanies'
 
 	const userStore = useUserStore()

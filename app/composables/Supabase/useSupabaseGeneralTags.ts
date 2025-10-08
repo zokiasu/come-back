@@ -1,11 +1,5 @@
-import type {
-	QueryOptions,
-	FilterOptions,
-	GeneralTag,
-	Database,
-	TablesInsert,
-	TablesUpdate,
-} from '~/types'
+import type { QueryOptions, FilterOptions, GeneralTag } from '~/types'
+import type { Database, TablesInsert, TablesUpdate } from '~/types/supabase'
 
 export function useSupabaseGeneralTags() {
 	const supabase = useSupabaseClient<Database>()
