@@ -209,7 +209,7 @@
 			validPlatformLinks,
 			selectedGroups,
 			selectedMembers,
-			selectedCompanies,
+			selectedCompanies as any,
 		)
 			.then((newArtist) => {
 				isUploadingEdit.value = false
@@ -702,8 +702,8 @@
 									</label>
 									<UInputMenu
 										:key="`company-menu-${index}-${companiesMenuKey}`"
-										v-model="relation.company"
-										:items="companiesForMenu"
+										v-model="relation.company as any"
+										:items="companiesForMenu as any"
 										by="id"
 										placeholder="Select a company"
 										searchable
@@ -714,7 +714,7 @@
 											item: 'rounded cursor-pointer data-highlighted:before:bg-cb-primary-900/30 hover:bg-cb-primary-900',
 										}"
 										@update:model-value="
-											(company: Company) => updateCompanyInRelation(index, company)
+											(company: any) => updateCompanyInRelation(index, company)
 										"
 									/>
 								</div>

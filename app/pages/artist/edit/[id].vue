@@ -13,8 +13,8 @@
 		ArtistPlatformLink,
 		ArtistSocialLink,
 		Company,
-		TablesInsert,
 	} from '~/types'
+	import type { TablesInsert } from '~/types/supabase'
 
 	// Creates a generic type that adds 'label' to an existing type T
 	type MenuItem<T> = T & { label: string }
@@ -655,7 +655,7 @@
 									class="bg-cb-quinary-900 rounded p-1"
 									:model-value="parseToCalendarDate(birthdayToDate)"
 									:min-date="new Date(1900, 0, 1)"
-									@update:model-value="onBirthdayUpdate"
+									@update:model-value="onBirthdayUpdate as any"
 								/>
 							</template>
 						</UPopover>
@@ -677,7 +677,7 @@
 									class="bg-cb-quinary-900 rounded p-1"
 									:model-value="parseToCalendarDate(debutDateToDate)"
 									:min-date="new Date(2000, 0, 1)"
-									@update:model-value="onDebutDateUpdate"
+									@update:model-value="onDebutDateUpdate as any"
 								/>
 							</template>
 						</UPopover>
@@ -915,8 +915,8 @@
 									</label>
 									<UInputMenu
 										:key="`company-menu-${index}-${companiesMenuKey}`"
-										:model-value="relation.company"
-										:items="companiesForMenu"
+										:model-value="relation.company as any"
+										:items="companiesForMenu as any"
 										by="id"
 										placeholder="Select a company"
 										searchable
@@ -927,7 +927,7 @@
 											item: 'rounded cursor-pointer data-highlighted:before:bg-cb-primary-900/30 hover:bg-cb-primary-900',
 										}"
 										@update:model-value="
-											(company: Company) => updateCompanyInRelation(index, company)
+											(company: any) => updateCompanyInRelation(index, company)
 										"
 									/>
 								</div>
