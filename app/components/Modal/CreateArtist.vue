@@ -201,7 +201,7 @@
 		<div class="grid grid-cols-1 gap-5">
 			<ComebackInput v-model="artist.name" label="Name *" placeholder="Artist Name*" />
 			<ComebackInput
-				v-model="artist.id_youtube_music"
+				v-model="artist.id_youtube_music as string | undefined"
 				label="Id Youtube Music"
 				placeholder="ID Youtube Music"
 			/>

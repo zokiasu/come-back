@@ -38,8 +38,8 @@
 						>
 							<option
 								v-for="option in yearOptions"
-								:key="option.value"
-								:value="option.value"
+								:key="option.value ?? ''"
+								:value="option.value ?? undefined"
 							>
 								{{ option.label }}
 							</option>
@@ -55,8 +55,8 @@
 						>
 							<option
 								v-for="option in monthOptions"
-								:key="option.value"
-								:value="option.value"
+								:key="option.value ?? ''"
+								:value="option.value ?? undefined"
 							>
 								{{ option.label }}
 							</option>

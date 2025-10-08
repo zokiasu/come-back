@@ -13,15 +13,15 @@
 			<template #search>
 				<div class="space-y-4">
 					<UInputMenu
-						v-model="selectedMusic"
+						v-model="selectedMusic as any"
 						:search="searchMusics"
-						:items="musicOptions"
+						:items="musicOptions as any"
 						option-attribute="name"
 						placeholder="Search for existing music..."
 						:loading="isSearching"
 						:disabled="loading"
 						size="lg"
-						@update:model-value="onMusicSelected"
+						@update:model-value="onMusicSelected as any"
 					>
 						<template #option="{ option }">
 							<div class="flex w-full items-center justify-between">
@@ -373,7 +373,7 @@
 				updated_at: new Date().toISOString(),
 			}
 
-			const createdMusic = await createMusic(musicData, [props.artistId])
+			const createdMusic = await createMusic(musicData as any, [props.artistId])
 
 			if (createdMusic) {
 				emit('music-created', createdMusic)

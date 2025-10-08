@@ -375,7 +375,7 @@
 		<!-- MV Info -->
 		<div v-if="displayedMV" class="space-y-1 text-center transition-all duration-200">
 			<p class="text-cb-tertiary-400 text-sm">
-				{{ formatArtists(displayedMV.artists) }}
+				{{ formatArtists(displayedMV.artists || []) }}
 			</p>
 			<h4 class="text-lg font-semibold">{{ displayedMV.name }}</h4>
 			<p v-if="displayedMV.date" class="text-cb-tertiary-500 text-xs">
