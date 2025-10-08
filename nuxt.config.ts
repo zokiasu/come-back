@@ -9,12 +9,20 @@ export default defineNuxtConfig({
 		'@nuxt/image',
 		'@nuxt/ui',
 		'@nuxtjs/supabase',
-		// '@nuxt/eslint', // Temporairement commenté pour éviter les conflits
 	],
 
 	css: ['~/assets/css/tailwind.css'],
 
 	ssr: true,
+
+  imports: {
+    dirs: [
+      'composables',
+      'composables/*',
+      'composables/*/*',
+			'types',
+    ],
+  },
 
 	devtools: { enabled: true },
 

@@ -64,7 +64,14 @@ export type ReleaseType = Database['public']['Enums']['release_type']
 export type MusicType = Database['public']['Enums']['music_type']
 export type RelationType = Database['public']['Enums']['relation_type']
 export type ContributionType = Database['public']['Enums']['contribution_type']
-export type CompanyType = 'LABEL' | 'PUBLISHER' | 'DISTRIBUTOR' | 'MANAGER' | 'AGENCY' | 'STUDIO' | 'OTHER'
+export type CompanyType =
+	| 'LABEL'
+	| 'PUBLISHER'
+	| 'DISTRIBUTOR'
+	| 'MANAGER'
+	| 'AGENCY'
+	| 'STUDIO'
+	| 'OTHER'
 
 // ===== TYPES POUR LES COMPOSABLES =====
 // Types étendus pour les relations

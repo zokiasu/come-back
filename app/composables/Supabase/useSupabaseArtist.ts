@@ -1,9 +1,4 @@
-import type {
-	QueryOptions,
-	FilterOptions,
-	ArtistType,
-	Artist,
-} from '~/types'
+import type { QueryOptions, FilterOptions, ArtistType, Artist } from '~/types'
 import type { Database, TablesInsert, TablesUpdate } from '~/types/supabase'
 import { useSupabaseClient } from '#imports'
 
@@ -203,43 +198,49 @@ export function useSupabaseArtist() {
 			throw new Error("Erreur lors de la mise à jour de l'artiste")
 		}
 
-		// Supprimer les anciens liens sociaux
-		await supabase.from('artist_social_links').delete().eq('artist_id', artist.id)
+		// Gérer les liens sociaux seulement si fournis
+		if (socialLinks !== undefined) {
+			// Supprimer les anciens liens sociaux
+			await supabase.from('artist_social_links').delete().eq('artist_id', artist.id)
 
-		// Ajouter les nouveaux liens sociaux
-		if (socialLinks?.length) {
-			const socialLinksWithArtistId: TablesInsert<'artist_social_links'>[] =
-				socialLinks.map((link) => ({
-					...link,
-					artist_id: artist.id,
-				}))
+			// Ajouter les nouveaux liens sociaux
+			if (socialLinks.length > 0) {
+				const socialLinksWithArtistId: TablesInsert<'artist_social_links'>[] =
+					socialLinks.map((link) => ({
+						...link,
+						artist_id: artist.id,
+					}))
 
-			const { error: socialError } = await supabase
-				.from('artist_social_links')
-				.insert(socialLinksWithArtistId)
+				const { error: socialError } = await supabase
+					.from('artist_social_links')
+					.insert(socialLinksWithArtistId)
 
-			if (socialError) {
-				console.error("Erreur lors de l'ajout des liens sociaux:", socialError)
+				if (socialError) {
+					console.error("Erreur lors de l'ajout des liens sociaux:", socialError)
+				}
 			}
 		}
 
-		// Supprimer les anciens liens de plateformes
-		await supabase.from('artist_platform_links').delete().eq('artist_id', artist.id)
+		// Gérer les liens de plateformes seulement si fournis
+		if (platformLinks !== undefined) {
+			// Supprimer les anciens liens de plateformes
+			await supabase.from('artist_platform_links').delete().eq('artist_id', artist.id)
 
-		// Ajouter les nouveaux liens de plateformes
-		if (platformLinks?.length) {
-			const platformLinksWithArtistId: TablesInsert<'artist_platform_links'>[] =
-				platformLinks.map((link) => ({
-					...link,
-					artist_id: artist.id,
-				}))
+			// Ajouter les nouveaux liens de plateformes
+			if (platformLinks.length > 0) {
+				const platformLinksWithArtistId: TablesInsert<'artist_platform_links'>[] =
+					platformLinks.map((link) => ({
+						...link,
+						artist_id: artist.id,
+					}))
 
-			const { error: platformError } = await supabase
-				.from('artist_platform_links')
-				.insert(platformLinksWithArtistId)
+				const { error: platformError } = await supabase
+					.from('artist_platform_links')
+					.insert(platformLinksWithArtistId)
 
-			if (platformError) {
-				console.error("Erreur lors de l'ajout des liens de plateformes:", platformError)
+				if (platformError) {
+					console.error("Erreur lors de l'ajout des liens de plateformes:", platformError)
+				}
 			}
 		}
 

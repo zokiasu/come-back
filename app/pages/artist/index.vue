@@ -153,7 +153,7 @@
 						</div>
 					</div>
 
-					<div v-if="hasActiveFilters" class="flex justify-center w-full">
+					<div v-if="hasActiveFilters" class="flex w-full justify-center">
 						<UButton
 							label="Clear filters"
 							variant="outline"
@@ -264,22 +264,32 @@
 		} else {
 			artists.value = [...artists.value, ...artistsArray]
 		}
-		
+
 		// Il n'y a plus d'éléments si on a reçu exactement le nombre demandé
 		hasMore.value = artistsArray.length === limit.value
 		isLoading.value = false
 	}
 
-	watch([search, selectedTags, selectedType, selectedStyles, selectedGender, selectedActivity], () => {
-		// Éviter les appels pendant l'initialisation
-		if (!isInitialized.value) {
-			return
-		}
+	watch(
+		[
+			search,
+			selectedTags,
+			selectedType,
+			selectedStyles,
+			selectedGender,
+			selectedActivity,
+		],
+		() => {
+			// Éviter les appels pendant l'initialisation
+			if (!isInitialized.value) {
+				return
+			}
 
-		page.value = 1
-		hasMore.value = true
-		fetchArtists(true)
-	})
+			page.value = 1
+			hasMore.value = true
+			fetchArtists(true)
+		},
+	)
 
 	const loadMore = async () => {
 		if (isLoading.value || !hasMore.value) return
