@@ -1,6 +1,4 @@
 <script setup lang="ts">
-	/// <reference types="~/types/youtube" />
-
 	import type { PropType } from 'vue'
 	import type { Music } from '~/types'
 

@@ -118,7 +118,10 @@
 		return 'bg-cb-primary-900 text-white border border-cb-primary-800'
 	}
 
-	const formatValue = (value: number) => {
-		return value.toLocaleString('fr-FR')
+	const formatValue = (value: number | string) => {
+		if (typeof value === 'number') {
+			return value.toLocaleString('fr-FR')
+		}
+		return value
 	}
 </script>

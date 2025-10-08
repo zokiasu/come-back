@@ -1,6 +1,4 @@
 <script setup lang="ts">
-	/// <reference types="~/types/youtube" />
-
 	const idYoutubeVideo = useIdYoutubeVideo()
 	const isPlayingVideo = useIsPlayingVideo()
 	const musicNamePlaying = useMusicNamePlaying()
@@ -338,7 +336,7 @@
 		if (!import.meta.client || !player.value || !isPlayerReady.value) return
 
 		// Extraire la valeur si c'est un tableau (USlider retourne [value])
-		const timeValue = Array.isArray(newTime) ? newTime[0] : (newTime ?? currentTime.value)
+		const timeValue = Array.isArray(newTime) ? (newTime[0] ?? currentTime.value) : (newTime ?? currentTime.value)
 
 		try {
 			player.value?.seekTo(timeValue, true)
@@ -352,7 +350,7 @@
 
 	const seekToTime = (newTime: number | number[]) => {
 		// Pour l'événement @input, on met juste à jour l'affichage
-		const timeValue = Array.isArray(newTime) ? newTime[0] : (newTime ?? currentTime.value)
+		const timeValue = Array.isArray(newTime) ? (newTime[0] ?? currentTime.value) : (newTime ?? currentTime.value)
 		currentTime.value = timeValue
 	}
 
