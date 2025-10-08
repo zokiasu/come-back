@@ -153,7 +153,7 @@ export function useSupabaseStatistics() {
 			const [demographicsData, topReleasesData, topMusicsData, artistsData] =
 				await Promise.all([
 					// Statistiques démographiques
-					supabase.rpc('get_artist_demographics') as Promise<
+					supabase.rpc('get_artist_demographics') as unknown as Promise<
 						SupabaseResponse<RPCDemographicsItem[]>
 					>,
 
@@ -163,7 +163,7 @@ export function useSupabaseStatistics() {
 						start_date: startDate ? startDate.toISOString().split('T')[0] : null,
 						end_date: endDate ? endDate.toISOString().split('T')[0] : null,
 						limit_count: 10,
-					}) as Promise<SupabaseResponse<RPCTopArtist[]>>,
+					} as any) as unknown as Promise<SupabaseResponse<RPCTopArtist[]>>,
 
 					// Top artistes par musiques avec filtrage temporel
 					supabase.rpc('get_top_artists_by_musics', {
@@ -171,14 +171,14 @@ export function useSupabaseStatistics() {
 						start_date: startDate ? startDate.toISOString().split('T')[0] : null,
 						end_date: endDate ? endDate.toISOString().split('T')[0] : null,
 						limit_count: 10,
-					}) as Promise<SupabaseResponse<RPCTopArtist[]>>,
+					} as any) as unknown as Promise<SupabaseResponse<RPCTopArtist[]>>,
 
 					// Données pour statistiques par genre et qualité
 					supabase
 						.from('artists')
 						.select(
 							'styles, verified, image, description, birth_date, debut_date, general_tags, type, gender',
-						) as Promise<SupabaseResponse<ArtistStatsRow[]>>,
+						) as unknown as Promise<SupabaseResponse<ArtistStatsRow[]>>,
 				])
 
 			// Traitement des données démographiques
@@ -567,10 +567,10 @@ export function useSupabaseStatistics() {
 					filter_year: filters.year || null,
 					start_date: startDate ? startDate.toISOString().split('T')[0] : null,
 					end_date: endDate ? endDate.toISOString().split('T')[0] : null,
-				}) as Promise<SupabaseResponse<RPCGeneralStats[]>>,
+				} as any) as unknown as Promise<SupabaseResponse<RPCGeneralStats[]>>,
 
 				// Companies simple (en attendant une fonction dédiée)
-				supabase.from('companies').select('id, name').limit(10) as Promise<
+				supabase.from('companies').select('id, name').limit(10) as unknown as Promise<
 					SupabaseResponse<CompanyRow[]>
 				>,
 
@@ -579,14 +579,14 @@ export function useSupabaseStatistics() {
 					period_type: temporalPeriodType,
 					filter_year: filters.year || null,
 					filter_month: isMonthlyView ? filters.month : null,
-				}) as Promise<SupabaseResponse<RPCTemporalData[]>>,
+				} as any) as unknown as Promise<SupabaseResponse<RPCTemporalData[]>>,
 
 				// Données temporelles des musiques
 				supabase.rpc('get_musics_temporal_stats_with_fallback', {
 					period_type: temporalPeriodType,
 					filter_year: filters.year || null,
 					filter_month: isMonthlyView ? filters.month : null,
-				}) as Promise<SupabaseResponse<RPCTemporalData[]>>,
+				} as any) as unknown as Promise<SupabaseResponse<RPCTemporalData[]>>,
 			])
 
 			// Traitement des données depuis SQL
