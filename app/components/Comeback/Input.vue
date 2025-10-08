@@ -25,7 +25,7 @@
 
 	const emit = defineEmits(['update:modelValue', 'clear'])
 
-	const updateValue = (event) => {
+	const updateValue = (event: Event) => {
 		const value = event.target.value
 		if (typeof modelValue === 'number') {
 			emit('update:modelValue', value ? parseInt(value) : null)

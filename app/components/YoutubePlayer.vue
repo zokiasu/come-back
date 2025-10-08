@@ -67,7 +67,7 @@
 		}
 	}
 
-	const onPlayerReady = async (event) => {
+	const onPlayerReady = async (event: YT.PlayerEvent) => {
 		console.log('✅ Lecteur YouTube prêt')
 		isPlayerReady.value = true
 		duration.value = event.target.getDuration()
@@ -76,7 +76,7 @@
 		errorMessage.value = ''
 	}
 
-	const onPlayerStateChange = (event) => {
+	const onPlayerStateChange = (event: YT.OnStateChangeEvent) => {
 		if (!import.meta.client) return
 
 		isPlaying.value = event.data === window.YT.PlayerState.PLAYING
@@ -111,7 +111,7 @@
 		console.log('🎵 État du lecteur:', states[event.data] || event.data)
 	}
 
-	const onPlayerError = (event) => {
+	const onPlayerError = (event: YT.OnErrorEvent) => {
 		console.error('❌ Erreur du lecteur YouTube:', event.data)
 		errorDetected.value = true
 
