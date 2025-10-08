@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // ===== TYPES SUPABASE =====
 // Import des types générés par Supabase (utilisés en interne uniquement)
 import type { Database, Tables, TablesInsert, TablesUpdate } from './supabase'
@@ -113,10 +112,10 @@ declare global {
 export interface UseSupabaseReturn<T> {
 	data: Ref<T[]>
 	loading: Ref<boolean>
-	error: Ref<string | null>
+	error: Ref<string | undefined>
 	fetch: () => Promise<void>
-	create: (item: any) => Promise<T | null>
-	update: (id: string, updates: any) => Promise<T | null>
+	create: (item: Partial<T>) => Promise<T | undefined>
+	update: (id: string, updates: Partial<T>) => Promise<T | undefined>
 	delete: (id: string) => Promise<boolean>
 }
 
@@ -131,20 +130,37 @@ export type ReleaseWithArtists = Release & {
 }
 
 export interface PaginatedResponse<T> {
-	releases: T[]
+	items: T[]
 	total: number
 	page: number
 	limit: number
 	totalPages: number
 }
 
-export type PaginatedReleaseResponse = PaginatedResponse<ReleaseWithRelations>
+export interface PaginatedReleaseResponse
+	extends Omit<PaginatedResponse<ReleaseWithRelations>, 'items'> {
+	releases: ReleaseWithRelations[]
+}
+
+export interface PaginatedArtistResponse extends Omit<PaginatedResponse<Artist>, 'items'> {
+	artists: Artist[]
+}
+
+export interface PaginatedMusicResponse extends Omit<PaginatedResponse<Music>, 'items'> {
+	musics: Music[]
+}
+
+export interface PaginatedCompanyResponse extends Omit<PaginatedResponse<Company>, 'items'> {
+	companies: Company[]
+}
 
 // Type pour les composants UI
 export type InputMenuItem = {
 	id?: string
 	label?: string
-	[key: string]: any
+	disabled?: boolean
+	icon?: string
+	[key: string]: unknown
 }
 
 export type ArtistMenuItem = Artist & {
