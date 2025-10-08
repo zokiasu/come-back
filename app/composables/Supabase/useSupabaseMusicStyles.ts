@@ -1,5 +1,11 @@
-import type { QueryOptions, FilterOptions, MusicStyle } from '~/types'
-import type { Database, TablesInsert, TablesUpdate } from '~/types/supabase'
+import type {
+	QueryOptions,
+	FilterOptions,
+	MusicStyle,
+	Database,
+	TablesInsert,
+	TablesUpdate,
+} from '~/types'
 
 export function useSupabaseMusicStyles() {
 	const supabase = useSupabaseClient<Database>()

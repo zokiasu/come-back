@@ -4,7 +4,7 @@
 	import type {
 		Company,
 		CompanyArtist,
-	} from '~/composables/Supabase/useSupabaseCompanies'
+	} from '~/types'
 	import { useSupabaseCompanies } from '~/composables/Supabase/useSupabaseCompanies'
 
 	const userStore = useUserStore()

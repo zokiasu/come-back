@@ -6,8 +6,10 @@ import type {
 	Artist,
 	ReleaseWithRelations,
 	ReleasePlatformLink,
+	Database,
+	TablesInsert,
+	TablesUpdate,
 } from '~/types'
-import type { Database, TablesInsert, TablesUpdate } from '~/types/supabase'
 
 export function useSupabaseRelease() {
 	const supabase = useSupabaseClient<Database>()

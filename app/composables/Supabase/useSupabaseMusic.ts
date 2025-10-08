@@ -5,8 +5,8 @@ import type {
 	Music,
 	Artist,
 	Release,
+	Database,
 } from '~/types'
-import type { Database } from '~/types/supabase'
 
 // Types pour les données jointes
 interface ArtistJunction {
