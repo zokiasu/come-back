@@ -75,7 +75,7 @@
 		const mainArtistName =
 			artists && artists.length > 0 ? artists[0]?.name : artistName || ''
 
-		addToPlaylist(videoId, musicName, mainArtistName)
+		addToPlaylist(videoId, musicName, mainArtistName ?? '')
 	}
 
 	const convertDuration = (duration: string | number) => {

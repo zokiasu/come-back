@@ -12,7 +12,7 @@
 	const currentTime = ref(0)
 	const duration = ref(0)
 	const globalPlayerContainer = useTemplateRef('globalPlayerContainer')
-	const player = ref(null)
+	const player = ref<YT.Player | null>(null)
 	const volumeOn = ref(true)
 	const volume = ref(20)
 	const errorDetected = ref(false)
@@ -20,7 +20,7 @@
 	const isPlayerReady = ref(false)
 	const isSeeking = ref(false)
 
-	let intervalId = null
+	let intervalId: ReturnType<typeof setInterval> | null = null
 
 	// Création du lecteur YouTube
 	const createPlayer = () => {
@@ -51,7 +51,6 @@
 						widget_referrer: import.meta.client
 							? window.location.protocol + '//' + window.location.host
 							: 'https://localhost',
-						host: 'https://www.youtube-nocookie.com',
 					},
 					events: {
 						onReady: onPlayerReady,
@@ -232,7 +231,7 @@
 			}
 
 			// Callback global pour l'API YouTube avec timeout
-			window.onYouTubePlayerAPIReady = () => {
+			window.onYouTubeIframeAPIReady = () => {
 				console.log('✅ API YouTube prête')
 				createPlayer()
 			}

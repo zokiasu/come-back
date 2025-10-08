@@ -12,8 +12,8 @@
 		>
 			<CardObject
 				v-for="release in releases"
-				:key="release.id_youtube_music"
-				:artist-id="release.artists ? release.artists[0].id : 'index'"
+				:key="release.id_youtube_music ?? release.id"
+				:artist-id="release.artists?.[0]?.id ?? 'index'"
 				:main-title="release.name"
 				:sub-title="
 					release.artists
@@ -21,8 +21,8 @@
 						: 'Unknown'
 				"
 				:image="release.image ?? undefined"
-				:release-date="release.date"
-				:release-type="release.type"
+				:release-date="release.date ?? undefined"
+				:release-type="release.type ?? undefined"
 				:object-link="`/release/${release.id}`"
 			/>
 		</div>
