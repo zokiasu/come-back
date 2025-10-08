@@ -1,4 +1,6 @@
 <script setup lang="ts">
+	/// <reference types="~/types/youtube" />
+
 	const idYoutubeVideo = useIdYoutubeVideo()
 	const isPlayingVideo = useIsPlayingVideo()
 	const musicNamePlaying = useMusicNamePlaying()
@@ -316,12 +318,12 @@
 		}
 	}
 
-	const seek = (seconds) => {
+	const seek = (seconds: number) => {
 		if (!import.meta.client || !player.value || !isPlayerReady.value) return
 
 		try {
 			const newTime = player.value?.getCurrentTime() + seconds
-			player.value?.seekTo(newTime)
+			player.value?.seekTo(newTime, true)
 			currentTime.value = player.value?.getCurrentTime()
 		} catch (error) {
 			console.error('❌ Erreur lors du seek:', error)
@@ -332,14 +334,14 @@
 		isSeeking.value = true
 	}
 
-	const onSeekEnd = (newTime) => {
+	const onSeekEnd = (newTime: number | number[]) => {
 		if (!import.meta.client || !player.value || !isPlayerReady.value) return
 
 		// Extraire la valeur si c'est un tableau (USlider retourne [value])
 		const timeValue = Array.isArray(newTime) ? newTime[0] : (newTime ?? currentTime.value)
 
 		try {
-			player.value?.seekTo(timeValue)
+			player.value?.seekTo(timeValue, true)
 			currentTime.value = timeValue
 		} catch (error) {
 			console.error('❌ Erreur lors du seekTo:', error)
@@ -348,13 +350,13 @@
 		}
 	}
 
-	const seekToTime = (newTime) => {
+	const seekToTime = (newTime: number | number[]) => {
 		// Pour l'événement @input, on met juste à jour l'affichage
 		const timeValue = Array.isArray(newTime) ? newTime[0] : (newTime ?? currentTime.value)
 		currentTime.value = timeValue
 	}
 
-	const setVolume = (newVolume) => {
+	const setVolume = (newVolume: number | number[]) => {
 		if (!import.meta.client || !player.value || !isPlayerReady.value) return
 
 		// Extraire la valeur si c'est un tableau (USlider retourne [value])
@@ -407,11 +409,11 @@
 		duration.value = 0
 	}
 
-	const convertDuration = (duration) => {
+	const convertDuration = (duration: number): string => {
 		const minutes = Math.floor(duration / 60)
-		let seconds = Math.round(duration % 60)
+		const secondsNum = Math.round(duration % 60)
 
-		seconds = seconds < 10 ? `0${seconds}` : seconds
+		const seconds = secondsNum < 10 ? `0${secondsNum}` : secondsNum.toString()
 
 		return `${minutes}:${seconds}`
 	}
