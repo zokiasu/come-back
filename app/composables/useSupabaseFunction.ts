@@ -8,9 +8,9 @@ export function useSupabaseFunction() {
 	// Updates user data in the 'users' table in Supabase.
 	const updateUserData = async (user: User) => {
 		try {
-			// @ts-expect-error - user object has correct structure but type inference is complex
 			const { data, error } = await supabase
 				.from('users')
+				// @ts-expect-error - user object has correct structure but Supabase type inference is complex
 				.update({
 					...user,
 					updated_at: new Date().toISOString(),

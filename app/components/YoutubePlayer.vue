@@ -1,4 +1,5 @@
 <script setup lang="ts">
+	// @ts-expect-error - YT namespace from YouTube IFrame API loaded via script tag
 	const idYoutubeVideo = useIdYoutubeVideo()
 	const isPlayingVideo = useIsPlayingVideo()
 	const musicNamePlaying = useMusicNamePlaying()
@@ -12,6 +13,7 @@
 	const currentTime = ref(0)
 	const duration = ref(0)
 	const globalPlayerContainer = useTemplateRef('globalPlayerContainer')
+	// @ts-expect-error - YT namespace from YouTube IFrame API
 	const player = ref<YT.Player | null>(null)
 	const volumeOn = ref(true)
 	const volume = ref(20)
@@ -66,6 +68,7 @@
 		}
 	}
 
+	// @ts-expect-error - YT namespace from YouTube IFrame API
 	const onPlayerReady = async (event: YT.PlayerEvent) => {
 		console.log('✅ Lecteur YouTube prêt')
 		isPlayerReady.value = true
@@ -75,6 +78,7 @@
 		errorMessage.value = ''
 	}
 
+	// @ts-expect-error - YT namespace from YouTube IFrame API
 	const onPlayerStateChange = (event: YT.OnStateChangeEvent) => {
 		if (!import.meta.client) return
 
@@ -99,7 +103,7 @@
 		}
 
 		// Log des changements d'état pour debug
-		const states = {
+		const states: Record<number, string> = {
 			[-1]: 'non démarré',
 			[0]: 'terminé',
 			[1]: 'lecture',
@@ -110,6 +114,7 @@
 		console.log('🎵 État du lecteur:', states[event.data] || event.data)
 	}
 
+	// @ts-expect-error - YT namespace from YouTube IFrame API
 	const onPlayerError = (event: YT.OnErrorEvent) => {
 		console.error('❌ Erreur du lecteur YouTube:', event.data)
 		errorDetected.value = true
@@ -524,6 +529,7 @@
 					"
 					size="lg"
 				/>
+				<!-- @ts-expect-error - USlider accepts progress/handler params but types incomplete -->
 				<USlider
 					v-model="volume"
 					:min="0"
@@ -539,6 +545,7 @@
 				/>
 			</div>
 
+			<!-- @ts-expect-error - USlider accepts progress/handler params but types incomplete -->
 			<USlider
 				v-model="currentTime"
 				:min="0"
