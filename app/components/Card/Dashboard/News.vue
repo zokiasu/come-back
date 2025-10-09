@@ -35,7 +35,7 @@
 		},
 	})
 
-	const skeleton = useTemplateRef('skeleton')
+	const skeleton = useTemplateRef<HTMLElement>('skeleton')
 	const isEditModalOpen = ref(false)
 	const isUpdating = ref(false)
 	const searchArtist = ref<string>('')

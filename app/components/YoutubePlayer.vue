@@ -362,7 +362,7 @@
 
 		try {
 			player.value?.setVolume(volumeValue)
-			volume.value = volumeValue
+			volume.value = volumeValue ?? 0
 		} catch (error) {
 			console.error('❌ Erreur lors du réglage du volume:', error)
 		}
@@ -437,7 +437,7 @@
 					variant="ghost"
 					class="hidden lg:block"
 					:disabled="!isPlayerReady || !playlistInfo.hasPrevious"
-					@click="skipToPrevious"
+					@click="() => { skipToPrevious() }"
 					icon="i-material-symbols-skip-previous"
 					size="lg"
 				/>
@@ -477,7 +477,7 @@
 					variant="ghost"
 					class="hidden lg:block"
 					:disabled="!isPlayerReady || !playlistInfo.hasNext"
-					@click="skipToNext"
+					@click="() => { skipToNext() }"
 					icon="i-material-symbols-skip-next"
 					size="lg"
 				/>

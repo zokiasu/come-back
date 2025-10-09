@@ -70,9 +70,10 @@ export const useAuth = () => {
 				// Créer un nouvel utilisateur
 				userData.created_at = new Date().toISOString()
 
+				// @ts-expect-error - userData has correct structure but type inference is complex
 				const { data: newUser, error: createError } = await supabase
 					.from('users')
-					.insert([userData as any])
+					.insert([userData])
 					.select()
 					.single()
 
@@ -84,9 +85,10 @@ export const useAuth = () => {
 				return newUser
 			} else {
 				// Mettre à jour l'utilisateur existant
+				// @ts-expect-error - userData has correct structure but type inference is complex
 				const { data: updatedUser, error: updateError } = await supabase
 					.from('users')
-					.update(userData as any)
+					.update(userData)
 					.eq('id', authUser.id)
 					.select()
 					.single()
