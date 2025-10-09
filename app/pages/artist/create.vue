@@ -75,6 +75,9 @@
 		Omit<ArtistSocialLink, 'id' | 'created_at' | 'artist_id'>[]
 	>([])
 
+	// Clé pour forcer la re-render des UInputMenu des companies
+	const companiesMenuKey = ref(0)
+
 	const stylesForMenu = computed(() => {
 		return stylesList.value.map(
 			(style): MenuItem<MusicStyle> => ({
@@ -94,14 +97,12 @@
 	})
 
 	const companiesForMenu = computed(() => {
-		return companiesList.value.map((company): MenuItem<Omit<Company, 'type'>> => {
-			// eslint-disable-next-line @typescript-eslint/no-unused-vars
-			const { type, ...rest } = company
-			return {
-				...rest,
+		return companiesList.value.map(
+			(company: Company): MenuItem<Company> => ({
+				...company,
 				label: company.name,
-			}
-		})
+			}),
+		)
 	})
 
 	const groupsForMenu = computed(() => {
@@ -194,13 +195,21 @@
 			general_tags: artistTagListName,
 		}
 
+		// Filter out empty platform and social links before sending
+		const validPlatformLinks = artistPlatformList.value.filter(
+			(link) => link.name?.trim() && link.link?.trim(),
+		)
+		const validSocialLinks = artistSocialList.value.filter(
+			(link) => link.name?.trim() && link.link?.trim(),
+		)
+
 		createArtist(
 			artist,
-			artistSocialList.value,
-			artistPlatformList.value,
+			validSocialLinks,
+			validPlatformLinks,
 			selectedGroups,
 			selectedMembers,
-			selectedCompanies,
+			selectedCompanies as any,
 		)
 			.then((newArtist) => {
 				isUploadingEdit.value = false
@@ -231,6 +240,25 @@
 		textarea.style.height = `${textarea.scrollHeight}px`
 	}
 
+	// Fonction pour gérer la mise à jour après création de company
+	const handleCompanyUpdated = async () => {
+		try {
+			// Récupérer toutes les companies sans limite
+			const companiesResponse = await getAllCompanies({ limit: 1000 })
+			companiesList.value = companiesResponse.companies
+
+			// Force re-render des UInputMenu
+			companiesMenuKey.value = companiesMenuKey.value + 1
+		} catch (error) {
+			console.error('Error updating companies list:', error)
+			toast.add({
+				title: 'Warning',
+				description: 'Company created but list update failed',
+				color: 'warning',
+			})
+		}
+	}
+
 	// Functions to manage company relations
 	const addCompanyRelation = () => {
 		artistCompanies.value.push({
@@ -251,14 +279,20 @@
 	}
 
 	// Functions to manage platform links
-	const updatePlatformName = (index: number, event: Event) => {
+	const updatePlatformName = (
+		index: number,
+		event: Event | { target: { value: string } },
+	) => {
 		const platform = artistPlatformList.value[index]
 		if (platform) {
 			platform.name = (event.target as HTMLInputElement).value
 		}
 	}
 
-	const updatePlatformLink = (index: number, event: Event) => {
+	const updatePlatformLink = (
+		index: number,
+		event: Event | { target: { value: string } },
+	) => {
 		const platform = artistPlatformList.value[index]
 		if (platform) {
 			platform.link = (event.target as HTMLInputElement).value
@@ -269,24 +303,28 @@
 		artistPlatformList.value.push({ name: '', link: '' })
 	}
 
-	const removePlatform = (
-		platform: Omit<ArtistPlatformLink, 'id' | 'created_at' | 'artist_id'>,
-	) => {
-		artistPlatformList.value.splice(artistPlatformList.value.indexOf(platform), 1)
+	const removePlatform = (index: number) => {
+		artistPlatformList.value.splice(index, 1)
 	}
 
 	// Functions to manage social links
-	const updateSocialName = (index: number, event: Event) => {
+	const updateSocialName = (
+		index: number,
+		event: Event | { target: { value: string } },
+	) => {
 		const social = artistSocialList.value[index]
 		if (social) {
-			social.name = (event.target as HTMLInputElement).value
+			social.name = (event.target as HTMLInputElement).value || ''
 		}
 	}
 
-	const updateSocialLink = (index: number, event: Event) => {
+	const updateSocialLink = (
+		index: number,
+		event: Event | { target: { value: string } },
+	) => {
 		const social = artistSocialList.value[index]
 		if (social) {
-			social.link = (event.target as HTMLInputElement).value
+			social.link = (event.target as HTMLInputElement).value || ''
 		}
 	}
 
@@ -294,10 +332,8 @@
 		artistSocialList.value.push({ name: '', link: '' })
 	}
 
-	const removeSocial = (
-		social: Omit<ArtistSocialLink, 'id' | 'created_at' | 'artist_id'>,
-	) => {
-		artistSocialList.value.splice(artistSocialList.value.indexOf(social), 1)
+	const removeSocial = (index: number) => {
+		artistSocialList.value.splice(index, 1)
 	}
 
 	onMounted(async () => {
@@ -306,7 +342,7 @@
 
 		stylesList.value = await getAllMusicStyles()
 		tagsList.value = await getAllGeneralTags()
-		const companiesResponse = await getAllCompanies()
+		const companiesResponse = await getAllCompanies({ limit: 1000 })
 		companiesList.value = companiesResponse.companies
 	})
 
@@ -632,15 +668,9 @@
 
 							<template #content>
 								<ModalCreateEditCompany
-									:is-open="true"
 									:company="null"
 									:is-creating="true"
-									@updated="
-										async () => {
-											const companiesResponse = await getAllCompanies()
-											companiesList = companiesResponse.companies
-										}
-									"
+									@updated="handleCompanyUpdated"
 								/>
 							</template>
 						</UModal>
@@ -671,6 +701,7 @@
 										Company
 									</label>
 									<UInputMenu
+										:key="`company-menu-${index}-${companiesMenuKey}`"
 										v-model="relation.company"
 										:items="companiesForMenu"
 										by="id"
@@ -683,7 +714,7 @@
 											item: 'rounded cursor-pointer data-highlighted:before:bg-cb-primary-900/30 hover:bg-cb-primary-900',
 										}"
 										@update:model-value="
-											(company: Company) => updateCompanyInRelation(index, company)
+											(company: any) => updateCompanyInRelation(index, company)
 										"
 									/>
 								</div>
@@ -831,82 +862,41 @@
 			</div>
 			<!-- Platforms & Socials -->
 			<div class="grid grid-cols-1 gap-5 lg:grid-cols-2">
-				<!-- Platforms -->
-				<div class="w-full space-y-2">
-					<ComebackLabel label="Platforms" />
-					<div
-						v-for="(platform, index) in artistPlatformList"
-						:key="index + '_platform'"
-						class="flex w-full gap-1"
-					>
-						<div class="bg-cb-quinary-900 w-full space-y-3 rounded p-2 text-xs">
-							<input
-								type="text"
-								:value="platform.name"
-								placeholder="Platform's Name"
-								class="w-full appearance-none border-b bg-transparent transition-all duration-150 ease-in-out outline-none"
-								@input="updatePlatformName(index, $event)"
-							/>
-							<input
-								type="text"
-								:value="platform.link"
-								placeholder="Platform's Link"
-								class="w-full appearance-none border-b bg-transparent transition-all duration-150 ease-in-out outline-none"
-								@input="updatePlatformLink(index, $event)"
-							/>
-						</div>
-						<button
-							class="bg-cb-primary-900 rounded p-5 text-xs hover:bg-red-900"
-							@click="removePlatform(platform)"
-						>
-							Delete
-						</button>
-					</div>
-					<button
-						class="bg-cb-primary-900 w-full rounded p-2 text-xs font-semibold uppercase hover:bg-red-900"
-						@click="addPlatform"
-					>
-						Add Platforms
-					</button>
-				</div>
-				<!-- Socials -->
-				<div class="w-full space-y-2">
-					<ComebackLabel label="Socials" />
-					<div
-						v-for="(social, index) in artistSocialList"
-						:key="index + '_social'"
-						class="flex w-full gap-2"
-					>
-						<div class="bg-cb-quinary-900 w-full space-y-3 rounded p-2 text-xs">
-							<input
-								type="text"
-								:value="social.name"
-								placeholder="Social's Name"
-								class="w-full appearance-none border-b bg-transparent transition-all duration-150 ease-in-out outline-none"
-								@input="updateSocialName(index, $event)"
-							/>
-							<input
-								type="text"
-								:value="social.link"
-								placeholder="Social's Link"
-								class="w-full appearance-none border-b bg-transparent transition-all duration-150 ease-in-out outline-none"
-								@input="updateSocialLink(index, $event)"
-							/>
-						</div>
-						<button
-							class="bg-cb-primary-900 rounded p-5 text-xs hover:bg-red-900"
-							@click="removeSocial(social)"
-						>
-							Delete
-						</button>
-					</div>
-					<button
-						class="bg-cb-primary-900 w-full rounded p-2 text-xs font-semibold uppercase hover:bg-red-900"
-						@click="addSocial"
-					>
-						Add Socials
-					</button>
-				</div>
+				<LinkManager
+					:items="artistPlatformList"
+					label="Platforms"
+					name-placeholder="Platform's Name"
+					link-placeholder="Platform's Link"
+					key-prefix="platform"
+					@add-item="addPlatform"
+					@remove-item="removePlatform"
+					@update-name="
+						(index: any, name: any) =>
+							updatePlatformName(index, { target: { value: name } })
+					"
+					@update-link="
+						(index: any, link: any) =>
+							updatePlatformLink(index, { target: { value: link } })
+					"
+				/>
+
+				<LinkManager
+					:items="artistSocialList"
+					label="Socials"
+					name-placeholder="Social's Name"
+					link-placeholder="Social's Link"
+					key-prefix="social"
+					@add-item="addSocial"
+					@remove-item="removeSocial"
+					@update-name="
+						(index: any, name: any) =>
+							updateSocialName(index, { target: { value: name } })
+					"
+					@update-link="
+						(index: any, link: any) =>
+							updateSocialLink(index, { target: { value: link } })
+					"
+				/>
 			</div>
 		</div>
 

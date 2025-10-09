@@ -47,39 +47,39 @@
 
 	const members = computed(
 		() =>
-			((artist.value && (artist.value as any)['members']) as any[] | undefined)
+			artist.value?.members
 				?.filter((member) => member.type === 'SOLO')
 				.sort((a, b) => a.name.localeCompare(b.name)) || [],
 	)
 
 	const subUnitMembers = computed(
 		() =>
-			((artist.value && (artist.value as any)['members']) as any[] | undefined)
+			artist.value?.members
 				?.filter((member) => member.type === 'GROUP')
 				.sort((a, b) => a.name.localeCompare(b.name)) || [],
 	)
 
 	const singleRelease = computed(() => {
 		const singles =
-			((artist.value && (artist.value as any)['releases']) as any[] | undefined)?.filter(
-				(release) => release.type === 'SINGLE',
-			) || []
-		singles.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+			artist.value?.releases?.filter((release) => release.type === 'SINGLE') || []
+		singles.sort(
+			(a, b) => new Date(b.date || '').getTime() - new Date(a.date || '').getTime(),
+		)
 		return singles
 	})
 
 	const albumEpRelease = computed(() => {
 		const albums =
-			((artist.value && (artist.value as any)['releases']) as any[] | undefined)?.filter(
-				(release) => release.type !== 'SINGLE',
-			) || []
-		albums.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+			artist.value?.releases?.filter((release) => release.type !== 'SINGLE') || []
+		albums.sort(
+			(a, b) => new Date(b.date || '').getTime() - new Date(a.date || '').getTime(),
+		)
 		return albums
 	})
 
 	const currentCompanies = computed(() => {
 		return (
-			((artist.value && (artist.value as any)['companies']) as any[] | undefined)
+			artist.value?.companies
 				?.filter((relation) => relation.is_current)
 				.sort((a, b) => (a.company?.name || '').localeCompare(b.company?.name || '')) ||
 			[]
@@ -88,7 +88,7 @@
 
 	const pastCompanies = computed(() => {
 		return (
-			((artist.value && (artist.value as any)['companies']) as any[] | undefined)
+			artist.value?.companies
 				?.filter((relation) => !relation.is_current)
 				.sort((a, b) => (a.company?.name || '').localeCompare(b.company?.name || '')) ||
 			[]
@@ -277,11 +277,11 @@
 					>
 						<MusicDisplay
 							v-for="song in musicDiscover"
-							:key="song.id_youtube_music"
+							:key="song.id_youtube_music ?? ''"
 							:artist-id="''"
-							:artist-name="artist.name"
-							:music-id="song.id_youtube_music"
-							:music-name="song.name"
+							:artist-name="artist.name ?? ''"
+							:music-id="song.id_youtube_music ?? ''"
+							:music-name="song.name ?? ''"
 							:music-image="song?.thumbnails[0]?.url"
 							:duration="song?.duration?.toString() || '0'"
 							class="bg-cb-quinary-900 w-full"
@@ -327,7 +327,7 @@
 							is-artist
 							:artist-id="String(soloMember.id ?? '')"
 							:main-title="soloMember.name"
-							:image="soloMember.image"
+							:image="soloMember.image ?? undefined"
 							:object-link="`/artist/${String(soloMember.id ?? '')}`"
 						/>
 					</transition-group>
@@ -358,12 +358,12 @@
 					>
 						<CardObject
 							v-for="release in albumEpRelease"
-							:key="release.id_youtube_music"
+							:key="release.id_youtube_music ?? ''"
 							:artist-id="artist.id"
 							:main-title="release.name"
-							:image="release.image"
-							:release-date="release.date"
-							:release-type="release.type"
+							:image="release.image ?? undefined"
+							:release-date="release.date ?? undefined"
+							:release-type="release.type ?? undefined"
 							:object-link="`/release/${release.id}`"
 							is-release-display
 							date-always-display
@@ -381,12 +381,12 @@
 					>
 						<CardObject
 							v-for="release in singleRelease"
-							:key="release.id_youtube_music"
+							:key="release.id_youtube_music ?? ''"
 							:artist-id="artist.id"
 							:main-title="release.name"
-							:image="release.image"
-							:release-date="release.date"
-							:release-type="release.type"
+							:image="release.image ?? undefined"
+							:release-date="release.date ?? undefined"
+							:release-type="release.type ?? undefined"
 							:object-link="`/release/${release.id}`"
 							is-release-display
 							date-always-display
@@ -408,14 +408,14 @@
 							is-artist
 							:artist-id="String(groupMember.id ?? '')"
 							:main-title="groupMember.name"
-							:image="groupMember.image"
+							:image="groupMember.image ?? undefined"
 							:object-link="`/artist/${String(groupMember.id ?? '')}`"
 						/>
 					</transition-group>
 				</CardDefault>
 			</div>
 
-			<div v-if="(artist as any)['groups']?.length && !isFetchingArtist">
+			<div v-if="artist.groups?.length && !isFetchingArtist">
 				<CardDefault name="Group">
 					<transition-group
 						name="list-complete"
@@ -423,12 +423,12 @@
 						class="scrollBarLight flex snap-x snap-mandatory gap-3 overflow-x-auto pb-3 xl:flex-wrap"
 					>
 						<CardObject
-							v-for="group in (artist as any)['groups']"
+							v-for="group in artist.groups"
 							:key="`artistMembers_` + String(group.id ?? '')"
 							is-artist
 							:artist-id="String(group.id ?? '')"
 							:main-title="group.name"
-							:image="group.image"
+							:image="group.image ?? undefined"
 							:object-link="`/artist/${String(group.id ?? '')}`"
 						/>
 					</transition-group>
@@ -447,7 +447,7 @@
 							v-for="relation in currentCompanies"
 							:key="`current_company_${relation.company?.id}`"
 							:company="relation.company"
-							:relationship-type="relation.relationship_type"
+							:relationship-type="relation.relationship_type ?? undefined"
 							:is-past="false"
 						/>
 					</transition-group>
@@ -466,7 +466,7 @@
 							v-for="relation in pastCompanies"
 							:key="`past_company_${relation.company?.id}`"
 							:company="relation.company"
-							:relationship-type="relation.relationship_type"
+							:relationship-type="relation.relationship_type ?? undefined"
 							:is-past="true"
 						/>
 					</transition-group>

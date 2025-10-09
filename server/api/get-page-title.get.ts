@@ -29,7 +29,7 @@ export default defineEventHandler(async (event) => {
 			method: 'GET',
 			headers: {
 				'User-Agent': 'Mozilla/5.0 (compatible; ComebackBot/1.0)',
-				'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+				Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
 				'Accept-Language': 'fr-FR,fr;q=0.9,en;q=0.8',
 			},
 			signal: controller.signal,
@@ -54,7 +54,9 @@ export default defineEventHandler(async (event) => {
 
 		if (!titleMatch || !titleMatch[1]) {
 			// Essayer de trouver des métadonnées alternatives
-			const ogTitleMatch = html.match(/<meta[^>]*property=['"](og:title|twitter:title)['"][^>]*content=['"]([^'"]*)['"]/i)
+			const ogTitleMatch = html.match(
+				/<meta[^>]*property=['"](og:title|twitter:title)['"][^>]*content=['"]([^'"]*)['"]/i,
+			)
 			if (ogTitleMatch && ogTitleMatch[2]) {
 				return {
 					title: decodeHtmlEntities(ogTitleMatch[2]).substring(0, 100), // Limiter à 100 caractères

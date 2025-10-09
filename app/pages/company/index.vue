@@ -65,7 +65,7 @@
 							<div class="flex flex-wrap gap-2">
 								<UButton
 									v-for="status in verificationStatuses"
-									:key="status.value"
+									:key="String(status.value)"
 									:variant="selectedVerified === status.value ? 'solid' : 'outline'"
 									:color="selectedVerified === status.value ? 'primary' : 'neutral'"
 									size="sm"
@@ -155,7 +155,7 @@
 	import { ref, watch, onMounted, computed } from 'vue'
 	import { useSupabaseCompanies } from '@/composables/Supabase/useSupabaseCompanies'
 	import { useInfiniteScroll } from '@vueuse/core'
-	import type { Company } from '~/composables/Supabase/useSupabaseCompanies'
+	import type { Company } from '~/types'
 
 	const { getAllCompanies, companyTypes } = useSupabaseCompanies()
 

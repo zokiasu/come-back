@@ -1,6 +1,6 @@
 <script setup lang="ts">
 	import { useSupabaseCompanies } from '~/composables/Supabase/useSupabaseCompanies'
-	import type { Company } from '~/composables/Supabase/useSupabaseCompanies'
+	import type { Company } from '~/types'
 
 	interface Props {
 		company?: Company | null
@@ -204,6 +204,7 @@
 <template>
 	<UCard
 		:ui="{
+			// @ts-expect-error - UCard ui accepts base but types don't include it
 			base: 'max-h-[90vh] overflow-y-auto',
 			header: { base: 'sticky top-0 z-10' },
 		}"

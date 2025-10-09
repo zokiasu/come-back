@@ -15,26 +15,20 @@
 	const toast = useToast()
 	const { createArtist } = useSupabaseArtist()
 
-	const { stylesList, tagsList, groupList, membersList } = defineProps({
-		stylesList: {
-			type: Array as PropType<MusicStyle[]>,
-			required: true,
-		},
-		tagsList: {
-			type: Array as PropType<GeneralTag[]>,
-			required: true,
-		},
-		groupList: {
-			type: Array as PropType<Artist[]>,
-			required: true,
-		},
-		membersList: {
-			type: Array as PropType<Artist[]>,
-			required: true,
-		},
-	})
+	interface Props {
+		stylesList: MusicStyle[]
+		tagsList: GeneralTag[]
+		groupList: Artist[]
+		membersList: Artist[]
+	}
 
-	const emit = defineEmits(['closeModal'])
+	const { stylesList, tagsList, groupList, membersList } = defineProps<Props>()
+
+	interface Emits {
+		(e: 'closeModal'): void
+	}
+
+	const emit = defineEmits<Emits>()
 
 	const artist = ref<Partial<Artist>>({
 		name: '',
@@ -207,7 +201,7 @@
 		<div class="grid grid-cols-1 gap-5">
 			<ComebackInput v-model="artist.name" label="Name *" placeholder="Artist Name*" />
 			<ComebackInput
-				v-model="artist.id_youtube_music"
+				v-model="artist.id_youtube_music as string | undefined"
 				label="Id Youtube Music"
 				placeholder="ID Youtube Music"
 			/>

@@ -94,7 +94,7 @@
 				<div class="flex items-center justify-between">
 					<h3 class="text-lg font-semibold text-red-600">🗑️ Advanced deletion</h3>
 					<UButton
-						color="gray"
+						color="neutral"
 						variant="ghost"
 						icon="i-heroicons-x-mark-20-solid"
 						@click="close"
@@ -181,9 +181,9 @@
 
 			<template #footer>
 				<div class="flex justify-end space-x-3">
-					<UButton color="gray" variant="outline" @click="close">Cancel</UButton>
+					<UButton color="neutral" variant="outline" @click="close">Cancel</UButton>
 					<UButton
-						:color="deletionMode === 'safe' ? 'red' : 'orange'"
+						:color="deletionMode === 'safe' ? 'error' : 'warning'"
 						:loading="isDeleting"
 						:disabled="isLoading"
 						@click="confirmDelete"

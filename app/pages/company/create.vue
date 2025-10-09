@@ -1,6 +1,6 @@
 <script setup lang="ts">
 	import { storeToRefs } from 'pinia'
-	import type { Company } from '~/composables/Supabase/useSupabaseCompanies'
+	import type { Company } from '~/types'
 	import { useSupabaseCompanies } from '~/composables/Supabase/useSupabaseCompanies'
 	import { useUserStore } from '~/stores/user'
 
@@ -40,13 +40,13 @@
 
 		const company: Omit<Company, 'id' | 'created_at' | 'updated_at'> = {
 			name: companyName.value,
-			description: companyDescription.value || undefined,
+			description: companyDescription.value || null,
 			type: companyType.value as Company['type'],
-			website: companyWebsite.value || undefined,
-			founded_year: companyFoundedYear.value || undefined,
-			country: companyCountry.value || undefined,
-			city: companyCity.value || undefined,
-			logo_url: companyLogoUrl.value || undefined,
+			website: companyWebsite.value || null,
+			founded_year: companyFoundedYear.value || null,
+			country: companyCountry.value || null,
+			city: companyCity.value || null,
+			logo_url: companyLogoUrl.value || null,
 			verified: isAdminStore.value || false,
 		}
 

@@ -1,8 +1,10 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // ===== TYPES SUPABASE =====
-// Import et réexport des types générés par Supabase
+// Import des types générés par Supabase (utilisés en interne uniquement)
 import type { Database, Tables, TablesInsert, TablesUpdate } from './supabase'
-export type { Database, Tables, TablesInsert, TablesUpdate }
+
+// Note: Database, Tables, TablesInsert, TablesUpdate doivent être importés
+// directement depuis '~/types/supabase' dans vos fichiers pour éviter les duplications
+// Ces types ne sont PAS réexportés pour éviter les warnings de duplication
 
 // Types de base Supabase avec alias plus courts
 export type User = Tables<'users'>
@@ -64,7 +66,14 @@ export type ReleaseType = Database['public']['Enums']['release_type']
 export type MusicType = Database['public']['Enums']['music_type']
 export type RelationType = Database['public']['Enums']['relation_type']
 export type ContributionType = Database['public']['Enums']['contribution_type']
-export type CompanyType = 'LABEL' | 'PUBLISHER' | 'DISTRIBUTOR' | 'MANAGER' | 'AGENCY' | 'STUDIO' | 'OTHER'
+export type CompanyType =
+	| 'LABEL'
+	| 'PUBLISHER'
+	| 'DISTRIBUTOR'
+	| 'MANAGER'
+	| 'AGENCY'
+	| 'STUDIO'
+	| 'OTHER'
 
 // ===== TYPES POUR LES COMPOSABLES =====
 // Types étendus pour les relations
@@ -105,8 +114,8 @@ export interface UseSupabaseReturn<T> {
 	loading: Ref<boolean>
 	error: Ref<string | null>
 	fetch: () => Promise<void>
-	create: (item: any) => Promise<T | null>
-	update: (id: string, updates: any) => Promise<T | null>
+	create: (item: Partial<T>) => Promise<T | null>
+	update: (id: string, updates: Partial<T>) => Promise<T | null>
 	delete: (id: string) => Promise<boolean>
 }
 
@@ -121,20 +130,39 @@ export type ReleaseWithArtists = Release & {
 }
 
 export interface PaginatedResponse<T> {
-	releases: T[]
+	items: T[]
 	total: number
 	page: number
 	limit: number
 	totalPages: number
 }
 
-export type PaginatedReleaseResponse = PaginatedResponse<ReleaseWithRelations>
+export interface PaginatedReleaseResponse
+	extends Omit<PaginatedResponse<ReleaseWithRelations>, 'items'> {
+	releases: ReleaseWithRelations[]
+}
+
+export interface PaginatedArtistResponse
+	extends Omit<PaginatedResponse<Artist>, 'items'> {
+	artists: Artist[]
+}
+
+export interface PaginatedMusicResponse extends Omit<PaginatedResponse<Music>, 'items'> {
+	musics: Music[]
+}
+
+export interface PaginatedCompanyResponse
+	extends Omit<PaginatedResponse<Company>, 'items'> {
+	companies: Company[]
+}
 
 // Type pour les composants UI
 export type InputMenuItem = {
 	id?: string
 	label?: string
-	[key: string]: any
+	disabled?: boolean
+	icon?: string
+	[key: string]: unknown
 }
 
 export type ArtistMenuItem = Artist & {

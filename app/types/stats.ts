@@ -23,6 +23,8 @@ export interface TopListItem {
 	name: string
 	image?: string
 	badge?: string
+	subtitle?: string
+	value: number | string
 }
 
 export interface StatSection {

@@ -15,7 +15,8 @@
 	const imageLoaded = ref(false)
 	const isPlaying = ref(false)
 	const showThumbnail = ref(true)
-	const player = ref(null)
+	// @ts-expect-error - YT namespace from YouTube IFrame API
+	const player = ref<YT.Player | null>(null)
 	const playerContainer = useTemplateRef('playerContainer')
 	const isPlayerReady = ref(false)
 
@@ -72,7 +73,9 @@
 			const tag = document.createElement('script')
 			tag.src = 'https://www.youtube.com/iframe_api'
 			const firstScriptTag = document.getElementsByTagName('script')[0]
-			firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag)
+			if (firstScriptTag?.parentNode) {
+				firstScriptTag.parentNode.insertBefore(tag, firstScriptTag)
+			}
 
 			// Créer un callback sécurisé pour éviter la pollution globale
 			const originalCallback = window.onYouTubeIframeAPIReady
@@ -148,12 +151,14 @@
 					origin: import.meta.client ? window.location.origin : 'https://localhost',
 				},
 				events: {
-					onReady: (event: any) => {
+					// @ts-expect-error - YT namespace from YouTube IFrame API
+					onReady: (event: YT.PlayerEvent) => {
 						console.log('✅ YouTube player ready')
 						isPlayerReady.value = true
 						isPlaying.value = true
 					},
-					onStateChange: (event: any) => {
+					// @ts-expect-error - YT namespace from YouTube IFrame API
+					onStateChange: (event: YT.OnStateChangeEvent) => {
 						console.log('🔄 Player state changed:', event.data)
 						if (event.data === window.YT.PlayerState.ENDED) {
 							console.log('⏹️ Video ended')
@@ -373,7 +378,7 @@
 		<!-- MV Info -->
 		<div v-if="displayedMV" class="space-y-1 text-center transition-all duration-200">
 			<p class="text-cb-tertiary-400 text-sm">
-				{{ formatArtists(displayedMV.artists) }}
+				{{ formatArtists(displayedMV.artists || []) }}
 			</p>
 			<h4 class="text-lg font-semibold">{{ displayedMV.name }}</h4>
 			<p v-if="displayedMV.date" class="text-cb-tertiary-500 text-xs">

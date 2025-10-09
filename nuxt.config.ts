@@ -4,17 +4,15 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineNuxtConfig({
 	compatibilityDate: '2025-05-27',
 
-	modules: [
-		'@pinia/nuxt',
-		'@nuxt/image',
-		'@nuxt/ui',
-		'@nuxtjs/supabase',
-		// '@nuxt/eslint', // Temporairement commenté pour éviter les conflits
-	],
+	modules: ['@pinia/nuxt', '@nuxt/image', '@nuxt/ui', '@nuxtjs/supabase'],
 
 	css: ['~/assets/css/tailwind.css'],
 
 	ssr: true,
+
+	imports: {
+		dirs: ['composables', 'composables/*', 'composables/*/*', 'types'],
+	},
 
 	devtools: { enabled: true },
 

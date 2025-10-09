@@ -4,9 +4,9 @@
 	const isPlayingVideo = useIsPlayingVideo()
 
 	// Accès sécurisé aux stores
-	let userDataStore = ref(null)
-	let isLoginStore = ref(false)
-	let isAdminStore = ref(false)
+	let userDataStore: Ref<any> = ref(null)
+	let isLoginStore: Ref<boolean> = ref(false)
+	let isAdminStore: Ref<boolean> = ref(false)
 
 	try {
 		const userStore = useUserStore()

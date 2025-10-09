@@ -137,7 +137,7 @@
 				...result,
 				musics: result.musics.map((m) => ({
 					...m,
-					artists: Array.isArray((m as any).artists) ? (m as any).artists : [],
+					artists: m.artists || [],
 				})),
 			}
 		} catch (error) {

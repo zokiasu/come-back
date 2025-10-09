@@ -2,38 +2,24 @@
 	import type { Release } from '~/types'
 	import { useSupabaseRelease } from '~/composables/Supabase/useSupabaseRelease'
 
-	const props = defineProps({
-		id: {
-			type: String,
-			required: true,
-		},
-		name: {
-			type: String,
-			required: true,
-		},
-		type: {
-			type: String,
-			required: true,
-		},
-		idYoutubeMusic: {
-			type: String,
-			required: true,
-		},
-		date: {
-			type: String,
-			required: true,
-		},
-		yearReleased: {
-			type: Number,
-			required: true,
-		},
-		needToBeVerified: {
-			type: Boolean,
-			required: true,
-		},
-	})
+	interface Props {
+		id: string
+		name: string
+		type: string
+		idYoutubeMusic: string
+		date: string
+		yearReleased: number
+		needToBeVerified: boolean
+	}
 
-	const emit = defineEmits(['saved', 'close'])
+	const props = defineProps<Props>()
+
+	interface Emits {
+		(e: 'saved', release: Release): void
+		(e: 'close'): void
+	}
+
+	const emit = defineEmits<Emits>()
 
 	const toast = useToast()
 	const { updateRelease } = useSupabaseRelease()
@@ -189,7 +175,7 @@
 		<div class="flex justify-end space-x-3 pt-4">
 			<UButton
 				type="button"
-				color="gray"
+				color="neutral"
 				variant="soft"
 				@click="emit('close')"
 				:disabled="isLoading"

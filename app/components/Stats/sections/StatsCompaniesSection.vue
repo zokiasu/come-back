@@ -5,7 +5,10 @@
 			:loading="loading"
 			:period-display="periodDisplay"
 		/>
-		<div v-if="section.cards?.length || section.topLists?.length" class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+		<div
+			v-if="section.cards?.length || section.topLists?.length"
+			class="grid grid-cols-1 gap-6 lg:grid-cols-2"
+		>
 			<div v-if="section.cards?.length">
 				<StatsCard v-for="card in section.cards" :key="card.title" :card="card" />
 			</div>
@@ -14,7 +17,7 @@
 				<div
 					v-for="list in section.topLists"
 					:key="list.title"
-					class="rounded-lg bg-cb-quaternary-950 p-4"
+					class="bg-cb-quaternary-950 rounded-lg p-4"
 				>
 					<h3 class="mb-4 text-lg font-medium">
 						{{ list.title }}

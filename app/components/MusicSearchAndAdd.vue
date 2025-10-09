@@ -8,10 +8,12 @@
 		</div>
 
 		<!-- Onglets -->
+		<!-- @ts-expect-error - UTabs custom slots not typed in library -->
 		<UTabs :items="tabItems" v-model="activeTab" class="w-full">
 			<!-- Recherche de musiques existantes -->
 			<template #search>
 				<div class="space-y-4">
+					<!-- @ts-expect-error - UInputMenu custom slots not typed in library -->
 					<UInputMenu
 						v-model="selectedMusic"
 						:search="searchMusics"
@@ -192,7 +194,7 @@
 					<div class="flex justify-end space-x-3 pt-4">
 						<UButton
 							type="button"
-							color="gray"
+							color="neutral"
 							variant="soft"
 							@click="resetNewMusicForm"
 							:disabled="loading"
@@ -373,7 +375,7 @@
 				updated_at: new Date().toISOString(),
 			}
 
-			const createdMusic = await createMusic(musicData, [props.artistId])
+			const createdMusic = await createMusic(musicData as any, [props.artistId])
 
 			if (createdMusic) {
 				emit('music-created', createdMusic)

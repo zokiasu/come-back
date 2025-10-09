@@ -59,7 +59,7 @@
 				>
 					<div class="relative hidden lg:block">
 						<NuxtImg
-							:src="artistObject.image"
+							:src="artistObject.image ?? undefined"
 							:alt="artistObject.name + 's picture'"
 							format="webp"
 							class="h-4 w-4 rounded-full object-cover"

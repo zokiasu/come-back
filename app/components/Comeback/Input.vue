@@ -25,8 +25,11 @@
 
 	const emit = defineEmits(['update:modelValue', 'clear'])
 
-	const updateValue = (event) => {
-		const value = event.target.value
+	const updateValue = (event: Event) => {
+		const target = event.target as HTMLInputElement
+		if (!target) return
+
+		const value = target.value
 		if (typeof modelValue === 'number') {
 			emit('update:modelValue', value ? parseInt(value) : null)
 		} else {

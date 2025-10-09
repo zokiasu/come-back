@@ -101,7 +101,7 @@
 
 		<div class="flex flex-col space-y-2 p-3">
 			<NuxtImg
-				:src="artist.image"
+				:src="artist.image ?? undefined"
 				:alt="artist.name"
 				format="webp"
 				loading="lazy"
@@ -121,7 +121,7 @@
 				<p v-else class="text-cb-primary-900 text-xs">No description</p>
 			</div>
 
-			<div v-if="artist.styles.length" class="flex flex-wrap gap-1">
+			<div v-if="artist.styles && artist.styles.length" class="flex flex-wrap gap-1">
 				<p
 					v-for="style in artist.styles"
 					:key="style"
@@ -141,8 +141,13 @@
 				>
 					<p class="text-xs font-semibold uppercase">
 						Socials
-						<span :class="{ 'text-cb-primary-900': artist.social_links.length === 0 }">
-							({{ artist.social_links.length }})
+						<span
+							:class="{
+								'text-cb-primary-900':
+									!artist.social_links || artist.social_links.length === 0,
+							}"
+						>
+							({{ artist.social_links?.length || 0 }})
 						</span>
 					</p>
 					<IconPlus v-if="!showSocialLinks" class="h-4 w-4" />
@@ -163,7 +168,10 @@
 						ref="socialLinksEl"
 						class="collapse-content overflow-hidden"
 					>
-						<div v-if="artist.social_links.length" class="flex flex-col space-y-1.5">
+						<div
+							v-if="artist.social_links && artist.social_links.length"
+							class="flex flex-col space-y-1.5"
+						>
 							<a
 								v-for="social in artist.social_links"
 								:key="social.id"
@@ -192,8 +200,13 @@
 				>
 					<p class="text-xs font-semibold uppercase">
 						Platforms
-						<span :class="{ 'text-cb-primary-900': artist.platform_links.length === 0 }">
-							({{ artist.platform_links.length }})
+						<span
+							:class="{
+								'text-cb-primary-900':
+									!artist.platform_links || artist.platform_links.length === 0,
+							}"
+						>
+							({{ artist.platform_links?.length || 0 }})
 						</span>
 					</p>
 					<IconPlus v-if="!showPlatformsLinks" class="h-4 w-4" />
@@ -215,7 +228,7 @@
 						class="collapse-content overflow-hidden"
 					>
 						<div
-							v-if="artist.platform_links.length"
+							v-if="artist.platform_links && artist.platform_links.length"
 							class="flex flex-col space-y-1 overflow-hidden"
 						>
 							<a

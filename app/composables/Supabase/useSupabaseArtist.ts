@@ -1,9 +1,4 @@
-import type {
-	QueryOptions,
-	FilterOptions,
-	ArtistType,
-	Artist,
-} from '~/types'
+import type { QueryOptions, FilterOptions, ArtistType, Artist } from '~/types'
 import type { Database, TablesInsert, TablesUpdate } from '~/types/supabase'
 import { useSupabaseClient } from '#imports'
 
@@ -203,43 +198,49 @@ export function useSupabaseArtist() {
 			throw new Error("Erreur lors de la mise à jour de l'artiste")
 		}
 
-		// Supprimer les anciens liens sociaux
-		await supabase.from('artist_social_links').delete().eq('artist_id', artist.id)
+		// Gérer les liens sociaux seulement si fournis
+		if (socialLinks !== undefined) {
+			// Supprimer les anciens liens sociaux
+			await supabase.from('artist_social_links').delete().eq('artist_id', artist.id)
 
-		// Ajouter les nouveaux liens sociaux
-		if (socialLinks?.length) {
-			const socialLinksWithArtistId: TablesInsert<'artist_social_links'>[] =
-				socialLinks.map((link) => ({
-					...link,
-					artist_id: artist.id,
-				}))
+			// Ajouter les nouveaux liens sociaux
+			if (socialLinks.length > 0) {
+				const socialLinksWithArtistId: TablesInsert<'artist_social_links'>[] =
+					socialLinks.map((link) => ({
+						...link,
+						artist_id: artist.id,
+					}))
 
-			const { error: socialError } = await supabase
-				.from('artist_social_links')
-				.insert(socialLinksWithArtistId)
+				const { error: socialError } = await supabase
+					.from('artist_social_links')
+					.insert(socialLinksWithArtistId)
 
-			if (socialError) {
-				console.error("Erreur lors de l'ajout des liens sociaux:", socialError)
+				if (socialError) {
+					console.error("Erreur lors de l'ajout des liens sociaux:", socialError)
+				}
 			}
 		}
 
-		// Supprimer les anciens liens de plateformes
-		await supabase.from('artist_platform_links').delete().eq('artist_id', artist.id)
+		// Gérer les liens de plateformes seulement si fournis
+		if (platformLinks !== undefined) {
+			// Supprimer les anciens liens de plateformes
+			await supabase.from('artist_platform_links').delete().eq('artist_id', artist.id)
 
-		// Ajouter les nouveaux liens de plateformes
-		if (platformLinks?.length) {
-			const platformLinksWithArtistId: TablesInsert<'artist_platform_links'>[] =
-				platformLinks.map((link) => ({
-					...link,
-					artist_id: artist.id,
-				}))
+			// Ajouter les nouveaux liens de plateformes
+			if (platformLinks.length > 0) {
+				const platformLinksWithArtistId: TablesInsert<'artist_platform_links'>[] =
+					platformLinks.map((link) => ({
+						...link,
+						artist_id: artist.id,
+					}))
 
-			const { error: platformError } = await supabase
-				.from('artist_platform_links')
-				.insert(platformLinksWithArtistId)
+				const { error: platformError } = await supabase
+					.from('artist_platform_links')
+					.insert(platformLinksWithArtistId)
 
-			if (platformError) {
-				console.error("Erreur lors de l'ajout des liens de plateformes:", platformError)
+				if (platformError) {
+					console.error("Erreur lors de l'ajout des liens de plateformes:", platformError)
+				}
 			}
 		}
 
@@ -616,6 +617,10 @@ export function useSupabaseArtist() {
 			styles?: string[]
 			gender?: string
 			isActive?: boolean
+			onlyWithoutDesc?: boolean
+			onlyWithoutSocials?: boolean
+			onlyWithoutPlatforms?: boolean
+			onlyWithoutStyles?: boolean
 		},
 	) => {
 		try {
@@ -667,6 +672,24 @@ export function useSupabaseArtist() {
 				query = query.or('active_career.is.false,active_career.is.null')
 			}
 
+			// Filtres "only without"
+			if (options?.onlyWithoutDesc) {
+				query = query.or('description.is.null,description.eq.')
+			}
+
+			if (options?.onlyWithoutSocials) {
+				// On ne peut pas directement filtrer sur les relations, on devra filtrer côté client
+				// Mais on peut au moins trier pour avoir les plus récents en premier
+			}
+
+			if (options?.onlyWithoutPlatforms) {
+				// Même problème que pour les socials
+			}
+
+			if (options?.onlyWithoutStyles) {
+				query = query.or('styles.is.null,styles.eq.{}')
+			}
+
 			// Filtre pour n'avoir que les artistes avec un id_youtube_music
 			query = query.not('id_youtube_music', 'is', null)
 
@@ -692,12 +715,25 @@ export function useSupabaseArtist() {
 			}
 
 			// Transformer les données pour correspondre au format attendu
-			const transformedData = data.map((artist) => ({
+			let transformedData = data.map((artist) => ({
 				...artist,
 				social_links: artist.social_links || [],
 				platform_links: artist.platform_links || [],
 				companies: artist.companies || [],
 			}))
+
+			// Filtrage côté client pour les relations (socials et platforms)
+			if (options?.onlyWithoutSocials) {
+				transformedData = transformedData.filter(
+					(artist) => !artist.social_links || artist.social_links.length === 0,
+				)
+			}
+
+			if (options?.onlyWithoutPlatforms) {
+				transformedData = transformedData.filter(
+					(artist) => !artist.platform_links || artist.platform_links.length === 0,
+				)
+			}
 
 			return {
 				artists: transformedData as Artist[],
