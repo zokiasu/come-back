@@ -86,8 +86,16 @@ declare namespace YT {
 		// Queueing functions
 		loadVideoById(videoId: string, startSeconds?: number, suggestedQuality?: string): void
 		cueVideoById(videoId: string, startSeconds?: number, suggestedQuality?: string): void
-		loadVideoByUrl(mediaContentUrl: string, startSeconds?: number, suggestedQuality?: string): void
-		cueVideoByUrl(mediaContentUrl: string, startSeconds?: number, suggestedQuality?: string): void
+		loadVideoByUrl(
+			mediaContentUrl: string,
+			startSeconds?: number,
+			suggestedQuality?: string,
+		): void
+		cueVideoByUrl(
+			mediaContentUrl: string,
+			startSeconds?: number,
+			suggestedQuality?: string,
+		): void
 
 		// Playing
 		playVideo(): void

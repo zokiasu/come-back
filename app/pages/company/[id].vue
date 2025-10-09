@@ -143,10 +143,14 @@
 							Founded in {{ company.founded_year }}
 						</p>
 						<p
-							v-if="formatLocation(company.city ?? undefined, company.country ?? undefined)"
+							v-if="
+								formatLocation(company.city ?? undefined, company.country ?? undefined)
+							"
 							class="bg-cb-quaternary-950 w-fit rounded px-3 py-1 text-xs font-semibold whitespace-nowrap uppercase"
 						>
-							{{ formatLocation(company.city ?? undefined, company.country ?? undefined) }}
+							{{
+								formatLocation(company.city ?? undefined, company.country ?? undefined)
+							}}
 						</p>
 						<p
 							v-if="company.verified"

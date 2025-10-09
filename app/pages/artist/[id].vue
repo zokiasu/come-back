@@ -62,14 +62,18 @@
 	const singleRelease = computed(() => {
 		const singles =
 			artist.value?.releases?.filter((release) => release.type === 'SINGLE') || []
-		singles.sort((a, b) => new Date(b.date || '').getTime() - new Date(a.date || '').getTime())
+		singles.sort(
+			(a, b) => new Date(b.date || '').getTime() - new Date(a.date || '').getTime(),
+		)
 		return singles
 	})
 
 	const albumEpRelease = computed(() => {
 		const albums =
 			artist.value?.releases?.filter((release) => release.type !== 'SINGLE') || []
-		albums.sort((a, b) => new Date(b.date || '').getTime() - new Date(a.date || '').getTime())
+		albums.sort(
+			(a, b) => new Date(b.date || '').getTime() - new Date(a.date || '').getTime(),
+		)
 		return albums
 	})
 

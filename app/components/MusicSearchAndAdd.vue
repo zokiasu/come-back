@@ -8,10 +8,12 @@
 		</div>
 
 		<!-- Onglets -->
+		<!-- @ts-expect-error - UTabs custom slots not typed in library -->
 		<UTabs :items="tabItems" v-model="activeTab" class="w-full">
 			<!-- Recherche de musiques existantes -->
 			<template #search>
 				<div class="space-y-4">
+					<!-- @ts-expect-error - UInputMenu custom slots not typed in library -->
 					<UInputMenu
 						v-model="selectedMusic as any"
 						:search="searchMusics"

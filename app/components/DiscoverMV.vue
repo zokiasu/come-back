@@ -15,6 +15,7 @@
 	const imageLoaded = ref(false)
 	const isPlaying = ref(false)
 	const showThumbnail = ref(true)
+	// @ts-expect-error - YT namespace from YouTube IFrame API
 	const player = ref<YT.Player | null>(null)
 	const playerContainer = useTemplateRef('playerContainer')
 	const isPlayerReady = ref(false)
@@ -150,11 +151,13 @@
 					origin: import.meta.client ? window.location.origin : 'https://localhost',
 				},
 				events: {
+					// @ts-expect-error - YT namespace from YouTube IFrame API
 					onReady: (event: YT.PlayerEvent) => {
 						console.log('✅ YouTube player ready')
 						isPlayerReady.value = true
 						isPlaying.value = true
 					},
+					// @ts-expect-error - YT namespace from YouTube IFrame API
 					onStateChange: (event: YT.OnStateChangeEvent) => {
 						console.log('🔄 Player state changed:', event.data)
 						if (event.data === window.YT.PlayerState.ENDED) {

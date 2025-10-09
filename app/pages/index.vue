@@ -57,7 +57,9 @@
 			new Promise<void>((resolve) =>
 				getRealtimeLastestArtistsAdded(8, (art: Artist[]) => {
 					artists.value = art.sort(
-						(a, b) => new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime(),
+						(a, b) =>
+							new Date(b.created_at || '').getTime() -
+							new Date(a.created_at || '').getTime(),
 					)
 					artistsFetching.value = false
 					resolve()

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-	// @ts-expect-error - YT namespace from YouTube IFrame API loaded via script tag
 	const idYoutubeVideo = useIdYoutubeVideo()
 	const isPlayingVideo = useIsPlayingVideo()
 	const musicNamePlaying = useMusicNamePlaying()
@@ -341,7 +340,9 @@
 		if (!import.meta.client || !player.value || !isPlayerReady.value) return
 
 		// Extraire la valeur si c'est un tableau (USlider retourne [value])
-		const timeValue = Array.isArray(newTime) ? (newTime[0] ?? currentTime.value) : (newTime ?? currentTime.value)
+		const timeValue = Array.isArray(newTime)
+			? (newTime[0] ?? currentTime.value)
+			: (newTime ?? currentTime.value)
 
 		try {
 			player.value?.seekTo(timeValue, true)
@@ -355,7 +356,9 @@
 
 	const seekToTime = (newTime: number | number[]) => {
 		// Pour l'événement @input, on met juste à jour l'affichage
-		const timeValue = Array.isArray(newTime) ? (newTime[0] ?? currentTime.value) : (newTime ?? currentTime.value)
+		const timeValue = Array.isArray(newTime)
+			? (newTime[0] ?? currentTime.value)
+			: (newTime ?? currentTime.value)
 		currentTime.value = timeValue
 	}
 
@@ -442,7 +445,11 @@
 					variant="ghost"
 					class="hidden lg:block"
 					:disabled="!isPlayerReady || !playlistInfo.hasPrevious"
-					@click="() => { skipToPrevious() }"
+					@click="
+						() => {
+							skipToPrevious()
+						}
+					"
 					icon="i-material-symbols-skip-previous"
 					size="lg"
 				/>
@@ -482,7 +489,11 @@
 					variant="ghost"
 					class="hidden lg:block"
 					:disabled="!isPlayerReady || !playlistInfo.hasNext"
-					@click="() => { skipToNext() }"
+					@click="
+						() => {
+							skipToNext()
+						}
+					"
 					icon="i-material-symbols-skip-next"
 					size="lg"
 				/>
@@ -529,7 +540,6 @@
 					"
 					size="lg"
 				/>
-				<!-- @ts-expect-error - USlider accepts progress/handler params but types incomplete -->
 				<USlider
 					v-model="volume"
 					:min="0"
@@ -539,13 +549,13 @@
 					:ui="{
 						track: 'h-1 rounded-full',
 						thumb: 'h-3 w-3 rounded-full focus:outline-none',
+						// @ts-expect-error - USlider ui accepts progress but types don't include it
 						progress: 'h-1 rounded-full',
 					}"
-					@update:model-value="setVolume"
+					@update:model-value="setVolume as any"
 				/>
 			</div>
 
-			<!-- @ts-expect-error - USlider accepts progress/handler params but types incomplete -->
 			<USlider
 				v-model="currentTime"
 				:min="0"
@@ -555,9 +565,10 @@
 				:ui="{
 					track: 'h-1 rounded-full cursor-pointer',
 					thumb: 'h-3 w-3 rounded-full cursor-pointer focus:outline-none',
+					// @ts-expect-error - USlider ui accepts progress but types don't include it
 					progress: 'h-1 rounded-full',
 				}"
-				@update:model-value="onSeekEnd"
+				@update:model-value="onSeekEnd as any"
 				@mousedown="onSeekStart"
 				@touchstart="onSeekStart"
 			/>
