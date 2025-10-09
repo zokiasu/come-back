@@ -255,7 +255,7 @@
 														<option value="SINGLE">SINGLE</option>
 													</select>
 												</div>
-												<ComebackInput v-model="release.year as any" label="Year" />
+												<ComebackInput v-model="release.year" label="Year" />
 											</div>
 
 											<div class="flex flex-col gap-1">
@@ -293,7 +293,7 @@
 														</div>
 														<ComebackInput
 															v-if="music.ismv"
-															v-model="music.id_youtube_music as any"
+															v-model="music.id_youtube_music"
 															:value="
 																music.id_youtube_music !== null
 																	? String(music.id_youtube_music)

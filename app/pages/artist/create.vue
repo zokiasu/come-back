@@ -702,7 +702,7 @@
 									</label>
 									<UInputMenu
 										:key="`company-menu-${index}-${companiesMenuKey}`"
-										v-model="relation.company as any"
+										v-model="relation.company"
 										:items="companiesForMenu as any"
 										by="id"
 										placeholder="Select a company"

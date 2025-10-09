@@ -15,7 +15,7 @@
 				<div class="space-y-4">
 					<!-- @ts-expect-error - UInputMenu custom slots not typed in library -->
 					<UInputMenu
-						v-model="selectedMusic as any"
+						v-model="selectedMusic"
 						:search="searchMusics"
 						:items="musicOptions as any"
 						option-attribute="name"
@@ -23,7 +23,7 @@
 						:loading="isSearching"
 						:disabled="loading"
 						size="lg"
-						@update:model-value="onMusicSelected as any"
+						@update:model-value="onMusicSelected"
 					>
 						<template #option="{ option }">
 							<div class="flex w-full items-center justify-between">

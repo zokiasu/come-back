@@ -290,7 +290,7 @@
 					</span>
 				</label>
 				<UInputMenu
-					v-model="selectedArtistsWithLabel as any"
+					v-model="selectedArtistsWithLabel"
 					:items="artistsForMenu as any"
 					by="id"
 					multiple
