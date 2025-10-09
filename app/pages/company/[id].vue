@@ -143,10 +143,14 @@
 							Founded in {{ company.founded_year }}
 						</p>
 						<p
-							v-if="formatLocation(company.city, company.country)"
+							v-if="
+								formatLocation(company.city ?? undefined, company.country ?? undefined)
+							"
 							class="bg-cb-quaternary-950 w-fit rounded px-3 py-1 text-xs font-semibold whitespace-nowrap uppercase"
 						>
-							{{ formatLocation(company.city, company.country) }}
+							{{
+								formatLocation(company.city ?? undefined, company.country ?? undefined)
+							}}
 						</p>
 						<p
 							v-if="company.verified"
@@ -232,7 +236,7 @@
 									? getCompanyTypeLabel(relation.relationship_type)
 									: undefined
 							"
-							:image="relation.artist?.image"
+							:image="relation.artist?.image ?? undefined"
 							:object-link="`/artist/${String(relation.artist?.id ?? '')}`"
 						/>
 					</transition-group>
@@ -257,7 +261,7 @@
 									? getCompanyTypeLabel(relation.relationship_type)
 									: undefined
 							"
-							:image="relation.artist?.image"
+							:image="relation.artist?.image ?? undefined"
 							:object-link="`/artist/${String(relation.artist?.id ?? '')}`"
 						/>
 					</transition-group>

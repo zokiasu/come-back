@@ -48,7 +48,7 @@
 			new Promise<void>((resolve) =>
 				getRealtimeLastestReleasesAdded(8, (rel: Release[]) => {
 					releases.value = rel.sort(
-						(a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+						(a, b) => new Date(b.date || '').getTime() - new Date(a.date || '').getTime(),
 					)
 					releasesFetching.value = false
 					resolve()
@@ -57,7 +57,9 @@
 			new Promise<void>((resolve) =>
 				getRealtimeLastestArtistsAdded(8, (art: Artist[]) => {
 					artists.value = art.sort(
-						(a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+						(a, b) =>
+							new Date(b.created_at || '').getTime() -
+							new Date(a.created_at || '').getTime(),
 					)
 					artistsFetching.value = false
 					resolve()
@@ -66,7 +68,7 @@
 			new Promise<void>((resolve) => {
 				getRandomMusics(4).then((musicList) => {
 					musics.value = musicList.sort(
-						(a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+						(a, b) => new Date(b.date || '').getTime() - new Date(a.date || '').getTime(),
 					)
 					musicsFetching.value = false
 					resolve()

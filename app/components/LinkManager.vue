@@ -149,7 +149,11 @@
 			}
 
 			// Fallback: capitaliser le nom de domaine
-			return domain.split('.')[0].charAt(0).toUpperCase() + domain.split('.')[0].slice(1)
+			const domainPart = domain.split('.')[0]
+			if (domainPart) {
+				return domainPart.charAt(0).toUpperCase() + domainPart.slice(1)
+			}
+			return ''
 		} catch {
 			return ''
 		}

@@ -80,7 +80,6 @@
 </template>
 
 <script setup lang="ts">
-	import { ref, reactive, watch, defineEmits, defineProps, toRefs } from 'vue'
 	import { useSupabaseArtist } from '@/composables/Supabase/useSupabaseArtist'
 	import type { ArtistType } from '~/types'
 

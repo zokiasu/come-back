@@ -17,7 +17,7 @@ interface ReleaseJunction {
 	release: Release
 }
 
-interface MusicWithRelations extends Music {
+interface MusicWithRelations extends Omit<Music, 'artists' | 'releases'> {
 	artists?: ArtistJunction[]
 	releases?: ReleaseJunction[]
 }

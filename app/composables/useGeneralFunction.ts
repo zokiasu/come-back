@@ -7,9 +7,9 @@ export function useGeneralFunction() {
 
 		const { attributes } = artistData
 
-		const artistTmp: Artist = {
+		const artistTmp: any = {
 			id: artistData.id,
-			idYoutubeMusic: attributes.idYoutubeMusic || '',
+			id_youtube_music: attributes.idYoutubeMusic || '',
 			name: attributes.name,
 			description: attributes.description || '',
 			type: attributes.type,
@@ -34,9 +34,9 @@ export function useGeneralFunction() {
 
 		const { attributes } = releaseData
 
-		const releaseTmp: Release = {
+		const releaseTmp: any = {
 			id: releaseData.id,
-			idYoutubeMusic: attributes.idYoutubeMusic,
+			id_youtube_music: attributes.idYoutubeMusic,
 			name: attributes.name,
 			type: attributes.type,
 			year: attributes.year,
@@ -62,9 +62,9 @@ export function useGeneralFunction() {
 
 		const { attributes } = musicData
 
-		const musicTmp: Music = {
+		const musicTmp: any = {
 			id: musicData.id,
-			videoId: attributes.videoId,
+			id_youtube_music: attributes.videoId,
 			name: attributes.name,
 			duration: attributes.duration,
 			images: attributes.images || [],

@@ -36,7 +36,7 @@
 		return artistsList.value.map((artist) => ({
 			...artist,
 			label: artist.name,
-		})) as any[]
+		})) as ArtistMenuItem[]
 	})
 
 	const scrollContainer = useTemplateRef('scrollContainer')

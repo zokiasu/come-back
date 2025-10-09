@@ -101,7 +101,7 @@
 
 		<div class="flex flex-col space-y-2 p-3">
 			<NuxtImg
-				:src="artist.image"
+				:src="artist.image ?? undefined"
 				:alt="artist.name"
 				format="webp"
 				loading="lazy"

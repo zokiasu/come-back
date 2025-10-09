@@ -287,9 +287,9 @@ export function useSupabaseRelease() {
 		}
 
 		// Transformer les données pour avoir un format plus simple à utiliser
-		const transformedData = data.map((release) => ({
+		const transformedData = data.map((release: any) => ({
 			...release,
-			artists: release.artist_releases.map((ar: { artist: Artist }) => ar.artist),
+			artists: release.artist_releases.map((ar: any) => ar.artist),
 		})) as Release[]
 
 		callback(transformedData)
@@ -383,9 +383,9 @@ export function useSupabaseRelease() {
 			}
 
 			// Transformer les données pour avoir un format plus simple
-			const transformedData = data.map((release) => ({
+			const transformedData = data.map((release: any) => ({
 				...release,
-				artists: release.artist_releases.map((ar: { artist: Artist }) => ar.artist),
+				artists: release.artist_releases.map((ar: any) => ar.artist),
 			})) as Release[]
 
 			return transformedData

@@ -1,5 +1,5 @@
 import { useUserStore } from '@/stores/user'
-import type { Database } from '~/types'
+import type { Database } from '~/types/supabase'
 
 export const useSupabaseAuth = () => {
 	const isLoading = ref(false)

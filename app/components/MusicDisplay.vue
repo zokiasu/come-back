@@ -71,11 +71,11 @@
 
 	const { addToPlaylist } = useYouTube()
 
-	const playVideo = (videoId: any) => {
+	const playVideo = (videoId: string) => {
 		const mainArtistName =
-			artists && artists.length > 0 ? artists[0].name : artistName || ''
+			artists && artists.length > 0 ? artists[0]?.name : artistName || ''
 
-		addToPlaylist(videoId, musicName, mainArtistName)
+		addToPlaylist(videoId, musicName, mainArtistName ?? '')
 	}
 
 	const convertDuration = (duration: string | number) => {
@@ -151,15 +151,15 @@
 						</p>
 						<div v-if="releases && releases.length > 0" class="flex items-center gap-1">
 							<NuxtLink
-								:to="`/release/${releases[0].id}`"
+								:to="`/release/${releases[0]?.id}`"
 								class="hidden whitespace-nowrap hover:underline md:block"
 							>
-								{{ releases[0].name }}
+								{{ releases[0]?.name }}
 							</NuxtLink>
 							<span class="hidden md:block">-</span>
 							<span class="hidden whitespace-nowrap md:block">
 								{{
-									releases[0].date
+									releases[0]?.date
 										? new Date(releases[0].date).toLocaleDateString('fr-FR')
 										: ''
 								}}

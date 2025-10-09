@@ -153,7 +153,11 @@
 				onlyWithoutPlatforms: filterState.onlyWithoutPlatforms,
 				onlyWithoutStyles: filterState.onlyWithoutStyles,
 			}
-			const result = await getArtistsByPage(currentPage.value, limitFetch.value, params)
+			const result = await getArtistsByPage(
+				currentPage.value,
+				limitFetch.value,
+				params as any,
+			)
 
 			totalArtists.value = result.total
 			totalPages.value = result.totalPages

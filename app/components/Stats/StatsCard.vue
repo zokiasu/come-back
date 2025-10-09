@@ -73,7 +73,7 @@
 			yellow: 'border-l-4 border-l-yellow-500',
 		}
 
-		return colorClasses[color] || ''
+		return colorClasses[color as keyof typeof colorClasses] || ''
 	})
 
 	const iconColorClass = computed(() => {
@@ -91,7 +91,7 @@
 			yellow: 'bg-yellow-500',
 		}
 
-		return colorClasses[color] || 'bg-gray-500'
+		return colorClasses[color as keyof typeof colorClasses] || 'bg-gray-500'
 	})
 
 	const trendIcon = computed(() => {

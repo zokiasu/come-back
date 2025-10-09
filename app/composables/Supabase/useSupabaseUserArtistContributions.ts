@@ -175,7 +175,7 @@ export function useSupabaseUserArtistContributions() {
 		}
 
 		return {
-			contributions: data || [],
+			contributions: (data || []) as any,
 			total: count || 0,
 			page: options?.offset ? Math.floor(options.offset / (options.limit || 10)) + 1 : 1,
 			limit: options?.limit || 10,

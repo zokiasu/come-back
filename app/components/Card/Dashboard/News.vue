@@ -35,7 +35,7 @@
 		},
 	})
 
-	const skeleton = useTemplateRef('skeleton')
+	const skeleton = useTemplateRef<HTMLElement>('skeleton')
 	const isEditModalOpen = ref(false)
 	const isUpdating = ref(false)
 	const searchArtist = ref<string>('')
@@ -198,7 +198,7 @@
 				class="bg-cb-quinary-900 flex w-full flex-col items-center justify-center overflow-hidden rounded"
 			>
 				<NuxtImg
-					:src="artistObject.image"
+					:src="artistObject.image ?? undefined"
 					:alt="artistObject.name"
 					format="webp"
 					loading="lazy"

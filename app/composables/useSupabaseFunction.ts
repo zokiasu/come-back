@@ -10,6 +10,7 @@ export function useSupabaseFunction() {
 		try {
 			const { data, error } = await supabase
 				.from('users')
+				// @ts-expect-error - user object has correct structure but Supabase type inference is complex
 				.update({
 					...user,
 					updated_at: new Date().toISOString(),

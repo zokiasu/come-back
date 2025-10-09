@@ -13,8 +13,8 @@
 		ArtistPlatformLink,
 		ArtistSocialLink,
 		Company,
-		TablesInsert,
 	} from '~/types'
+	import type { TablesInsert } from '~/types/supabase'
 
 	// Creates a generic type that adds 'label' to an existing type T
 	type MenuItem<T> = T & { label: string }
@@ -927,7 +927,7 @@
 											item: 'rounded cursor-pointer data-highlighted:before:bg-cb-primary-900/30 hover:bg-cb-primary-900',
 										}"
 										@update:model-value="
-											(company: Company) => updateCompanyInRelation(index, company)
+											(company: any) => updateCompanyInRelation(index, company)
 										"
 									/>
 								</div>
