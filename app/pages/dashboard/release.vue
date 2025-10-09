@@ -291,7 +291,7 @@
 				</label>
 				<UInputMenu
 					v-model="selectedArtistsWithLabel"
-					:items="artistsForMenu as any"
+					:items="artistsForMenu"
 					by="id"
 					multiple
 					placeholder="Sélectionner des artistes..."

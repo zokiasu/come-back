@@ -655,7 +655,7 @@
 									class="bg-cb-quinary-900 rounded p-1"
 									:model-value="parseToCalendarDate(birthdayToDate)"
 									:min-date="new Date(1900, 0, 1)"
-									@update:model-value="onBirthdayUpdate as any"
+									@update:model-value="onBirthdayUpdate"
 								/>
 							</template>
 						</UPopover>
@@ -677,7 +677,7 @@
 									class="bg-cb-quinary-900 rounded p-1"
 									:model-value="parseToCalendarDate(debutDateToDate)"
 									:min-date="new Date(2000, 0, 1)"
-									@update:model-value="onDebutDateUpdate as any"
+									@update:model-value="onDebutDateUpdate"
 								/>
 							</template>
 						</UPopover>
@@ -915,8 +915,8 @@
 									</label>
 									<UInputMenu
 										:key="`company-menu-${index}-${companiesMenuKey}`"
-										:model-value="relation.company as any"
-										:items="companiesForMenu as any"
+										:model-value="relation.company"
+										:items="companiesForMenu"
 										by="id"
 										placeholder="Select a company"
 										searchable

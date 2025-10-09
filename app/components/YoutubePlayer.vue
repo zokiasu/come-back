@@ -552,7 +552,7 @@
 						// @ts-expect-error - USlider ui accepts progress but types don't include it
 						progress: 'h-1 rounded-full',
 					}"
-					@update:model-value="setVolume as any"
+					@update:model-value="setVolume"
 				/>
 			</div>
 
@@ -568,7 +568,7 @@
 					// @ts-expect-error - USlider ui accepts progress but types don't include it
 					progress: 'h-1 rounded-full',
 				}"
-				@update:model-value="onSeekEnd as any"
+				@update:model-value="onSeekEnd"
 				@mousedown="onSeekStart"
 				@touchstart="onSeekStart"
 			/>

@@ -703,7 +703,7 @@
 									<UInputMenu
 										:key="`company-menu-${index}-${companiesMenuKey}`"
 										v-model="relation.company"
-										:items="companiesForMenu as any"
+										:items="companiesForMenu"
 										by="id"
 										placeholder="Select a company"
 										searchable

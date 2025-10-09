@@ -17,7 +17,7 @@
 					<UInputMenu
 						v-model="selectedMusic"
 						:search="searchMusics"
-						:items="musicOptions as any"
+						:items="musicOptions"
 						option-attribute="name"
 						placeholder="Search for existing music..."
 						:loading="isSearching"
