@@ -281,9 +281,7 @@
 
 			<!-- Filtre par type de release -->
 			<div class="flex w-full flex-col gap-2">
-				<label class="text-sm font-medium text-gray-300">
-					Filtrer par type
-				</label>
+				<label class="text-sm font-medium text-gray-300">Filtrer par type</label>
 				<select
 					v-model="typeFilter"
 					class="bg-cb-quinary-900 placeholder-cb-tertiary-200 focus:bg-cb-tertiary-200 focus:text-cb-quinary-900 w-full rounded border-none p-2 drop-shadow-xl transition-all duration-300 ease-in-out focus:outline-none"

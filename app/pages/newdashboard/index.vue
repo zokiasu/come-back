@@ -12,7 +12,7 @@
 		</template>
 
 		<template #body>
-			<div class="flex flex-col gap-4 bg-red-500 w-full">
+			<div class="flex w-full flex-col gap-4 bg-red-500">
 				<h2 class="text-lg font-semibold">Dashboard</h2>
 			</div>
 		</template>
