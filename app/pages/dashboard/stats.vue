@@ -126,7 +126,7 @@
 	import type { StatSection, StatsFilters } from '~/types/stats'
 
 	definePageMeta({
-		middleware: ['auth', 'admin'],
+		middleware: ['admin'],
 		layout: 'dashboard',
 	})
 

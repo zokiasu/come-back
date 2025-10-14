@@ -5,7 +5,7 @@
 	import { useSupabaseCompanies } from '~/composables/Supabase/useSupabaseCompanies'
 
 	definePageMeta({
-		middleware: ['auth', 'admin'],
+		middleware: ['admin'],
 		layout: 'dashboard',
 	})
 
