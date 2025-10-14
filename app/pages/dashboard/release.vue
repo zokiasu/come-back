@@ -171,7 +171,7 @@
 	})
 
 	// Watchers pour les filtres
-	watch([sort, selectedArtists, typeFilter], async () => {
+	watch([sort, selectedArtists, typeFilter, invertSort], async () => {
 		await getRelease(true)
 	})
 
