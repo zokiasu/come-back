@@ -17,37 +17,79 @@ export default defineEventHandler(async (event) => {
 	const limit = parseInt(query.limit as string) || 4
 
 	try {
-		// Récupérer les musiques avec leurs relations (artistes et releases)
-		const { data, error } = await supabase
+		// 1. Utiliser un COUNT estimé pour éviter de scanner toute la table
+		// Pour 15k-50k+ entrées, count: 'estimated' est beaucoup plus rapide
+		const { count } = await supabase
 			.from('musics')
-			.select(`
-				*,
-				artists:music_artists(
-					artist:artists(*)
-				),
-				releases:music_releases(
-					release:releases(*)
-				)
-			`)
-			.not('id_youtube_music', 'is', null) // Seulement les musiques avec video
-			.limit(limit * 5) // Prendre plus pour avoir de la variété
-			.order('created_at', { ascending: false })
+			.select('*', { count: 'estimated', head: true })
+			.not('id_youtube_music', 'is', null)
 
-		if (error) {
-			throw createError({
-				statusCode: 500,
-				statusMessage: 'Failed to fetch random musics',
-			})
+		if (!count || count === 0) {
+			return []
 		}
 
-		// Transformer les données pour correspondre au format attendu
-		const transformedData = (data || []).map(music => ({
+		// 2. Stratégie optimisée pour grandes bases de données
+		// Augmenter le nombre d'échantillons pour mieux couvrir une grande base
+		const samplesCount = Math.min(6, Math.ceil(limit / 2) + 1) // 2-6 échantillons
+		const sampleSize = Math.ceil(limit / samplesCount) + 1
+
+		// 3. Préparer toutes les requêtes en parallèle pour maximiser la performance
+		const fetchPromises = []
+
+		for (let i = 0; i < samplesCount; i++) {
+			// Calculer un offset aléatoire stratégiquement espacé
+			// Diviser la base en segments pour une meilleure couverture
+			const segmentSize = Math.floor(count / samplesCount)
+			const segmentStart = i * segmentSize
+			const segmentEnd = (i + 1) * segmentSize
+			const randomOffset = Math.floor(Math.random() * (segmentEnd - segmentStart - sampleSize)) + segmentStart
+
+			// Créer la promesse de requête (pas encore exécutée)
+			const fetchPromise = supabase
+				.from('musics')
+				.select(`
+					*,
+					artists:music_artists(
+						artist:artists(*)
+					),
+					releases:music_releases(
+						release:releases(*)
+					)
+				`)
+				.not('id_youtube_music', 'is', null)
+				.range(randomOffset, randomOffset + sampleSize - 1)
+				.order('date', { ascending: false })
+
+			fetchPromises.push(fetchPromise)
+		}
+
+		// 4. Exécuter TOUTES les requêtes en PARALLÈLE pour maximiser la vitesse
+		const results = await Promise.all(fetchPromises)
+		const allMusics: any[] = []
+
+		results.forEach(({ data }) => {
+			if (data && data.length > 0) {
+				allMusics.push(...data)
+			}
+		})
+
+		// 4. Transformer les données
+		const transformedData = allMusics.map(music => ({
 			...music,
 			artists: music.artists?.map((junction: any) => junction.artist) || [],
 			releases: music.releases?.map((junction: any) => junction.release) || []
 		}))
 
-		// Mélanger les résultats avec Fisher-Yates pour éviter les doublons
+		// 5. Supprimer les doublons par ID
+		const uniqueMusics = transformedData.filter((music, index, self) =>
+			index === self.findIndex((m) => m.id === music.id)
+		)
+
+		// 6. Diversifier les artistes pour éviter plusieurs fois le même
+		const diversifiedMusics: any[] = []
+		const usedArtistIds = new Set<string>()
+
+		// Fonction de mélange Fisher-Yates
 		const shuffleArray = (array: any[]) => {
 			const shuffled = [...array]
 			for (let i = shuffled.length - 1; i > 0; i--) {
@@ -57,9 +99,36 @@ export default defineEventHandler(async (event) => {
 			return shuffled
 		}
 
-		const shuffled = shuffleArray(transformedData).slice(0, limit)
+		// Mélanger d'abord pour éviter un biais
+		const shuffledMusics = shuffleArray(uniqueMusics)
 
-		return shuffled
+		// Prendre les musiques en privilégiant la diversité d'artistes
+		for (const music of shuffledMusics) {
+			if (diversifiedMusics.length >= limit) break
+
+			// Récupérer l'ID du premier artiste de la musique
+			const artistId = music.artists?.[0]?.id
+
+			// Si pas d'artiste ou artiste pas encore utilisé, on prend la musique
+			if (!artistId || !usedArtistIds.has(artistId)) {
+				diversifiedMusics.push(music)
+				if (artistId) {
+					usedArtistIds.add(artistId)
+				}
+			}
+		}
+
+		// Si on n'a pas assez de musiques (cas rare), compléter avec les restantes
+		if (diversifiedMusics.length < limit) {
+			for (const music of shuffledMusics) {
+				if (diversifiedMusics.length >= limit) break
+				if (!diversifiedMusics.find(m => m.id === music.id)) {
+					diversifiedMusics.push(music)
+				}
+			}
+		}
+
+		return diversifiedMusics
 	} catch (error) {
 		console.error('Error fetching random musics:', error)
 		throw createError({

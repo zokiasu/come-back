@@ -235,19 +235,25 @@
 			<!-- Discover Music -->
 			<ClientOnly>
 				<div
-					v-if="musics.length > 0 && !musicsFetching"
+					v-if="musics.length > 0"
 					class="space-y-8 text-center xl:space-y-10"
 				>
 					<p class="text-xl font-bold lg:text-4xl">Discover Music</p>
 					<div class="space-y-5">
 						<div class="grid grid-cols-2 gap-5 xl:grid-cols-4">
-							<LazyDiscoverMusic v-for="music in musics" :key="music.id" :music="music" />
+							<LazyDiscoverMusic
+								v-for="music in musics"
+								:key="music.id"
+								:music="music"
+								:class="{ 'opacity-50 transition-opacity duration-300': musicsFetching }"
+							/>
 						</div>
 						<UButton
 							label="Reload"
 							variant="ghost"
 							class="bg-cb-quaternary-950 mx-auto w-fit rounded px-3 py-1 text-white"
 							icon="i-material-symbols-refresh"
+							:loading="musicsFetching"
 							@click="reloadDiscoverMusic"
 						/>
 					</div>
