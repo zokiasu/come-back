@@ -215,12 +215,17 @@
 			})
 		}
 	}
+
+	definePageMeta({
+		middleware: ['admin'],
+		layout: 'dashboard',
+	})
 </script>
 
 <template>
 	<div
 		ref="scrollContainer"
-		class="scrollBarLight relative h-full space-y-3 overflow-hidden overflow-y-scroll pr-2"
+		class="scrollBarLight relative h-full space-y-3 overflow-hidden overflow-y-scroll p-6"
 	>
 		<section
 			id="searchbar"
@@ -266,8 +271,7 @@
 						<option value="type">Type</option>
 						<option value="date">Date</option>
 						<option value="year">Year</option>
-						<option value="artistsId">Artist</option>
-						<option value="createdAt">Last Created</option>
+						<option value="created_at">Last Created</option>
 					</select>
 					<button
 						class="bg-cb-quinary-900 placeholder-cb-tertiary-200 hover:bg-cb-tertiary-200 hover:text-cb-quinary-900 rounded border-none p-2 drop-shadow-xl transition-all duration-300 ease-in-out focus:outline-none"

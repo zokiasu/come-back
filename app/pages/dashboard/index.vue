@@ -104,7 +104,7 @@
 			<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
 				<!-- Total Artistes -->
 				<NuxtLink
-					to="/newdashboard/artist"
+					to="/dashboard/artist"
 					class="bg-cb-quinary-900 hover:bg-cb-quinary-800 group rounded-lg p-6 transition-all duration-200"
 				>
 					<div class="flex items-center justify-between">
@@ -127,7 +127,7 @@
 
 				<!-- Total Releases -->
 				<NuxtLink
-					to="/newdashboard/release"
+					to="/dashboard/release"
 					class="bg-cb-quinary-900 hover:bg-cb-quinary-800 group rounded-lg p-6 transition-all duration-200"
 				>
 					<div class="flex items-center justify-between">
@@ -150,7 +150,7 @@
 
 				<!-- Total News -->
 				<NuxtLink
-					to="/newdashboard/news"
+					to="/dashboard/news"
 					class="bg-cb-quinary-900 hover:bg-cb-quinary-800 group rounded-lg p-6 transition-all duration-200"
 				>
 					<div class="flex items-center justify-between">
@@ -171,7 +171,7 @@
 
 				<!-- Total Companies -->
 				<NuxtLink
-					to="/newdashboard/companies"
+					to="/dashboard/companies"
 					class="bg-cb-quinary-900 hover:bg-cb-quinary-800 group rounded-lg p-6 transition-all duration-200"
 				>
 					<div class="flex items-center justify-between">
@@ -200,7 +200,7 @@
 					<div class="mb-4 flex items-center justify-between">
 						<h2 class="text-lg font-semibold text-white">Artistes récents</h2>
 						<NuxtLink
-							to="/newdashboard/artist"
+							to="/dashboard/artist"
 							class="text-cb-primary-400 hover:text-cb-primary-300 text-sm transition-colors"
 						>
 							Voir tout
@@ -230,7 +230,7 @@
 					<div class="mb-4 flex items-center justify-between">
 						<h2 class="text-lg font-semibold text-white">Releases récentes</h2>
 						<NuxtLink
-							to="/newdashboard/release"
+							to="/dashboard/release"
 							class="text-cb-primary-400 hover:text-cb-primary-300 text-sm transition-colors"
 						>
 							Voir tout
@@ -270,7 +270,7 @@
 				<div class="mb-4 flex items-center justify-between">
 					<h2 class="text-lg font-semibold text-white">News récentes</h2>
 					<NuxtLink
-						to="/newdashboard/news"
+						to="/dashboard/news"
 						class="text-cb-primary-400 hover:text-cb-primary-300 text-sm transition-colors"
 					>
 						Voir tout

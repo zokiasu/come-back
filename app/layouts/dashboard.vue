@@ -5,37 +5,37 @@
 		{
 			label: 'Accueil',
 			icon: 'i-heroicons-home',
-			to: '/newdashboard',
+			to: '/dashboard',
 		},
 		{
 			label: 'Artistes',
 			icon: 'i-heroicons-users',
-			to: '/newdashboard/artist',
+			to: '/dashboard/artist',
 		},
 		{
 			label: 'Releases',
 			icon: 'i-heroicons-musical-note',
-			to: '/newdashboard/release',
+			to: '/dashboard/release',
 		},
 		{
 			label: 'News',
 			icon: 'i-heroicons-newspaper',
-			to: '/newdashboard/news',
+			to: '/dashboard/news',
 		},
 		{
 			label: 'Companies',
 			icon: 'i-heroicons-building-office',
-			to: '/newdashboard/companies',
+			to: '/dashboard/companies',
 		},
 		{
 			label: 'Statistiques',
 			icon: 'i-heroicons-chart-bar',
-			to: '/newdashboard/stats',
+			to: '/dashboard/stats',
 		},
 		{
 			label: 'Données',
 			icon: 'i-heroicons-cog-6-tooth',
-			to: '/newdashboard/datas',
+			to: '/dashboard/datas',
 		},
 	]
 </script>
