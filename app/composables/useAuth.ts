@@ -1,4 +1,5 @@
 import { storeToRefs } from 'pinia'
+import type { SupabaseAuthUser, UserInsertData, UserUpdateData } from '~/types/auth'
 
 export const useAuth = () => {
 	const user = useSupabaseUser()
@@ -14,16 +15,17 @@ export const useAuth = () => {
 		userStore
 
 	// Fonction pour créer ou mettre à jour un utilisateur (intégrée depuis useSupabaseUserManager)
-	const createOrUpdateUser = async (authUser: any): Promise<any | null> => {
+	const createOrUpdateUser = async (authUser: SupabaseAuthUser): Promise<User | null> => {
 		if (!authUser) return null
 
 		try {
 			// Vérifier si l'utilisateur existe déjà
-			let existingUser, fetchError
+			let existingUser: User | null = null
+			let fetchError: any = null
 
 			if (process.dev) {
 				// Timeout uniquement en développement
-				const timeoutPromise = new Promise((_, reject) => {
+				const timeoutPromise = new Promise<never>((_, reject) => {
 					setTimeout(() => reject(new Error('Dev database timeout')), 2000)
 				})
 
@@ -33,9 +35,13 @@ export const useAuth = () => {
 					.eq('id', authUser.id)
 					.single()
 
-				const result = (await Promise.race([fetchPromise, timeoutPromise])) as any
-				existingUser = result.data
-				fetchError = result.error
+				try {
+					const result = await Promise.race([fetchPromise, timeoutPromise])
+					existingUser = result.data as User
+					fetchError = result.error
+				} catch (error) {
+					fetchError = error
+				}
 			} else {
 				// Pas de timeout en production
 				const result = await supabase
@@ -44,7 +50,7 @@ export const useAuth = () => {
 					.eq('id', authUser.id)
 					.single()
 
-				existingUser = result.data
+				existingUser = result.data as User
 				fetchError = result.error
 			}
 
@@ -53,7 +59,7 @@ export const useAuth = () => {
 				throw fetchError
 			}
 
-			const userData: any = {
+			const userData: UserInsertData | UserUpdateData = {
 				id: authUser.id,
 				email: authUser.email || '',
 				name:
@@ -68,12 +74,14 @@ export const useAuth = () => {
 
 			if (!existingUser) {
 				// Créer un nouvel utilisateur
-				userData.created_at = new Date().toISOString()
+				const insertData: UserInsertData = {
+					...userData,
+					created_at: new Date().toISOString(),
+				}
 
 				const { data: newUser, error: createError } = await supabase
 					.from('users')
-					// @ts-expect-error - userData has correct structure but Supabase type inference is complex
-					.insert([userData])
+					.insert([insertData])
 					.select()
 					.single()
 
@@ -82,13 +90,12 @@ export const useAuth = () => {
 					throw createError
 				}
 
-				return newUser
+				return newUser as User
 			} else {
 				// Mettre à jour l'utilisateur existant
 				const { data: updatedUser, error: updateError } = await supabase
 					.from('users')
-					// @ts-expect-error - userData has correct structure but Supabase type inference is complex
-					.update(userData)
+					.update(userData as UserUpdateData)
 					.eq('id', authUser.id)
 					.select()
 					.single()
@@ -98,7 +105,7 @@ export const useAuth = () => {
 					throw updateError
 				}
 
-				return updatedUser
+				return updatedUser as User
 			}
 		} catch (error) {
 			console.error('Erreur dans createOrUpdateUser:', error)

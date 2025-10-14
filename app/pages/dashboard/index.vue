@@ -30,53 +30,36 @@
 	const recentReleases = ref<any[]>([])
 	const recentNews = ref<any[]>([])
 
-	const loadDashboardData = async () => {
-		loading.value = true
-		try {
-			// Charger les statistiques en parallèle
-			const [artistsData, releasesData, newsData, companiesData] = await Promise.all([
-				getArtistsByPage(1, 5, { orderBy: 'created_at', orderDirection: 'desc' }),
-				getReleasesByPage(1, 5, { orderBy: 'created_at', orderDirection: 'desc' }),
-				getAllNews({ limit: 5, orderBy: 'created_at', orderDirection: 'desc' }),
-				getCompaniesStats(),
-			])
+	// SSR-compatible data fetching pour dashboard admin (client-only)
+	const { data: dashboardData, pending: loading } = await useFetch(
+		'/api/dashboard/overview',
+		{
+			server: false, // Dashboard admin toujours client-only
+			default: () => ({
+				stats: {
+					totalArtists: 0,
+					activeArtists: 0,
+					totalReleases: 0,
+					recentReleases: 0,
+					totalNews: 0,
+					totalCompanies: 0,
+					verifiedCompanies: 0,
+				},
+				recentArtists: [],
+				recentReleases: [],
+				recentNews: [],
+			}),
+		},
+	)
 
-			// Mettre à jour les statistiques
-			stats.value.totalArtists = artistsData.total
-			stats.value.totalReleases = releasesData.total
-			stats.value.totalNews = newsData.total
-			stats.value.totalCompanies = companiesData.total
-			stats.value.verifiedCompanies = companiesData.verified
-
-			// Récupérer les artistes actifs
-			const activeArtistsData = await getArtistsByPage(1, 1, { isActive: true })
-			stats.value.activeArtists = activeArtistsData.total
-
-			// Récupérer les releases récentes (30 derniers jours)
-			const thirtyDaysAgo = new Date()
-			thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-			stats.value.recentReleases = releasesData.releases.filter((r: any) => {
-				return new Date(r.created_at) > thirtyDaysAgo
-			}).length
-
-			// Stocker les données récentes
-			recentArtists.value = artistsData.artists
-			recentReleases.value = releasesData.releases
-			recentNews.value = newsData.news
-		} catch (error) {
-			console.error('Erreur lors du chargement des données:', error)
-			toast.add({
-				title: 'Erreur',
-				description: 'Impossible de charger les données du dashboard',
-				color: 'error',
-			})
-		} finally {
-			loading.value = false
+	// Utiliser les données fetchées de manière réactive
+	watchEffect(() => {
+		if (dashboardData.value) {
+			stats.value = dashboardData.value.stats
+			recentArtists.value = dashboardData.value.recentArtists
+			recentReleases.value = dashboardData.value.recentReleases
+			recentNews.value = dashboardData.value.recentNews
 		}
-	}
-
-	onMounted(() => {
-		loadDashboardData()
 	})
 </script>
 

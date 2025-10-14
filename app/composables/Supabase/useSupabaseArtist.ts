@@ -2,26 +2,11 @@ import type { QueryOptions, FilterOptions, ArtistType, Artist } from '~/types'
 import type { Database, TablesInsert, TablesUpdate } from '~/types/supabase'
 import { useSupabaseClient } from '#imports'
 
-// Types pour les réponses RPC
-interface RPCExclusiveContentResponse {
-	exclusive_releases?: Array<any>
-	exclusive_musics?: Array<any>
-	exclusive_news?: Array<any>
-}
-
-interface RPCDeletionAnalysisResponse {
-	message?: string
-	success?: boolean
-	details?: {
-		impact_analysis?: any
-	}
-}
-
-interface RPCDeletionResponse {
-	success?: boolean
-	message?: string
-	artist_name?: string
-}
+import type {
+	ArtistDeletionAnalysis,
+	ArtistDeletionResponse,
+	ExclusiveContent,
+} from '~/types/auth'
 
 export function useSupabaseArtist() {
 	const supabase = useSupabaseClient<Database>()
@@ -327,11 +312,11 @@ export function useSupabaseArtist() {
 				throw new Error("Erreur lors de l'analyse d'impact")
 			}
 
+			const response = data as ExclusiveContent
 			return {
-				exclusiveReleases:
-					(data as RPCExclusiveContentResponse)?.exclusive_releases || [],
-				exclusiveMusics: (data as RPCExclusiveContentResponse)?.exclusive_musics || [],
-				exclusiveNews: (data as RPCExclusiveContentResponse)?.exclusive_news || [],
+				exclusiveReleases: response?.exclusive_releases || [],
+				exclusiveMusics: response?.exclusive_musics || [],
+				exclusiveNews: response?.exclusive_news || [],
 			}
 		} catch (error) {
 			console.error("Erreur lors de l'analyse d'impact:", error)
@@ -351,17 +336,18 @@ export function useSupabaseArtist() {
 				throw new Error(error.message || "Erreur lors de la suppression de l'artiste")
 			}
 
+			const response = data as ArtistDeletionAnalysis
 			toast.add({
 				title: 'Artiste supprimé',
-				description: (data as RPCDeletionAnalysisResponse)?.message,
+				description: response?.message,
 				color: 'success',
 			})
 
 			return {
-				success: (data as RPCDeletionAnalysisResponse)?.success,
-				message: (data as RPCDeletionAnalysisResponse)?.message,
-				details: (data as RPCDeletionAnalysisResponse)?.details,
-				impact: (data as RPCDeletionAnalysisResponse)?.details?.impact_analysis,
+				success: response?.success,
+				message: response?.message,
+				details: response?.details,
+				impact: response?.details?.impact_analysis,
 			}
 		} catch (error: any) {
 			console.error("Erreur lors de la suppression de l'artiste:", error)
@@ -386,16 +372,17 @@ export function useSupabaseArtist() {
 				throw new Error(error.message || "Erreur lors de la suppression de l'artiste")
 			}
 
+			const response = data as ArtistDeletionResponse
 			toast.add({
 				title: 'Artiste supprimé',
-				description: (data as RPCDeletionAnalysisResponse)?.message,
+				description: response?.message,
 				color: 'success',
 			})
 
 			return {
-				success: (data as RPCDeletionAnalysisResponse)?.success,
-				message: (data as RPCDeletionAnalysisResponse)?.message,
-				artist_name: (data as RPCDeletionResponse)?.artist_name,
+				success: response?.success,
+				message: response?.message,
+				artist_name: response?.artist_name,
 			}
 		} catch (error: any) {
 			console.error("Erreur lors de la suppression de l'artiste:", error)

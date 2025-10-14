@@ -319,6 +319,7 @@
 	definePageMeta({
 		middleware: ['admin'],
 		layout: 'dashboard',
+		ssr: false, // Dashboard admin en SPA
 	})
 </script>
 

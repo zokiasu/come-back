@@ -128,6 +128,7 @@
 	definePageMeta({
 		middleware: ['admin'],
 		layout: 'dashboard',
+		ssr: false, // Dashboard admin en SPA
 	})
 
 	const { getStatistics } = useSupabaseStatistics()

@@ -55,6 +55,38 @@ export default defineNuxtConfig({
 		experimental: {
 			wasm: true,
 		},
+		compressPublicAssets: true,
+	},
+
+	routeRules: {
+		// Page d'accueil : ISR avec cache de 1 heure
+		'/': { isr: 3600 },
+
+		// Calendrier : SSG (peu de changements)
+		'/calendar': { prerender: true },
+
+		// Pages d'authentification : SPA
+		'/authentification': { ssr: false },
+		'/auth/callback': { ssr: false },
+
+		// Dashboard admin : SPA (données sensibles + interactif)
+		'/dashboard/**': { ssr: false },
+		'/newdashboard/**': { ssr: false },
+
+		// Pages de paramètres : Hybride
+		'/settings': { ssr: true },
+		'/settings/**': { ssr: true },
+
+		// API : CORS activé
+		'/api/**': {
+			cors: true,
+			headers: {
+				'Cache-Control': 's-maxage=300, stale-while-revalidate=60',
+			},
+		},
+
+		// Pages de création : SPA (formulaires complexes)
+		'/release/create': { ssr: false },
 	},
 
 	typescript: {

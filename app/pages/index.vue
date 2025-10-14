@@ -10,19 +10,65 @@
 	const { getRealtimeLastestArtistsAdded } = useSupabaseArtist()
 	const { getRandomMusics, getLatestMVs } = useSupabaseMusic()
 
-	const comebacks = ref<News[]>([])
-	const artists = ref<Artist[]>([])
-	const releases = ref<Release[]>([])
-	const musics = ref<Music[]>([])
-	const mvs = ref<Music[]>([])
+	// SSR-compatible data fetching avec useFetch
+	const { data: comebacks, pending: newsFetching } = await useFetch('/api/news/latest', {
+		default: () => [],
+		server: true,
+		transform: (data: any[]) =>
+			data.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()),
+	})
 
-	const newsFetching = ref<boolean>(true)
-	const releasesFetching = ref<boolean>(true)
-	const artistsFetching = ref<boolean>(true)
-	const musicsFetching = ref<boolean>(true)
-	const mvsFetching = ref<boolean>(true)
+	const { data: releases, pending: releasesFetching } = await useFetch(
+		'/api/releases/latest',
+		{
+			default: () => [],
+			server: true,
+			query: { limit: 8 },
+			transform: (data: any[]) =>
+				data.sort(
+					(a, b) => new Date(b.date || '').getTime() - new Date(a.date || '').getTime(),
+				),
+		},
+	)
+
+	const { data: artists, pending: artistsFetching } = await useFetch(
+		'/api/artists/latest',
+		{
+			default: () => [],
+			server: true,
+			query: { limit: 8 },
+			transform: (data: any[]) =>
+				data.sort(
+					(a, b) =>
+						new Date(b.created_at || '').getTime() -
+						new Date(a.created_at || '').getTime(),
+				),
+		},
+	)
+
+	// Musiques aléatoires - client-only car changent à chaque visite
+	const {
+		data: musics,
+		pending: musicsFetching,
+		refresh: refreshMusics,
+	} = await useFetch('/api/musics/random', {
+		default: () => [],
+		server: false,
+		query: { limit: 4 },
+		transform: (data: any[]) =>
+			data.sort(
+				(a, b) => new Date(b.date || '').getTime() - new Date(a.date || '').getTime(),
+			),
+	})
+
+	const { data: mvs, pending: mvsFetching } = await useFetch('/api/musics/latest-mvs', {
+		default: () => [],
+		server: true,
+		query: { limit: 14 },
+	})
 
 	const comebacksToday = computed<News[]>(() => {
+		if (!comebacks.value) return []
 		return comebacks.value.filter((comeback) => {
 			const comebacksDate = new Date(comeback.date)
 			const today = new Date()
@@ -34,59 +80,22 @@
 		})
 	})
 
-	onMounted(async () => {
-		Promise.all([
-			new Promise<void>((resolve) =>
-				getRealtimeLastestNewsAdded((news: News[]) => {
-					comebacks.value = news.sort(
-						(a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
-					)
-					newsFetching.value = false
-					resolve()
-				}),
-			),
-			new Promise<void>((resolve) =>
-				getRealtimeLastestReleasesAdded(8, (rel: Release[]) => {
-					releases.value = rel.sort(
-						(a, b) => new Date(b.date || '').getTime() - new Date(a.date || '').getTime(),
-					)
-					releasesFetching.value = false
-					resolve()
-				}),
-			),
-			new Promise<void>((resolve) =>
-				getRealtimeLastestArtistsAdded(8, (art: Artist[]) => {
-					artists.value = art.sort(
-						(a, b) =>
-							new Date(b.created_at || '').getTime() -
-							new Date(a.created_at || '').getTime(),
-					)
-					artistsFetching.value = false
-					resolve()
-				}),
-			),
-			new Promise<void>((resolve) => {
-				getRandomMusics(4).then((musicList) => {
-					musics.value = musicList.sort(
-						(a, b) => new Date(b.date || '').getTime() - new Date(a.date || '').getTime(),
-					)
-					musicsFetching.value = false
-					resolve()
-				})
-			}),
-			new Promise<void>((resolve) => {
-				getLatestMVs(14).then((mvList) => {
-					mvs.value = mvList
-					mvsFetching.value = false
-					resolve()
-				})
-			}),
-		])
-	})
-
 	const reloadDiscoverMusic = async () => {
-		musics.value = await getRandomMusics(4)
+		await refreshMusics()
 	}
+
+	// SEO Meta Tags dynamiques
+	useSeoMeta({
+		title: 'Comeback - Track every next release by your favorite artists',
+		ogTitle: 'Comeback - Track every next release by your favorite artists',
+		description:
+			"Don't miss any Comeback. Track every next release by your favorite artists.",
+		ogDescription:
+			"Don't miss any Comeback. Track every next release by your favorite artists.",
+		ogImage: '/ogp.png',
+		twitterCard: 'summary_large_image',
+		twitterImage: '/ogp.png',
+	})
 </script>
 
 <template>
@@ -96,7 +105,7 @@
 		<!-- Home Body -->
 		<section class="container mx-auto space-y-16 p-5 py-10 2xl:space-y-20">
 			<!-- Comeback Reported List -->
-			<ComebackReported
+			<LazyComebackReported
 				v-if="comebacks.length > 0 && !newsFetching"
 				:comeback-list="comebacks"
 			/>
@@ -141,7 +150,7 @@
 				class="space-y-8 text-center xl:space-y-10"
 			>
 				<p class="text-xl font-bold lg:text-4xl">Latest MV</p>
-				<DiscoverMV :mvs="mvs" />
+				<LazyDiscoverMV :mvs="mvs" />
 			</div>
 			<div v-else-if="mvsFetching" class="space-y-4">
 				<p class="text-center text-xl font-bold lg:text-4xl">Latest MV</p>

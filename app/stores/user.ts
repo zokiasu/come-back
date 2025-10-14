@@ -11,6 +11,9 @@ export const useUserStore = defineStore(
 		const isAdminStore = ref<boolean>(false)
 		const userDataStore = ref<User | null>(null)
 
+		// État d'hydratation pour éviter les erreurs SSR/client
+		const isHydrated = ref(false)
+
 		const setUserData = (user: User | null) => {
 			userDataStore.value = user
 			if (user) {
@@ -45,6 +48,7 @@ export const useUserStore = defineStore(
 				setIsLogin(false)
 				setSupabaseUser(null)
 			}
+			isHydrated.value = true
 		}
 
 		const resetStore = () => {
@@ -52,6 +56,15 @@ export const useUserStore = defineStore(
 			setIsLogin(false)
 			setSupabaseUser(null)
 			setIsAdmin(false)
+			isHydrated.value = true
+		}
+
+		// Initialisation côté client uniquement
+		const initializeStore = () => {
+			if (import.meta.client && !isHydrated.value) {
+				// Marquer comme hydraté même si pas de données
+				isHydrated.value = true
+			}
 		}
 
 		return {
@@ -59,21 +72,31 @@ export const useUserStore = defineStore(
 			userDataStore,
 			isLoginStore,
 			isAdminStore,
+			isHydrated,
 			setUserData,
 			setSupabaseUser,
 			setIsLogin,
 			setIsAdmin,
 			syncUserProfile,
 			resetStore,
+			initializeStore,
 		}
 	},
 	{
 		persist: {
 			storage: import.meta.client ? localStorage : undefined,
-			// @ts-expect-error - paths is a valid option for pinia-plugin-persistedstate
 			paths: ['userDataStore', 'isLoginStore', 'isAdminStore'],
-			// On ne persiste pas supabaseUserStore car il contient des données sensibles
-			// et Supabase gère sa propre persistance via les cookies
+			// Stratégie d'hydratation plus sûre
+			beforeRestore: (ctx) => {
+				// Côté serveur, pas de restauration
+				if (import.meta.server) return
+			},
+			afterRestore: (ctx) => {
+				// Marquer comme hydraté après restauration
+				if (import.meta.client) {
+					ctx.store.isHydrated = true
+				}
+			},
 		},
 	},
 )
