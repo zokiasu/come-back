@@ -44,7 +44,10 @@
 	<UDashboardGroup unit="rem" class="bg-cb-secondary-950 text-cb-tertiary-200">
 		<UDashboardSidebar id="default" v-model:open="open" collapsible resizable>
 			<template #header>
-				<NuxtLink to="/" class="flex w-full items-center justify-center p-4 hover:opacity-80 transition-opacity">
+				<NuxtLink
+					to="/"
+					class="flex w-full items-center justify-center p-4 transition-opacity hover:opacity-80"
+				>
 					<img src="~/assets/image/logo.png" alt="Comeback" class="block h-10" />
 				</NuxtLink>
 			</template>
@@ -57,7 +60,7 @@
 				<div class="p-4">
 					<NuxtLink
 						to="/"
-						class="flex items-center justify-center gap-2 rounded-lg bg-cb-quinary-900 px-4 py-2 text-sm text-cb-tertiary-200 transition-all hover:bg-cb-quinary-800 hover:text-white"
+						class="bg-cb-quinary-900 text-cb-tertiary-200 hover:bg-cb-quinary-800 flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm transition-all hover:text-white"
 					>
 						<UIcon name="i-heroicons-arrow-left" class="h-4 w-4" />
 						<span>Retour à Comeback</span>

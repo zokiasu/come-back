@@ -1,7 +1,7 @@
 <template>
 	<div class="relative h-full space-y-3 overflow-y-auto">
 		<!-- Header Section -->
-		<section class="sticky top-0 z-20 w-full space-y-4 p-6 bg-cb-secondary-950">
+		<section class="bg-cb-secondary-950 sticky top-0 z-20 w-full space-y-4 p-6">
 			<div class="space-y-2">
 				<h1 class="text-2xl font-bold text-white">Tableau de Bord des Statistiques</h1>
 				<p class="text-cb-tertiary-200 text-sm">
@@ -77,7 +77,7 @@
 		</section>
 
 		<!-- Loading State -->
-		<div v-if="loading" class="bg-cb-quaternary-950 rounded-lg p-8 mx-6">
+		<div v-if="loading" class="bg-cb-quaternary-950 mx-6 rounded-lg p-8">
 			<div class="flex flex-col items-center space-y-4">
 				<div
 					class="border-cb-primary-900 h-8 w-8 animate-spin rounded-full border-b-2"
