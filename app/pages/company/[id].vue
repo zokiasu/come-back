@@ -2,35 +2,35 @@
 	import { storeToRefs } from 'pinia'
 	import { useUserStore } from '@/stores/user'
 	import type { Company, CompanyArtist } from '~/types'
-	import { useSupabaseCompanies } from '~/composables/Supabase/useSupabaseCompanies'
 
 	const userStore = useUserStore()
 	const { isLoginStore, isAdminStore } = storeToRefs(userStore)
-	const { getCompanyById, getCompanyArtists } = useSupabaseCompanies()
 
 	const title = ref<string>('Company Page')
 	const description = ref<string>('Company')
 	const route = useRoute()
-	const company = ref<Company>()
-	const companyArtists = ref<CompanyArtist[]>([])
+
+	// SSR-compatible data fetching avec API complète
+	const { data: companyData, pending: isFetchingCompany, error: fetchError } = await useFetch(`/api/companies/${route.params.id}/complete`, {
+		server: true,
+		default: () => ({
+			company: null,
+			company_artists: []
+		})
+	})
+
+	// Réactivité des données
+	const company = computed(() => companyData.value.company)
+	const companyArtists = computed(() => companyData.value.company_artists)
 	const imageBackground = ref<string | null>(null)
 	const imageBackLoaded = ref<boolean>(false)
-	const isFetchingCompany = ref<boolean>(true)
 
-	onMounted(async () => {
-		try {
-			company.value = await getCompanyById(route.params.id as string)
-			if (company.value) {
-				companyArtists.value = await getCompanyArtists(company.value.id)
-				imageBackground.value = company.value.logo_url || null
-				title.value = company.value.name
-				description.value = company.value.description || ''
-			}
-		} catch (error) {
-			console.error(error)
-			isFetchingCompany.value = false
-		} finally {
-			isFetchingCompany.value = false
+	// Configuration des meta et images de façon réactive
+	watchEffect(() => {
+		if (company.value) {
+			imageBackground.value = company.value.logo_url || null
+			title.value = company.value.name
+			description.value = company.value.description || ''
 		}
 	})
 

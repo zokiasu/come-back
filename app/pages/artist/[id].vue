@@ -2,48 +2,45 @@
 	import { storeToRefs } from 'pinia'
 	import { useUserStore } from '@/stores/user'
 	import type { Artist, Music, ArtistSocialLink, ArtistPlatformLink } from '~/types'
-	import { useSupabaseArtist } from '~/composables/Supabase/useSupabaseArtist'
-	import { useSupabaseMusic } from '~/composables/Supabase/useSupabaseMusic'
 	import CreateMultipleArtists from '@/components/Modal/CreateMultipleArtists.vue'
 
 	const userStore = useUserStore()
 	const { isLoginStore, isAdminStore } = storeToRefs(userStore)
-	const { getFullArtistById, getSocialAndPlatformLinksByArtistId } = useSupabaseArtist()
-	const { getRandomMusicsByArtistId } = useSupabaseMusic()
 
+	const route = useRoute()
 	const title = ref<string>('Artist Page')
 	const description = ref<string>('Artist')
-	const route = useRoute()
-	const artist = ref<Artist>()
-	const socialLinksList = ref<ArtistSocialLink[]>([])
-	const platformLinksList = ref<ArtistPlatformLink[]>([])
 	const imageBackground = ref<string | null>(null)
 	const imageBackLoaded = ref<boolean>(false)
-	const isFetchingArtist = ref<boolean>(true)
-	const musicDiscover = ref<Music[]>([])
 	const showMultipleArtistModal = ref(false)
 
-	onMounted(async () => {
-		try {
-			artist.value = await getFullArtistById(route.params.id as string)
-			if (artist.value) {
-				const { socialLinks, platformLinks } = await getSocialAndPlatformLinksByArtistId(
-					artist.value.id,
-				)
-				socialLinksList.value = socialLinks
-				platformLinksList.value = platformLinks
-				imageBackground.value = artist.value.image
-				title.value = artist.value.name
-				description.value = artist.value.description || ''
-				musicDiscover.value = await getRandomMusicsByArtistId(artist.value.id, 9)
-			}
-		} catch (error) {
-			console.error(error)
-			isFetchingArtist.value = false
-		} finally {
-			isFetchingArtist.value = false
+	// SSR-compatible data fetching avec API complète
+	const { data: artistData, pending: isFetchingArtist, error: fetchError } = await useFetch(`/api/artists/${route.params.id}/complete`, {
+		server: true,
+		default: () => ({
+			artist: null,
+			social_links: [],
+			platform_links: [],
+			random_musics: []
+		})
+	})
+
+	// Réactivité des données
+	const artist = computed(() => artistData.value.artist)
+	const socialLinksList = computed(() => artistData.value.social_links)
+	const platformLinksList = computed(() => artistData.value.platform_links)
+	const musicDiscover = computed(() => artistData.value.random_musics)
+
+	// Configuration des meta et images de façon réactive
+	watchEffect(() => {
+		if (artist.value) {
+			title.value = artist.value.name
+			description.value = artist.value.description || ''
+			imageBackground.value = artist.value.image
 		}
 	})
+
+
 
 	const members = computed(
 		() =>
@@ -266,7 +263,7 @@
 				</div>
 
 				<CardDefault
-					v-if="artist.id_youtube_music && musicDiscover.length > 0"
+					v-if="musicDiscover && musicDiscover.length > 0"
 					name="Discover Music"
 				>
 					<transition-group
@@ -282,7 +279,7 @@
 							:artist-name="artist.name ?? ''"
 							:music-id="song.id_youtube_music ?? ''"
 							:music-name="song.name ?? ''"
-							:music-image="song?.thumbnails[0]?.url"
+							:music-image="song?.thumbnails?.[0]?.url || ''"
 							:duration="song?.duration?.toString() || '0'"
 							class="bg-cb-quinary-900 w-full"
 						/>

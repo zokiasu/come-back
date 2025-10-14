@@ -1,11 +1,10 @@
 <script setup lang="ts">
 	import type { Release } from '~/types'
-	import { useSupabaseRelease } from '~/composables/Supabase/useSupabaseRelease'
 	import { useWindowScroll } from '@vueuse/core'
+	import { useSupabaseRelease } from '~/composables/Supabase/useSupabaseRelease'
 
 	const { getReleasesByMonthAndYear } = useSupabaseRelease()
 
-	const releases = ref<Release[]>([])
 	const backTop = useTemplateRef('backTop')
 	const yearList = ref<number[]>([])
 	const monthList = [
@@ -27,6 +26,7 @@
 	const onlyAlbums = ref<boolean>(false)
 	const onlyEps = ref<boolean>(false)
 	const onlySingles = ref<boolean>(false)
+	const releases = ref<Release[]>([])
 	const loading = ref<boolean>(true)
 
 	// Utiliser le composable Nuxt pour le scroll
@@ -83,6 +83,7 @@
 		}
 	}
 
+	// Initialiser la liste des années et charger les données
 	onMounted(async () => {
 		for (let year = 2020; year <= currentYear.value; year++) {
 			yearList.value.push(year)
@@ -94,10 +95,9 @@
 				return new Date(b.date || '').getTime() - new Date(a.date || '').getTime()
 			})
 		})
-
-		// Plus besoin d'addEventListener, useWindowScroll() s'en charge
 	})
 
+	// Watcher pour les changements de mois/année
 	watch([currentYear, currentMonth], async () => {
 		releases.value = await getReleasesByMonthAndYear(
 			currentMonth.value,
