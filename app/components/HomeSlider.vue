@@ -19,6 +19,9 @@
 		day: 'numeric',
 		year: 'numeric',
 	})
+
+	// Désactiver le loop si moins de 2 slides (évite le warning Swiper)
+	const enableLoop = computed(() => props.newsToday.length >= 2)
 </script>
 
 <template>
@@ -44,7 +47,7 @@
 					<Swiper
 						:modules="[Autoplay, EffectFade, Parallax]"
 						:slides-per-view="1"
-						:loop="true"
+						:loop="enableLoop"
 						:parallax="true"
 						:effect="'fade'"
 						:autoplay="{

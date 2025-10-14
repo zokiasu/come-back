@@ -15,7 +15,6 @@
 	const { getAllNews } = useSupabaseNews()
 	const { getCompaniesStats } = useSupabaseCompanies()
 
-	const loading = ref(true)
 	const stats = ref({
 		totalArtists: 0,
 		activeArtists: 0,

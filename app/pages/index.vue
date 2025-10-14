@@ -10,15 +10,18 @@
 	const { getRealtimeLastestArtistsAdded } = useSupabaseArtist()
 	const { getRandomMusics, getLatestMVs } = useSupabaseMusic()
 
-	// SSR-compatible data fetching avec useFetch
-	const { data: comebacks, pending: newsFetching } = await useFetch('/api/news/latest', {
+	// Timestamp pour forcer le refresh
+	const refreshTimestamp = ref(Date.now())
+
+	// SSR-compatible data fetching avec useFetch + refresh pour temps réel
+	const { data: comebacks, pending: newsFetching, refresh: refreshNews } = await useFetch(() => `/api/news/latest?_t=${refreshTimestamp.value}`, {
 		default: () => [],
 		server: true,
-		transform: (data: any[]) =>
-			data.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()),
+		key: 'news-latest',
+		// Pas besoin de transform car l'API retourne déjà triées par date croissante
 	})
 
-	const { data: releases, pending: releasesFetching } = await useFetch(
+	const { data: releases, pending: releasesFetching, refresh: refreshReleases } = await useFetch(
 		'/api/releases/latest',
 		{
 			default: () => [],
@@ -31,7 +34,7 @@
 		},
 	)
 
-	const { data: artists, pending: artistsFetching } = await useFetch(
+	const { data: artists, pending: artistsFetching, refresh: refreshArtists } = await useFetch(
 		'/api/artists/latest',
 		{
 			default: () => [],
@@ -61,7 +64,7 @@
 			),
 	})
 
-	const { data: mvs, pending: mvsFetching } = await useFetch('/api/musics/latest-mvs', {
+	const { data: mvs, pending: mvsFetching, refresh: refreshMVs } = await useFetch('/api/musics/latest-mvs', {
 		default: () => [],
 		server: true,
 		query: { limit: 14 },
@@ -83,6 +86,117 @@
 	const reloadDiscoverMusic = async () => {
 		await refreshMusics()
 	}
+
+	// 🔄 Temps réel - Écoute les changements en base après hydratation
+	onMounted(() => {
+		const supabase = useSupabaseClient()
+
+		// Channel pour les news/comebacks
+		const newsChannel = supabase
+			.channel('news-realtime')
+			.on('postgres_changes',
+				{
+					event: '*',
+					schema: 'public',
+					table: 'news'
+				},
+				async (payload) => {
+					// Force un refresh direct avec $fetch (bypass du cache useFetch)
+					try {
+						const freshData = await $fetch('/api/news/latest')
+						comebacks.value = freshData // Pas besoin de tri, déjà triées par l'API
+					} catch (error) {
+						console.error('Error refreshing news:', error)
+					}
+				}
+			)
+			.subscribe()
+
+		// Channel pour les releases
+		const releasesChannel = supabase
+			.channel('releases-realtime')
+			.on('postgres_changes',
+				{
+					event: '*',
+					schema: 'public',
+					table: 'releases'
+				},
+				async (payload) => {
+					// Force un refresh direct avec $fetch (bypass du cache useFetch)
+					try {
+						const freshData = await $fetch('/api/releases/latest', {
+							query: { limit: 8 }
+						})
+						releases.value = freshData.sort(
+							(a, b) => new Date(b.date || '').getTime() - new Date(a.date || '').getTime(),
+						)
+					} catch (error) {
+						console.error('Error refreshing releases:', error)
+					}
+				}
+			)
+			.subscribe()
+
+		// Channel pour les artists
+		const artistsChannel = supabase
+			.channel('artists-realtime')
+			.on('postgres_changes',
+				{
+					event: '*',
+					schema: 'public',
+					table: 'artists'
+				},
+				async (payload) => {
+					// Force un refresh direct avec $fetch (bypass du cache useFetch)
+					try {
+						const freshData = await $fetch('/api/artists/latest', {
+							query: { limit: 8 }
+						})
+						artists.value = freshData.sort(
+							(a, b) =>
+								new Date(b.created_at || '').getTime() -
+								new Date(a.created_at || '').getTime(),
+						)
+					} catch (error) {
+						console.error('Error refreshing artists:', error)
+					}
+				}
+			)
+			.subscribe()
+
+		// Channel pour les musics (MVs et musiques random)
+		const musicsChannel = supabase
+			.channel('musics-realtime')
+			.on('postgres_changes',
+				{
+					event: '*',
+					schema: 'public',
+					table: 'musics'
+				},
+				async (payload) => {
+					// Force un refresh direct avec $fetch (bypass du cache useFetch)
+					try {
+						const freshData = await $fetch('/api/musics/latest-mvs', {
+							query: { limit: 14 }
+						})
+						mvs.value = freshData
+					} catch (error) {
+						console.error('Error refreshing MVs:', error)
+					}
+
+					// Note: les musiques random ne se refresh pas auto pour garder l'aspect "découverte"
+				}
+			)
+			.subscribe()
+
+		// Nettoyage des channels au démontage
+		onUnmounted(() => {
+			newsChannel.unsubscribe()
+			releasesChannel.unsubscribe()
+			artistsChannel.unsubscribe()
+			musicsChannel.unsubscribe()
+		})
+	})
 
 	// SEO Meta Tags dynamiques
 	useSeoMeta({
@@ -119,30 +233,32 @@
 			</div>
 
 			<!-- Discover Music -->
-			<div
-				v-if="musics.length > 0 && !musicsFetching"
-				class="space-y-8 text-center xl:space-y-10"
-			>
-				<p class="text-xl font-bold lg:text-4xl">Discover Music</p>
-				<div class="space-y-5">
-					<div class="grid grid-cols-2 gap-5 xl:grid-cols-4">
-						<LazyDiscoverMusic v-for="music in musics" :key="music.id" :music="music" />
+			<ClientOnly>
+				<div
+					v-if="musics.length > 0 && !musicsFetching"
+					class="space-y-8 text-center xl:space-y-10"
+				>
+					<p class="text-xl font-bold lg:text-4xl">Discover Music</p>
+					<div class="space-y-5">
+						<div class="grid grid-cols-2 gap-5 xl:grid-cols-4">
+							<LazyDiscoverMusic v-for="music in musics" :key="music.id" :music="music" />
+						</div>
+						<UButton
+							label="Reload"
+							variant="ghost"
+							class="bg-cb-quaternary-950 mx-auto w-fit rounded px-3 py-1 text-white"
+							icon="i-material-symbols-refresh"
+							@click="reloadDiscoverMusic"
+						/>
 					</div>
-					<UButton
-						label="Reload"
-						variant="ghost"
-						class="bg-cb-quaternary-950 mx-auto w-fit rounded px-3 py-1 text-white"
-						icon="i-material-symbols-refresh"
-						@click="reloadDiscoverMusic"
-					/>
 				</div>
-			</div>
-			<div v-else-if="musicsFetching" class="grid grid-cols-2 gap-5 xl:grid-cols-4">
-				<SkeletonDefault class="h-80 w-full rounded-lg" />
-				<SkeletonDefault class="h-80 w-full rounded-lg" />
-				<SkeletonDefault class="h-80 w-full rounded-lg" />
-				<SkeletonDefault class="h-80 w-full rounded-lg" />
-			</div>
+				<div v-else-if="musicsFetching" class="grid grid-cols-2 gap-5 xl:grid-cols-4">
+					<SkeletonDefault class="h-80 w-full rounded-lg" />
+					<SkeletonDefault class="h-80 w-full rounded-lg" />
+					<SkeletonDefault class="h-80 w-full rounded-lg" />
+					<SkeletonDefault class="h-80 w-full rounded-lg" />
+				</div>
+			</ClientOnly>
 
 			<!-- Latest MV -->
 			<div

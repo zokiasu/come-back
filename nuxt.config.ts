@@ -62,6 +62,10 @@ export default defineNuxtConfig({
 		// Page d'accueil : ISR avec cache de 1 heure
 		'/': { isr: 3600 },
 
+		// Pages de listing : ISR avec cache de 30 minutes
+		'/artist/**': { isr: 1800 },
+		'/release/**': { isr: 1800 },
+
 		// Calendrier : SSG (peu de changements)
 		'/calendar': { prerender: true },
 

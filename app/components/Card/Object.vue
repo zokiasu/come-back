@@ -79,9 +79,9 @@
 			<p v-if="props.isArtist || props.isReleaseDisplay" class="truncate">
 				{{ props.subTitle }}
 			</p>
-			<LazyNuxtLink v-else :to="`/artist/${props.artistId}`" class="hover:underline">
+			<span v-else class="hover:underline cursor-pointer" @click.stop="$router.push(`/artist/${props.artistId}`)">
 				<p class="truncate">{{ props.subTitle }}</p>
-			</LazyNuxtLink>
+			</span>
 		</div>
 	</NuxtLink>
 </template>

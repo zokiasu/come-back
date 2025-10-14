@@ -1,5 +1,18 @@
+import { createClient } from '@supabase/supabase-js'
+
 export default defineEventHandler(async (event) => {
-	const supabase = useSupabaseServiceRole()
+	const config = useRuntimeConfig()
+	const supabase = createClient(
+		config.public.supabase.url,
+		config.supabase.serviceKey,
+		{
+			auth: {
+				persistSession: false,
+				autoRefreshToken: false,
+				detectSessionInUrl: false,
+			},
+		}
+	)
 	const query = getQuery(event)
 	const limit = parseInt(query.limit as string) || 14
 
@@ -7,7 +20,7 @@ export default defineEventHandler(async (event) => {
 		const { data, error } = await supabase
 			.from('musics')
 			.select('*')
-			.not('id_youtube', 'is', null) // Seulement les musiques avec vidéo
+			.eq('ismv', true) // Seulement les clips musicaux
 			.order('date', { ascending: false })
 			.limit(limit)
 

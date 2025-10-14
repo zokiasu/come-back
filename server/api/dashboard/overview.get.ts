@@ -1,5 +1,18 @@
+import { createClient } from '@supabase/supabase-js'
+
 export default defineEventHandler(async (event) => {
-	const supabase = useSupabaseServiceRole()
+	const config = useRuntimeConfig()
+	const supabase = createClient(
+		config.public.supabase.url,
+		config.supabase.serviceKey,
+		{
+			auth: {
+				persistSession: false,
+				autoRefreshToken: false,
+				detectSessionInUrl: false,
+			},
+		}
+	)
 
 	try {
 		// Récupérer les données en parallèle

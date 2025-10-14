@@ -10,18 +10,29 @@
 	function daysUntil(futureDate: Date) {
 		const today = new Date()
 		const future = new Date(futureDate)
-		const differenceInTime = future.getTime() - today.getTime()
+
+		// Compare only the date part, not the time
+		const todayDateOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+		const futureDateOnly = new Date(future.getFullYear(), future.getMonth(), future.getDate())
+
+		const differenceInTime = futureDateOnly.getTime() - todayDateOnly.getTime()
 		const differenceInDays = differenceInTime / (1000 * 3600 * 24)
+
 		return Math.ceil(differenceInDays)
 	}
 
 	function isDatePassed(date: Date) {
-		const today = new Date().getTime()
+		const today = new Date()
 		const inputDate = new Date(date)
 		if (isNaN(inputDate.getTime())) {
 			throw new TypeError('Invalid date format')
 		}
-		return inputDate.getTime() < today
+
+		// Compare only the date part, not the time
+		const todayDateOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+		const inputDateOnly = new Date(inputDate.getFullYear(), inputDate.getMonth(), inputDate.getDate())
+
+		return inputDateOnly.getTime() < todayDateOnly.getTime()
 	}
 
 	function isSameDate(date: Date) {
@@ -30,6 +41,7 @@
 		if (isNaN(inputDate.getTime())) {
 			throw new TypeError('Invalid date format')
 		}
+
 		return (
 			inputDate.getFullYear() === today.getFullYear() &&
 			inputDate.getMonth() === today.getMonth() &&
@@ -39,6 +51,15 @@
 
 	const handleError = (artistName: string) => {
 		console.error('Failed to load image', artistName)
+	}
+
+	const formatDateForTooltip = (date: string) => {
+		const options: Intl.DateTimeFormatOptions = {
+			day: '2-digit',
+			month: '2-digit',
+			year: 'numeric',
+		}
+		return new Date(date).toLocaleDateString('fr-FR', options)
 	}
 </script>
 
@@ -87,19 +108,22 @@
 		>
 			<p
 				v-if="!isDatePassed(new Date(props.date)) && !isSameDate(new Date(props.date))"
-				class="my-auto text-lg font-bold whitespace-nowrap lg:text-xl"
+				class="my-auto text-lg font-bold whitespace-nowrap lg:text-xl select-none"
+				:title="formatDateForTooltip(props.date)"
 			>
 				D-{{ daysUntil(new Date(props.date)) }}
 			</p>
 			<p
 				v-if="isSameDate(new Date(props.date))"
-				class="text-cb-primary-900 my-auto font-medium whitespace-nowrap"
+				class="text-cb-primary-900 my-auto font-medium whitespace-nowrap select-none"
+				:title="formatDateForTooltip(props.date)"
 			>
 				Today
 			</p>
 			<p
 				v-if="!isSameDate(new Date(props.date)) && isDatePassed(new Date(props.date))"
-				class="text-cb-primary-900 my-auto font-medium whitespace-nowrap"
+				class="text-cb-primary-900 my-auto font-medium whitespace-nowrap select-none"
+				:title="formatDateForTooltip(props.date)"
 			>
 				Outed
 			</p>
