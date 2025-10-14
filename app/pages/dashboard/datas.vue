@@ -82,10 +82,15 @@
 			})
 		})
 	}
+
+	definePageMeta({
+		middleware: ['admin'],
+		layout: 'dashboard',
+	})
 </script>
 
 <template>
-	<div class="grid grid-cols-1 gap-5 overflow-y-auto lg:grid-cols-2">
+	<div class="grid grid-cols-1 gap-5 overflow-y-auto p-6 lg:grid-cols-2">
 		<section id="styles" class="space-y-3">
 			<h2 class="text-lg font-semibold uppercase">Styles</h2>
 			<section id="input-new-search" class="flex w-full justify-start gap-2">

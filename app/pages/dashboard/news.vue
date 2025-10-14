@@ -167,12 +167,17 @@
 	watch([search, sort, invertSort, limitFetch], () => {
 		fetchNews(true)
 	})
+
+	definePageMeta({
+		middleware: ['admin'],
+		layout: 'dashboard',
+	})
 </script>
 
 <template>
 	<div
 		ref="scrollContainer"
-		class="scrollBarLight relative h-full space-y-3 overflow-hidden overflow-y-scroll pr-2"
+		class="scrollBarLight relative h-full space-y-3 overflow-hidden overflow-y-scroll p-6"
 	>
 		<section
 			id="searchbar"

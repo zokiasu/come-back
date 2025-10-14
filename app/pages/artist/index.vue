@@ -368,7 +368,6 @@
 			MALE: 'Male',
 			FEMALE: 'Female',
 			MIXTE: 'Mixed',
-			OTHER: 'Other',
 			UNKNOWN: 'Unknown',
 		}
 		return labels[gender] || gender

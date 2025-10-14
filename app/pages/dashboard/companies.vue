@@ -318,13 +318,14 @@
 
 	definePageMeta({
 		middleware: ['admin'],
+		layout: 'dashboard',
 	})
 </script>
 
 <template>
 	<div
 		ref="scrollContainer"
-		class="scrollBarLight relative h-full space-y-3 overflow-hidden overflow-y-scroll pr-2"
+		class="scrollBarLight relative h-full space-y-3 overflow-hidden overflow-y-scroll p-6"
 	>
 		<!-- Statistiques en header -->
 		<section class="bg-cb-secondary-950 sticky top-0 z-20 w-full space-y-4 pb-4">

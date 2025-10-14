@@ -973,10 +973,10 @@ export type Database = {
 		Enums: {
 			artist_type: 'SOLO' | 'GROUP'
 			contribution_type: 'CREATOR' | 'EDITOR'
-			gender: 'MALE' | 'FEMALE' | 'MIXTE' | 'OTHER' | 'UNKNOWN'
+			gender: 'MALE' | 'FEMALE' | 'MIXTE' | 'UNKNOWN'
 			music_type: 'SONG'
 			relation_type: 'MEMBER' | 'GROUP' | 'PRODUCER' | 'COMPOSER'
-			release_type: 'ALBUM' | 'SINGLE' | 'EP' | 'COMPILATION'
+			release_type: 'SINGLE' | 'ALBUM' | 'EP'
 			user_role: 'USER' | 'CONTRIBUTOR' | 'ADMIN'
 		}
 		CompositeTypes: {
@@ -1123,10 +1123,10 @@ export const Constants = {
 		Enums: {
 			artist_type: ['SOLO', 'GROUP'],
 			contribution_type: ['CREATOR', 'EDITOR'],
-			gender: ['MALE', 'FEMALE', 'MIXTE', 'OTHER', 'UNKNOWN'],
+			gender: ['MALE', 'FEMALE', 'MIXTE', 'UNKNOWN'],
 			music_type: ['SONG'],
 			relation_type: ['MEMBER', 'GROUP', 'PRODUCER', 'COMPOSER'],
-			release_type: ['ALBUM', 'SINGLE', 'EP', 'COMPILATION'],
+			release_type: ['SINGLE', 'ALBUM', 'EP'],
 			user_role: ['USER', 'CONTRIBUTOR', 'ADMIN'],
 		},
 	},

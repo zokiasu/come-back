@@ -326,6 +326,7 @@
 
 	definePageMeta({
 		middleware: ['admin'],
+		layout: 'dashboard',
 		// Forcer le rendu côté client pour éviter les problèmes de tri SSR
 		ssr: false,
 	})
@@ -334,7 +335,7 @@
 <template>
 	<div
 		ref="scrollContainer"
-		class="scrollBarLight relative h-full space-y-3 overflow-hidden overflow-y-scroll pr-2"
+		class="scrollBarLight relative h-full space-y-3 overflow-hidden overflow-y-scroll p-6"
 	>
 		<section
 			id="searchbar"

@@ -69,7 +69,7 @@
 	const artistGroups = ref<MenuItem<Omit<Artist, 'type'>>[]>([])
 	const artistMembers = ref<MenuItem<Omit<Artist, 'type'>>[]>([])
 
-	const validGenders = ['MALE', 'FEMALE', 'MIXTE', 'UNKNOWN', 'OTHER'] as const
+	const validGenders = ['MALE', 'FEMALE', 'MIXTE', 'UNKNOWN'] as const
 	const artistTypes = ['SOLO', 'GROUP'] as const
 
 	// État de la modal de création de company

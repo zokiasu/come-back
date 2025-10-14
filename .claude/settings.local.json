@@ -30,7 +30,9 @@
 			"Bash(claude mcp:*)",
 			"Bash(curl:*)",
 			"Bash(supabase:*)",
-			"Bash(npx nuxi typecheck:*)"
+			"Bash(npx nuxi typecheck:*)",
+			"mcp__supabase__list_projects",
+			"WebFetch(domain:dashboard-template.nuxt.dev)"
 		],
 		"deny": []
 	},

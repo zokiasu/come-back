@@ -171,7 +171,7 @@
 	})
 
 	// Watchers pour les filtres
-	watch([sort, selectedArtists], async () => {
+	watch([sort, selectedArtists, typeFilter, invertSort], async () => {
 		await getRelease(true)
 	})
 
@@ -215,12 +215,17 @@
 			})
 		}
 	}
+
+	definePageMeta({
+		middleware: ['admin'],
+		layout: 'dashboard',
+	})
 </script>
 
 <template>
 	<div
 		ref="scrollContainer"
-		class="scrollBarLight relative h-full space-y-3 overflow-hidden overflow-y-scroll pr-2"
+		class="scrollBarLight relative h-full space-y-3 overflow-hidden overflow-y-scroll p-6"
 	>
 		<section
 			id="searchbar"
@@ -233,8 +238,8 @@
 					icon="i-heroicons-plus"
 					variant="solid"
 					size="sm"
-					label="Créer une release"
-					title="Créer une release"
+					label="Create a release"
+					title="Create a release"
 					:ui="{
 						label: 'hidden lg:flex',
 					}"
@@ -266,8 +271,7 @@
 						<option value="type">Type</option>
 						<option value="date">Date</option>
 						<option value="year">Year</option>
-						<option value="artistsId">Artist</option>
-						<option value="createdAt">Last Created</option>
+						<option value="created_at">Last Created</option>
 					</select>
 					<button
 						class="bg-cb-quinary-900 placeholder-cb-tertiary-200 hover:bg-cb-tertiary-200 hover:text-cb-quinary-900 rounded border-none p-2 drop-shadow-xl transition-all duration-300 ease-in-out focus:outline-none"
@@ -277,6 +281,20 @@
 						<icon-sort-reverse v-else class="text-cb-tertiary-200 h-6 w-6" />
 					</button>
 				</div>
+			</div>
+
+			<!-- Filtre par type de release -->
+			<div class="flex w-full flex-col gap-2">
+				<label class="text-sm font-medium text-gray-300">Filtrer par type</label>
+				<select
+					v-model="typeFilter"
+					class="bg-cb-quinary-900 placeholder-cb-tertiary-200 focus:bg-cb-tertiary-200 focus:text-cb-quinary-900 w-full rounded border-none p-2 drop-shadow-xl transition-all duration-300 ease-in-out focus:outline-none"
+				>
+					<option value="">Tous les types</option>
+					<option value="SINGLE">Single</option>
+					<option value="ALBUM">Album</option>
+					<option value="EP">EP</option>
+				</select>
 			</div>
 
 			<!-- Sélection d'artistes -->

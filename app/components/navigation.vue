@@ -102,7 +102,7 @@
 					</NuxtLink>
 					<NuxtLink
 						v-if="isAdminStore && isClient"
-						:to="`/dashboard/artist`"
+						:to="`/dashboard`"
 						:class="routeIsDashboard ? 'font-semibold text-white' : 'text-zinc-500'"
 					>
 						Dashboard
