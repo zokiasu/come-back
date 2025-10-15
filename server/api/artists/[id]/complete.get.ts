@@ -118,6 +118,13 @@ export default defineEventHandler(async (event) => {
 		}
 	} catch (error) {
 		console.error('Error fetching complete artist:', error)
-		throw handleSupabaseError(error as any, 'artists.complete')
+
+		// Check if it's a Supabase error
+		if (isPostgrestError(error)) {
+			throw handleSupabaseError(error, 'artists.complete')
+		}
+
+		// Otherwise, it's an unexpected error
+		throw createInternalError('Failed to fetch complete artist data', error)
 	}
 })

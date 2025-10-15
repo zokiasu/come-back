@@ -12,6 +12,34 @@ export interface ApiErrorResponse {
 }
 
 /**
+ * Type guard to check if an error is a PostgrestError
+ *
+ * @param error - The error to check
+ * @returns true if the error is a PostgrestError
+ *
+ * @example
+ * ```typescript
+ * try {
+ *   // ... operation
+ * } catch (error) {
+ *   if (isPostgrestError(error)) {
+ *     throw handleSupabaseError(error, 'context')
+ *   }
+ *   throw createInternalError('Unexpected error', error)
+ * }
+ * ```
+ */
+export const isPostgrestError = (error: unknown): error is PostgrestError => {
+	return (
+		typeof error === 'object' &&
+		error !== null &&
+		'code' in error &&
+		'message' in error &&
+		'details' in error
+	)
+}
+
+/**
  * Handles Supabase PostgrestError and converts it to a standard H3Error
  *
  * @param error - The PostgrestError from Supabase
