@@ -1,22 +1,10 @@
-import { createClient } from '@supabase/supabase-js'
+import type { Tables } from '~/server/types/api'
 
 export default defineEventHandler(async (event) => {
-	const config = useRuntimeConfig()
-	const supabase = createClient(
-		config.public.supabase.url,
-		config.supabase.serviceKey,
-		{
-			auth: {
-				persistSession: false,
-				autoRefreshToken: false,
-				detectSessionInUrl: false,
-			},
-		}
-	)
-
+	const supabase = useServerSupabase()
 	const query = getQuery(event)
-	const month = parseInt(query.month as string) || new Date().getMonth()
-	const year = parseInt(query.year as string) || new Date().getFullYear()
+	const month = parseInt((query.month as string) || String(new Date().getMonth()), 10)
+	const year = parseInt((query.year as string) || String(new Date().getFullYear()), 10)
 
 	// Valider les paramètres (month is 0-based from frontend)
 	if (month < 0 || month > 11) {
@@ -33,42 +21,33 @@ export default defineEventHandler(async (event) => {
 		})
 	}
 
-	try {
-		// Créer les dates de début et fin du mois (month is 0-based)
-		const startDate = new Date(year, month, 1).toISOString().split('T')[0]
-		const endDate = new Date(year, month + 1, 0).toISOString().split('T')[0]
+	// Créer les dates de début et fin du mois (month is 0-based)
+	const startDate = new Date(year, month, 1).toISOString().split('T')[0]
+	const endDate = new Date(year, month + 1, 0).toISOString().split('T')[0]
 
-		const { data, error } = await supabase
-			.from('releases')
-			.select(`
-				*,
-				artists:release_artists(
-					artist:artists(*)
-				)
-			`)
-			.gte('date', startDate)
-			.lte('date', endDate)
-			.order('date', { ascending: false })
+	const { data, error } = await supabase
+		.from('releases')
+		.select(
+			`
+			*,
+			artists:release_artists(
+				artist:artists(*)
+			)
+		`,
+		)
+		.gte('date', startDate)
+		.lte('date', endDate)
+		.order('date', { ascending: false })
 
-		if (error) {
-			throw createError({
-				statusCode: 500,
-				statusMessage: 'Failed to fetch releases',
-			})
-		}
-
-		// Transformer les données pour correspondre au format attendu
-		const transformedData = (data || []).map(release => ({
-			...release,
-			artists: release.artists?.map((junction: any) => junction.artist) || []
-		}))
-
-		return transformedData
-	} catch (error) {
-		console.error('Error fetching calendar releases:', error)
-		throw createError({
-			statusCode: 500,
-			statusMessage: 'Internal server error',
-		})
+	if (error) {
+		throw handleSupabaseError(error, 'calendar.releases')
 	}
+
+	// Transformer les données pour correspondre au format attendu
+	const transformedData = (data || []).map((release) => ({
+		...release,
+		artists: transformJunction<Tables<'artists'>>(release.artists, 'artist'),
+	}))
+
+	return transformedData
 })
