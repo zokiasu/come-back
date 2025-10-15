@@ -1,3 +1,9 @@
+import {
+	ADMIN_AUTH_INIT_TIMEOUT_MS,
+	AUTH_MAX_RETRY_ATTEMPTS,
+	AUTH_RETRY_DELAY_MS,
+} from '~/constants/auth'
+
 export default defineNuxtRouteMiddleware(async (to, from) => {
 	const user = useSupabaseUser()
 	const userStore = useUserStore()
@@ -16,12 +22,12 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
 	if (import.meta.client) {
 		const { ensureAuthInitialized, userData } = useAuth()
 
-		// Initialisation rapide
+		// Initialisation avec timeout configuré
 		try {
 			await Promise.race([
 				ensureAuthInitialized(),
 				new Promise((_, reject) =>
-					setTimeout(() => reject(new Error('Auth timeout')), 3000),
+					setTimeout(() => reject(new Error('Auth timeout')), ADMIN_AUTH_INIT_TIMEOUT_MS),
 				),
 			])
 		} catch (error) {
@@ -30,12 +36,11 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
 			}
 		}
 
-		// Attendre les données utilisateur avec timeout réduit
+		// Attendre les données utilisateur avec retry configuré
 		if (!userData.value && user.value) {
 			let attempts = 0
-			while (!userData.value && attempts < 15) {
-				// 1.5s max
-				await new Promise((resolve) => setTimeout(resolve, 100))
+			while (!userData.value && attempts < AUTH_MAX_RETRY_ATTEMPTS) {
+				await new Promise((resolve) => setTimeout(resolve, AUTH_RETRY_DELAY_MS))
 				attempts++
 			}
 		}
