@@ -80,23 +80,33 @@ export default defineEventHandler(async (event) => {
 			if (suggestedIds && suggestedIds.length > 0) {
 				const releaseIds = suggestedIds.map((item) => item.release_id)
 
-				// Récupérer les données complètes des releases suggérées
-				const { data: suggestedReleaseData } = await supabase
-					.from('releases')
-					.select('*')
-					.in('id', releaseIds)
-					.order('date', { ascending: false })
-
-				// Pour chaque release suggérée, récupérer ses artistes
-				for (const suggestedRelease of suggestedReleaseData || []) {
-					const { data: suggestedArtists } = await supabase
+				// Récupérer les données complètes des releases suggérées + leurs artistes en 2 requêtes au lieu de N+1
+				const [releasesResult, artistsResult] = await Promise.all([
+					supabase
+						.from('releases')
+						.select('*')
+						.in('id', releaseIds)
+						.order('date', { ascending: false }),
+					supabase
 						.from('artist_releases')
-						.select('artist:artists(*)')
-						.eq('release_id', suggestedRelease.id)
+						.select('release_id, artist:artists(*)')
+						.in('release_id', releaseIds),
+				])
 
+				// Créer un Map pour grouper les artistes par release_id
+				const artistsByReleaseId = new Map<string, Tables<'artists'>[]>()
+				for (const item of artistsResult.data || []) {
+					if (!artistsByReleaseId.has(item.release_id)) {
+						artistsByReleaseId.set(item.release_id, [])
+					}
+					artistsByReleaseId.get(item.release_id)!.push(item.artist as Tables<'artists'>)
+				}
+
+				// Assembler les releases avec leurs artistes
+				for (const release of releasesResult.data || []) {
 					suggestedReleases.push({
-						...suggestedRelease,
-						artists: transformJunction<Tables<'artists'>>(suggestedArtists, 'artist'),
+						...release,
+						artists: artistsByReleaseId.get(release.id) || [],
 					})
 				}
 			}
