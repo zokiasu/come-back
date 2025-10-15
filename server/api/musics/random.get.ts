@@ -1,18 +1,7 @@
-import { createClient } from '@supabase/supabase-js'
+import type { Tables } from '~/server/types/api'
 
 export default defineEventHandler(async (event) => {
-	const config = useRuntimeConfig()
-	const supabase = createClient(
-		config.public.supabase.url,
-		config.supabase.serviceKey,
-		{
-			auth: {
-				persistSession: false,
-				autoRefreshToken: false,
-				detectSessionInUrl: false,
-			},
-		}
-	)
+	const supabase = useServerSupabase()
 	const query = getQuery(event)
 	const limit = parseInt(query.limit as string) || 4
 
@@ -42,12 +31,15 @@ export default defineEventHandler(async (event) => {
 			const segmentSize = Math.floor(count / samplesCount)
 			const segmentStart = i * segmentSize
 			const segmentEnd = (i + 1) * segmentSize
-			const randomOffset = Math.floor(Math.random() * (segmentEnd - segmentStart - sampleSize)) + segmentStart
+			const randomOffset =
+				Math.floor(Math.random() * (segmentEnd - segmentStart - sampleSize)) +
+				segmentStart
 
 			// Créer la promesse de requête (pas encore exécutée)
 			const fetchPromise = supabase
 				.from('musics')
-				.select(`
+				.select(
+					`
 					*,
 					artists:music_artists(
 						artist:artists(*)
@@ -55,7 +47,8 @@ export default defineEventHandler(async (event) => {
 					releases:music_releases(
 						release:releases(*)
 					)
-				`)
+				`,
+				)
 				.not('id_youtube_music', 'is', null)
 				.range(randomOffset, randomOffset + sampleSize - 1)
 				.order('date', { ascending: false })
@@ -74,15 +67,15 @@ export default defineEventHandler(async (event) => {
 		})
 
 		// 4. Transformer les données
-		const transformedData = allMusics.map(music => ({
+		const transformedData = allMusics.map((music) => ({
 			...music,
-			artists: music.artists?.map((junction: any) => junction.artist) || [],
-			releases: music.releases?.map((junction: any) => junction.release) || []
+			artists: transformJunction<Tables<'artists'>>(music.artists, 'artist'),
+			releases: transformJunction<Tables<'releases'>>(music.releases, 'release'),
 		}))
 
 		// 5. Supprimer les doublons par ID
-		const uniqueMusics = transformedData.filter((music, index, self) =>
-			index === self.findIndex((m) => m.id === music.id)
+		const uniqueMusics = transformedData.filter(
+			(music, index, self) => index === self.findIndex((m) => m.id === music.id),
 		)
 
 		// 6. Diversifier les artistes pour éviter plusieurs fois le même
@@ -93,8 +86,8 @@ export default defineEventHandler(async (event) => {
 		const shuffleArray = (array: any[]) => {
 			const shuffled = [...array]
 			for (let i = shuffled.length - 1; i > 0; i--) {
-				const j = Math.floor(Math.random() * (i + 1));
-				[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+				const j = Math.floor(Math.random() * (i + 1))
+				;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
 			}
 			return shuffled
 		}
@@ -122,7 +115,7 @@ export default defineEventHandler(async (event) => {
 		if (diversifiedMusics.length < limit) {
 			for (const music of shuffledMusics) {
 				if (diversifiedMusics.length >= limit) break
-				if (!diversifiedMusics.find(m => m.id === music.id)) {
+				if (!diversifiedMusics.find((m) => m.id === music.id)) {
 					diversifiedMusics.push(music)
 				}
 			}
@@ -131,9 +124,6 @@ export default defineEventHandler(async (event) => {
 		return diversifiedMusics
 	} catch (error) {
 		console.error('Error fetching random musics:', error)
-		throw createError({
-			statusCode: 500,
-			statusMessage: 'Internal server error',
-		})
+		throw handleSupabaseError(error as any, 'musics.random')
 	}
 })

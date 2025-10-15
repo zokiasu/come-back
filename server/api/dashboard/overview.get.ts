@@ -1,18 +1,7 @@
-import { createClient } from '@supabase/supabase-js'
+import type { Tables } from '~/server/types/api'
 
-export default defineEventHandler(async (event) => {
-	const config = useRuntimeConfig()
-	const supabase = createClient(
-		config.public.supabase.url,
-		config.supabase.serviceKey,
-		{
-			auth: {
-				persistSession: false,
-				autoRefreshToken: false,
-				detectSessionInUrl: false,
-			},
-		}
-	)
+export default defineEventHandler(async () => {
+	const supabase = useServerSupabase()
 
 	try {
 		// Récupérer les données en parallèle
@@ -85,9 +74,6 @@ export default defineEventHandler(async (event) => {
 		}
 	} catch (error) {
 		console.error('Error fetching dashboard overview:', error)
-		throw createError({
-			statusCode: 500,
-			statusMessage: 'Failed to fetch dashboard overview',
-		})
+		throw handleSupabaseError(error as any, 'dashboard.overview')
 	}
 })
