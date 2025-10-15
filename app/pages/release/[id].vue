@@ -7,7 +7,7 @@
 	import { useSupabaseRelease } from '~/composables/Supabase/useSupabaseRelease'
 	import { useSupabaseMusic } from '~/composables/Supabase/useSupabaseMusic'
 
-	const { getReleaseById, getSuggestedReleases, updateRelease } = useSupabaseRelease()
+	const { updateRelease } = useSupabaseRelease()
 	const { updateMusic } = useSupabaseMusic()
 	const userStore = useUserStore()
 	const { isLoginStore, isAdminStore } = storeToRefs(userStore)
@@ -17,10 +17,20 @@
 	const title = ref<string>('Release Page')
 	const description = ref<string>('Release')
 
-	const release = ref<ReleaseWithRelations | null>(null)
-	const suggestedReleases = ref<ReleaseWithArtists[]>([])
+	// SSR-compatible data fetching avec API complète
+	const { data: releaseData, pending: isFetchingRelease, error: fetchError } = await useFetch(`/api/releases/${route.params.id}/complete`, {
+		server: true,
+		default: () => ({
+			release: null,
+			suggested_releases: []
+		})
+	})
+
+	// Réactivité des données
+	const release = computed(() => releaseData.value.release)
+	const suggestedReleases = computed(() => releaseData.value.suggested_releases)
 	const imageLoaded = ref<boolean>(false)
-	const isLoading = ref<boolean>(true)
+	const isLoading = computed(() => isFetchingRelease.value)
 	const musicList = ref<Partial<Music>[]>([])
 
 	const parseToCalendarDate = (
@@ -104,47 +114,19 @@
 		return `${day}/${month}/${year}`
 	}
 
-	onMounted(async () => {
-		try {
-			isLoading.value = true
+	// Configuration des meta et images de façon réactive
+	watchEffect(() => {
+		if (release.value) {
+			title.value = release.value.name + ' par ' + (release.value.artists?.[0]?.name || 'Artiste inconnu')
+			description.value = release.value.description || ''
 
-			release.value = (await getReleaseById(
-				route.params.id as string,
-			)) as ReleaseWithRelations
-			console.log('release', release)
-			if (release.value && release.value.artists) {
-				title.value =
-					release.value.name +
-					' par ' +
-					(release.value.artists?.[0]?.name || 'Artiste inconnu')
-				description.value = release.value.description || ''
-
-				// Copie profonde des musiques pour conserver l'état initial
-				musicList.value =
-					release.value.musics?.map((music) => ({
-						id: music.id,
-						name: music.name,
-						ismv: music.ismv,
-						id_youtube_music: music.id_youtube_music,
-					})) || []
-
-				// Récupérer les suggestions
-				suggestedReleases.value = (await getSuggestedReleases(
-					release.value.artists[0]?.id ?? '',
-					release.value.id,
-				)) as ReleaseWithArtists[]
-			}
-		} catch (error: any) {
-			if (error.statusCode === 404) {
-				throw error
-			}
-			console.error('Error loading release:', error)
-			throw createError({
-				statusCode: 500,
-				statusMessage: 'Une erreur est survenue lors du chargement de la release',
-			})
-		} finally {
-			isLoading.value = false
+			// Copie profonde des musiques pour conserver l'état initial
+			musicList.value = release.value.musics?.map((music) => ({
+				id: music.id,
+				name: music.name,
+				ismv: music.ismv,
+				id_youtube_music: music.id_youtube_music,
+			})) || []
 		}
 	})
 

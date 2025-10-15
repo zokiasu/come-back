@@ -15,7 +15,14 @@ export default defineNuxtPlugin(() => {
 		// Capturer les erreurs Vue
 		const app = useNuxtApp()
 		app.hook('vue:error', (error, context) => {
-			logError(error, `vue-error-${context}`)
+			// Sérialiser le contexte de manière sûre
+			let contextStr = 'unknown'
+			try {
+				contextStr = typeof context === 'string' ? context : JSON.stringify(context)
+			} catch (e) {
+				contextStr = typeof context === 'object' ? 'object' : String(context)
+			}
+			logError(error, `vue-error-${contextStr}`)
 		})
 	}
 })

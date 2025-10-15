@@ -8,13 +8,14 @@ export function useSupabaseFunction() {
 	// Updates user data in the 'users' table in Supabase.
 	const updateUserData = async (user: User) => {
 		try {
+			const updateData: Partial<User> = {
+				...user,
+				updated_at: new Date().toISOString(),
+			}
+
 			const { data, error } = await supabase
 				.from('users')
-				// @ts-expect-error - user object has correct structure but Supabase type inference is complex
-				.update({
-					...user,
-					updated_at: new Date().toISOString(),
-				})
+				.update(updateData)
 				.eq('id', user.id)
 				.select()
 				.single()
@@ -24,8 +25,8 @@ export function useSupabaseFunction() {
 				throw error
 			}
 
-			userStore.setUserData(data)
-			return data
+			userStore.setUserData(data as User)
+			return data as User
 		} catch (error) {
 			console.error('Error updating document:', error)
 			throw error

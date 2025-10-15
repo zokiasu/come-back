@@ -107,6 +107,13 @@
 					>
 						Dashboard
 					</NuxtLink>
+					<NuxtLink
+						v-if="isAdminStore && isClient"
+						:to="`/ranking/music`"
+						:class="routeIsDashboard ? 'font-semibold text-white' : 'text-zinc-500'"
+					>
+						Ranking Music
+					</NuxtLink>
 				</div>
 
 				<div class="flex items-center justify-center gap-3">

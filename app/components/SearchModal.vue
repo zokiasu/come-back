@@ -76,14 +76,14 @@
 					<div class="text-cb-tertiary-200 text-sm">Searching...</div>
 				</div>
 				<div v-else-if="artists.length" class="flex flex-col gap-2">
-					<LazyNuxtLink
+					<div
 						v-for="artist in artists"
 						:key="artist.id"
-						:to="`/artist/${artist.id}`"
-						@click="closeModal"
+						class="cursor-pointer"
+						@click="() => { $router.push(`/artist/${artist.id}`); closeModal(); }"
 					>
-						<p class="bg-cb-primary-900 w-full rounded p-2 text-xs">{{ artist.name }}</p>
-					</LazyNuxtLink>
+						<p class="bg-cb-primary-900 w-full rounded p-2 text-xs hover:bg-cb-primary-800 transition-colors">{{ artist.name }}</p>
+					</div>
 				</div>
 				<div v-else-if="searchInput.length >= 2" class="py-4 text-center">
 					<div class="text-cb-tertiary-400 text-sm">No artists found</div>

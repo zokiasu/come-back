@@ -382,7 +382,7 @@
 			</p>
 			<h4 class="text-lg font-semibold">{{ displayedMV.name }}</h4>
 			<p v-if="displayedMV.date" class="text-cb-tertiary-500 text-xs">
-				Released: {{ new Date(displayedMV.date).toLocaleDateString() }}
+				Released: {{ new Date(displayedMV.date).toLocaleDateString('fr-FR') }}
 			</p>
 			<!-- Indicateur de survol -->
 			<div

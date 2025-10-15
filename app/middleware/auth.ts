@@ -1,23 +1,35 @@
 export default defineNuxtRouteMiddleware(async (to, from) => {
-	// Côté client, attendre l'initialisation de l'auth
+	const user = useSupabaseUser()
+
+	// SSR: Vérification simple côté serveur
+	if (import.meta.server) {
+		if (!user.value) {
+			return navigateTo('/authentification')
+		}
+		return
+	}
+
+	// Client: Attendre l'initialisation si nécessaire
 	if (import.meta.client) {
 		const { ensureAuthInitialized } = useAuth()
 
+		// Tentative rapide d'initialisation (2s max pour éviter les blocages)
 		try {
-			// Attendre que l'auth soit initialisée (timeout de 5s)
 			await Promise.race([
 				ensureAuthInitialized(),
 				new Promise((_, reject) =>
-					setTimeout(() => reject(new Error('Auth timeout')), 5000),
+					setTimeout(() => reject(new Error('Auth timeout')), 2000),
 				),
 			])
 		} catch (error) {
-			return navigateTo('/authentification')
+			// En cas de timeout, vérifier quand même si user existe
+			if (!user.value) {
+				return navigateTo('/authentification')
+			}
 		}
 	}
 
-	const user = useSupabaseUser()
-
+	// Vérification finale
 	if (!user.value) {
 		return navigateTo('/authentification')
 	}
