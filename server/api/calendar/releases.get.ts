@@ -30,7 +30,7 @@ export default defineEventHandler(async (event) => {
 		.select(
 			`
 			*,
-			artists:release_artists(
+			artists:artist_releases(
 				artist:artists(*)
 			)
 		`,
