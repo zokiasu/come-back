@@ -7,7 +7,14 @@ export default defineEventHandler(async (event) => {
 
 	const { data, error } = await supabase
 		.from('releases')
-		.select('*')
+		.select(
+			`
+			*,
+			artists:artist_releases(
+				artist:artists(*)
+			)
+		`,
+		)
 		.order('date', { ascending: false })
 		.limit(limit)
 
@@ -15,5 +22,11 @@ export default defineEventHandler(async (event) => {
 		throw handleSupabaseError(error, 'releases.latest')
 	}
 
-	return (data || []) as Tables<'releases'>[]
+	// Transform the data to extract artists from junction table
+	const transformedData = (data || []).map((release) => ({
+		...release,
+		artists: transformJunction<Tables<'artists'>>(release.artists, 'artist'),
+	}))
+
+	return transformedData
 })
