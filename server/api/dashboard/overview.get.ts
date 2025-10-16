@@ -5,21 +5,47 @@ export default defineEventHandler(async () => {
 
 	try {
 		// Récupérer les données en parallèle
+		// Séparé en 2 groupes : totaux (avec count) et éléments récents
 		const [
-			artistsResult,
-			releasesResult,
-			newsResult,
-			companiesResult,
+			// Totaux pour statistiques (avec count exact)
+			totalArtistsResult,
+			totalReleasesResult,
+			totalNewsResult,
 			activeArtistsResult,
+			companiesResult,
+			// Éléments récents pour affichage
+			recentArtistsResult,
+			recentReleasesResult,
+			recentNewsResult,
 		] = await Promise.all([
-			// Artistes récents
+			// === TOTAUX (avec count) ===
+			// Total artistes
+			supabase.from('artists').select('*', { count: 'exact', head: true }),
+
+			// Total releases
+			supabase.from('releases').select('*', { count: 'exact', head: true }),
+
+			// Total news
+			supabase.from('news').select('*', { count: 'exact', head: true }),
+
+			// Artistes actifs
+			supabase
+				.from('artists')
+				.select('id', { count: 'exact', head: true })
+				.eq('active_career', true),
+
+			// Toutes les companies (pour count + verified)
+			supabase.from('companies').select('id, verified'),
+
+			// === ÉLÉMENTS RÉCENTS (avec limit) ===
+			// Artistes récents (5 derniers)
 			supabase
 				.from('artists')
 				.select('*')
 				.order('created_at', { ascending: false })
 				.limit(5),
 
-			// Releases récentes avec artistes
+			// Releases récentes avec artistes (5 dernières)
 			supabase
 				.from('releases')
 				.select(
@@ -33,7 +59,7 @@ export default defineEventHandler(async () => {
 				.order('created_at', { ascending: false })
 				.limit(5),
 
-			// News récentes avec artistes
+			// News récentes avec artistes (5 dernières)
 			supabase
 				.from('news')
 				.select(
@@ -46,55 +72,52 @@ export default defineEventHandler(async () => {
 				)
 				.order('created_at', { ascending: false })
 				.limit(5),
-
-			// Statistiques des compagnies
-			supabase.from('companies').select('id, verified'),
-
-			// Artistes actifs
-			supabase.from('artists').select('id').eq('active_career', true),
 		])
 
 		// Vérifier les erreurs
-		if (artistsResult.error) throw artistsResult.error
-		if (releasesResult.error) throw releasesResult.error
-		if (newsResult.error) throw newsResult.error
-		if (companiesResult.error) throw companiesResult.error
+		if (totalArtistsResult.error) throw totalArtistsResult.error
+		if (totalReleasesResult.error) throw totalReleasesResult.error
+		if (totalNewsResult.error) throw totalNewsResult.error
 		if (activeArtistsResult.error) throw activeArtistsResult.error
+		if (companiesResult.error) throw companiesResult.error
+		if (recentArtistsResult.error) throw recentArtistsResult.error
+		if (recentReleasesResult.error) throw recentReleasesResult.error
+		if (recentNewsResult.error) throw recentNewsResult.error
 
 		// Calculer les releases récentes (30 derniers jours)
 		const thirtyDaysAgo = new Date()
 		thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-		const recentReleasesCount = (releasesResult.data || []).filter((r) => {
+		const recentReleasesCount = (recentReleasesResult.data || []).filter((r) => {
 			return new Date(r.created_at || '') > thirtyDaysAgo
 		}).length
 
-		// Calculer les statistiques
+		// Calculer les statistiques avec les vrais totaux
 		const companies = companiesResult.data || []
 		const stats = {
-			totalArtists: artistsResult.count || artistsResult.data?.length || 0,
-			activeArtists: activeArtistsResult.count || activeArtistsResult.data?.length || 0,
-			totalReleases: releasesResult.count || releasesResult.data?.length || 0,
+			totalArtists: totalArtistsResult.count || 0,
+			activeArtists: activeArtistsResult.count || 0,
+			totalReleases: totalReleasesResult.count || 0,
 			recentReleases: recentReleasesCount,
-			totalNews: newsResult.count || newsResult.data?.length || 0,
+			totalNews: totalNewsResult.count || 0,
 			totalCompanies: companies.length,
 			verifiedCompanies: companies.filter((c) => c.verified).length,
 		}
 
 		// Transformer les releases pour extraire les artistes
-		const transformedReleases = (releasesResult.data || []).map((release) => ({
+		const transformedReleases = (recentReleasesResult.data || []).map((release) => ({
 			...release,
 			artists: transformJunction<Tables<'artists'>>(release.artists, 'artist'),
 		}))
 
 		// Transformer les news pour extraire les artistes
-		const transformedNews = (newsResult.data || []).map((news) => ({
+		const transformedNews = (recentNewsResult.data || []).map((news) => ({
 			...news,
 			artists: transformJunction<Tables<'artists'>>(news.artists, 'artist'),
 		}))
 
 		return {
 			stats,
-			recentArtists: artistsResult.data || [],
+			recentArtists: recentArtistsResult.data || [],
 			recentReleases: transformedReleases,
 			recentNews: transformedNews,
 		}
