@@ -19,17 +19,31 @@ export default defineEventHandler(async () => {
 				.order('created_at', { ascending: false })
 				.limit(5),
 
-			// Releases récentes
+			// Releases récentes avec artistes
 			supabase
 				.from('releases')
-				.select('*')
+				.select(
+					`
+					*,
+					artists:artist_releases(
+						artist:artists(*)
+					)
+				`,
+				)
 				.order('created_at', { ascending: false })
 				.limit(5),
 
-			// News récentes
+			// News récentes avec artistes
 			supabase
 				.from('news')
-				.select('*')
+				.select(
+					`
+					*,
+					artists:news_artists_junction(
+						artist:artists(*)
+					)
+				`,
+				)
 				.order('created_at', { ascending: false })
 				.limit(5),
 
@@ -66,14 +80,33 @@ export default defineEventHandler(async () => {
 			verifiedCompanies: companies.filter((c) => c.verified).length,
 		}
 
+		// Transformer les releases pour extraire les artistes
+		const transformedReleases = (releasesResult.data || []).map((release) => ({
+			...release,
+			artists: transformJunction<Tables<'artists'>>(release.artists, 'artist'),
+		}))
+
+		// Transformer les news pour extraire les artistes
+		const transformedNews = (newsResult.data || []).map((news) => ({
+			...news,
+			artists: transformJunction<Tables<'artists'>>(news.artists, 'artist'),
+		}))
+
 		return {
 			stats,
 			recentArtists: artistsResult.data || [],
-			recentReleases: releasesResult.data || [],
-			recentNews: newsResult.data || [],
+			recentReleases: transformedReleases,
+			recentNews: transformedNews,
 		}
 	} catch (error) {
 		console.error('Error fetching dashboard overview:', error)
-		throw handleSupabaseError(error as any, 'dashboard.overview')
+
+		// Check if it's a Supabase error
+		if (isPostgrestError(error)) {
+			throw handleSupabaseError(error, 'dashboard.overview')
+		}
+
+		// Otherwise, it's an unexpected error
+		throw createInternalError('Failed to fetch dashboard overview', error)
 	}
 })
