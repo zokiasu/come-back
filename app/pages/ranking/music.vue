@@ -3,7 +3,22 @@
 		<div class="space-y-2">
 			<div class="grid grid-cols-1 gap-2 md:grid-cols-2">
 				<UInput v-model="search" placeholder="Search by music name" />
-				<ArtistSearchSelect v-model="selectedArtist" class="" />
+				<div class="space-y-1">
+					<UInputMenu
+						v-model="selectedArtistsWithLabel"
+						:items="artistsForMenu"
+						by="id"
+						multiple
+						placeholder="Select artists to filter..."
+						searchable
+						searchable-placeholder="Search an artist..."
+						class="bg-cb-quaternary-950 text-tertiary w-full cursor-pointer ring-transparent"
+						:ui="{
+							content: 'bg-cb-quaternary-950',
+							item: 'rounded cursor-pointer data-highlighted:before:bg-cb-primary-900/30 hover:bg-cb-primary-900',
+						}"
+					/>
+				</div>
 			</div>
 
 			<div class="flex flex-col justify-between gap-2 lg:flex-row">
@@ -34,7 +49,16 @@
 				</div>
 			</div>
 
-			<UCheckbox v-model="isMv" label="Show only music videos (isMv)" class="" />
+			<div class="flex items-center gap-2">
+				<UCheckbox v-model="isMv" label="Show only music videos (isMv)" class="" />
+				<button
+					v-if="selectedArtists.length > 0"
+					class="text-xs text-red-400 hover:text-red-300"
+					@click="clearArtistSelection"
+				>
+					Clear artist selection ({{ selectedArtists.length }})
+				</button>
+			</div>
 		</div>
 		<div class="space-y-2">
 			<div v-if="loading" class="text-cb-tertiary-500 flex items-center gap-2 text-xs">
@@ -98,20 +122,24 @@
 
 <script setup lang="ts">
 	import { useSupabaseMusic } from '~/composables/Supabase/useSupabaseMusic'
-	import type { Music } from '~/types'
-	import ArtistSearchSelect from '~/components/ArtistSearchSelect.vue'
+	import { useSupabaseArtist } from '~/composables/Supabase/useSupabaseArtist'
+	import type { Music, Artist } from '~/types'
 	import { onMounted } from 'vue'
 
 	type MusicWithArtists = Music & { artists: { name: string }[] }
+	type ArtistMenuItem = Artist & { label: string }
 
 	const { getMusicsByPage } = useSupabaseMusic()
+	const { getAllArtists } = useSupabaseArtist()
 
 	const search = ref('')
-	const selectedArtist = ref<any | null>(null)
+	const selectedArtists = ref<string[]>([])
+	const selectedArtistsWithLabel = ref<ArtistMenuItem[]>([])
 	const isMv = ref<boolean | undefined>(undefined)
 	const selectedYear = ref<number | undefined>(undefined)
 	const currentPage = ref(1)
 	const loading = ref(false)
+	const artistsList = ref<Artist[]>([])
 	const musicData = ref<any>({
 		musics: [],
 		total: 0,
@@ -121,12 +149,19 @@
 	})
 	const orderDirection = ref<'asc' | 'desc'>('desc')
 
+	const artistsForMenu = computed(() => {
+		return artistsList.value.map((artist) => ({
+			...artist,
+			label: artist.name,
+		})) as ArtistMenuItem[]
+	})
+
 	const loadMusicsByYear = async () => {
 		loading.value = true
 		try {
 			const result = await getMusicsByPage(currentPage.value, musicData.value.limit, {
 				search: search.value || undefined,
-				artistId: selectedArtist.value?.objectID || undefined,
+				artistIds: selectedArtists.value.length > 0 ? selectedArtists.value : undefined,
 				year: selectedYear.value || undefined,
 				orderBy: 'date',
 				orderDirection: orderDirection.value,
@@ -153,11 +188,17 @@
 
 	function resetFilters() {
 		search.value = ''
-		selectedArtist.value = null
+		selectedArtists.value = []
+		selectedArtistsWithLabel.value = []
 		isMv.value = undefined
 		selectedYear.value = undefined
 		currentPage.value = 1
 		loadMusicsByYear()
+	}
+
+	function clearArtistSelection() {
+		selectedArtists.value = []
+		selectedArtistsWithLabel.value = []
 	}
 
 	function toggleOrderDirection() {
@@ -165,8 +206,26 @@
 		loadMusicsByYear()
 	}
 
-	// Load music on mount
-	onMounted(() => {
+	// Synchroniser selectedArtistsWithLabel avec selectedArtists
+	watch(selectedArtistsWithLabel, (newVal: ArtistMenuItem[]) => {
+		selectedArtists.value = newVal.map((artist) => artist.id)
+	})
+
+	// Watcher pour les filtres d'artistes
+	watch(selectedArtists, async () => {
+		currentPage.value = 1
+		await loadMusicsByYear()
+	})
+
+	// Load data on mount
+	onMounted(async () => {
+		try {
+			// Charger la liste des artistes actifs
+			artistsList.value = await getAllArtists({ isActive: true })
+		} catch (error) {
+			console.error('Error loading artists:', error)
+		}
+		// Charger les musiques
 		currentPage.value = 1
 		loadMusicsByYear()
 	})
