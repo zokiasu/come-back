@@ -9,7 +9,9 @@ export default defineEventHandler(async (event) => {
 		const page = Number(query.page) || 1
 		const limit = Number(query.limit) || 20
 		const search = query.search as string | undefined
-		const year = query.year ? Number(query.year) : undefined
+		const years = query.years
+			? (query.years as string).split(',').filter(Boolean).map(Number)
+			: undefined
 		const orderBy = (query.orderBy as string) || 'date'
 		const orderDirection = (query.orderDirection as string) || 'desc'
 		const ismv = query.ismv === 'true' ? true : query.ismv === 'false' ? false : undefined
@@ -62,9 +64,9 @@ export default defineEventHandler(async (event) => {
 			dataQuery = dataQuery.ilike('name', `%${search}%`)
 		}
 
-		if (year) {
-			countQuery = countQuery.eq('release_year', year)
-			dataQuery = dataQuery.eq('release_year', year)
+		if (years && years.length > 0) {
+			countQuery = countQuery.in('release_year', years)
+			dataQuery = dataQuery.in('release_year', years)
 		}
 
 		if (ismv !== undefined) {

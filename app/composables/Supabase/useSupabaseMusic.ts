@@ -532,6 +532,7 @@ export function useSupabaseMusic() {
 			artistId?: string
 			artistIds?: string[]
 			year?: number
+			years?: number[]
 			type?: MusicType
 			verified?: boolean
 			orderBy?: keyof Music
@@ -550,8 +551,11 @@ export function useSupabaseMusic() {
 				params.search = options.search
 			}
 
-			if (options?.year !== undefined && options.year !== null) {
-				params.year = options.year.toString()
+			// Support pour multi-années OU année unique
+			if (options?.years && options.years.length > 0) {
+				params.years = options.years.join(',')
+			} else if (options?.year !== undefined && options.year !== null) {
+				params.years = options.year.toString()
 			}
 
 			if (options?.orderBy) {

@@ -23,7 +23,20 @@
 
 			<div class="flex flex-col justify-between gap-2 lg:flex-row">
 				<div class="flex flex-col gap-2 lg:flex-row">
-					<UInput v-model="selectedYear" placeholder="Year (e.g. 2024)" type="number" />
+					<UInputMenu
+						v-model="selectedYearsWithLabel"
+						:items="yearsForMenu"
+						by="value"
+						multiple
+						placeholder="Select years (2020-2025)..."
+						searchable
+						searchable-placeholder="Search year..."
+						class="bg-cb-quaternary-950 text-tertiary w-full cursor-pointer ring-transparent sm:min-w-48"
+						:ui="{
+							content: 'bg-cb-quaternary-950',
+							item: 'rounded cursor-pointer data-highlighted:before:bg-cb-primary-900/30 hover:bg-cb-primary-900',
+						}"
+					/>
 					<UButton @click="loadMusicsByYear" class="cb_button h-full">Search</UButton>
 					<UButton @click="resetFilters" color="secondary" variant="outline">
 						Reset
@@ -56,7 +69,14 @@
 					class="text-xs text-red-400 hover:text-red-300"
 					@click="clearArtistSelection"
 				>
-					Clear artist selection ({{ selectedArtists.length }})
+					Clear artists ({{ selectedArtists.length }})
+				</button>
+				<button
+					v-if="selectedYears.length > 0"
+					class="text-xs text-red-400 hover:text-red-300"
+					@click="clearYearSelection"
+				>
+					Clear years ({{ selectedYears.length }})
 				</button>
 			</div>
 		</div>
@@ -67,8 +87,12 @@
 			</div>
 			<p v-else class="text-cb-tertiary-500 text-xs">
 				Music list for
-				{{ selectedYear ? selectedYear : 'all years' }} ({{ musicData.total }}
-				results)
+				{{
+					selectedYears.length > 0
+						? selectedYears.sort().join(', ')
+						: 'all years'
+				}}
+				({{ musicData.total }} results)
 			</p>
 
 			<section class="grid grid-cols-1 gap-2">
@@ -98,8 +122,12 @@
 			</div>
 			<p v-else class="text-cb-tertiary-500 text-xs">
 				Music list for
-				{{ selectedYear ? selectedYear : 'all years' }} ({{ musicData.total }}
-				results)
+				{{
+					selectedYears.length > 0
+						? selectedYears.sort().join(', ')
+						: 'all years'
+				}}
+				({{ musicData.total }} results)
 			</p>
 			<!-- <div v-for="music in musicData.musics" :key="music.id" class="mb-4 p-4 border rounded">
 				<h3>{{ music.name }}</h3>
@@ -128,6 +156,7 @@
 
 	type MusicWithArtists = Music & { artists: { name: string }[] }
 	type ArtistMenuItem = Artist & { label: string }
+	type YearMenuItem = { value: number; label: string }
 
 	const { getMusicsByPage } = useSupabaseMusic()
 	const { getAllArtists } = useSupabaseArtist()
@@ -135,8 +164,9 @@
 	const search = ref('')
 	const selectedArtists = ref<string[]>([])
 	const selectedArtistsWithLabel = ref<ArtistMenuItem[]>([])
+	const selectedYears = ref<number[]>([])
+	const selectedYearsWithLabel = ref<YearMenuItem[]>([])
 	const isMv = ref<boolean | undefined>(undefined)
-	const selectedYear = ref<number | undefined>(undefined)
 	const currentPage = ref(1)
 	const loading = ref(false)
 	const artistsList = ref<Artist[]>([])
@@ -149,11 +179,21 @@
 	})
 	const orderDirection = ref<'asc' | 'desc'>('desc')
 
+	// Années prédéfinies de 2020 à 2025
+	const availableYears = [2020, 2021, 2022, 2023, 2024, 2025]
+
 	const artistsForMenu = computed(() => {
 		return artistsList.value.map((artist) => ({
 			...artist,
 			label: artist.name,
 		})) as ArtistMenuItem[]
+	})
+
+	const yearsForMenu = computed(() => {
+		return availableYears.map((year) => ({
+			value: year,
+			label: year.toString(),
+		})) as YearMenuItem[]
 	})
 
 	const loadMusicsByYear = async () => {
@@ -162,7 +202,7 @@
 			const result = await getMusicsByPage(currentPage.value, musicData.value.limit, {
 				search: search.value || undefined,
 				artistIds: selectedArtists.value.length > 0 ? selectedArtists.value : undefined,
-				year: selectedYear.value || undefined,
+				years: selectedYears.value.length > 0 ? selectedYears.value : undefined,
 				orderBy: 'date',
 				orderDirection: orderDirection.value,
 				ismv: isMv.value !== undefined ? isMv.value : undefined,
@@ -190,8 +230,9 @@
 		search.value = ''
 		selectedArtists.value = []
 		selectedArtistsWithLabel.value = []
+		selectedYears.value = []
+		selectedYearsWithLabel.value = []
 		isMv.value = undefined
-		selectedYear.value = undefined
 		currentPage.value = 1
 		loadMusicsByYear()
 	}
@@ -199,6 +240,11 @@
 	function clearArtistSelection() {
 		selectedArtists.value = []
 		selectedArtistsWithLabel.value = []
+	}
+
+	function clearYearSelection() {
+		selectedYears.value = []
+		selectedYearsWithLabel.value = []
 	}
 
 	function toggleOrderDirection() {
@@ -211,8 +257,19 @@
 		selectedArtists.value = newVal.map((artist) => artist.id)
 	})
 
+	// Synchroniser selectedYearsWithLabel avec selectedYears
+	watch(selectedYearsWithLabel, (newVal: YearMenuItem[]) => {
+		selectedYears.value = newVal.map((year) => year.value)
+	})
+
 	// Watcher pour les filtres d'artistes
 	watch(selectedArtists, async () => {
+		currentPage.value = 1
+		await loadMusicsByYear()
+	})
+
+	// Watcher pour les filtres d'années
+	watch(selectedYears, async () => {
 		currentPage.value = 1
 		await loadMusicsByYear()
 	})
