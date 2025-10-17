@@ -196,8 +196,8 @@
 	// Années prédéfinies de 2020 à 2025
 	const availableYears = [2020, 2021, 2022, 2023, 2024, 2025]
 
-	// Styles musicaux prédéfinis
-	const availableStyles = ['K-pop', 'J-pop', 'C-pop', 'T-pop', 'V-pop', 'Hip-Hop', 'R&B', 'Rock', 'Pop', 'Ballad']
+	// Styles musicaux prédéfinis (Feature disabled for now - needs database optimization)
+	const availableStyles: string[] = []  // ['K-Pop', 'J-Pop', 'C-Pop', 'T-Pop', 'V-Pop', 'Hip-Hop', 'R&B', 'Rock', 'Pop', 'Ballad']
 
 	const artistsForMenu = computed(() => {
 		return artistsList.value.map((artist) => ({

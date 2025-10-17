@@ -40,36 +40,12 @@ export default defineEventHandler(async (event) => {
 			musicIdsToFilter = [...new Set(musicArtistsData?.map((ma) => ma.music_id) || [])]
 		}
 
-		// Filter by artist styles
+		// Filter by artist styles (DISABLED - needs optimization)
+		// TODO: Implement efficient style filtering with PostgreSQL function
 		if (styles && styles.length > 0) {
-			const { data: artistsWithStyles, error: artistsError } = await supabase
-				.from('artists')
-				.select('id')
-				.overlaps('styles', styles)
-
-			if (artistsError) throw artistsError
-
-			const artistIdsWithStyles = artistsWithStyles?.map((a) => a.id) || []
-
-			if (artistIdsWithStyles.length > 0) {
-				const { data: musicsByStyles, error: musicStylesError } = await supabase
-					.from('music_artists')
-					.select('music_id')
-					.in('artist_id', artistIdsWithStyles)
-
-				if (musicStylesError) throw musicStylesError
-
-				const musicIdsFromStyles = [
-					...new Set(musicsByStyles?.map((ma) => ma.music_id) || []),
-				]
-
-				// Union with existing filter (combine both artist and style filters)
-				if (musicIdsToFilter) {
-					musicIdsToFilter = [...new Set([...musicIdsToFilter, ...musicIdsFromStyles])]
-				} else {
-					musicIdsToFilter = musicIdsFromStyles
-				}
-			}
+			// Temporarily disabled due to performance issues
+			// Would need to create a PostgreSQL function for efficient array filtering
+			console.warn('Style filtering is currently disabled and needs database optimization')
 		}
 
 		// Build base query for count
@@ -88,10 +64,16 @@ export default defineEventHandler(async (event) => {
 			`,
 		)
 
-		// Apply artist filter if we have music IDs
-		if (musicIdsToFilter && musicIdsToFilter.length > 0) {
-			countQuery = countQuery.in('id', musicIdsToFilter)
-			dataQuery = dataQuery.in('id', musicIdsToFilter)
+		// Apply artist/style filter if specified
+		if (musicIdsToFilter !== undefined) {
+			if (musicIdsToFilter.length > 0) {
+				countQuery = countQuery.in('id', musicIdsToFilter)
+				dataQuery = dataQuery.in('id', musicIdsToFilter)
+			} else {
+				// Empty array means no results should be returned
+				countQuery = countQuery.eq('id', '00000000-0000-0000-0000-000000000000')
+				dataQuery = dataQuery.eq('id', '00000000-0000-0000-0000-000000000000')
+			}
 		}
 
 		// Apply filters to both queries
