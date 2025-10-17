@@ -409,96 +409,38 @@ export function useSupabaseRelease() {
 		},
 	) => {
 		try {
-			// Calculer l'offset
-			const offset = (page - 1) * limit
-
-			let query
-
-			// Si on filtre par artistes, on doit faire une requête différente
-			if (options?.artistIds && options.artistIds.length > 0) {
-				// Requête avec jointure interne sur artist_releases pour filtrer
-				query = supabase
-					.from('releases')
-					.select(
-						`
-						*,
-						artists:artist_releases!inner(
-							artist:artists(*)
-						),
-						musics:music_releases(
-							music:musics(*)
-						),
-						platform_links:release_platform_links(*)
-					`,
-						{ count: 'exact' },
-					)
-					.in('artist_releases.artist_id', options.artistIds)
-			} else {
-				// Requête normale sans filtre d'artiste
-				query = supabase.from('releases').select(
-					`
-						*,
-						artists:artist_releases(
-							artist:artists(*)
-						),
-						musics:music_releases(
-							music:musics(*)
-						),
-						platform_links:release_platform_links(*)
-					`,
-					{ count: 'exact' },
-				)
+			// Construire les query params
+			const params: Record<string, string> = {
+				page: page.toString(),
+				limit: limit.toString(),
 			}
 
-			// Ajouter les filtres si présents
 			if (options?.search) {
-				query = query.ilike('name', `%${options.search}%`)
+				params.search = options.search
 			}
 
 			if (options?.type) {
-				query = query.eq('type', options.type)
+				params.type = options.type
 			}
 
-			if (options?.verified !== undefined) {
-				query = query.eq('verified', options.verified)
-			}
-
-			// Ajouter le tri
 			if (options?.orderBy) {
-				query = query.order(options.orderBy, {
-					ascending: options.orderDirection === 'asc',
-				})
-			} else {
-				query = query.order('date', { ascending: false })
+				params.orderBy = options.orderBy
 			}
 
-			// Ajouter la pagination
-			query = query.range(offset, offset + limit - 1)
-
-			// Exécuter la requête
-			const { data, error, count } = await query
-
-			if (error) {
-				console.error('Erreur lors de la récupération des releases:', error)
-				throw new Error('Erreur lors de la récupération des releases')
+			if (options?.orderDirection) {
+				params.orderDirection = options.orderDirection
 			}
 
-			// Transformer les données pour correspondre au format attendu
-			const transformedData = data.map((release) => ({
-				...release,
-				firebase_id: release.id,
-				artists: release.artists?.map((ar: any) => ar.artist) || [],
-				musics: release.musics?.map((mr: any) => mr.music) || [],
-				platform_links: release.platform_links || [],
-			}))
-
-			return {
-				releases: transformedData as Release[],
-				total: count || 0,
-				page,
-				limit,
-				totalPages: Math.ceil((count || 0) / limit),
+			if (options?.artistIds && options.artistIds.length > 0) {
+				params.artistIds = options.artistIds.join(',')
 			}
+
+			// Appeler l'endpoint API optimisé
+			const result = await $fetch('/api/releases/paginated', {
+				params,
+			})
+
+			return result
 		} catch (error) {
 			console.error('Erreur lors de la récupération des releases:', error)
 			throw error
