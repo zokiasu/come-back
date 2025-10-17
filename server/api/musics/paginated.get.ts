@@ -74,6 +74,15 @@ export default defineEventHandler(async (event) => {
 			dataQuery = dataQuery.eq('ismv', ismv)
 		}
 
+		// Exclude instrumental and sped up versions
+		countQuery = countQuery.not('name', 'ilike', '%Inst.%')
+		countQuery = countQuery.not('name', 'ilike', '%Instrumental%')
+		countQuery = countQuery.not('name', 'ilike', '%Sped Up%')
+
+		dataQuery = dataQuery.not('name', 'ilike', '%Inst.%')
+		dataQuery = dataQuery.not('name', 'ilike', '%Instrumental%')
+		dataQuery = dataQuery.not('name', 'ilike', '%Sped Up%')
+
 		// Apply sorting only to data query
 		dataQuery = dataQuery.order(orderBy, { ascending: orderDirection === 'asc' })
 
