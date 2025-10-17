@@ -18,13 +18,17 @@ export default defineEventHandler(async (event) => {
 		const artistIds = query.artistIds
 			? (query.artistIds as string).split(',').filter(Boolean)
 			: undefined
+		const styles = query.styles
+			? (query.styles as string).split(',').filter(Boolean)
+			: undefined
 
 		// Calculate offset
 		const offset = (page - 1) * limit
 
-		// If filtering by artists, first get the music IDs
+		// If filtering by artists or styles, first get the music IDs
 		let musicIdsToFilter: string[] | undefined
 
+		// Filter by specific artists
 		if (artistIds && artistIds.length > 0) {
 			const { data: musicArtistsData, error: musicArtistsError } = await supabase
 				.from('music_artists')
@@ -34,6 +38,38 @@ export default defineEventHandler(async (event) => {
 			if (musicArtistsError) throw musicArtistsError
 
 			musicIdsToFilter = [...new Set(musicArtistsData?.map((ma) => ma.music_id) || [])]
+		}
+
+		// Filter by artist styles
+		if (styles && styles.length > 0) {
+			const { data: artistsWithStyles, error: artistsError } = await supabase
+				.from('artists')
+				.select('id')
+				.overlaps('styles', styles)
+
+			if (artistsError) throw artistsError
+
+			const artistIdsWithStyles = artistsWithStyles?.map((a) => a.id) || []
+
+			if (artistIdsWithStyles.length > 0) {
+				const { data: musicsByStyles, error: musicStylesError } = await supabase
+					.from('music_artists')
+					.select('music_id')
+					.in('artist_id', artistIdsWithStyles)
+
+				if (musicStylesError) throw musicStylesError
+
+				const musicIdsFromStyles = [
+					...new Set(musicsByStyles?.map((ma) => ma.music_id) || []),
+				]
+
+				// Union with existing filter (combine both artist and style filters)
+				if (musicIdsToFilter) {
+					musicIdsToFilter = [...new Set([...musicIdsToFilter, ...musicIdsFromStyles])]
+				} else {
+					musicIdsToFilter = musicIdsFromStyles
+				}
+			}
 		}
 
 		// Build base query for count

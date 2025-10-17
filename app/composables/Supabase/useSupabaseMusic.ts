@@ -533,6 +533,7 @@ export function useSupabaseMusic() {
 			artistIds?: string[]
 			year?: number
 			years?: number[]
+			styles?: string[]
 			type?: MusicType
 			verified?: boolean
 			orderBy?: keyof Music
@@ -575,6 +576,11 @@ export function useSupabaseMusic() {
 				params.artistIds = options.artistIds.join(',')
 			} else if (options?.artistId) {
 				params.artistIds = options.artistId
+			}
+
+			// Support pour multi-styles
+			if (options?.styles && options.styles.length > 0) {
+				params.styles = options.styles.join(',')
 			}
 
 			// Appeler l'endpoint API optimisé

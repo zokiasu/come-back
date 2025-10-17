@@ -1,47 +1,59 @@
 <template>
 	<div class="container mx-auto space-y-5 p-5">
 		<div class="space-y-2">
-			<div class="grid grid-cols-1 gap-2 md:grid-cols-2">
-				<UInput v-model="search" placeholder="Search by music name" />
-				<div class="space-y-1">
-					<UInputMenu
-						v-model="selectedArtistsWithLabel"
-						:items="artistsForMenu"
-						by="id"
-						multiple
-						placeholder="Select artists to filter..."
-						searchable
-						searchable-placeholder="Search an artist..."
-						class="bg-cb-quaternary-950 text-tertiary w-full cursor-pointer ring-transparent"
-						:ui="{
-							content: 'bg-cb-quaternary-950',
-							item: 'rounded cursor-pointer data-highlighted:before:bg-cb-primary-900/30 hover:bg-cb-primary-900',
-						}"
-					/>
-				</div>
+			<div class="flex gap-2">
+				<UInput v-model="search" placeholder="Search by music name" class="w-full" />
+				<UInputMenu
+					v-model="selectedArtistsWithLabel"
+					:items="artistsForMenu"
+					by="id"
+					multiple
+					placeholder="Select artists..."
+					searchable
+					searchable-placeholder="Search an artist..."
+					class="bg-cb-quaternary-950 text-tertiary w-full cursor-pointer ring-transparent"
+					:ui="{
+						content: 'bg-cb-quaternary-950',
+						item: 'rounded cursor-pointer data-highlighted:before:bg-cb-primary-900/30 hover:bg-cb-primary-900',
+					}"
+				/>
+				<UInputMenu
+					v-model="selectedYearsWithLabel"
+					:items="yearsForMenu"
+					by="value"
+					multiple
+					placeholder="Select years..."
+					searchable
+					searchable-placeholder="Search year..."
+					class="bg-cb-quaternary-950 text-tertiary w-full cursor-pointer ring-transparent"
+					:ui="{
+						content: 'bg-cb-quaternary-950',
+						item: 'rounded cursor-pointer data-highlighted:before:bg-cb-primary-900/30 hover:bg-cb-primary-900',
+					}"
+				/>
+				<UInputMenu
+					v-model="selectedStylesWithLabel"
+					:items="stylesForMenu"
+					by="value"
+					multiple
+					placeholder="Select styles..."
+					searchable
+					searchable-placeholder="Search style..."
+					class="bg-cb-quaternary-950 text-tertiary w-full cursor-pointer ring-transparent"
+					:ui="{
+						content: 'bg-cb-quaternary-950',
+						item: 'rounded cursor-pointer data-highlighted:before:bg-cb-primary-900/30 hover:bg-cb-primary-900',
+					}"
+				/>
+				<UButton class="cb_button h-full" @click="loadMusicsByYear">Search</UButton>
 			</div>
 
 			<div class="flex flex-col justify-between gap-2 lg:flex-row">
 				<div class="flex flex-col gap-2 lg:flex-row">
-					<UInputMenu
-						v-model="selectedYearsWithLabel"
-						:items="yearsForMenu"
-						by="value"
-						multiple
-						placeholder="Select years (2020-2025)..."
-						searchable
-						searchable-placeholder="Search year..."
-						class="bg-cb-quaternary-950 text-tertiary w-full cursor-pointer ring-transparent sm:min-w-48"
-						:ui="{
-							content: 'bg-cb-quaternary-950',
-							item: 'rounded cursor-pointer data-highlighted:before:bg-cb-primary-900/30 hover:bg-cb-primary-900',
-						}"
-					/>
-					<UButton @click="loadMusicsByYear" class="cb_button h-full">Search</UButton>
-					<UButton @click="resetFilters" color="secondary" variant="outline">
+					<UButton color="secondary" variant="outline" @click="resetFilters">
 						Reset
 					</UButton>
-					<UButton @click="toggleOrderDirection" color="neutral" variant="outline">
+					<UButton color="neutral" variant="outline" @click="toggleOrderDirection">
 						<UIcon
 							name="material-symbols-light:sort"
 							class="size-4"
@@ -78,6 +90,13 @@
 				>
 					Clear years ({{ selectedYears.length }})
 				</button>
+				<button
+					v-if="selectedStyles.length > 0"
+					class="text-xs text-red-400 hover:text-red-300"
+					@click="clearStyleSelection"
+				>
+					Clear styles ({{ selectedStyles.length }})
+				</button>
 			</div>
 		</div>
 		<div class="space-y-2">
@@ -87,11 +106,7 @@
 			</div>
 			<p v-else class="text-cb-tertiary-500 text-xs">
 				Music list for
-				{{
-					selectedYears.length > 0
-						? selectedYears.sort().join(', ')
-						: 'all years'
-				}}
+				{{ selectedYears.length > 0 ? selectedYears.sort().join(', ') : 'all years' }}
 				({{ musicData.total }} results)
 			</p>
 
@@ -122,11 +137,7 @@
 			</div>
 			<p v-else class="text-cb-tertiary-500 text-xs">
 				Music list for
-				{{
-					selectedYears.length > 0
-						? selectedYears.sort().join(', ')
-						: 'all years'
-				}}
+				{{ selectedYears.length > 0 ? selectedYears.sort().join(', ') : 'all years' }}
 				({{ musicData.total }} results)
 			</p>
 			<!-- <div v-for="music in musicData.musics" :key="music.id" class="mb-4 p-4 border rounded">
@@ -157,6 +168,7 @@
 	type MusicWithArtists = Music & { artists: { name: string }[] }
 	type ArtistMenuItem = Artist & { label: string }
 	type YearMenuItem = { value: number; label: string }
+	type StyleMenuItem = { value: string; label: string }
 
 	const { getMusicsByPage } = useSupabaseMusic()
 	const { getAllArtists } = useSupabaseArtist()
@@ -166,6 +178,8 @@
 	const selectedArtistsWithLabel = ref<ArtistMenuItem[]>([])
 	const selectedYears = ref<number[]>([])
 	const selectedYearsWithLabel = ref<YearMenuItem[]>([])
+	const selectedStyles = ref<string[]>([])
+	const selectedStylesWithLabel = ref<StyleMenuItem[]>([])
 	const isMv = ref<boolean | undefined>(undefined)
 	const currentPage = ref(1)
 	const loading = ref(false)
@@ -182,6 +196,9 @@
 	// Années prédéfinies de 2020 à 2025
 	const availableYears = [2020, 2021, 2022, 2023, 2024, 2025]
 
+	// Styles musicaux prédéfinis
+	const availableStyles = ['K-pop', 'J-pop', 'C-pop', 'T-pop', 'V-pop', 'Hip-Hop', 'R&B', 'Rock', 'Pop', 'Ballad']
+
 	const artistsForMenu = computed(() => {
 		return artistsList.value.map((artist) => ({
 			...artist,
@@ -196,6 +213,13 @@
 		})) as YearMenuItem[]
 	})
 
+	const stylesForMenu = computed(() => {
+		return availableStyles.map((style) => ({
+			value: style,
+			label: style,
+		})) as StyleMenuItem[]
+	})
+
 	const loadMusicsByYear = async () => {
 		loading.value = true
 		try {
@@ -203,6 +227,7 @@
 				search: search.value || undefined,
 				artistIds: selectedArtists.value.length > 0 ? selectedArtists.value : undefined,
 				years: selectedYears.value.length > 0 ? selectedYears.value : undefined,
+				styles: selectedStyles.value.length > 0 ? selectedStyles.value : undefined,
 				orderBy: 'date',
 				orderDirection: orderDirection.value,
 				ismv: isMv.value !== undefined ? isMv.value : undefined,
@@ -232,6 +257,8 @@
 		selectedArtistsWithLabel.value = []
 		selectedYears.value = []
 		selectedYearsWithLabel.value = []
+		selectedStyles.value = []
+		selectedStylesWithLabel.value = []
 		isMv.value = undefined
 		currentPage.value = 1
 		loadMusicsByYear()
@@ -245,6 +272,11 @@
 	function clearYearSelection() {
 		selectedYears.value = []
 		selectedYearsWithLabel.value = []
+	}
+
+	function clearStyleSelection() {
+		selectedStyles.value = []
+		selectedStylesWithLabel.value = []
 	}
 
 	function toggleOrderDirection() {
@@ -262,6 +294,11 @@
 		selectedYears.value = newVal.map((year) => year.value)
 	})
 
+	// Synchroniser selectedStylesWithLabel avec selectedStyles
+	watch(selectedStylesWithLabel, (newVal: StyleMenuItem[]) => {
+		selectedStyles.value = newVal.map((style) => style.value)
+	})
+
 	// Watcher pour les filtres d'artistes
 	watch(selectedArtists, async () => {
 		currentPage.value = 1
@@ -270,6 +307,12 @@
 
 	// Watcher pour les filtres d'années
 	watch(selectedYears, async () => {
+		currentPage.value = 1
+		await loadMusicsByYear()
+	})
+
+	// Watcher pour les filtres de styles
+	watch(selectedStyles, async () => {
 		currentPage.value = 1
 		await loadMusicsByYear()
 	})
