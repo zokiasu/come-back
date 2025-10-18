@@ -1,18 +1,8 @@
-import { createClient } from '@supabase/supabase-js'
+import type { Tables } from '~/server/types/api'
+import type { PostgrestError } from '@supabase/supabase-js'
 
 export default defineEventHandler(async (event) => {
-	const config = useRuntimeConfig()
-	const supabase = createClient(
-		config.public.supabase.url,
-		config.supabase.serviceKey,
-		{
-			auth: {
-				persistSession: false,
-				autoRefreshToken: false,
-				detectSessionInUrl: false,
-			},
-		}
-	)
+	const supabase = useServerSupabase()
 
 	const releaseId = getRouterParam(event, 'id')
 	if (!releaseId) {
@@ -41,9 +31,7 @@ export default defineEventHandler(async (event) => {
 		// 2. Récupérer les artistes associés
 		const { data: releaseArtists, error: artistsError } = await supabase
 			.from('release_artists')
-			.select(`
-				artist:artists(*)
-			`)
+			.select('artist:artists(*)')
 			.eq('release_id', releaseId)
 
 		// Si release_artists ne fonctionne pas, essayer artist_releases
@@ -51,9 +39,7 @@ export default defineEventHandler(async (event) => {
 		if (artistsError || !releaseArtists?.length) {
 			const { data: altArtists } = await supabase
 				.from('artist_releases')
-				.select(`
-					artist:artists(*)
-				`)
+				.select('artist:artists(*)')
 				.eq('release_id', releaseId)
 			finalReleaseArtists = altArtists
 		}
@@ -61,9 +47,7 @@ export default defineEventHandler(async (event) => {
 		// 3. Récupérer les musiques associées
 		const { data: releaseMusics, error: musicsError } = await supabase
 			.from('release_musics')
-			.select(`
-				music:musics(*)
-			`)
+			.select('music:musics(*)')
 			.eq('release_id', releaseId)
 
 		// Si release_musics ne fonctionne pas, essayer music_releases
@@ -71,20 +55,23 @@ export default defineEventHandler(async (event) => {
 		if (musicsError || !releaseMusics?.length) {
 			const { data: altMusics } = await supabase
 				.from('music_releases')
-				.select(`
-					music:musics(*)
-				`)
+				.select('music:musics(*)')
 				.eq('release_id', releaseId)
 			finalReleaseMusics = altMusics
 		}
 
 		// Récupérer des releases suggérées (même artiste, excluant le release actuel)
-		const artistIds = finalReleaseArtists?.map((junction: any) => junction.artist.id) || []
-		let suggestedReleases = []
+		const artistIds = transformJunction<Tables<'artists'>>(
+			finalReleaseArtists,
+			'artist',
+		).map((artist) => artist.id)
+		const suggestedReleases: Array<
+			Tables<'releases'> & { artists: Tables<'artists'>[] }
+		> = []
 
 		if (artistIds.length > 0) {
 			// Approche simplifiée : récupérer d'abord les IDs des releases suggérées
-			let { data: suggestedIds } = await supabase
+			const { data: suggestedIds } = await supabase
 				.from('artist_releases')
 				.select('release_id')
 				.in('artist_id', artistIds)
@@ -92,27 +79,35 @@ export default defineEventHandler(async (event) => {
 				.limit(6)
 
 			if (suggestedIds && suggestedIds.length > 0) {
-				const releaseIds = suggestedIds.map(item => item.release_id)
+				const releaseIds = suggestedIds.map((item) => item.release_id)
 
-				// Récupérer les données complètes des releases suggérées
-				const { data: suggestedReleaseData } = await supabase
-					.from('releases')
-					.select('*')
-					.in('id', releaseIds)
-					.order('date', { ascending: false })
-
-				// Pour chaque release suggérée, récupérer ses artistes
-				for (const suggestedRelease of suggestedReleaseData || []) {
-					const { data: suggestedArtists } = await supabase
+				// Récupérer les données complètes des releases suggérées + leurs artistes en 2 requêtes au lieu de N+1
+				const [releasesResult, artistsResult] = await Promise.all([
+					supabase
+						.from('releases')
+						.select('*')
+						.in('id', releaseIds)
+						.order('date', { ascending: false }),
+					supabase
 						.from('artist_releases')
-						.select(`
-							artist:artists(*)
-						`)
-						.eq('release_id', suggestedRelease.id)
+						.select('release_id, artist:artists(*)')
+						.in('release_id', releaseIds),
+				])
 
+				// Créer un Map pour grouper les artistes par release_id
+				const artistsByReleaseId = new Map<string, Tables<'artists'>[]>()
+				for (const item of artistsResult.data || []) {
+					if (!artistsByReleaseId.has(item.release_id)) {
+						artistsByReleaseId.set(item.release_id, [])
+					}
+					artistsByReleaseId.get(item.release_id)!.push(item.artist as Tables<'artists'>)
+				}
+
+				// Assembler les releases avec leurs artistes
+				for (const release of releasesResult.data || []) {
 					suggestedReleases.push({
-						...suggestedRelease,
-						artists: suggestedArtists?.map((junction: any) => junction.artist) || []
+						...release,
+						artists: artistsByReleaseId.get(release.id) || [],
 					})
 				}
 			}
@@ -121,19 +116,20 @@ export default defineEventHandler(async (event) => {
 		// Transformer les données pour correspondre au format attendu
 		const transformedRelease = {
 			...release,
-			artists: finalReleaseArtists?.map((junction: any) => junction.artist) || [],
-			musics: finalReleaseMusics?.map((junction: any) => junction.music) || []
+			artists: transformJunction<Tables<'artists'>>(finalReleaseArtists, 'artist'),
+			musics: transformJunction<Tables<'musics'>>(finalReleaseMusics, 'music'),
 		}
 
 		return {
 			release: transformedRelease,
-			suggested_releases: suggestedReleases
+			suggested_releases: suggestedReleases,
 		}
 	} catch (error) {
+		// Preserve H3Errors (like 404) instead of remapping them
+		if (isH3Error(error)) {
+			throw error
+		}
 		console.error('Error fetching complete release:', error)
-		throw createError({
-			statusCode: 500,
-			statusMessage: 'Internal server error',
-		})
+		throw handleSupabaseError(error as PostgrestError, 'releases.complete')
 	}
 })

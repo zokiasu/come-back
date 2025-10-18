@@ -1,18 +1,7 @@
-import { createClient } from '@supabase/supabase-js'
+import type { PostgrestError } from '@supabase/supabase-js'
 
 export default defineEventHandler(async (event) => {
-	const config = useRuntimeConfig()
-	const supabase = createClient(
-		config.public.supabase.url,
-		config.supabase.serviceKey,
-		{
-			auth: {
-				persistSession: false,
-				autoRefreshToken: false,
-				detectSessionInUrl: false,
-			},
-		}
-	)
+	const supabase = useServerSupabase()
 
 	const companyId = getRouterParam(event, 'id')
 	if (!companyId) {
@@ -40,22 +29,20 @@ export default defineEventHandler(async (event) => {
 		// 2. Récupérer les artistes liés à cette compagnie
 		const { data: companyArtists } = await supabase
 			.from('artist_companies')
-			.select(`
-				*,
-				artist:artists(*)
-			`)
+			.select('*, artist:artists(*)')
 			.eq('company_id', companyId)
 			.order('is_current', { ascending: false })
 
 		return {
 			company: company,
-			company_artists: companyArtists || []
+			company_artists: companyArtists || [],
 		}
 	} catch (error) {
+		// Preserve H3Errors (like 404) instead of remapping them
+		if (isH3Error(error)) {
+			throw error
+		}
 		console.error('Error fetching complete company:', error)
-		throw createError({
-			statusCode: 500,
-			statusMessage: 'Internal server error',
-		})
+		throw handleSupabaseError(error as PostgrestError, 'companies.complete')
 	}
 })

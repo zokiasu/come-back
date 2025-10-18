@@ -54,30 +54,8 @@ export function useSupabaseFunction() {
 		}
 	}
 
-	// Fetches releases by a specific artist from the 'releases' table in Supabase.
-	const getReleasesByArtistId = async (artistId: string) => {
-		try {
-			const { data, error } = await supabase
-				.from('releases')
-				.select('*')
-				.eq('artists_id', artistId)
-				.order('date', { ascending: false })
-
-			if (error) {
-				console.error('Erreur lors de la récupération des releases:', error)
-				return []
-			}
-
-			return data || []
-		} catch (error) {
-			console.error('Erreur lors de la récupération des releases:', error)
-			return []
-		}
-	}
-
 	return {
 		updateUserData,
 		getUserData,
-		getReleasesByArtistId,
 	}
 }

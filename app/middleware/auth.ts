@@ -1,3 +1,5 @@
+import { AUTH_INIT_TIMEOUT_MS } from '~/constants/auth'
+
 export default defineNuxtRouteMiddleware(async (to, from) => {
 	const user = useSupabaseUser()
 
@@ -13,12 +15,12 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
 	if (import.meta.client) {
 		const { ensureAuthInitialized } = useAuth()
 
-		// Tentative rapide d'initialisation (2s max pour éviter les blocages)
+		// Tentative rapide d'initialisation avec timeout configuré
 		try {
 			await Promise.race([
 				ensureAuthInitialized(),
 				new Promise((_, reject) =>
-					setTimeout(() => reject(new Error('Auth timeout')), 2000),
+					setTimeout(() => reject(new Error('Auth timeout')), AUTH_INIT_TIMEOUT_MS),
 				),
 			])
 		} catch (error) {

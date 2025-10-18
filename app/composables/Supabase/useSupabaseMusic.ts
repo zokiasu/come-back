@@ -530,7 +530,10 @@ export function useSupabaseMusic() {
 			search?: string
 			artistName?: string
 			artistId?: string
+			artistIds?: string[]
 			year?: number
+			years?: number[]
+			styles?: string[]
 			type?: MusicType
 			verified?: boolean
 			orderBy?: keyof Music
@@ -539,121 +542,53 @@ export function useSupabaseMusic() {
 		},
 	) => {
 		try {
-			// Calculer l'offset
-			const offset = (page - 1) * limit
+			// Construire les query params
+			const params: Record<string, string> = {
+				page: page.toString(),
+				limit: limit.toString(),
+			}
 
-			// Construire la requête de base avec les relations
-			let query = supabase.from('musics').select(
-				`
-					*,
-					artists:music_artists(
-						artist:artists(*)
-					),
-					releases:music_releases(
-						release:releases(*)
-					)
-				`,
-				{ count: 'exact' },
-			)
-
-			// Ajouter les filtres si présents
 			if (options?.search) {
-				query = query.ilike('name', `%${options.search}%`)
+				params.search = options.search
 			}
 
-			if (options?.artistId) {
-				query = query.in(
-					'id',
-					await supabase
-						.from('music_artists')
-						.select('music_id')
-						.eq('artist_id', options.artistId)
-						.returns<{ music_id: string }[]>()
-						.then((res) => res.data?.map((ma) => ma.music_id) || []),
-				)
+			// Support pour multi-années OU année unique
+			if (options?.years && options.years.length > 0) {
+				params.years = options.years.join(',')
+			} else if (options?.year !== undefined && options.year !== null) {
+				params.years = options.year.toString()
 			}
 
-			if (options?.type) {
-				// Limitation : la colonne 'type' dans Supabase n'accepte que 'SONG'
-				// Cast temporaire car MusicType ne contient pas 'SONG' dans le projet
-				if (options.type === 'SONG') {
-					query = query.eq('type', 'SONG')
-				}
+			if (options?.orderBy) {
+				params.orderBy = options.orderBy
 			}
 
-			if (options?.verified !== undefined) {
-				query = query.eq('verified', options.verified)
+			if (options?.orderDirection) {
+				params.orderDirection = options.orderDirection
 			}
 
 			if (options?.ismv !== undefined) {
-				query = query.eq('ismv', options.ismv)
+				params.ismv = options.ismv.toString()
 			}
 
-			// Filtrer par année directement côté SQL
-			if (options?.year !== undefined && options.year !== null) {
-				query = query.eq('release_year', options.year)
+			// Support pour multi-artistes OU artiste unique
+			if (options?.artistIds && options.artistIds.length > 0) {
+				params.artistIds = options.artistIds.join(',')
+			} else if (options?.artistId) {
+				params.artistIds = options.artistId
 			}
 
-			// Ajouter le tri
-			if (options?.orderBy) {
-				query = query.order(options.orderBy, {
-					ascending: options.orderDirection === 'asc',
-				})
-			} else {
-				query = query.order('name')
+			// Support pour multi-styles
+			if (options?.styles && options.styles.length > 0) {
+				params.styles = options.styles.join(',')
 			}
 
-			// Ajouter la pagination
-			query = query.range(offset, offset + limit - 1)
+			// Appeler l'endpoint API optimisé
+			const result = await $fetch('/api/musics/paginated', {
+				params,
+			})
 
-			// Exécuter la requête
-			const result = await query
-			let data = result.data
-			const error = result.error
-			let count = result.count
-
-			if (error) {
-				console.error('Erreur lors de la récupération des musiques:', error)
-				throw new Error('Erreur lors de la récupération des musiques')
-			}
-
-			// Filtrer par nom d'artiste ou de musique si spécifié (post-traitement)
-			if (options?.search && data) {
-				const searchLower = options.search.toLowerCase()
-				data = data.filter(
-					(music: any) =>
-						music.name?.toLowerCase().includes(searchLower) ||
-						music.artists?.some((a: any) => a.name?.toLowerCase().includes(searchLower)),
-				)
-				count = data.length
-			}
-
-			// Filtrer par nom d'artiste si spécifié (post-traitement)
-			if (options?.artistName && data) {
-				data = data.filter((music: any) =>
-					music.artists?.some((ma: any) =>
-						ma.artist?.name?.toLowerCase().includes(options.artistName!.toLowerCase()),
-					),
-				)
-				// Recalculer le count après filtrage
-				count = data.length
-			}
-
-			// Transformer les données pour correspondre au format attendu
-			const transformedData =
-				data?.map((music: any) => ({
-					...music,
-					artists: music.artists?.map((ma: any) => ma.artist) || [],
-					releases: music.releases?.map((mr: any) => mr.release) || [],
-				})) || []
-
-			return {
-				musics: transformedData as Music[],
-				total: count || 0,
-				page,
-				limit,
-				totalPages: Math.ceil((count || 0) / limit),
-			}
+			return result
 		} catch (error) {
 			console.error('Erreur lors de la récupération des musiques:', error)
 			throw error

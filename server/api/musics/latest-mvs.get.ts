@@ -1,42 +1,31 @@
-import { createClient } from '@supabase/supabase-js'
+import type { Tables } from '~/server/types/api'
 
 export default defineEventHandler(async (event) => {
-	const config = useRuntimeConfig()
-	const supabase = createClient(
-		config.public.supabase.url,
-		config.supabase.serviceKey,
-		{
-			auth: {
-				persistSession: false,
-				autoRefreshToken: false,
-				detectSessionInUrl: false,
-			},
-		}
-	)
+	const supabase = useServerSupabase()
 	const query = getQuery(event)
-	const limit = parseInt(query.limit as string) || 14
+	const limit = parseInt((query.limit as string) || '14', 10)
 
-	try {
-		const { data, error } = await supabase
-			.from('musics')
-			.select('*')
-			.eq('ismv', true) // Seulement les clips musicaux
-			.order('date', { ascending: false })
-			.limit(limit)
+	const { data, error } = await supabase
+		.from('musics')
+		.select(`
+			*,
+			artists:music_artists(
+				artist:artists(*)
+			)
+		`)
+		.eq('ismv', true) // Seulement les clips musicaux
+		.order('date', { ascending: false })
+		.limit(limit)
 
-		if (error) {
-			throw createError({
-				statusCode: 500,
-				statusMessage: 'Failed to fetch latest MVs',
-			})
-		}
-
-		return data || []
-	} catch (error) {
-		console.error('Error fetching latest MVs:', error)
-		throw createError({
-			statusCode: 500,
-			statusMessage: 'Internal server error',
-		})
+	if (error) {
+		throw handleSupabaseError(error, 'musics.latest-mvs')
 	}
+
+	// Transformer les données pour extraire les artistes de la jonction
+	const transformedData = (data || []).map((music) => ({
+		...music,
+		artists: transformJunction<Tables<'artists'>>(music.artists, 'artist'),
+	}))
+
+	return transformedData
 })
