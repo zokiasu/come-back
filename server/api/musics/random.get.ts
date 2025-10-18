@@ -1,4 +1,5 @@
 import type { Tables } from '~/server/types/api'
+import type { PostgrestError } from '@supabase/supabase-js'
 
 export default defineEventHandler(async (event) => {
 	const supabase = useServerSupabase()
@@ -60,7 +61,11 @@ export default defineEventHandler(async (event) => {
 		const results = await Promise.all(fetchPromises)
 		const allMusics: any[] = []
 
-		results.forEach(({ data }) => {
+		results.forEach(({ data, error }) => {
+			if (error) {
+				console.error('Error fetching random music segment:', error)
+				throw handleSupabaseError(error, 'musics.random.segment')
+			}
 			if (data && data.length > 0) {
 				allMusics.push(...data)
 			}
@@ -123,7 +128,11 @@ export default defineEventHandler(async (event) => {
 
 		return diversifiedMusics
 	} catch (error) {
+		// Preserve H3Errors if already thrown
+		if (isH3Error(error)) {
+			throw error
+		}
 		console.error('Error fetching random musics:', error)
-		throw handleSupabaseError(error as any, 'musics.random')
+		throw handleSupabaseError(error as PostgrestError, 'musics.random')
 	}
 })

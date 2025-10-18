@@ -1,4 +1,5 @@
 import type { Tables } from '~/server/types/api'
+import type { PostgrestError } from '@supabase/supabase-js'
 
 export default defineEventHandler(async (event) => {
 	const supabase = useServerSupabase()
@@ -124,7 +125,11 @@ export default defineEventHandler(async (event) => {
 			suggested_releases: suggestedReleases,
 		}
 	} catch (error) {
+		// Preserve H3Errors (like 404) instead of remapping them
+		if (isH3Error(error)) {
+			throw error
+		}
 		console.error('Error fetching complete release:', error)
-		throw handleSupabaseError(error as any, 'releases.complete')
+		throw handleSupabaseError(error as PostgrestError, 'releases.complete')
 	}
 })

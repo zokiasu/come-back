@@ -435,6 +435,10 @@ export function useSupabaseRelease() {
 				params.artistIds = options.artistIds.join(',')
 			}
 
+			if (options?.verified !== undefined) {
+				params.verified = String(options.verified)
+			}
+
 			// Appeler l'endpoint API optimisé
 			const result = await $fetch('/api/releases/paginated', {
 				params,

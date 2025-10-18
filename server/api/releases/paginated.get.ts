@@ -15,6 +15,9 @@ export default defineEventHandler(async (event) => {
 		const artistIds = query.artistIds
 			? (query.artistIds as string).split(',')
 			: undefined
+		const verified = query.verified !== undefined
+			? query.verified === 'true'
+			: undefined
 
 		// Calculate offset
 		const offset = (page - 1) * limit
@@ -74,6 +77,11 @@ export default defineEventHandler(async (event) => {
 		if (type) {
 			countQuery = countQuery.eq('type', type)
 			dataQuery = dataQuery.eq('type', type)
+		}
+
+		if (verified !== undefined) {
+			countQuery = countQuery.eq('verified', verified)
+			dataQuery = dataQuery.eq('verified', verified)
 		}
 
 		// Apply sorting only to data query

@@ -1,3 +1,5 @@
+import type { PostgrestError } from '@supabase/supabase-js'
+
 export default defineEventHandler(async (event) => {
 	const supabase = useServerSupabase()
 
@@ -36,7 +38,11 @@ export default defineEventHandler(async (event) => {
 			company_artists: companyArtists || [],
 		}
 	} catch (error) {
+		// Preserve H3Errors (like 404) instead of remapping them
+		if (isH3Error(error)) {
+			throw error
+		}
 		console.error('Error fetching complete company:', error)
-		throw handleSupabaseError(error as any, 'companies.complete')
+		throw handleSupabaseError(error as PostgrestError, 'companies.complete')
 	}
 })

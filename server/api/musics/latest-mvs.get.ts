@@ -7,7 +7,12 @@ export default defineEventHandler(async (event) => {
 
 	const { data, error } = await supabase
 		.from('musics')
-		.select('*')
+		.select(`
+			*,
+			artists:music_artists(
+				artist:artists(*)
+			)
+		`)
 		.eq('ismv', true) // Seulement les clips musicaux
 		.order('date', { ascending: false })
 		.limit(limit)
@@ -16,5 +21,11 @@ export default defineEventHandler(async (event) => {
 		throw handleSupabaseError(error, 'musics.latest-mvs')
 	}
 
-	return (data || []) as Tables<'musics'>[]
+	// Transformer les données pour extraire les artistes de la jonction
+	const transformedData = (data || []).map((music) => ({
+		...music,
+		artists: transformJunction<Tables<'artists'>>(music.artists, 'artist'),
+	}))
+
+	return transformedData
 })
