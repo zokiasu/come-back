@@ -1,7 +1,7 @@
 <template>
 	<div class="container mx-auto space-y-5 p-5">
 		<div class="space-y-2">
-			<div class="flex gap-2">
+			<div class="grid grid-cols-2 gap-2">
 				<UInput v-model="search" placeholder="Search by music name" class="w-full" />
 				<UInputMenu
 					v-model="selectedArtistsWithLabel"
@@ -45,7 +45,7 @@
 						item: 'rounded cursor-pointer data-highlighted:before:bg-cb-primary-900/30 hover:bg-cb-primary-900',
 					}"
 				/>
-				<UButton class="cb_button h-full" @click="loadMusicsByYear">Search</UButton>
+				<UButton class="cb_button h-full col-span-full" @click="loadMusicsByYear">Search</UButton>
 			</div>
 
 			<div class="flex flex-col justify-between gap-2 lg:flex-row">
@@ -110,7 +110,7 @@
 				({{ musicData.total }} results)
 			</p>
 
-			<section class="grid grid-cols-1 gap-2">
+			<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
 				<MusicDisplay
 					v-for="music in musicData.musics"
 					:key="music.id"
@@ -188,7 +188,7 @@
 		musics: [],
 		total: 0,
 		page: 1,
-		limit: 20,
+		limit: 30,
 		totalPages: 0,
 	})
 	const orderDirection = ref<'asc' | 'desc'>('desc')

@@ -27,7 +27,16 @@
 	})
 
 	// Réactivité des données
-	const release = computed(() => releaseData.value.release)
+	const release = ref<Release | null>(null)
+	watch(
+		() => releaseData.value.release,
+		(newRelease) => {
+			if (newRelease) {
+				release.value = JSON.parse(JSON.stringify(newRelease))
+			}
+		},
+		{ immediate: true },
+	)
 	const suggestedReleases = computed(() => releaseData.value.suggested_releases)
 	const imageLoaded = ref<boolean>(false)
 	const isLoading = computed(() => isFetchingRelease.value)
@@ -261,7 +270,7 @@
 												<div class="space-y-2">
 													<div
 														v-for="music in release.musics"
-														:key="music.id_youtube_music ?? music.id"
+														:key="music.id"
 														class="bg-cb-quinary-900 space-y-1 rounded py-1 pr-1 pl-2"
 													>
 														<div class="flex w-full items-center justify-between gap-2">
