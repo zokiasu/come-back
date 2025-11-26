@@ -37,6 +37,38 @@
 	const searchResults = ref<Artist[]>([])
 	const isSearching = ref(false)
 
+	// Filtres pour styles et gender
+	const selectedStyle = ref<string>('')
+	const selectedGender = ref<string>('')
+
+	// Liste des styles disponibles (basée sur les données réelles)
+	const availableStyles = [
+		'K-Pop',
+		'K-Hiphop',
+		'K-Rap',
+		'K-R&B',
+		'K-Rock',
+		'K-Ballad',
+		'J-Pop',
+		'J-Hiphop',
+		'J-Rock',
+		'C-Pop',
+		'Mando-Pop',
+		'Thai-Pop',
+		'Thai-Hiphop',
+		'Thai-Rap',
+		'Pop',
+	]
+
+	// Liste des genres disponibles
+	const availableGenders = [
+		{ value: '', label: 'Tous les genres' },
+		{ value: 'MALE', label: 'Masculin' },
+		{ value: 'FEMALE', label: 'Féminin' },
+		{ value: 'MIXTE', label: 'Mixte' },
+		{ value: 'UNKNOWN', label: 'Inconnu' },
+	]
+
 	// Filtres
 	const filterState = reactive<FilterState>({
 		onlyWithoutDesc: false,
@@ -152,6 +184,8 @@
 				onlyWithoutSocials: filterState.onlyWithoutSocials,
 				onlyWithoutPlatforms: filterState.onlyWithoutPlatforms,
 				onlyWithoutStyles: filterState.onlyWithoutStyles,
+				styles: selectedStyle.value ? [selectedStyle.value] : undefined,
+				gender: selectedGender.value || undefined,
 			}
 			const result = await getArtistsByPage(
 				currentPage.value,
@@ -297,6 +331,8 @@
 			() => filterState.onlyWithoutPlatforms,
 			() => filterState.onlyWithoutStyles,
 			sort,
+			selectedStyle,
+			selectedGender,
 		],
 		async () => {
 			try {
@@ -403,6 +439,23 @@
 						<option value="all">Tous</option>
 						<option value="active">Actifs</option>
 						<option value="inactive">Inactifs</option>
+					</select>
+					<select
+						v-model="selectedGender"
+						class="bg-cb-quinary-900 placeholder-cb-tertiary-200 rounded border-none p-2 text-xs uppercase transition-all duration-300 ease-in-out focus:outline-none sm:w-fit"
+					>
+						<option v-for="gender in availableGenders" :key="gender.value" :value="gender.value">
+							{{ gender.label }}
+						</option>
+					</select>
+					<select
+						v-model="selectedStyle"
+						class="bg-cb-quinary-900 placeholder-cb-tertiary-200 rounded border-none p-2 text-xs uppercase transition-all duration-300 ease-in-out focus:outline-none sm:w-fit"
+					>
+						<option value="">Tous les styles</option>
+						<option v-for="style in availableStyles" :key="style" :value="style">
+							{{ style }}
+						</option>
 					</select>
 				</div>
 				<div class="flex space-x-2">

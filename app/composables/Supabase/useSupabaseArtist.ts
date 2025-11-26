@@ -638,7 +638,7 @@ export function useSupabaseArtist() {
 			}
 
 			// Filtrage par gender
-			if (options?.gender && options.gender !== 'UNKNOWN') {
+			if (options?.gender) {
 				query = query.eq('gender', options.gender as ArtistGender)
 			}
 

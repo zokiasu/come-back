@@ -106,11 +106,27 @@ export function useSupabaseMusicStyles() {
 		return data as MusicStyle
 	}
 
+	// Récupère tous les noms de styles uniquement (optimisé pour les filtres)
+	const getAllMusicStyleNames = async (): Promise<string[]> => {
+		const { data, error } = await supabase
+			.from('music_styles')
+			.select('name')
+			.order('name')
+
+		if (error) {
+			console.error('Erreur lors de la récupération des noms de styles:', error)
+			throw new Error('Erreur lors de la récupération des noms de styles')
+		}
+
+		return (data || []).map((style) => style.name)
+	}
+
 	return {
 		createMusicStyle,
 		updateMusicStyle,
 		deleteMusicStyle,
 		getAllMusicStyles,
 		getMusicStyleById,
+		getAllMusicStyleNames,
 	}
 }
