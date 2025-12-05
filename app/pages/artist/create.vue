@@ -106,21 +106,21 @@
 	})
 
 	const groupsForMenu = computed(() => {
-		return groupList.value.map((artist): MenuItem<Omit<Artist, 'type'>> => {
-			const { type, ...rest } = artist
+		return groupList.value.map((artist) => {
 			return {
-				...rest,
+				id: artist.id,
 				label: artist.name,
+				description: artist.description ?? undefined,
 			}
 		})
 	})
 
 	const membersForMenu = computed(() => {
-		return artistsList.value.map((artist): MenuItem<Omit<Artist, 'type'>> => {
-			const { type, ...rest } = artist
+		return artistsList.value.map((artist) => {
 			return {
-				...rest,
+				id: artist.id,
 				label: artist.name,
+				description: artist.description ?? undefined,
 			}
 		})
 	})

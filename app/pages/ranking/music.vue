@@ -201,9 +201,10 @@
 
 	const artistsForMenu = computed(() => {
 		return artistsList.value.map((artist) => ({
-			...artist,
+			id: artist.id,
 			label: artist.name,
-		})) as ArtistMenuItem[]
+			description: artist.description ?? undefined,
+		}))
 	})
 
 	const yearsForMenu = computed(() => {

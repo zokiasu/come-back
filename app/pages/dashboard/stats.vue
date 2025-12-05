@@ -117,7 +117,6 @@
 
 <script setup lang="ts">
 	import { computed, onMounted, ref, watch } from 'vue'
-	import { useToast } from '#imports'
 	import { useSupabaseStatistics } from '~/composables/Supabase/useSupabaseStatistics'
 	import StatsOverviewSection from '~/components/Stats/sections/StatsOverviewSection.vue'
 	import StatsArtistsSection from '~/components/Stats/sections/StatsArtistsSection.vue'

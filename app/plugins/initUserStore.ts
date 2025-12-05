@@ -1,4 +1,3 @@
-import { useSupabaseUser } from '#imports'
 import { useUserStore } from '@/stores/user'
 
 export default defineNuxtPlugin(() => {
