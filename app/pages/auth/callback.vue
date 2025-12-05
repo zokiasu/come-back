@@ -65,10 +65,10 @@
 				statusMessage.value = 'Synchronization error'
 				await navigateTo('/authentification?error=sync')
 			}
-		} catch (err: any) {
+		} catch (err: unknown) {
 			console.error('❌ Error during callback:', err)
 			statusMessage.value = 'Connection error'
-			debugInfo.value = err.message || 'Unknown error'
+			debugInfo.value = err instanceof Error ? err.message : 'Unknown error'
 			await navigateTo('/authentification?error=callback')
 		}
 	}

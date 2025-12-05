@@ -5,9 +5,9 @@
 	import { useSupabaseArtist } from '~/composables/Supabase/useSupabaseArtist'
 	import { useSupabaseMusic } from '~/composables/Supabase/useSupabaseMusic'
 
-	const { getRealtimeLastestNewsAdded } = useSupabaseNews()
-	const { getRealtimeLastestReleasesAdded } = useSupabaseRelease()
-	const { getRealtimeLastestArtistsAdded } = useSupabaseArtist()
+	const { getRealtimeLatestNewsAdded } = useSupabaseNews()
+	const { getRealtimeLatestReleasesAdded } = useSupabaseRelease()
+	const { getRealtimeLatestArtistsAdded } = useSupabaseArtist()
 	const { getRandomMusics, getLatestMVs } = useSupabaseMusic()
 
 	// Timestamp pour forcer le refresh

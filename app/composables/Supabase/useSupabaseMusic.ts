@@ -279,7 +279,7 @@ export function useSupabaseMusic() {
 	}
 
 	// Récupère les dernières musiques ajoutées en temps réel
-	const getRealtimeLastestMusicsAdded = async (
+	const getRealtimeLatestMusicsAdded = async (
 		limitNumber: number,
 		callback: (musics: Music[]) => void,
 	) => {
@@ -643,7 +643,7 @@ export function useSupabaseMusic() {
 		getAllMusics,
 		getMusicById,
 		getMusicByIdLight,
-		getRealtimeLastestMusicsAdded,
+		getRealtimeLatestMusicsAdded,
 		getRandomMusics,
 		getRandomMusicsByArtistId,
 		createMusic,

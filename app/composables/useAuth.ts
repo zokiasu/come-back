@@ -167,7 +167,7 @@ export const useAuth = () => {
 			await resetStore()
 
 			await navigateTo('/authentification')
-		} catch (err: any) {
+		} catch (err: unknown) {
 			console.error('Erreur lors de la déconnexion:', err)
 		}
 	}
