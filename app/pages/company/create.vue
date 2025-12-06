@@ -70,11 +70,7 @@
 		}
 	}
 
-	const adjustTextarea = (event: Event) => {
-		const textarea = event.target as HTMLTextAreaElement
-		textarea.style.height = 'auto'
-		textarea.style.height = `${textarea.scrollHeight}px`
-	}
+	const { adjustTextarea } = useTextareaAutoResize()
 
 	const getCompanyTypeLabel = (type: string) => {
 		const labels = {
