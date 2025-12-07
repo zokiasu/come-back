@@ -1,4 +1,3 @@
-import type { Tables } from '~/server/types/api'
 import type { PostgrestError } from '@supabase/supabase-js'
 import { isError as isH3Error } from 'h3'
 
@@ -8,8 +7,10 @@ export default defineEventHandler(async (event) => {
 	const limit = parseInt(query.limit as string) || 4
 
 	try {
-		// 1. Utiliser un COUNT estimé pour éviter de scanner toute la table
-		// Pour 15k-50k+ entrées, count: 'estimated' est beaucoup plus rapide
+		// Stratégie optimisée: une seule requête simple avec offset aléatoire
+		// Évite les jointures complexes qui causent des timeouts
+
+		// 1. Obtenir un count estimé (très rapide)
 		const { count } = await supabase
 			.from('musics')
 			.select('*', { count: 'estimated', head: true })
@@ -19,77 +20,50 @@ export default defineEventHandler(async (event) => {
 			return []
 		}
 
-		// 2. Stratégie optimisée pour grandes bases de données
-		// Augmenter le nombre d'échantillons pour mieux couvrir une grande base
-		const samplesCount = Math.min(6, Math.ceil(limit / 2) + 1) // 2-6 échantillons
-		const sampleSize = Math.ceil(limit / samplesCount) + 1
+		// 2. Générer un offset aléatoire
+		const maxOffset = Math.max(0, count - limit * 3)
+		const randomOffset = Math.floor(Math.random() * maxOffset)
 
-		// 3. Préparer toutes les requêtes en parallèle pour maximiser la performance
-		const fetchPromises = []
-
-		for (let i = 0; i < samplesCount; i++) {
-			// Calculer un offset aléatoire stratégiquement espacé
-			// Diviser la base en segments pour une meilleure couverture
-			const segmentSize = Math.floor(count / samplesCount)
-			const segmentStart = i * segmentSize
-			const segmentEnd = (i + 1) * segmentSize
-			const randomOffset =
-				Math.floor(Math.random() * (segmentEnd - segmentStart - sampleSize)) +
-				segmentStart
-
-			// Créer la promesse de requête (pas encore exécutée)
-			const fetchPromise = supabase
-				.from('musics')
-				.select(
-					`
-					*,
-					artists:music_artists(
-						artist:artists(*)
-					),
-					releases:music_releases(
-						release:releases(*)
-					)
-				`,
+		// 3. Une seule requête avec jointures légères (seulement les noms d'artistes)
+		const { data, error } = await supabase
+			.from('musics')
+			.select(
+				`
+				id,
+				name,
+				id_youtube_music,
+				duration,
+				thumbnails,
+				type,
+				date,
+				artists:music_artists(
+					artist:artists(id, name, image)
 				)
-				.not('id_youtube_music', 'is', null)
-				.range(randomOffset, randomOffset + sampleSize - 1)
-				.order('date', { ascending: false })
+			`,
+			)
+			.not('id_youtube_music', 'is', null)
+			.range(randomOffset, randomOffset + limit * 3 - 1)
+			.order('date', { ascending: false })
 
-			fetchPromises.push(fetchPromise)
+		if (error) {
+			console.error('Error fetching random musics:', error)
+			throw handleSupabaseError(error, 'musics.random')
 		}
 
-		// 4. Exécuter TOUTES les requêtes en PARALLÈLE pour maximiser la vitesse
-		const results = await Promise.all(fetchPromises)
-		const allMusics: any[] = []
-
-		results.forEach(({ data, error }) => {
-			if (error) {
-				console.error('Error fetching random music segment:', error)
-				throw handleSupabaseError(error, 'musics.random.segment')
-			}
-			if (data && data.length > 0) {
-				allMusics.push(...data)
-			}
-		})
+		if (!data || data.length === 0) {
+			return []
+		}
 
 		// 4. Transformer les données
-		const transformedData = allMusics.map((music) => ({
+		const transformedData = data.map((music) => ({
 			...music,
-			artists: transformJunction<Tables<'artists'>>(music.artists, 'artist'),
-			releases: transformJunction<Tables<'releases'>>(music.releases, 'release'),
+			artists: music.artists
+				?.map((a: { artist: { id: string; name: string; image: string | null } | null }) => a.artist)
+				.filter(Boolean) || [],
 		}))
 
-		// 5. Supprimer les doublons par ID
-		const uniqueMusics = transformedData.filter(
-			(music, index, self) => index === self.findIndex((m) => m.id === music.id),
-		)
-
-		// 6. Diversifier les artistes pour éviter plusieurs fois le même
-		const diversifiedMusics: any[] = []
-		const usedArtistIds = new Set<string>()
-
-		// Fonction de mélange Fisher-Yates
-		const shuffleArray = (array: any[]) => {
+		// 5. Mélanger et diversifier par artiste
+		const shuffleArray = <T>(array: T[]): T[] => {
 			const shuffled = [...array]
 			for (let i = shuffled.length - 1; i > 0; i--) {
 				const j = Math.floor(Math.random() * (i + 1))
@@ -98,38 +72,32 @@ export default defineEventHandler(async (event) => {
 			return shuffled
 		}
 
-		// Mélanger d'abord pour éviter un biais
-		const shuffledMusics = shuffleArray(uniqueMusics)
+		const shuffled = shuffleArray(transformedData)
+		const result: typeof transformedData = []
+		const usedArtistIds = new Set<string>()
 
-		// Prendre les musiques en privilégiant la diversité d'artistes
-		for (const music of shuffledMusics) {
-			if (diversifiedMusics.length >= limit) break
-
-			// Récupérer l'ID du premier artiste de la musique
+		// Privilégier la diversité d'artistes
+		for (const music of shuffled) {
+			if (result.length >= limit) break
 			const artistId = music.artists?.[0]?.id
-
-			// Si pas d'artiste ou artiste pas encore utilisé, on prend la musique
 			if (!artistId || !usedArtistIds.has(artistId)) {
-				diversifiedMusics.push(music)
-				if (artistId) {
-					usedArtistIds.add(artistId)
+				result.push(music)
+				if (artistId) usedArtistIds.add(artistId)
+			}
+		}
+
+		// Compléter si nécessaire
+		if (result.length < limit) {
+			for (const music of shuffled) {
+				if (result.length >= limit) break
+				if (!result.find((m) => m.id === music.id)) {
+					result.push(music)
 				}
 			}
 		}
 
-		// Si on n'a pas assez de musiques (cas rare), compléter avec les restantes
-		if (diversifiedMusics.length < limit) {
-			for (const music of shuffledMusics) {
-				if (diversifiedMusics.length >= limit) break
-				if (!diversifiedMusics.find((m) => m.id === music.id)) {
-					diversifiedMusics.push(music)
-				}
-			}
-		}
-
-		return diversifiedMusics
+		return result
 	} catch (error) {
-		// Preserve H3Errors if already thrown
 		if (isH3Error(error)) {
 			throw error
 		}

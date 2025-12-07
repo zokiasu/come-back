@@ -84,18 +84,19 @@ export const useUserStore = defineStore(
 	},
 	{
 		persist: {
-			storage: import.meta.client ? localStorage : undefined,
-			paths: ['userDataStore', 'isLoginStore', 'isAdminStore'],
-			// Stratégie d'hydratation plus sûre
-			beforeRestore: (ctx) => {
-				// Côté serveur, pas de restauration
-				if (import.meta.server) return
-			},
-			afterRestore: (ctx) => {
-				// Marquer comme hydraté après restauration
-				if (import.meta.client) {
-					ctx.store.isHydrated = true
+			// Clé de stockage localStorage
+			key: 'userStore',
+			// Note: On ne persiste pas isAdminStore car c'est une valeur dérivée de userDataStore.role
+			// Elle sera recalculée lors de l'hydratation via afterHydrate
+			pick: ['userDataStore', 'isLoginStore'],
+			afterHydrate: (ctx) => {
+				const userData = ctx.store.userDataStore
+				if (userData && userData.role) {
+					ctx.store.setIsAdmin(userData.role === 'ADMIN')
+				} else {
+					ctx.store.setIsAdmin(false)
 				}
+				ctx.store.isHydrated = true
 			},
 		},
 	},

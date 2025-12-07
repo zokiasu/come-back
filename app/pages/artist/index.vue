@@ -214,7 +214,7 @@
 
 	// Enum values for template usage
 	const artistTypes: ArtistType[] = ['SOLO', 'GROUP']
-	const artistGenders: ArtistGender[] = ['MALE', 'FEMALE', 'MIXTE', 'OTHER', 'UNKNOWN']
+	const artistGenders: ArtistGender[] = ['MALE', 'FEMALE', 'MIXTE', 'UNKNOWN']
 
 	const artists = ref<Artist[]>([])
 	const search = ref('')

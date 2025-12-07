@@ -204,9 +204,8 @@
 <template>
 	<UCard
 		:ui="{
-			// @ts-expect-error - UCard ui accepts base but types don't include it
-			base: 'max-h-[90vh] overflow-y-auto',
-			header: { base: 'sticky top-0 z-10' },
+			root: 'max-h-[90vh] overflow-y-auto',
+			header: 'sticky top-0 z-10',
 		}"
 	>
 		<template #header>

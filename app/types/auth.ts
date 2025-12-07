@@ -18,7 +18,7 @@ export interface UserInsertData {
 	email: string
 	name: string
 	photo_url: string
-	role: 'USER' | 'ADMIN'
+	role: 'USER' | 'CONTRIBUTOR' | 'ADMIN'
 	created_at?: string
 	updated_at: string
 }
@@ -29,7 +29,7 @@ export interface UserUpdateData {
 	email?: string
 	name?: string
 	photo_url?: string
-	role?: 'USER' | 'ADMIN'
+	role?: 'USER' | 'CONTRIBUTOR' | 'ADMIN'
 	updated_at: string
 }
 

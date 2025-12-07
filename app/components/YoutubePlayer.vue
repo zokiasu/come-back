@@ -336,17 +336,13 @@
 		isSeeking.value = true
 	}
 
-	const onSeekEnd = (newTime: number | number[]) => {
+	const onSeekEnd = (newTime: number | undefined) => {
 		if (!import.meta.client || !player.value || !isPlayerReady.value) return
-
-		// Extraire la valeur si c'est un tableau (USlider retourne [value])
-		const timeValue = Array.isArray(newTime)
-			? (newTime[0] ?? currentTime.value)
-			: (newTime ?? currentTime.value)
+		if (newTime === undefined) return
 
 		try {
-			player.value?.seekTo(timeValue, true)
-			currentTime.value = timeValue
+			player.value?.seekTo(newTime, true)
+			currentTime.value = newTime
 		} catch (error) {
 			console.error('❌ Erreur lors du seekTo:', error)
 		} finally {
@@ -362,15 +358,13 @@
 		currentTime.value = timeValue
 	}
 
-	const setVolume = (newVolume: number | number[]) => {
+	const setVolume = (newVolume: number | undefined) => {
 		if (!import.meta.client || !player.value || !isPlayerReady.value) return
-
-		// Extraire la valeur si c'est un tableau (USlider retourne [value])
-		const volumeValue = Array.isArray(newVolume) ? newVolume[0] : newVolume
+		if (newVolume === undefined) return
 
 		try {
-			player.value?.setVolume(volumeValue)
-			volume.value = volumeValue ?? 0
+			player.value?.setVolume(newVolume)
+			volume.value = newVolume
 		} catch (error) {
 			console.error('❌ Erreur lors du réglage du volume:', error)
 		}

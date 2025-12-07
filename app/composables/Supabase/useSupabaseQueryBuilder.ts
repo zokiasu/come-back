@@ -1,6 +1,4 @@
 import type { Database } from '~/types/supabase'
-import type { PostgrestFilterBuilder } from '@supabase/supabase-js'
-import type { PaginatedResponse } from '~/types'
 
 /**
  * Interface pour les options de pagination
@@ -77,41 +75,41 @@ export const useSupabaseQueryBuilder = () => {
 	/**
 	 * Applique la pagination à une requête
 	 */
-	const applyPagination = <T extends PostgrestFilterBuilder<Database['public'], any, any>>(
+	const applyPagination = <T extends { range: (from: number, to: number) => T }>(
 		query: T,
 		pagination: PaginationOptions,
 	): T => {
 		const offset = calculateOffset(pagination.page, pagination.limit)
-		return query.range(offset, offset + pagination.limit - 1) as T
+		return query.range(offset, offset + pagination.limit - 1)
 	}
 
 	/**
 	 * Applique le tri à une requête
 	 */
-	const applySorting = <T extends PostgrestFilterBuilder<Database['public'], any, any>>(
+	const applySorting = <T extends { order: (column: string, options?: { ascending?: boolean }) => T }>(
 		query: T,
-		sortOptions: SortOptions<any>,
+		sortOptions: SortOptions<unknown>,
 		defaultColumn: string = 'created_at',
 		defaultDirection: 'asc' | 'desc' = 'desc',
 	): T => {
 		if (sortOptions.orderBy) {
 			return query.order(sortOptions.orderBy as string, {
 				ascending: sortOptions.orderDirection === 'asc',
-			}) as T
+			})
 		}
-		return query.order(defaultColumn, { ascending: defaultDirection === 'asc' }) as T
+		return query.order(defaultColumn, { ascending: defaultDirection === 'asc' })
 	}
 
 	/**
 	 * Applique un filtre de recherche textuelle (ilike)
 	 */
-	const applySearchFilter = <T extends PostgrestFilterBuilder<Database['public'], any, any>>(
+	const applySearchFilter = <T extends { ilike: (column: string, pattern: string) => T }>(
 		query: T,
 		search: string | undefined,
 		column: string = 'name',
 	): T => {
 		if (search?.trim()) {
-			return query.ilike(column, `%${search.trim()}%`) as T
+			return query.ilike(column, `%${search.trim()}%`)
 		}
 		return query
 	}
@@ -123,10 +121,10 @@ export const useSupabaseQueryBuilder = () => {
 		data: T[],
 		count: number | null,
 		pagination: PaginationOptions,
-	): PaginatedResponse<T> => {
+	) => {
 		const total = count || 0
 		return {
-			data,
+			items: data,
 			total,
 			page: pagination.page,
 			limit: pagination.limit,
@@ -208,11 +206,11 @@ export const useSupabaseQueryBuilder = () => {
 		tableName: T,
 		id: string,
 		selectQuery: string = '*',
-	): Promise<Database['public']['Tables'][T]['Row'] | null> => {
+	) => {
 		const { data, error } = await supabase
 			.from(tableName)
 			.select(selectQuery)
-			.eq('id' as any, id)
+			.eq('id', id)
 			.single()
 
 		if (error) {
@@ -222,7 +220,7 @@ export const useSupabaseQueryBuilder = () => {
 			handleError(error, `la récupération de l'élément`)
 		}
 
-		return data as Database['public']['Tables'][T]['Row']
+		return data
 	}
 
 	/**

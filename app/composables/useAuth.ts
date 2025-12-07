@@ -60,24 +60,20 @@ export const useAuth = () => {
 				throw fetchError
 			}
 
-			const userData: UserInsertData | UserUpdateData = {
-				id: authUser.id,
-				email: authUser.email || '',
-				name:
-					authUser.user_metadata?.full_name ||
-					authUser.user_metadata?.name ||
-					'Utilisateur',
-				photo_url:
-					authUser.user_metadata?.avatar_url || authUser.user_metadata?.picture || '',
-				role: existingUser?.role || 'USER',
-				updated_at: new Date().toISOString(),
-			}
-
 			if (!existingUser) {
 				// Créer un nouvel utilisateur
 				const insertData: UserInsertData = {
-					...userData,
+					id: authUser.id,
+					email: authUser.email || '',
+					name:
+						authUser.user_metadata?.full_name ||
+						authUser.user_metadata?.name ||
+						'Utilisateur',
+					photo_url:
+						authUser.user_metadata?.avatar_url || authUser.user_metadata?.picture || '',
+					role: 'USER',
 					created_at: new Date().toISOString(),
+					updated_at: new Date().toISOString(),
 				}
 
 				const { data: newUser, error: createError } = await supabase
@@ -94,9 +90,24 @@ export const useAuth = () => {
 				return newUser as User
 			} else {
 				// Mettre à jour l'utilisateur existant
+				const updateData: UserUpdateData = {
+					id: authUser.id,
+					email: authUser.email || existingUser.email,
+					name:
+						authUser.user_metadata?.full_name ||
+						authUser.user_metadata?.name ||
+						existingUser.name,
+					photo_url:
+						authUser.user_metadata?.avatar_url ||
+						authUser.user_metadata?.picture ||
+						existingUser.photo_url || '',
+					role: existingUser.role,
+					updated_at: new Date().toISOString(),
+				}
+
 				const { data: updatedUser, error: updateError } = await supabase
 					.from('users')
-					.update(userData as UserUpdateData)
+					.update(updateData)
 					.eq('id', authUser.id)
 					.select()
 					.single()
@@ -123,6 +134,10 @@ export const useAuth = () => {
 		// Attendre que l'utilisateur soit complètement initialisé (avec id)
 		// Supabase v2 peut avoir un user.value sans id pendant l'initialisation OAuth
 		if (!user.value?.id) {
+			// Ne pas réinitialiser si on a déjà des données valides dans le store
+			if (userDataStore.value && isLoginStore.value) {
+				return true
+			}
 			await resetStore()
 			return false
 		}
@@ -134,8 +149,14 @@ export const useAuth = () => {
 				isSyncing.value = true
 				syncError.value = null
 
-				const userData = await createOrUpdateUser(user.value)
-				await syncUserProfile(user.value, userData)
+				// Cast explicite car user.value a déjà été vérifié avoir un id
+				const authUser: SupabaseAuthUser = {
+					id: user.value.id,
+					email: user.value.email,
+					user_metadata: user.value.user_metadata,
+				}
+				const userData = await createOrUpdateUser(authUser)
+				await syncUserProfile(authUser, userData)
 
 				return true
 			} catch (error: any) {
@@ -179,6 +200,11 @@ export const useAuth = () => {
 	const initializeAuth = async () => {
 		// Si on a un utilisateur Supabase complet (avec id) et des données dans le store
 		if (user.value?.id && userDataStore.value && userDataStore.value.id === user.value.id) {
+			// S'assurer que isAdmin est synchronisé avec le rôle dans userDataStore
+			const shouldBeAdmin = userDataStore.value.role === 'ADMIN'
+			if (isAdminStore.value !== shouldBeAdmin) {
+				userStore.setIsAdmin(shouldBeAdmin)
+			}
 			return true
 		}
 
@@ -187,7 +213,17 @@ export const useAuth = () => {
 			return await ensureUserProfile()
 		}
 
-		// Aucun utilisateur connecté ou utilisateur incomplet
+		// Si on a des données valides dans le store (restaurées depuis localStorage)
+		// mais que Supabase n'est pas encore initialisé, on garde ces données
+		if (userDataStore.value && isLoginStore.value) {
+			const shouldBeAdmin = userDataStore.value.role === 'ADMIN'
+			if (isAdminStore.value !== shouldBeAdmin) {
+				userStore.setIsAdmin(shouldBeAdmin)
+			}
+			return true
+		}
+
+		// Aucun utilisateur connecté et pas de données dans le store
 		await resetStore()
 		return false
 	}
@@ -216,7 +252,10 @@ export const useAuth = () => {
 			if (newUser?.id && !oldUser?.id) {
 				await ensureUserProfile()
 			} else if (!newUser && oldUser) {
-				await resetStore()
+				// L'utilisateur Supabase a disparu - ne réinitialiser que si c'est une vraie déconnexion
+				if (!userDataStore.value || !isLoginStore.value) {
+					await resetStore()
+				}
 			} else if (newUser?.id && oldUser?.id && newUser.id !== oldUser.id) {
 				await ensureUserProfile()
 			}

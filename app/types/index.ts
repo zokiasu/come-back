@@ -165,6 +165,35 @@ export type InputMenuItem = {
 	[key: string]: unknown
 }
 
-export type ArtistMenuItem = Artist & {
+/**
+ * Type pour les items de menu Artist (compatible UInputMenu)
+ * Extrait uniquement les champs nécessaires pour éviter les conflits de type
+ * (Artist.type = 'SOLO' | 'GROUP' vs UInputMenu type = 'label' | 'separator' | 'item')
+ */
+export type ArtistMenuItem = {
+	id: string
 	label: string
+	name: string
+	description?: string
+	image: string | null
 }
+
+/**
+ * Type pour les items de menu Music (compatible UInputMenu)
+ * Note: Exclut intentionnellement le champ `type` pour éviter le conflit
+ * avec UInputMenu qui utilise `type: 'label' | 'separator' | 'item'`
+ */
+export type MusicMenuItem = {
+	id: string
+	label: string
+	name: string
+	description?: string
+	duration?: number | null
+	musicType?: MusicType // Renommé pour éviter le conflit avec UInputMenu.type
+	artists?: Artist[]
+}
+
+/**
+ * Type générique pour les items de menu avec label
+ */
+export type MenuItem<T> = T & { label: string }

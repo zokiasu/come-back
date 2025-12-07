@@ -1,16 +1,15 @@
 <script lang="ts" setup>
-	import type { Artist, MusicStyle, GeneralTag } from '~/types'
 	import type {
+		Artist,
+		MusicStyle,
+		GeneralTag,
 		ArtistGender,
 		ArtistType,
-		ArtistPlatformLink,
-		ArtistSocialLink,
+		ArtistMenuItem,
+		MenuItem,
 	} from '~/types'
 
 	import { useSupabaseArtist } from '~/composables/Supabase/useSupabaseArtist'
-
-	// --- Type Helper for Menu Items ---
-	type MenuItem<T> = T & { label: string }
 
 	const toast = useToast()
 	const { createArtist } = useSupabaseArtist()
@@ -48,8 +47,8 @@
 	const socialLinkManager = createLinkListManager()
 	const platformList = platformLinkManager.links
 	const socialList = socialLinkManager.links
-	const selectedGroups = ref<MenuItem<Omit<Artist, 'type'>>[]>([])
-	const selectedMembers = ref<MenuItem<Omit<Artist, 'type'>>[]>([])
+	const selectedGroups = ref<ArtistMenuItem[]>([])
+	const selectedMembers = ref<ArtistMenuItem[]>([])
 	const artistStyles = ref<MenuItem<MusicStyle>[]>([])
 	const artistTags = ref<MenuItem<GeneralTag>[]>([])
 
@@ -74,24 +73,24 @@
 		)
 	})
 
-	const groupsForMenu = computed(() => {
-		return groupList.map((artist) => {
-			return {
-				id: artist.id,
-				label: artist.name,
-				description: artist.description ?? undefined,
-			}
-		})
+	const groupsForMenu = computed((): ArtistMenuItem[] => {
+		return groupList.map((artist) => ({
+			id: artist.id,
+			label: artist.name,
+			name: artist.name,
+			description: artist.description ?? undefined,
+			image: artist.image,
+		}))
 	})
 
-	const membersForMenu = computed(() => {
-		return membersList.map((artist) => {
-			return {
-				id: artist.id,
-				label: artist.name,
-				description: artist.description ?? undefined,
-			}
-		})
+	const membersForMenu = computed((): ArtistMenuItem[] => {
+		return membersList.map((artist) => ({
+			id: artist.id,
+			label: artist.name,
+			name: artist.name,
+			description: artist.description ?? undefined,
+			image: artist.image,
+		}))
 	})
 
 
@@ -105,6 +104,19 @@
 		}
 
 		try {
+			// Transformer les groupes et membres sélectionnés en objets Artist partiels
+			const groups = selectedGroups.value.map((g) => ({
+				id: g.id,
+				name: g.name,
+				type: 'GROUP' as ArtistType,
+			})) as Artist[]
+
+			const members = selectedMembers.value.map((m) => ({
+				id: m.id,
+				name: m.name,
+				type: 'SOLO' as ArtistType,
+			})) as Artist[]
+
 			await createArtist(
 				{
 					...artist.value,
@@ -113,14 +125,8 @@
 				} as Omit<Artist, 'id' | 'created_at' | 'updated_at'>,
 				socialList.value,
 				platformList.value,
-				selectedGroups.value.map(({ label, ...rest }) => ({
-					...rest,
-					type: 'GROUP' as ArtistType,
-				})),
-				selectedMembers.value.map(({ label, ...rest }) => ({
-					...rest,
-					type: 'SOLO' as ArtistType,
-				})),
+				groups,
+				members,
 			)
 			toast.add({ title: 'Artist created successfully', color: 'success' })
 			isUploadingEdit.value = false

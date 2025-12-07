@@ -10,6 +10,8 @@
 </template>
 
 <script setup lang="ts">
+	import type { User as SupabaseUser } from '@supabase/supabase-js'
+
 	const statusMessage = ref('Verifying session...')
 
 	// Disable auth middleware for this page
@@ -57,7 +59,7 @@
 			const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
 			log(`Current session: ${sessionData?.session ? 'exists' : 'none'}, error: ${sessionError?.message || 'none'}`)
 
-			let sessionUser = sessionData?.session?.user
+			let sessionUser: SupabaseUser | undefined = sessionData?.session?.user
 
 			if (sessionUser?.id) {
 				log(`Session already exists! User ID: ${sessionUser.id}, skipping code exchange`)
@@ -74,7 +76,7 @@
 						console.error('Error setting session:', error)
 					} else {
 						log(`Session set successfully! User: ${data?.user?.id || 'unknown'}`)
-						sessionUser = data?.user
+						sessionUser = data?.user ?? undefined
 					}
 				}
 				// If we have a code (PKCE flow), exchange it for a session
@@ -86,7 +88,7 @@
 						console.error('Error exchanging code:', error)
 					} else {
 						log(`Code exchanged successfully! User: ${data?.user?.id || 'unknown'}`)
-						sessionUser = data?.user
+						sessionUser = data?.user ?? undefined
 					}
 				} else {
 					log('No code or access_token found in URL')
@@ -95,7 +97,7 @@
 
 			// Get the final session to ensure we have the user
 			const { data: finalSession } = await supabase.auth.getSession()
-			sessionUser = finalSession?.session?.user
+			sessionUser = finalSession?.session?.user ?? undefined
 			log(`Final session check: ${finalSession?.session ? 'exists' : 'none'}`)
 			if (sessionUser) {
 				log(`User from session: id=${sessionUser.id}, email=${sessionUser.email}`)
@@ -122,7 +124,14 @@
 					await navigateTo('/authentification?error=timeout')
 					return
 				}
-				sessionUser = user.value
+				sessionUser = user.value as SupabaseUser
+			}
+
+			// At this point sessionUser is guaranteed to exist with an id
+			if (!sessionUser) {
+				log('CRITICAL: sessionUser is undefined after all checks')
+				await navigateTo('/authentification?error=no_user')
+				return
 			}
 
 			log(`User ready! ID: ${sessionUser.id}, Email: ${sessionUser.email}`)
