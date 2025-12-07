@@ -14,21 +14,6 @@ export type Database = {
 	}
 	public: {
 		Tables: {
-			algolia_config: {
-				Row: {
-					setting_name: string
-					setting_value: string
-				}
-				Insert: {
-					setting_name: string
-					setting_value: string
-				}
-				Update: {
-					setting_name?: string
-					setting_value?: string
-				}
-				Relationships: []
-			}
 			artist_companies: {
 				Row: {
 					artist_id: string
@@ -748,50 +733,24 @@ export type Database = {
 				Args: { artist_id_param: string }
 				Returns: Json
 			}
-			bytea_to_text: {
-				Args: { data: string }
-				Returns: string
-			}
-			check_algolia_config: {
-				Args: Record<PropertyKey, never>
-				Returns: {
-					is_set: boolean
-					setting_name: string
-					setting_value: string
-				}[]
-			}
+			bytea_to_text: { Args: { data: string }; Returns: string }
 			check_array_values_exist: {
 				Args: { arr: string[]; table_name: string }
 				Returns: boolean
 			}
-			cleanup_orphaned_contributions: {
-				Args: Record<PropertyKey, never>
-				Returns: number
-			}
-			delete_artist_safely: {
-				Args: { artist_id_param: string }
-				Returns: Json
-			}
-			delete_artist_simple: {
-				Args: { artist_id_param: string }
-				Returns: Json
-			}
-			firebase_id_to_uuid: {
-				Args: { firebase_id: string }
-				Returns: string
-			}
+			cleanup_orphaned_contributions: { Args: never; Returns: number }
+			delete_artist_safely: { Args: { artist_id_param: string }; Returns: Json }
+			delete_artist_simple: { Args: { artist_id_param: string }; Returns: Json }
+			firebase_id_to_uuid: { Args: { firebase_id: string }; Returns: string }
 			get_artist_demographics: {
-				Args: Record<PropertyKey, never>
+				Args: never
 				Returns: {
 					category: string
 					count_value: number
 					stat_type: string
 				}[]
 			}
-			get_contributions_stats: {
-				Args: Record<PropertyKey, never>
-				Returns: Json
-			}
+			get_contributions_stats: { Args: never; Returns: Json }
 			get_general_stats: {
 				Args: { end_date?: string; filter_year?: number; start_date?: string }
 				Returns: {
@@ -880,25 +839,77 @@ export type Database = {
 			http: {
 				Args: { request: Database['public']['CompositeTypes']['http_request'] }
 				Returns: Database['public']['CompositeTypes']['http_response']
+				SetofOptions: {
+					from: 'http_request'
+					to: 'http_response'
+					isOneToOne: true
+					isSetofReturn: false
+				}
 			}
-			http_delete: {
-				Args: { content: string; content_type: string; uri: string } | { uri: string }
-				Returns: Database['public']['CompositeTypes']['http_response']
-			}
-			http_get: {
-				Args: { data: Json; uri: string } | { uri: string }
-				Returns: Database['public']['CompositeTypes']['http_response']
-			}
+			http_delete:
+				| {
+						Args: { uri: string }
+						Returns: Database['public']['CompositeTypes']['http_response']
+						SetofOptions: {
+							from: '*'
+							to: 'http_response'
+							isOneToOne: true
+							isSetofReturn: false
+						}
+					}
+				| {
+						Args: { content: string; content_type: string; uri: string }
+						Returns: Database['public']['CompositeTypes']['http_response']
+						SetofOptions: {
+							from: '*'
+							to: 'http_response'
+							isOneToOne: true
+							isSetofReturn: false
+						}
+					}
+			http_get:
+				| {
+						Args: { uri: string }
+						Returns: Database['public']['CompositeTypes']['http_response']
+						SetofOptions: {
+							from: '*'
+							to: 'http_response'
+							isOneToOne: true
+							isSetofReturn: false
+						}
+					}
+				| {
+						Args: { data: Json; uri: string }
+						Returns: Database['public']['CompositeTypes']['http_response']
+						SetofOptions: {
+							from: '*'
+							to: 'http_response'
+							isOneToOne: true
+							isSetofReturn: false
+						}
+					}
 			http_head: {
 				Args: { uri: string }
 				Returns: Database['public']['CompositeTypes']['http_response']
+				SetofOptions: {
+					from: '*'
+					to: 'http_response'
+					isOneToOne: true
+					isSetofReturn: false
+				}
 			}
 			http_header: {
 				Args: { field: string; value: string }
 				Returns: Database['public']['CompositeTypes']['http_header']
+				SetofOptions: {
+					from: '*'
+					to: 'http_header'
+					isOneToOne: true
+					isSetofReturn: false
+				}
 			}
 			http_list_curlopt: {
-				Args: Record<PropertyKey, never>
+				Args: never
 				Returns: {
 					curlopt: string
 					value: string
@@ -907,68 +918,92 @@ export type Database = {
 			http_patch: {
 				Args: { content: string; content_type: string; uri: string }
 				Returns: Database['public']['CompositeTypes']['http_response']
+				SetofOptions: {
+					from: '*'
+					to: 'http_response'
+					isOneToOne: true
+					isSetofReturn: false
+				}
 			}
-			http_post: {
-				Args:
-					| { content: string; content_type: string; uri: string }
-					| { data: Json; uri: string }
-				Returns: Database['public']['CompositeTypes']['http_response']
-			}
+			http_post:
+				| {
+						Args: { content: string; content_type: string; uri: string }
+						Returns: Database['public']['CompositeTypes']['http_response']
+						SetofOptions: {
+							from: '*'
+							to: 'http_response'
+							isOneToOne: true
+							isSetofReturn: false
+						}
+					}
+				| {
+						Args: { data: Json; uri: string }
+						Returns: Database['public']['CompositeTypes']['http_response']
+						SetofOptions: {
+							from: '*'
+							to: 'http_response'
+							isOneToOne: true
+							isSetofReturn: false
+						}
+					}
 			http_put: {
 				Args: { content: string; content_type: string; uri: string }
 				Returns: Database['public']['CompositeTypes']['http_response']
+				SetofOptions: {
+					from: '*'
+					to: 'http_response'
+					isOneToOne: true
+					isSetofReturn: false
+				}
 			}
-			http_reset_curlopt: {
-				Args: Record<PropertyKey, never>
-				Returns: boolean
-			}
+			http_reset_curlopt: { Args: never; Returns: boolean }
 			http_set_curlopt: {
 				Args: { curlopt: string; value: string }
 				Returns: boolean
 			}
-			is_supabase_or_firebase_project_jwt: {
-				Args: Record<PropertyKey, never>
-				Returns: boolean
-			}
-			set_algolia_config: {
-				Args: Record<PropertyKey, never> | { p_api_key: string; p_app_id: string }
+			is_supabase_or_firebase_project_jwt: { Args: never; Returns: boolean }
+			search_artists_fulltext: {
+				Args: {
+					artist_type?: string
+					result_limit?: number
+					search_query: string
+				}
 				Returns: {
-					new_value: string
-					setting_name: string
+					active_career: boolean
+					birth_date: string
+					companies: Json
+					created_at: string
+					debut_date: string
+					description: string
+					gender: string
+					general_tags: string[]
+					id: string
+					id_youtube_music: string
+					image: string
+					name: string
+					platform_links: Json
+					social_links: Json
+					styles: string[]
+					type: string
+					updated_at: string
+					verified: boolean
 				}[]
 			}
-			sync_all_artists_to_algolia: {
-				Args: Record<PropertyKey, never>
-				Returns: string
-			}
-			sync_all_musics_to_algolia: {
-				Args: Record<PropertyKey, never>
-				Returns: string
-			}
-			sync_all_releases_to_algolia: {
-				Args: Record<PropertyKey, never>
-				Returns: string
-			}
-			test_algolia_connection: {
-				Args: Record<PropertyKey, never>
-				Returns: string
-			}
-			test_algolia_response: {
-				Args: Record<PropertyKey, never>
-				Returns: string
-			}
-			test_algolia_sync_single_artist: {
-				Args: { artist_id: string }
-				Returns: string
-			}
-			text_to_bytea: {
-				Args: { data: string }
-				Returns: string
-			}
-			urlencode: {
-				Args: { data: Json } | { string: string } | { string: string }
-				Returns: string
-			}
+			text_to_bytea: { Args: { data: string }; Returns: string }
+			urlencode:
+				| { Args: { data: Json }; Returns: string }
+				| {
+						Args: { string: string }
+						Returns: {
+							error: true
+						} & 'Could not choose the best candidate function between: public.urlencode(string => bytea), public.urlencode(string => varchar). Try renaming the parameters or the function itself in the database so function overloading can be resolved'
+					}
+				| {
+						Args: { string: string }
+						Returns: {
+							error: true
+						} & 'Could not choose the best candidate function between: public.urlencode(string => bytea), public.urlencode(string => varchar). Try renaming the parameters or the function itself in the database so function overloading can be resolved'
+					}
 		}
 		Enums: {
 			artist_type: 'SOLO' | 'GROUP'
@@ -985,7 +1020,7 @@ export type Database = {
 				value: string | null
 			}
 			http_request: {
-				method: unknown | null
+				method: unknown
 				uri: string | null
 				headers: Database['public']['CompositeTypes']['http_header'][] | null
 				content_type: string | null
