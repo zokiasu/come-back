@@ -305,7 +305,7 @@ export function useSupabaseNews() {
 	}
 
 	// Récupère les dernières news ajoutées en temps réel
-	const getRealtimeLastestNewsAdded = async (callback: (news: News[]) => void) => {
+	const getRealtimeLatestNewsAdded = async (callback: (news: News[]) => void) => {
 		// Obtenir la date du jour à minuit
 		const today = new Date()
 		today.setHours(0, 0, 0, 0)
@@ -393,6 +393,6 @@ export function useSupabaseNews() {
 		deleteNews,
 		getAllNews,
 		getNewsById,
-		getRealtimeLastestNewsAdded,
+		getRealtimeLatestNewsAdded,
 	}
 }

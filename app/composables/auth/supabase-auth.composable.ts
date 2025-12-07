@@ -29,9 +29,9 @@ export const useSupabaseAuth = () => {
 				console.error('❌ Erreur OAuth:', authError)
 				throw authError
 			}
-		} catch (err: any) {
+		} catch (err: unknown) {
 			console.error('❌ Erreur lors de la connexion Google:', err)
-			error.value = err.message || 'Erreur de connexion'
+			error.value = err instanceof Error ? err.message : 'Erreur de connexion'
 		} finally {
 			isLoading.value = false
 		}
@@ -48,9 +48,9 @@ export const useSupabaseAuth = () => {
 
 				await navigateTo('/')
 			}
-		} catch (err: any) {
+		} catch (err: unknown) {
 			console.error('❌ Erreur lors du callback:', err)
-			error.value = err.message || 'Erreur de callback'
+			error.value = err instanceof Error ? err.message : 'Erreur de callback'
 		}
 	}
 
@@ -58,9 +58,9 @@ export const useSupabaseAuth = () => {
 		const { logout: authLogout } = useAuth()
 		try {
 			await authLogout()
-		} catch (err: any) {
+		} catch (err: unknown) {
 			console.error('Erreur lors de la déconnexion:', err)
-			error.value = err.message || 'Erreur de déconnexion'
+			error.value = err instanceof Error ? err.message : 'Erreur de déconnexion'
 		}
 	}
 

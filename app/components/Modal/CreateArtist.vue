@@ -43,10 +43,11 @@
 		general_tags: [],
 	})
 
-	const platformList = ref<Omit<ArtistPlatformLink, 'id' | 'created_at' | 'artist_id'>[]>(
-		[],
-	)
-	const socialList = ref<Omit<ArtistSocialLink, 'id' | 'created_at' | 'artist_id'>[]>([])
+	const { createLinkListManager } = useLinkManager()
+	const platformLinkManager = createLinkListManager()
+	const socialLinkManager = createLinkListManager()
+	const platformList = platformLinkManager.links
+	const socialList = socialLinkManager.links
 	const selectedGroups = ref<MenuItem<Omit<Artist, 'type'>>[]>([])
 	const selectedMembers = ref<MenuItem<Omit<Artist, 'type'>>[]>([])
 	const artistStyles = ref<MenuItem<MusicStyle>[]>([])
@@ -93,51 +94,6 @@
 		})
 	})
 
-	// Functions to manage platform links
-	const updatePlatformName = (index: number, event: Event) => {
-		const platform = platformList.value[index]
-		if (platform) {
-			platform.name = (event.target as HTMLInputElement).value
-		}
-	}
-
-	const updatePlatformLink = (index: number, event: Event) => {
-		const platform = platformList.value[index]
-		if (platform) {
-			platform.link = (event.target as HTMLInputElement).value
-		}
-	}
-
-	const addPlatform = () => {
-		platformList.value.push({ name: '', link: '' })
-	}
-
-	const removePlatform = (index: number) => {
-		platformList.value.splice(index, 1)
-	}
-
-	// Functions to manage social links
-	const updateSocialName = (index: number, event: Event) => {
-		const social = socialList.value[index]
-		if (social) {
-			social.name = (event.target as HTMLInputElement).value
-		}
-	}
-
-	const updateSocialLink = (index: number, event: Event) => {
-		const social = socialList.value[index]
-		if (social) {
-			social.link = (event.target as HTMLInputElement).value
-		}
-	}
-
-	const addSocial = () => {
-		socialList.value.push({ name: '', link: '' })
-	}
-
-	const removeSocial = (index: number) => {
-		socialList.value.splice(index, 1)
-	}
 
 	const sendCreateArtist = async () => {
 		isUploadingEdit.value = true
@@ -179,11 +135,7 @@
 		}
 	}
 
-	const adjustTextarea = (event: Event) => {
-		const textarea = event.target as HTMLTextAreaElement
-		textarea.style.height = 'auto'
-		textarea.style.height = `${textarea.scrollHeight}px`
-	}
+	const { adjustTextarea } = useTextareaAutoResize()
 </script>
 
 <template>
@@ -332,26 +284,26 @@
 							:value="platform.name"
 							placeholder="Platform's Name"
 							class="w-full appearance-none border-b bg-transparent transition-all duration-150 ease-in-out outline-none"
-							@input="updatePlatformName(index, $event)"
+							@input="platformLinkManager.updateNameFromEvent(index, $event)"
 						/>
 						<input
 							type="text"
 							:value="platform.link"
 							placeholder="Platform's Link"
 							class="w-full appearance-none border-b bg-transparent transition-all duration-150 ease-in-out outline-none"
-							@input="updatePlatformLink(index, $event)"
+							@input="platformLinkManager.updateLinkFromEvent(index, $event)"
 						/>
 					</div>
 					<button
 						class="bg-cb-primary-900 rounded p-1 text-xs hover:bg-red-900"
-						@click="removePlatform(index)"
+						@click="platformLinkManager.remove(index)"
 					>
 						<IconDelete class="h-5 w-5" />
 					</button>
 				</div>
 				<button
 					class="bg-cb-primary-900 w-full rounded p-2 text-xs font-semibold uppercase hover:bg-red-900"
-					@click="addPlatform"
+					@click="platformLinkManager.add"
 				>
 					Add Platforms
 				</button>
@@ -366,26 +318,26 @@
 							:value="social.name"
 							placeholder="Social's Name"
 							class="w-full appearance-none border-b bg-transparent transition-all duration-150 ease-in-out outline-none"
-							@input="updateSocialName(index, $event)"
+							@input="socialLinkManager.updateNameFromEvent(index, $event)"
 						/>
 						<input
 							type="text"
 							:value="social.link"
 							placeholder="Social's Link"
 							class="w-full appearance-none border-b bg-transparent transition-all duration-150 ease-in-out outline-none"
-							@input="updateSocialLink(index, $event)"
+							@input="socialLinkManager.updateLinkFromEvent(index, $event)"
 						/>
 					</div>
 					<button
 						class="bg-cb-primary-900 rounded p-1 text-xs hover:bg-red-900"
-						@click="removeSocial(index)"
+						@click="socialLinkManager.remove(index)"
 					>
 						<IconDelete class="h-5 w-5" />
 					</button>
 				</div>
 				<button
 					class="bg-cb-primary-900 w-full rounded p-2 text-xs font-semibold uppercase hover:bg-red-900"
-					@click="addSocial"
+					@click="socialLinkManager.add"
 				>
 					Add Socials
 				</button>

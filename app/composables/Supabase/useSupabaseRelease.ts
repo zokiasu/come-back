@@ -259,7 +259,7 @@ export function useSupabaseRelease() {
 	}
 
 	// Récupère les dernières releases ajoutées en temps réel
-	const getRealtimeLastestReleasesAdded = async (
+	const getRealtimeLatestReleasesAdded = async (
 		limitNumber: number,
 		callback: (releases: Release[]) => void,
 	) => {
@@ -533,7 +533,7 @@ export function useSupabaseRelease() {
 		getAllReleases,
 		getReleaseById,
 		getReleaseByIdLight,
-		getRealtimeLastestReleasesAdded,
+		getRealtimeLatestReleasesAdded,
 		getReleasesByMonthAndYear,
 		getSuggestedReleases,
 		getReleasesByPage,

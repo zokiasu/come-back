@@ -10,11 +10,6 @@ export const useAuthorNamePlaying = () =>
 
 export const useIsPlayingVideo = () => useState<boolean>('isPlayingVideo', () => false)
 
-// Composables d'authentification (remplacés par le store Pinia)
-export const useIsLogin = () => useState<boolean>('isLogin', () => false)
-
-export const useIsAdmin = () => useState<boolean>('isAdmin', () => false)
-
 // Autres composables
 export const useLastRoomYouTryToJoined = () =>
 	useState<string>('lastRoomYouTryToJoined', () => '')

@@ -82,12 +82,11 @@
 
 	const artistToEdit = ref<Partial<Artist>>()
 
-	const artistPlatformList = ref<
-		Omit<ArtistPlatformLink, 'id' | 'created_at' | 'artist_id'>[]
-	>([])
-	const artistSocialList = ref<
-		Omit<ArtistSocialLink, 'id' | 'created_at' | 'artist_id'>[]
-	>([])
+	const { createLinkListManager } = useLinkManager()
+	const platformLinkManager = createLinkListManager()
+	const socialLinkManager = createLinkListManager()
+	const artistPlatformList = platformLinkManager.links
+	const artistSocialList = socialLinkManager.links
 
 	const imageFile = ref<File | null>(null)
 	const imagePreview = ref<string | null>(null)
@@ -255,12 +254,8 @@
 				}))
 
 			// Filter out empty platform and social links before sending
-			const validPlatformLinks = artistPlatformList.value.filter(
-				(link) => link.name?.trim() && link.link?.trim(),
-			)
-			const validSocialLinks = artistSocialList.value.filter(
-				(link) => link.name?.trim() && link.link?.trim(),
-			)
+			const validPlatformLinks = platformLinkManager.getValidLinks()
+			const validSocialLinks = socialLinkManager.getValidLinks()
 
 			await updateArtist(
 				currentArtistId,
@@ -306,10 +301,7 @@
 			isUploadingEdit.value = false
 		}
 	}
-	const adjustTextarea = (textarea: HTMLTextAreaElement) => {
-		textarea.style.height = 'auto'
-		textarea.style.height = `${textarea.scrollHeight}px`
-	}
+	const { adjustTextareaDirect } = useTextareaAutoResize()
 
 	// Functions to manage company relations
 	const addCompanyRelation = () => {
@@ -330,63 +322,6 @@
 		}
 	}
 
-	// Functions to manage platform links
-	const updatePlatformName = (
-		index: number,
-		event: Event | { target: { value: string } },
-	) => {
-		const platform = artistPlatformList.value[index]
-		if (platform) {
-			platform.name = (event.target as HTMLInputElement).value
-		}
-	}
-
-	const updatePlatformLink = (
-		index: number,
-		event: Event | { target: { value: string } },
-	) => {
-		const platform = artistPlatformList.value[index]
-		if (platform) {
-			platform.link = (event.target as HTMLInputElement).value
-		}
-	}
-
-	const addPlatform = () => {
-		artistPlatformList.value.push({ name: '', link: '' })
-	}
-
-	const removePlatform = (index: number) => {
-		artistPlatformList.value.splice(index, 1)
-	}
-
-	// Functions to manage social links
-	const updateSocialName = (
-		index: number,
-		event: Event | { target: { value: string } },
-	) => {
-		const social = artistSocialList.value[index]
-		if (social) {
-			social.name = (event.target as HTMLInputElement).value || ''
-		}
-	}
-
-	const updateSocialLink = (
-		index: number,
-		event: Event | { target: { value: string } },
-	) => {
-		const social = artistSocialList.value[index]
-		if (social) {
-			social.link = (event.target as HTMLInputElement).value || ''
-		}
-	}
-
-	const addSocial = () => {
-		artistSocialList.value.push({ name: '', link: '' })
-	}
-
-	const removeSocial = (index: number) => {
-		artistSocialList.value.splice(index, 1)
-	}
 
 	// Fonction pour gérer la mise à jour après création de company
 	const handleCompanyUpdated = async () => {
@@ -430,15 +365,17 @@
 						await getSocialAndPlatformLinksByArtistId(artist.value.id)
 
 					// S'assurer que les tableaux ne sont jamais undefined
-					artistPlatformList.value =
-						platformLinks && platformLinks.length > 0 ? platformLinks : []
-					artistSocialList.value =
-						socialLinks && socialLinks.length > 0 ? socialLinks : []
+					platformLinkManager.reset(
+						platformLinks && platformLinks.length > 0 ? platformLinks : [],
+					)
+					socialLinkManager.reset(
+						socialLinks && socialLinks.length > 0 ? socialLinks : [],
+					)
 				} catch (linkError) {
 					console.error('Error loading social and platform links:', linkError)
 					// Initialiser avec des tableaux vides en cas d'erreur
-					artistPlatformList.value = []
-					artistSocialList.value = []
+					platformLinkManager.reset([])
+					socialLinkManager.reset([])
 					toast.add({
 						title: 'Warning',
 						description: 'Could not load all artist links',
@@ -507,7 +444,7 @@
 				if (import.meta.client) {
 					const textarea = document.querySelector('textarea')
 					if (textarea) {
-						adjustTextarea(textarea)
+						adjustTextareaDirect(textarea)
 					}
 				}
 
@@ -983,7 +920,7 @@
 					v-model="artistToEdit.description"
 					:placeholder="artistToEdit.description || 'Description'"
 					class="focus:bg-cb-tertiary-200 focus:text-cb-secondary-950 min-h-full w-full appearance-none border-b bg-transparent transition-all duration-150 ease-in-out focus:rounded focus:p-1.5 focus:outline-none"
-					@input="adjustTextarea($event.target as HTMLTextAreaElement)"
+					@input="adjustTextareaDirect($event.target as HTMLTextAreaElement)"
 				/>
 			</div>
 
@@ -1084,16 +1021,10 @@
 					name-placeholder="Platform's Name"
 					link-placeholder="Platform's Link"
 					key-prefix="platform"
-					@add-item="addPlatform"
-					@remove-item="removePlatform"
-					@update-name="
-						(index: any, name: any) =>
-							updatePlatformName(index, { target: { value: name } })
-					"
-					@update-link="
-						(index: any, link: any) =>
-							updatePlatformLink(index, { target: { value: link } })
-					"
+					@add-item="platformLinkManager.add"
+					@remove-item="platformLinkManager.remove"
+					@update-name="platformLinkManager.updateName"
+					@update-link="platformLinkManager.updateLink"
 				/>
 
 				<LinkManager
@@ -1102,16 +1033,10 @@
 					name-placeholder="Social's Name"
 					link-placeholder="Social's Link"
 					key-prefix="social"
-					@add-item="addSocial"
-					@remove-item="removeSocial"
-					@update-name="
-						(index: any, name: any) =>
-							updateSocialName(index, { target: { value: name } })
-					"
-					@update-link="
-						(index: any, link: any) =>
-							updateSocialLink(index, { target: { value: link } })
-					"
+					@add-item="socialLinkManager.add"
+					@remove-item="socialLinkManager.remove"
+					@update-name="socialLinkManager.updateName"
+					@update-link="socialLinkManager.updateLink"
 				/>
 			</div>
 		</div>

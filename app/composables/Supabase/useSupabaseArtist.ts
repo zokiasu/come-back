@@ -572,7 +572,7 @@ export function useSupabaseArtist() {
 	}
 
 	// Récupère les derniers artistes ajoutés en temps réel
-	const getRealtimeLastestArtistsAdded = async (
+	const getRealtimeLatestArtistsAdded = async (
 		limitNumber: number,
 		callback: (artists: Artist[]) => void,
 	) => {
@@ -754,7 +754,7 @@ export function useSupabaseArtist() {
 		getAllArtistsLight,
 		getFullArtistById,
 		getArtistByIdLight,
-		getRealtimeLastestArtistsAdded,
+		getRealtimeLatestArtistsAdded,
 		getSocialAndPlatformLinksByArtistId,
 		getArtistsByPage,
 	}

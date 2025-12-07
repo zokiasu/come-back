@@ -45,7 +45,7 @@ export const useServerSupabase = (): SupabaseClient<Database> => {
 			statusCode: 500,
 			statusMessage: 'Supabase configuration is missing',
 			message:
-				'Required environment variables SUPABASE_URL and SUPABASE_SERVICE_KEY must be set',
+				'Required environment variables SUPABASE_URL and SUPABASE_SECRET_KEY must be set',
 		})
 	}
 

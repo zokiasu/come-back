@@ -68,12 +68,11 @@
 		}[]
 	>([])
 	const artistDescription = ref<string>('')
-	const artistPlatformList = ref<
-		Omit<ArtistPlatformLink, 'id' | 'created_at' | 'artist_id'>[]
-	>([])
-	const artistSocialList = ref<
-		Omit<ArtistSocialLink, 'id' | 'created_at' | 'artist_id'>[]
-	>([])
+	const { createLinkListManager, filterValidLinks } = useLinkManager()
+	const platformLinkManager = createLinkListManager()
+	const socialLinkManager = createLinkListManager()
+	const artistPlatformList = platformLinkManager.links
+	const artistSocialList = socialLinkManager.links
 
 	// Clé pour forcer la re-render des UInputMenu des companies
 	const companiesMenuKey = ref(0)
@@ -196,12 +195,8 @@
 		}
 
 		// Filter out empty platform and social links before sending
-		const validPlatformLinks = artistPlatformList.value.filter(
-			(link) => link.name?.trim() && link.link?.trim(),
-		)
-		const validSocialLinks = artistSocialList.value.filter(
-			(link) => link.name?.trim() && link.link?.trim(),
-		)
+		const validPlatformLinks = platformLinkManager.getValidLinks()
+		const validSocialLinks = socialLinkManager.getValidLinks()
 
 		createArtist(
 			artist,
@@ -234,11 +229,7 @@
 		groupList.value = artistsList.value.filter((artist) => artist.type === 'GROUP')
 	}
 
-	const adjustTextarea = (event: Event) => {
-		const textarea = event.target as HTMLTextAreaElement
-		textarea.style.height = 'auto'
-		textarea.style.height = `${textarea.scrollHeight}px`
-	}
+	const { adjustTextarea } = useTextareaAutoResize()
 
 	// Fonction pour gérer la mise à jour après création de company
 	const handleCompanyUpdated = async () => {
@@ -278,63 +269,6 @@
 		}
 	}
 
-	// Functions to manage platform links
-	const updatePlatformName = (
-		index: number,
-		event: Event | { target: { value: string } },
-	) => {
-		const platform = artistPlatformList.value[index]
-		if (platform) {
-			platform.name = (event.target as HTMLInputElement).value
-		}
-	}
-
-	const updatePlatformLink = (
-		index: number,
-		event: Event | { target: { value: string } },
-	) => {
-		const platform = artistPlatformList.value[index]
-		if (platform) {
-			platform.link = (event.target as HTMLInputElement).value
-		}
-	}
-
-	const addPlatform = () => {
-		artistPlatformList.value.push({ name: '', link: '' })
-	}
-
-	const removePlatform = (index: number) => {
-		artistPlatformList.value.splice(index, 1)
-	}
-
-	// Functions to manage social links
-	const updateSocialName = (
-		index: number,
-		event: Event | { target: { value: string } },
-	) => {
-		const social = artistSocialList.value[index]
-		if (social) {
-			social.name = (event.target as HTMLInputElement).value || ''
-		}
-	}
-
-	const updateSocialLink = (
-		index: number,
-		event: Event | { target: { value: string } },
-	) => {
-		const social = artistSocialList.value[index]
-		if (social) {
-			social.link = (event.target as HTMLInputElement).value || ''
-		}
-	}
-
-	const addSocial = () => {
-		artistSocialList.value.push({ name: '', link: '' })
-	}
-
-	const removeSocial = (index: number) => {
-		artistSocialList.value.splice(index, 1)
-	}
 
 	onMounted(async () => {
 		artistsList.value = await getAllArtists()
@@ -868,16 +802,10 @@
 					name-placeholder="Platform's Name"
 					link-placeholder="Platform's Link"
 					key-prefix="platform"
-					@add-item="addPlatform"
-					@remove-item="removePlatform"
-					@update-name="
-						(index: any, name: any) =>
-							updatePlatformName(index, { target: { value: name } })
-					"
-					@update-link="
-						(index: any, link: any) =>
-							updatePlatformLink(index, { target: { value: link } })
-					"
+					@add-item="platformLinkManager.add"
+					@remove-item="platformLinkManager.remove"
+					@update-name="platformLinkManager.updateName"
+					@update-link="platformLinkManager.updateLink"
 				/>
 
 				<LinkManager
@@ -886,16 +814,10 @@
 					name-placeholder="Social's Name"
 					link-placeholder="Social's Link"
 					key-prefix="social"
-					@add-item="addSocial"
-					@remove-item="removeSocial"
-					@update-name="
-						(index: any, name: any) =>
-							updateSocialName(index, { target: { value: name } })
-					"
-					@update-link="
-						(index: any, link: any) =>
-							updateSocialLink(index, { target: { value: link } })
-					"
+					@add-item="socialLinkManager.add"
+					@remove-item="socialLinkManager.remove"
+					@update-name="socialLinkManager.updateName"
+					@update-link="socialLinkManager.updateLink"
 				/>
 			</div>
 		</div>

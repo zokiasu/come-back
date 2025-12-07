@@ -116,7 +116,7 @@ Required environment variables:
 
 - `SUPABASE_URL` - Supabase project URL
 - `SUPABASE_KEY` - Supabase anon key
-- `SUPABASE_SERVICE_KEY` - Supabase service key
+- `SUPABASE_SECRET_KEY` - Supabase secret key (JWT signing key, v2)
 - `YOUTUBE_API_KEY` - YouTube Data API key
 
 ### Database Schema

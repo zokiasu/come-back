@@ -28,39 +28,16 @@
 		},
 	})
 
-	const faviconError = ref(false)
+	const { getFaviconUrl, FAVICON_SERVICES } = useLinkManager()
 	const faviconAttempt = ref(0)
 
 	const faviconUrl = computed(() => {
-		try {
-			const url = new URL(link)
-			const domain = url.hostname
-
-			// Liste des services de favicon à essayer
-			const faviconServices = [
-				`https://www.google.com/s2/favicons?domain=${domain}&sz=64`,
-				`https://icons.duckduckgo.com/ip3/${domain}.ico`,
-				`https://${domain}/favicon.ico`,
-			]
-
-			// Si on a épuisé toutes les tentatives ou qu'il y a eu une erreur
-			if (faviconError.value || faviconAttempt.value >= faviconServices.length) {
-				return '/default.png'
-			}
-
-			return faviconServices[faviconAttempt.value]
-		} catch {
-			// Si l'URL n'est pas valide, utilise l'icône par défaut
-			return '/default.png'
-		}
+		return getFaviconUrl(link, faviconAttempt.value)
 	})
 
 	const handleFaviconError = () => {
-		// Essaie le prochain service de favicon
-		if (faviconAttempt.value < 2) {
+		if (faviconAttempt.value < FAVICON_SERVICES.length - 1) {
 			faviconAttempt.value++
-		} else {
-			faviconError.value = true
 		}
 	}
 </script>
