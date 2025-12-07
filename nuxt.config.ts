@@ -27,18 +27,20 @@ export default defineNuxtConfig({
 		public: {
 			YOUTUBE_API_KEY: process.env.YOUTUBE_API_KEY,
 			SUPABASE_URL: process.env.SUPABASE_URL,
-			SUPABASE_KEY: process.env.SUPABASE_KEY,
+			SUPABASE_KEY: process.env.NUXT_PUBLIC_SUPABASE_KEY,
 			SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY,
 		},
-		SUPABASE_SERVICE_KEY: process.env.SUPABASE_SERVICE_KEY,
+		// Supabase v2: SUPABASE_SERVICE_KEY renamed to SUPABASE_SECRET_KEY
+		SUPABASE_SECRET_KEY: process.env.NUXT_PUBLIC_SECRET_KEY,
 	},
 
 	supabase: {
 		url: process.env.SUPABASE_URL,
-		key: process.env.SUPABASE_KEY,
-		serviceKey: process.env.SUPABASE_SERVICE_KEY,
+		key: process.env.NUXT_PUBLIC_SUPABASE_KEY,
+		// Supabase v2: serviceKey uses SUPABASE_SECRET_KEY (JWT signing key)
+		serviceKey: process.env.NUXT_PUBLIC_SECRET_KEY,
 		redirect: false,
-		types: './app/types/supabase.ts',
+		types: '~/types/supabase.ts',
 		cookieOptions: {
 			secure: true,
 			sameSite: 'lax',

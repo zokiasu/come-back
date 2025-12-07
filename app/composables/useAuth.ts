@@ -16,7 +16,8 @@ export const useAuth = () => {
 
 	// Fonction pour créer ou mettre à jour un utilisateur (intégrée depuis useSupabaseUserManager)
 	const createOrUpdateUser = async (authUser: SupabaseAuthUser): Promise<User | null> => {
-		if (!authUser) return null
+		// Vérifier que l'utilisateur et son ID sont définis (Supabase v2 peut retourner un user sans id pendant l'init)
+		if (!authUser?.id) return null
 
 		try {
 			// Vérifier si l'utilisateur existe déjà
@@ -119,7 +120,9 @@ export const useAuth = () => {
 
 	// Fonction pour synchroniser le profil utilisateur
 	const ensureUserProfile = async () => {
-		if (!user.value) {
+		// Attendre que l'utilisateur soit complètement initialisé (avec id)
+		// Supabase v2 peut avoir un user.value sans id pendant l'initialisation OAuth
+		if (!user.value?.id) {
 			await resetStore()
 			return false
 		}
@@ -174,17 +177,17 @@ export const useAuth = () => {
 
 	// Fonction d'initialisation au chargement de l'app
 	const initializeAuth = async () => {
-		// Si on a un utilisateur Supabase et des données dans le store
-		if (user.value && userDataStore.value && userDataStore.value.id === user.value.id) {
+		// Si on a un utilisateur Supabase complet (avec id) et des données dans le store
+		if (user.value?.id && userDataStore.value && userDataStore.value.id === user.value.id) {
 			return true
 		}
 
-		// Si on a un utilisateur Supabase mais pas de données dans le store
-		if (user.value) {
+		// Si on a un utilisateur Supabase complet mais pas de données dans le store
+		if (user.value?.id) {
 			return await ensureUserProfile()
 		}
 
-		// Aucun utilisateur connecté
+		// Aucun utilisateur connecté ou utilisateur incomplet
 		await resetStore()
 		return false
 	}
@@ -204,12 +207,17 @@ export const useAuth = () => {
 				return
 			}
 
+			// Ignorer les changements si l'utilisateur n'a pas d'id (état intermédiaire Supabase v2)
+			if (newUser && !newUser.id) {
+				return
+			}
+
 			// Gestion des changements d'utilisateur après l'initialisation
-			if (newUser && !oldUser) {
+			if (newUser?.id && !oldUser?.id) {
 				await ensureUserProfile()
 			} else if (!newUser && oldUser) {
 				await resetStore()
-			} else if (newUser && oldUser && newUser.id !== oldUser.id) {
+			} else if (newUser?.id && oldUser?.id && newUser.id !== oldUser.id) {
 				await ensureUserProfile()
 			}
 		},

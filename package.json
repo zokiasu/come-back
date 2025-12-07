@@ -15,38 +15,41 @@
 	},
 	"devDependencies": {
 		"@iconify-json/material-symbols": "^1.2.32",
-		"@nuxt/devtools": "^2.7.0",
+		"@nuxt/devtools": "^3.1.1",
 		"@nuxt/eslint": "^1.11.0",
-		"@nuxt/image": "^1.10.0",
-		"@types/node": "^22",
+		"@nuxt/image": "^2.0.0",
+		"@types/node": "^24.10.1",
 		"eslint": "^9.39.1",
 		"nuxt": "^4.0.0",
 		"picomatch": "^4.0.2",
 		"prettier": "^3.4.2",
-		"prettier-plugin-tailwindcss": "^0.6.9",
-		"vue-tsc": "^2.1.10"
+		"prettier-plugin-tailwindcss": "^0.7.2",
+		"vue-tsc": "^3.1.6"
 	},
 	"dependencies": {
 		"@nuxt/ui": "^4.0.0",
-		"@nuxtjs/supabase": "^1.5.3",
+		"@nuxtjs/supabase": "^2.0.3",
 		"@pinia/nuxt": "^0.11.1",
 		"@supabase/supabase-js": "^2.49.1",
 		"@tailwindcss/vite": "^4.1.2",
-		"@vueuse/core": "^13.3.0",
 		"animate.css": "^4.1.1",
 		"chart.js": "^4.5.0",
 		"pinia": "^3.0.0",
 		"pinia-plugin-persistedstate": "^4.4.1",
-		"swiper": "^11.2.3",
+		"swiper": "^12.0.3",
 		"tailwindcss": "^4.1.2",
 		"tslib": "^2.8.1",
 		"typescript": "^5.7.2",
 		"vue": "^3.5.17",
 		"vue-chartjs": "^5.3.2",
-		"zod": "^3.25.56"
+		"zod": "^4.1.13"
 	},
 	"resolutions": {
-		"picomatch": "^4.0.2"
+		"picomatch": "^4.0.2",
+		"@vueuse/core": "13.9.0"
+	},
+	"overrides": {
+		"@vueuse/core": "13.9.0"
 	},
 	"alias": {
 		"process": false
