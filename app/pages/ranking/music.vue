@@ -162,11 +162,10 @@
 <script setup lang="ts">
 	import { useSupabaseMusic } from '~/composables/Supabase/useSupabaseMusic'
 	import { useSupabaseArtist } from '~/composables/Supabase/useSupabaseArtist'
-	import type { Music, Artist } from '~/types'
+	import type { Music, Artist, ArtistMenuItem } from '~/types'
 	import { onMounted } from 'vue'
 
 	type MusicWithArtists = Music & { artists: { name: string }[] }
-	type ArtistMenuItem = Artist & { label: string }
 	type YearMenuItem = { value: number; label: string }
 	type StyleMenuItem = { value: string; label: string }
 
@@ -199,11 +198,13 @@
 	// Styles musicaux prédéfinis
 	const availableStyles = ['K-Pop', 'J-Pop', 'C-Pop', 'T-Pop', 'V-Pop', 'Hip-Hop', 'R&B', 'Rock', 'Pop', 'Ballad']
 
-	const artistsForMenu = computed(() => {
+	const artistsForMenu = computed((): ArtistMenuItem[] => {
 		return artistsList.value.map((artist) => ({
 			id: artist.id,
 			label: artist.name,
+			name: artist.name,
 			description: artist.description ?? undefined,
+			image: artist.image,
 		}))
 	})
 

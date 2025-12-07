@@ -8,7 +8,7 @@ interface SearchResult {
 interface SearchOptions {
 	query: string
 	limit?: number
-	type?: 'SOLO' | 'GROUP' | 'BAND'
+	type?: 'SOLO' | 'GROUP'
 }
 
 export function useSupabaseSearch() {

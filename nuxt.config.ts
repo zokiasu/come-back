@@ -4,7 +4,14 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineNuxtConfig({
 	compatibilityDate: '2025-05-27',
 
-	modules: ['@pinia/nuxt', '@nuxt/image', '@nuxt/ui', '@nuxtjs/supabase', '@nuxt/eslint'],
+	modules: [
+		'@pinia/nuxt',
+		'pinia-plugin-persistedstate/nuxt',
+		'@nuxt/image',
+		'@nuxt/ui',
+		'@nuxtjs/supabase',
+		'@nuxt/eslint',
+	],
 
 	css: ['~/assets/css/tailwind.css'],
 

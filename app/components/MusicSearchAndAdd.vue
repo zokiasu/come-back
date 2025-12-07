@@ -8,24 +8,23 @@
 		</div>
 
 		<!-- Onglets -->
-		<!-- @ts-expect-error - UTabs custom slots not typed in library -->
 		<UTabs :items="tabItems" v-model="activeTab" class="w-full">
 			<!-- Recherche de musiques existantes -->
 			<template #search>
 				<div class="space-y-4">
-					<!-- @ts-expect-error - UInputMenu custom slots not typed in library -->
 					<UInputMenu
-						v-model="selectedMusic"
-						:search="searchMusics"
-						:items="musicOptions"
+						v-model="selectedMusicItem"
+						:search-term="searchTerm"
+						:items="musicOptionsForMenu"
 						option-attribute="name"
 						placeholder="Search for existing music..."
 						:loading="isSearching"
 						:disabled="loading"
 						size="lg"
+						@update:search-term="onSearchTermChange"
 						@update:model-value="onMusicSelected"
 					>
-						<template #option="{ option }">
+						<template #item="{ item }: { item: MusicMenuItem }">
 							<div class="flex w-full items-center justify-between">
 								<div class="flex min-w-0 flex-1 items-center space-x-3">
 									<div class="flex-shrink-0">
@@ -37,28 +36,28 @@
 									</div>
 									<div class="min-w-0 flex-1">
 										<p class="truncate text-sm font-medium text-gray-900 dark:text-white">
-											{{ option.name }}
+											{{ item.name }}
 										</p>
 										<p class="truncate text-xs text-gray-500 dark:text-gray-400">
-											{{ formatArtists(option.artists) }}
-											<span v-if="option.duration" class="ml-2">
-												• {{ formatDuration(option.duration) }}
+											{{ formatArtists(item.artists) }}
+											<span v-if="item.duration" class="ml-2">
+												• {{ formatDuration(item.duration) }}
 											</span>
 										</p>
 									</div>
 								</div>
 								<div class="ml-2 flex-shrink-0">
-									<UBadge :label="option.type || 'TRACK'" variant="soft" size="xs" />
+									<UBadge :label="item.musicType || 'SONG'" variant="soft" size="xs" />
 								</div>
 							</div>
 						</template>
 
-						<template #option-empty="{ query }">
+						<template #empty>
 							<div
 								class="flex flex-col items-center justify-center py-6 text-sm text-gray-500 dark:text-gray-400"
 							>
 								<UIcon name="i-heroicons-magnifying-glass" class="mb-2 h-6 w-6" />
-								<span v-if="query">No music found for "{{ query }}"</span>
+								<span v-if="searchTerm">No music found for "{{ searchTerm }}"</span>
 								<span v-else>Type to search for music</span>
 							</div>
 						</template>
@@ -213,7 +212,7 @@
 
 <script setup lang="ts">
 	import { z } from 'zod'
-	import type { Music } from '~/types'
+	import type { Music, MusicMenuItem, MusicInsert, Artist } from '~/types'
 
 	// Props
 	interface Props {
@@ -239,7 +238,7 @@
 	// Schema de validation
 	const musicSchema = z.object({
 		name: z.string().min(1, 'Le titre est requis'),
-		type: z.enum(['TRACK', 'INSTRUMENTAL', 'REMIX', 'LIVE', 'ACOUSTIC']).optional(),
+		type: z.enum(['SONG']).optional(),
 		duration: z.number().min(1).optional(),
 		language: z.string().optional(),
 		id_youtube_music: z.string().optional(),
@@ -253,14 +252,12 @@
 	// Onglets
 	const tabItems = [
 		{
-			key: 'search',
 			label: 'Search',
-			description: 'Musiques existantes',
+			slot: 'search' as const,
 		},
 		{
-			key: 'create',
 			label: 'Create',
-			description: 'Nouvelle musique',
+			slot: 'create' as const,
 		},
 	]
 
@@ -268,13 +265,27 @@
 	const activeTab = ref(0)
 	const isSearching = ref(false)
 	const selectedMusic = ref<Music | null>(null)
+	const selectedMusicItem = ref<MusicMenuItem | undefined>(undefined)
 	const musicOptions = ref<Music[]>([])
-	const searchQuery = ref('')
+	const searchTerm = ref('')
+
+	// Transformer les options de musique pour le menu (null -> undefined)
+	const musicOptionsForMenu = computed((): MusicMenuItem[] => {
+		return musicOptions.value.map((music) => ({
+			id: music.id,
+			label: music.name,
+			name: music.name,
+			description: music.description ?? undefined,
+			duration: music.duration,
+			musicType: music.type ?? undefined,
+			artists: music.artists,
+		}))
+	})
 
 	// Formulaire de création de musique
 	const newMusicForm = reactive({
 		name: '',
-		type: 'TRACK' as const,
+		type: 'SONG' as const,
 		duration: undefined as number | undefined,
 		language: 'KO',
 		id_youtube_music: '',
@@ -286,13 +297,7 @@
 	})
 
 	// Options
-	const musicTypeOptions = [
-		{ label: 'Titre', value: 'TRACK' },
-		{ label: 'Instrumental', value: 'INSTRUMENTAL' },
-		{ label: 'Remix', value: 'REMIX' },
-		{ label: 'Live', value: 'LIVE' },
-		{ label: 'Acoustique', value: 'ACOUSTIC' },
-	]
+	const musicTypeOptions = [{ label: 'Song', value: 'SONG' }]
 
 	const languageOptions = [
 		{ label: 'Coréen', value: 'KO' },
@@ -311,20 +316,21 @@
 		return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
 	}
 
-	const formatArtists = (artists: any[]) => {
+	const formatArtists = (artists?: Artist[]) => {
 		if (!artists || artists.length === 0) return 'Artiste inconnu'
-		return artists.map((a) => a.artist?.name || a.name).join(', ')
+		return artists.map((a) => a.name).join(', ')
 	}
 
 	// Recherche de musiques
-	const searchMusics = async (query: string) => {
+	const onSearchTermChange = async (query: string) => {
+		searchTerm.value = query
+
 		if (!query || query.length < 2) {
 			musicOptions.value = []
-			return []
+			return
 		}
 
 		isSearching.value = true
-		searchQuery.value = query
 
 		try {
 			const musics = await getAllMusics({
@@ -335,18 +341,23 @@
 			})
 
 			musicOptions.value = musics
-			return musics
 		} catch (error) {
 			console.error('Error searching for music:', error)
-			return []
+			musicOptions.value = []
 		} finally {
 			isSearching.value = false
 		}
 	}
 
 	// Sélection de musique
-	const onMusicSelected = (music: Music | null) => {
-		selectedMusic.value = music
+	const onMusicSelected = (item: MusicMenuItem | undefined) => {
+		selectedMusicItem.value = item
+		// Retrouver l'objet Music complet depuis musicOptions
+		if (item) {
+			selectedMusic.value = musicOptions.value.find((m) => m.id === item.id) ?? null
+		} else {
+			selectedMusic.value = null
+		}
 	}
 
 	// Add existing music
@@ -360,14 +371,11 @@
 	// Create and add new music
 	const createAndAddMusic = async () => {
 		try {
-			const musicData = {
+			const musicData: Partial<MusicInsert> = {
 				name: newMusicForm.name.trim(),
 				type: newMusicForm.type,
 				duration: newMusicForm.duration || null,
-				language: newMusicForm.language || null,
 				id_youtube_music: newMusicForm.id_youtube_music || null,
-				id_spotify: newMusicForm.id_spotify || null,
-				youtube_link: newMusicForm.youtube_link || null,
 				description: newMusicForm.description || null,
 				ismv: newMusicForm.ismv,
 				verified: newMusicForm.verified,
@@ -375,7 +383,7 @@
 				updated_at: new Date().toISOString(),
 			}
 
-			const createdMusic = await createMusic(musicData as any, [props.artistId])
+			const createdMusic = await createMusic(musicData, [props.artistId])
 
 			if (createdMusic) {
 				emit('music-created', createdMusic)
@@ -401,7 +409,7 @@
 	const resetNewMusicForm = () => {
 		Object.assign(newMusicForm, {
 			name: '',
-			type: 'TRACK',
+			type: 'SONG',
 			duration: undefined,
 			language: 'KO',
 			id_youtube_music: '',

@@ -32,11 +32,13 @@
 	const selectedArtistsWithLabel = ref<ArtistMenuItem[]>([])
 	const artistsList = ref<Artist[]>([])
 
-	const artistsForMenu = computed(() => {
+	const artistsForMenu = computed((): ArtistMenuItem[] => {
 		return artistsList.value.map((artist) => ({
 			id: artist.id,
 			label: artist.name,
+			name: artist.name,
 			description: artist.description ?? undefined,
+			image: artist.image,
 		}))
 	})
 

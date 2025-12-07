@@ -109,10 +109,11 @@ export const useLinkManager = () => {
 	 */
 	const getFaviconUrl = (url: string, attempt: number = 0): string => {
 		const domain = extractDomain(url)
-		if (!domain || attempt >= FAVICON_SERVICES.length) {
+		const faviconService = FAVICON_SERVICES[attempt]
+		if (!domain || attempt >= FAVICON_SERVICES.length || !faviconService) {
 			return '/default.png'
 		}
-		return FAVICON_SERVICES[attempt](domain)
+		return faviconService(domain)
 	}
 
 	/**
