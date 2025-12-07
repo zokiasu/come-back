@@ -1,14 +1,8 @@
 <script setup lang="ts">
 	import 'animate.css'
-	import { useUserStore } from '@/stores/user'
 
-	const user = useSupabaseUser()
-	const userStore = useUserStore()
-
-	watchEffect(() => {
-		userStore.setSupabaseUser(user.value)
-		userStore.setIsLogin(!!user.value)
-	})
+	// L'initialisation de l'auth est gérée par useAuth() dans le plugin auth-init.client.ts
+	// Ne pas synchroniser useSupabaseUser() ici pour éviter les race conditions
 
 	const isPlayingVideo = useIsPlayingVideo()
 	const route = useRoute()

@@ -5,15 +5,17 @@
 
 	// Accès sécurisé aux stores
 	let isAdminStore = ref(false)
+	let isLoginStore = ref(false)
+	let isHydrated = ref(false)
 
 	try {
 		const userStore = useUserStore()
 		const storeRefs = storeToRefs(userStore)
 		isAdminStore = storeRefs.isAdminStore
+		isLoginStore = storeRefs.isLoginStore
+		isHydrated = storeRefs.isHydrated
 	} catch (error) {
 		console.warn('Store not available in navigation:', error)
-		// Valeurs par défaut si le store n'est pas disponible
-		isAdminStore = ref(false)
 	}
 
 	const isClient = ref(false)
@@ -26,7 +28,12 @@
 
 	const navbar = useTemplateRef('navbar')
 
-	const user = useSupabaseUser()
+	// Computed pour vérifier si l'utilisateur est connecté (source unique de vérité)
+	const isUserLoggedIn = computed(() => {
+		// Attendre l'hydratation côté client
+		if (!isClient.value) return false
+		return isHydrated.value && isLoginStore.value
+	})
 
 	const routeIsIndex = computed(() => route.name === 'index')
 	const routeIsCalendar = computed(() => route.name === 'calendar')
@@ -118,9 +125,9 @@
 
 				<div class="flex items-center justify-center gap-3">
 					<SearchModal ref="searchModal" />
-					<ModalNewsCreation v-if="user" />
+					<ModalNewsCreation v-if="isUserLoggedIn" />
 					<UButton
-						v-if="user"
+						v-if="isUserLoggedIn"
 						to="/settings/profile"
 						variant="soft"
 						icon="material-symbols:settings-rounded"

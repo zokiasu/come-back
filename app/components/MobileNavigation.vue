@@ -7,6 +7,7 @@
 	let userDataStore: Ref<any> = ref(null)
 	let isLoginStore: Ref<boolean> = ref(false)
 	let isAdminStore: Ref<boolean> = ref(false)
+	let isHydrated: Ref<boolean> = ref(false)
 
 	try {
 		const userStore = useUserStore()
@@ -14,12 +15,9 @@
 		userDataStore = storeRefs.userDataStore
 		isLoginStore = storeRefs.isLoginStore
 		isAdminStore = storeRefs.isAdminStore
+		isHydrated = storeRefs.isHydrated
 	} catch (error) {
 		console.warn('Store not available in mobile navigation:', error)
-		// Valeurs par défaut si le store n'est pas disponible
-		userDataStore = ref(null)
-		isLoginStore = ref(false)
-		isAdminStore = ref(false)
 	}
 
 	const profilePath = computed(() => {
@@ -33,6 +31,12 @@
 
 	onMounted(() => {
 		isClient.value = true
+	})
+
+	// Computed pour vérifier si l'utilisateur est connecté (source unique de vérité)
+	const isUserLoggedIn = computed(() => {
+		if (!isClient.value) return false
+		return isHydrated.value && isLoginStore.value
 	})
 </script>
 
@@ -77,14 +81,14 @@
 			</NuxtLink>
 
 			<NuxtLink
-				v-if="!isLoginStore && isClient"
+				v-if="!isUserLoggedIn && isClient"
 				to="/authentification"
 				class="flex w-full items-center justify-center py-2 transition-all duration-500 ease-in-out hover:bg-zinc-500/50"
 			>
 				<IconAccount class="mx-auto h-5 w-5" />
 			</NuxtLink>
 
-			<ModalNewsCreation v-if="isLoginStore && isClient" />
+			<ModalNewsCreation v-if="isUserLoggedIn" />
 		</div>
 	</div>
 </template>
