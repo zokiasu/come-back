@@ -1,4 +1,7 @@
-export function useDebounce<T extends (...args: any[]) => any>(
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnyFunction = (...args: any[]) => any
+
+export function useDebounce<T extends AnyFunction>(
 	fn: T,
 	delay: number,
 ): (...args: Parameters<T>) => void {
