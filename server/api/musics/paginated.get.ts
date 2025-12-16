@@ -40,64 +40,25 @@ export default defineEventHandler(async (event) => {
 			musicIdsToFilter = [...new Set(musicArtistsData?.map((ma) => ma.music_id) || [])]
 		}
 
-		// Filter by artist styles
+		// Filter by artist styles using RPC function for better performance
 		if (styles && styles.length > 0) {
-			// Get all artists and filter in JavaScript
-			// This is acceptable since the artists table is relatively small
-			const { data: allArtists, error: artistsError } = await supabase
-				.from('artists')
-				.select('id, styles')
+			const { data: musicIdsFromStyles, error: stylesError } = await supabase.rpc(
+				'get_music_ids_by_styles',
+				{ style_filters: styles },
+			)
 
-			if (artistsError) {
-				console.error('Error fetching artists for style filter:', artistsError)
-				throw artistsError
+			if (stylesError) {
+				console.error('Error fetching music IDs by styles:', stylesError)
+				throw stylesError
 			}
 
-			// Filter artists that have at least one of the selected styles
-			const artistIdsWithStyles =
-				allArtists
-					?.filter((artist) => {
-						if (!artist.styles || !Array.isArray(artist.styles)) return false
-						// Check if artist has any of the selected styles
-						return styles.some((style) => artist.styles.includes(style))
-					})
-					.map((a) => a.id) || []
+			const stylesMusicIds = musicIdsFromStyles?.map((row: { music_id: string }) => row.music_id) || []
 
-			if (artistIdsWithStyles.length > 0) {
-				// Fetch ALL music_artists relationships and filter in JavaScript
-				// This avoids the .in() query issue
-				const { data: allMusicArtists, error: musicArtistsError } = await supabase
-					.from('music_artists')
-					.select('music_id, artist_id')
-
-				if (musicArtistsError) {
-					console.error('Error fetching music_artists:', musicArtistsError)
-					throw musicArtistsError
-				}
-
-				// Create a Set of artist IDs for O(1) lookup
-				const artistIdSet = new Set(artistIdsWithStyles)
-
-				// Filter to get music IDs for artists with the selected styles
-				const musicIdsFromStyles = [
-					...new Set(
-						allMusicArtists
-							?.filter((ma) => artistIdSet.has(ma.artist_id))
-							.map((ma) => ma.music_id) || [],
-					),
-				]
-
-				// Union with existing filter (combine both artist and style filters)
-				if (musicIdsToFilter) {
-					musicIdsToFilter = [...new Set([...musicIdsToFilter, ...musicIdsFromStyles])]
-				} else {
-					musicIdsToFilter = musicIdsFromStyles
-				}
+			// Union with existing filter (combine both artist and style filters)
+			if (musicIdsToFilter) {
+				musicIdsToFilter = [...new Set([...musicIdsToFilter, ...stylesMusicIds])]
 			} else {
-				// No artists found with these styles - return empty result if no other filters
-				if (!musicIdsToFilter) {
-					musicIdsToFilter = []
-				}
+				musicIdsToFilter = stylesMusicIds
 			}
 		}
 
