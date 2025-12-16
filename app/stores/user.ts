@@ -2,11 +2,12 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import type { User } from '~/types'
+import type { SupabaseAuthUser } from '~/types/auth'
 
 export const useUserStore = defineStore(
 	'userStore',
 	() => {
-		const supabaseUserStore = ref(null)
+		const supabaseUserStore = ref<SupabaseAuthUser | null>(null)
 		const isLoginStore = ref<boolean>(false)
 		const isAdminStore = ref<boolean>(false)
 		const userDataStore = ref<User | null>(null)
@@ -23,7 +24,7 @@ export const useUserStore = defineStore(
 			}
 		}
 
-		const setSupabaseUser = (user: any) => {
+		const setSupabaseUser = (user: SupabaseAuthUser | null) => {
 			supabaseUserStore.value = user
 		}
 
@@ -36,7 +37,7 @@ export const useUserStore = defineStore(
 		}
 
 		const syncUserProfile = async (
-			authUser: any = null,
+			authUser: SupabaseAuthUser | null = null,
 			userData: User | null = null,
 		) => {
 			if (authUser && userData) {

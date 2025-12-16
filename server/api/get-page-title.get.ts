@@ -1,3 +1,51 @@
+// Whitelist des domaines autorisés pour prévenir les attaques SSRF
+const ALLOWED_DOMAINS = [
+	// Plateformes musicales
+	'youtube.com',
+	'youtu.be',
+	'spotify.com',
+	'open.spotify.com',
+	'music.apple.com',
+	'itunes.apple.com',
+	'deezer.com',
+	'soundcloud.com',
+	'tidal.com',
+	'music.amazon.com',
+	'amazon.com',
+	'bandcamp.com',
+	'audiomack.com',
+	'napster.com',
+	'pandora.com',
+	'qobuz.com',
+	// Plateformes coréennes
+	'melon.com',
+	'genie.co.kr',
+	'bugs.co.kr',
+	'vibe.naver.com',
+	'flo.com',
+	// Réseaux sociaux
+	'instagram.com',
+	'twitter.com',
+	'x.com',
+	'facebook.com',
+	'tiktok.com',
+	'weibo.com',
+	'weverse.io',
+	// Autres plateformes
+	'vlive.tv',
+	'bilibili.com',
+]
+
+/**
+ * Vérifie si un domaine est dans la whitelist
+ */
+function isDomainAllowed(hostname: string): boolean {
+	const domain = hostname.toLowerCase().replace(/^www\./, '')
+	return ALLOWED_DOMAINS.some(
+		(allowed) => domain === allowed || domain.endsWith(`.${allowed}`),
+	)
+}
+
 export default defineEventHandler(async (event) => {
 	const query = getQuery(event)
 	const url = query.url as string
@@ -18,6 +66,14 @@ export default defineEventHandler(async (event) => {
 			throw createError({
 				statusCode: 400,
 				statusMessage: 'Only HTTP and HTTPS URLs are allowed',
+			})
+		}
+
+		// Vérifier que le domaine est dans la whitelist (protection SSRF)
+		if (!isDomainAllowed(urlObj.hostname)) {
+			throw createError({
+				statusCode: 403,
+				statusMessage: 'Domain not allowed',
 			})
 		}
 

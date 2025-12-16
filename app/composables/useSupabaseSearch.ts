@@ -1,4 +1,6 @@
-import type { Artist } from '~/types'
+import type { Artist, ArtistType } from '~/types'
+import type { Tables } from '~/types/supabase'
+import type { PostgrestError } from '@supabase/supabase-js'
 
 interface SearchResult {
 	artists: Artist[]
@@ -8,7 +10,21 @@ interface SearchResult {
 interface SearchOptions {
 	query: string
 	limit?: number
-	type?: 'SOLO' | 'GROUP'
+	type?: ArtistType
+}
+
+// Type pour les données brutes de l'artiste avec relations
+type ArtistWithRelationsRaw = Tables<'artists'> & {
+	social_links?: Tables<'artist_social_links'>[] | null
+	platform_links?: Tables<'artist_platform_links'>[] | null
+	companies?: (Tables<'artist_companies'> & { company: Tables<'companies'> })[] | null
+}
+
+// Type pour les paramètres RPC
+interface SearchArtistsRpcParams {
+	search_query: string
+	result_limit: number
+	artist_type: ArtistType | null
 }
 
 export function useSupabaseSearch() {
@@ -53,7 +69,7 @@ export function useSupabaseSearch() {
 		}
 
 		// Transformer les données pour assurer que les tableaux sont toujours définis
-		const transformedData = (data || []).map((artist: any) => ({
+		const transformedData = (data || []).map((artist: ArtistWithRelationsRaw) => ({
 			...artist,
 			social_links: artist.social_links || [],
 			platform_links: artist.platform_links || [],
@@ -77,14 +93,16 @@ export function useSupabaseSearch() {
 
 		try {
 			// Use the RPC function for optimized search
-			const { data: rpcData, error: rpcError } = (await supabase.rpc(
+			const rpcParams: SearchArtistsRpcParams = {
+				search_query: query.trim(),
+				result_limit: limit,
+				artist_type: type || null,
+			}
+
+			const { data: rpcData, error: rpcError } = await supabase.rpc(
 				'search_artists_fulltext',
-				{
-					search_query: query.trim(),
-					result_limit: limit,
-					artist_type: type || null,
-				} as any,
-			)) as { data: any[] | null; error: any }
+				rpcParams,
+			) as { data: ArtistWithRelationsRaw[] | null; error: PostgrestError | null }
 
 			if (rpcError) {
 				console.error('RPC search error, falling back to ILIKE:', rpcError)
@@ -93,7 +111,7 @@ export function useSupabaseSearch() {
 
 			if (rpcData) {
 				// Transformer les données JSON en objets
-				const transformedData = rpcData.map((artist: any) => ({
+				const transformedData = rpcData.map((artist: ArtistWithRelationsRaw) => ({
 					...artist,
 					social_links: artist.social_links || [],
 					platform_links: artist.platform_links || [],
