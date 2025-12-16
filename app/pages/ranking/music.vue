@@ -1,5 +1,5 @@
 <template>
-	<div class="container mx-auto space-y-5 p-5">
+	<div class="scrollBarLight container mx-auto min-h-screen space-y-5 p-5">
 		<div class="space-y-2">
 			<div class="grid grid-cols-2 gap-2">
 				<UInput v-model="search" placeholder="Search by music name" class="w-full" />
@@ -45,7 +45,6 @@
 						item: 'rounded cursor-pointer data-highlighted:before:bg-cb-primary-900/30 hover:bg-cb-primary-900',
 					}"
 				/>
-				<UButton class="cb_button h-full col-span-full" @click="loadMusicsByYear">Search</UButton>
 			</div>
 
 			<div class="flex flex-col justify-between gap-2 lg:flex-row">
@@ -62,15 +61,6 @@
 						Sort by date:
 						{{ orderDirection === 'desc' ? 'Most recent' : 'Oldest' }}
 					</UButton>
-				</div>
-				<div v-if="musicData.total > 0" class="flex justify-center">
-					<UPagination
-						v-model:page="currentPage"
-						:total="musicData.total"
-						:items-per-page="musicData.limit"
-						:disabled="loading"
-						@update:page="loadMusicsByYear"
-					/>
 				</div>
 			</div>
 
@@ -99,26 +89,23 @@
 				</button>
 			</div>
 		</div>
+
 		<div class="space-y-2">
-			<div v-if="loading" class="text-cb-tertiary-500 flex items-center gap-2 text-xs">
-				<UIcon name="line-md:loading-twotone-loop" class="size-4 animate-spin" />
-				<p>Loading...</p>
-			</div>
-			<p v-else class="text-cb-tertiary-500 text-xs">
+			<p class="text-cb-tertiary-500 text-xs">
 				Music list for
 				{{ selectedYears.length > 0 ? selectedYears.sort().join(', ') : 'all years' }}
-				({{ musicData.total }} results)
+				({{ musicsList.length }} / {{ totalMusics }} results)
 			</p>
 
-			<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+			<section class="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
 				<MusicDisplay
-					v-for="music in musicData.musics"
+					v-for="music in musicsList"
 					:key="music.id"
 					:artists="music.artists"
-					:releases="music.releases"
-					:album-name="music.releases[0]?.name"
-					:album-id="music.releases[0]?.id"
-					:music-id="music.id_youtube_music"
+					:releases="music.releases || []"
+					:album-name="music.releases?.[0]?.name"
+					:album-id="music.releases?.[0]?.id"
+					:music-id="music.id_youtube_music || ''"
 					:music-name="music.name"
 					:artist-name="formatArtists(music.artists)"
 					:music-image="music.thumbnails?.[2]?.url || ''"
@@ -128,33 +115,35 @@
 				/>
 			</section>
 
+			<!-- Loading indicator -->
 			<div
-				v-if="loading && musicData.musics.length > 0"
-				class="text-cb-tertiary-500 flex items-center gap-2 text-xs"
+				v-if="loading"
+				class="text-cb-tertiary-500 flex items-center justify-center gap-2 py-4 text-xs"
 			>
 				<UIcon name="line-md:loading-twotone-loop" class="size-4 animate-spin" />
-				<p>Loading...</p>
+				<p>{{ firstLoad ? 'Loading...' : 'Loading more...' }}</p>
 			</div>
-			<p v-else class="text-cb-tertiary-500 text-xs">
-				Music list for
-				{{ selectedYears.length > 0 ? selectedYears.sort().join(', ') : 'all years' }}
-				({{ musicData.total }} results)
+
+			<!-- Load all button -->
+			<div
+				v-if="!loading && musicsList.length > 0 && musicsList.length < totalMusics"
+				class="flex flex-col items-center space-y-2 text-xs"
+			>
+				<button
+					class="bg-cb-quinary-900 mx-auto flex w-full gap-1 rounded px-4 py-2 uppercase hover:bg-zinc-500 md:w-fit"
+					@click="loadAllMusics"
+				>
+					Load All ({{ totalMusics - musicsList.length }} remaining)
+				</button>
+			</div>
+
+			<!-- No results -->
+			<p
+				v-if="!loading && musicsList.length === 0"
+				class="bg-cb-quaternary-950 w-full p-5 text-center font-semibold uppercase"
+			>
+				No music found
 			</p>
-			<!-- <div v-for="music in musicData.musics" :key="music.id" class="mb-4 p-4 border rounded">
-				<h3>{{ music.name }}</h3>
-				<p>Artistes: {{ formatArtists(music.artists) }}</p>
-				<p>Type: {{ music.type }}</p>
-			</div> -->
-		</div>
-		<!-- Pagination -->
-		<div v-if="musicData.total > 0" class="flex justify-center">
-			<UPagination
-				v-model:page="currentPage"
-				:total="musicData.total"
-				:items-per-page="musicData.limit"
-				:disabled="loading"
-				@update:page="loadMusicsByYear"
-			/>
 		</div>
 	</div>
 </template>
@@ -163,15 +152,15 @@
 	import { useSupabaseMusic } from '~/composables/Supabase/useSupabaseMusic'
 	import { useSupabaseArtist } from '~/composables/Supabase/useSupabaseArtist'
 	import type { Music, Artist, ArtistMenuItem } from '~/types'
-	import { onMounted } from 'vue'
+	import { useInfiniteScroll } from '@vueuse/core'
 
-	type MusicWithArtists = Music & { artists: { name: string }[] }
 	type YearMenuItem = { value: number; label: string }
 	type StyleMenuItem = { value: string; label: string }
 
 	const { getMusicsByPage } = useSupabaseMusic()
 	const { getAllArtists } = useSupabaseArtist()
 
+	// State
 	const search = ref('')
 	const selectedArtists = ref<string[]>([])
 	const selectedArtistsWithLabel = ref<ArtistMenuItem[]>([])
@@ -180,23 +169,41 @@
 	const selectedStyles = ref<string[]>([])
 	const selectedStylesWithLabel = ref<StyleMenuItem[]>([])
 	const isMv = ref<boolean | undefined>(undefined)
-	const currentPage = ref(1)
-	const loading = ref(false)
-	const artistsList = ref<Artist[]>([])
-	const musicData = ref<any>({
-		musics: [],
-		total: 0,
-		page: 1,
-		limit: 30,
-		totalPages: 0,
-	})
 	const orderDirection = ref<'asc' | 'desc'>('desc')
+
+	// Pagination state
+	const currentPage = ref(1)
+	const totalPages = ref(1)
+	const totalMusics = ref(0)
+	const limit = 30
+
+	// Loading state
+	const loading = ref(false)
+	const firstLoad = ref(true)
+
+	// Data
+	const artistsList = ref<Artist[]>([])
+	const musicsList = ref<(Music & { artists: { name: string }[] })[]>([])
+
+	// Computed pour vérifier s'il y a plus de données à charger
+	const hasMore = computed(() => currentPage.value <= totalPages.value)
 
 	// Années prédéfinies de 2020 à 2025
 	const availableYears = [2020, 2021, 2022, 2023, 2024, 2025]
 
 	// Styles musicaux prédéfinis
-	const availableStyles = ['K-Pop', 'J-Pop', 'C-Pop', 'T-Pop', 'V-Pop', 'Hip-Hop', 'R&B', 'Rock', 'Pop', 'Ballad']
+	const availableStyles = [
+		'K-Pop',
+		'J-Pop',
+		'C-Pop',
+		'T-Pop',
+		'V-Pop',
+		'Hip-Hop',
+		'R&B',
+		'Rock',
+		'Pop',
+		'Ballad',
+	]
 
 	const artistsForMenu = computed((): ArtistMenuItem[] => {
 		return artistsList.value.map((artist) => ({
@@ -222,10 +229,23 @@
 		})) as StyleMenuItem[]
 	})
 
-	const loadMusicsByYear = async () => {
+	/**
+	 * Load musics with pagination support
+	 */
+	const loadMusics = async (isFirstCall = false): Promise<void> => {
+		if (loading.value) return
 		loading.value = true
+
 		try {
-			const result = await getMusicsByPage(currentPage.value, musicData.value.limit, {
+			if (isFirstCall) {
+				currentPage.value = 1
+				musicsList.value = []
+				firstLoad.value = true
+			} else {
+				firstLoad.value = false
+			}
+
+			const result = await getMusicsByPage(currentPage.value, limit, {
 				search: search.value || undefined,
 				artistIds: selectedArtists.value.length > 0 ? selectedArtists.value : undefined,
 				years: selectedYears.value.length > 0 ? selectedYears.value : undefined,
@@ -234,13 +254,36 @@
 				orderDirection: orderDirection.value,
 				ismv: isMv.value !== undefined ? isMv.value : undefined,
 			})
-			console.log('result', result)
-			musicData.value = {
-				...result,
-				musics: result.musics.map((m) => ({
-					...m,
-					artists: m.artists || [],
-				})),
+
+			totalMusics.value = result.total
+			totalPages.value = result.totalPages
+
+			const newMusics = result.musics.map((m) => ({
+				...m,
+				artists: m.artists || [],
+			}))
+
+			if (isFirstCall) {
+				musicsList.value = newMusics
+				currentPage.value = 2
+			} else {
+				musicsList.value = [...musicsList.value, ...newMusics]
+				currentPage.value++
+			}
+
+			// Après chaque chargement, vérifier si on doit charger plus
+			// (si le contenu ne remplit pas la fenêtre et qu'il y a plus de données)
+			await nextTick()
+			const canLoadMore = currentPage.value <= totalPages.value
+			if (canLoadMore && import.meta.client) {
+				const docHeight = document.documentElement.scrollHeight
+				const windowHeight = window.innerHeight
+				if (docHeight <= windowHeight + 100) {
+					// Le contenu ne remplit pas la fenêtre, charger plus
+					loading.value = false
+					await loadMusics(false)
+					return
+				}
 			}
 		} catch (error) {
 			console.error('Error loading music:', error)
@@ -248,6 +291,33 @@
 			loading.value = false
 		}
 	}
+
+	/**
+	 * Load more musics (for infinite scroll)
+	 */
+	const loadMore = async () => {
+		if (loading.value || !hasMore.value) return
+		await loadMusics(false)
+	}
+
+	/**
+	 * Load all remaining musics
+	 */
+	const loadAllMusics = async (): Promise<void> => {
+		while (hasMore.value && !loading.value) {
+			await loadMusics(false)
+		}
+	}
+
+	// Setup infinite scroll on window
+	useInfiniteScroll(
+		import.meta.client ? window : null,
+		loadMore,
+		{
+			distance: 300,
+			canLoadMore: () => hasMore.value && !loading.value,
+		},
+	)
 
 	function formatArtists(artists: { name: string }[] = []) {
 		return artists.map((a) => a.name).join(', ')
@@ -262,8 +332,7 @@
 		selectedStyles.value = []
 		selectedStylesWithLabel.value = []
 		isMv.value = undefined
-		currentPage.value = 1
-		loadMusicsByYear()
+		loadMusics(true)
 	}
 
 	function clearArtistSelection() {
@@ -283,7 +352,7 @@
 
 	function toggleOrderDirection() {
 		orderDirection.value = orderDirection.value === 'desc' ? 'asc' : 'desc'
-		loadMusicsByYear()
+		loadMusics(true)
 	}
 
 	// Synchroniser selectedArtistsWithLabel avec selectedArtists
@@ -301,22 +370,9 @@
 		selectedStyles.value = newVal.map((style) => style.value)
 	})
 
-	// Watcher pour les filtres d'artistes
-	watch(selectedArtists, async () => {
-		currentPage.value = 1
-		await loadMusicsByYear()
-	})
-
-	// Watcher pour les filtres d'années
-	watch(selectedYears, async () => {
-		currentPage.value = 1
-		await loadMusicsByYear()
-	})
-
-	// Watcher pour les filtres de styles
-	watch(selectedStyles, async () => {
-		currentPage.value = 1
-		await loadMusicsByYear()
+	// Watcher pour les filtres - recharger depuis le début
+	watch([selectedArtists, selectedYears, selectedStyles], async () => {
+		await loadMusics(true)
 	})
 
 	// Load data on mount
@@ -328,8 +384,7 @@
 			console.error('Error loading artists:', error)
 		}
 		// Charger les musiques
-		currentPage.value = 1
-		loadMusicsByYear()
+		await loadMusics(true)
 	})
 
 	defineExpose({ orderDirection, toggleOrderDirection })
