@@ -5,7 +5,7 @@ export default withNuxt({
 	rules: {
 		// Vue rules
 		'vue/multi-word-component-names': 'off',
-		'vue/no-v-html': 'off',
+		'vue/no-v-html': 'warn',
 		'vue/require-default-prop': 'off',
 
 		// TypeScript rules
