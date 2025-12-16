@@ -24,7 +24,7 @@ export default defineEventHandler(async (event) => {
 		const maxOffset = Math.max(0, count - limit * 3)
 		const randomOffset = Math.floor(Math.random() * maxOffset)
 
-		// 3. Une seule requête avec jointures légères (seulement les noms d'artistes)
+		// 3. Une seule requête avec jointures légères (artistes et releases)
 		const { data, error } = await supabase
 			.from('musics')
 			.select(
@@ -38,6 +38,9 @@ export default defineEventHandler(async (event) => {
 				date,
 				artists:music_artists(
 					artist:artists(id, name, image)
+				),
+				releases:music_releases(
+					release:releases(id, name)
 				)
 			`,
 			)
@@ -59,6 +62,9 @@ export default defineEventHandler(async (event) => {
 			...music,
 			artists: music.artists
 				?.map((a: { artist: { id: string; name: string; image: string | null } | null }) => a.artist)
+				.filter(Boolean) || [],
+			releases: music.releases
+				?.map((r: { release: { id: string; name: string } | null }) => r.release)
 				.filter(Boolean) || [],
 		}))
 

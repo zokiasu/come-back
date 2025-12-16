@@ -35,7 +35,7 @@
 <template>
 	<div v-if="music && music?.artists">
 		<UButton
-			class="bg-cb-quinary-900 text-cb-tertiary-200 hover:text-cb-primary-900 relative aspect-square max-h-96 w-full overflow-hidden rounded-lg !p-0 drop-shadow-lg"
+			class="bg-cb-quinary-900 text-cb-tertiary-200 group relative aspect-square max-h-96 w-full overflow-hidden rounded-lg !p-0 drop-shadow-lg"
 			@click="playVideo(music.id_youtube_music ?? '')"
 		>
 			<div
@@ -58,16 +58,29 @@
 				class="bg-cb-quinary-900/70 absolute inset-0 flex flex-col justify-between p-2 lg:p-3"
 			>
 				<div class="space-y-1 text-left">
-					<NuxtLink
-						v-if="music.name"
-						:to="'/release/' + music.releases?.[0]?.id"
-						class="hover:text-cb-primary-900 font-semibold lg:text-xl"
-					>
+					<p v-if="music.name" class="font-semibold group-hover:text-cb-primary-900 lg:text-xl">
 						{{ music.name }}
-					</NuxtLink>
-					<p v-if="music.artists && music.artists.length > 0">
-						{{ music.artists[0]?.name }}
 					</p>
+					<div class="flex flex-wrap items-center gap-1 text-sm">
+						<NuxtLink
+							v-if="music.artists && music.artists.length > 0"
+							:to="'/artist/' + music.artists[0]?.id"
+							class="hover:underline"
+							@click.stop
+						>
+							{{ music.artists[0]?.name }}
+						</NuxtLink>
+						<template v-if="music.releases?.[0]">
+							<span class="text-cb-tertiary-500">-</span>
+							<NuxtLink
+								:to="'/release/' + music.releases[0].id"
+								class="text-cb-tertiary-400 truncate hover:underline"
+								@click.stop
+							>
+								{{ music.releases[0].name }}
+							</NuxtLink>
+						</template>
+					</div>
 				</div>
 				<div class="flex justify-end">
 					<IconPause
