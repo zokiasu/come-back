@@ -65,7 +65,6 @@
 	})
 
 	const idYoutubeVideo = useIdYoutubeVideo()
-	const isPlayingVideo = useIsPlayingVideo()
 
 	const displayVideo = ref(false)
 
@@ -140,6 +139,7 @@
 								<NuxtLink
 									:to="`/artist/${artist.id}`"
 									class="whitespace-nowrap hover:underline"
+									@click.stop
 								>
 									{{ artist.name }}
 								</NuxtLink>
@@ -153,6 +153,7 @@
 							<NuxtLink
 								:to="`/release/${releases[0]?.id}`"
 								class="hidden whitespace-nowrap hover:underline md:block"
+								@click.stop
 							>
 								{{ releases[0]?.name }}
 							</NuxtLink>
@@ -183,6 +184,7 @@
 						v-if="artistName && artistId"
 						:to="`/artist/${artistId}`"
 						class="whitespace-nowrap hover:underline"
+						@click.stop
 					>
 						{{ artistName }}
 					</NuxtLink>
@@ -194,6 +196,7 @@
 						v-if="albumId"
 						:to="`/release/${albumId}`"
 						class="truncate text-xs hover:underline md:block"
+						@click.stop
 					>
 						{{ albumName }}
 					</NuxtLink>
