@@ -177,9 +177,13 @@ export const useAuth = () => {
 		return false
 	}
 
+	// Flag pour indiquer une déconnexion volontaire
+	let isLoggingOutFlag = false
+
 	// Fonction de déconnexion
 	const logout = async () => {
 		try {
+			isLoggingOutFlag = true
 			const supabase = useSupabaseClient()
 			const { error: logoutError } = await supabase.auth.signOut()
 
@@ -193,6 +197,7 @@ export const useAuth = () => {
 			await navigateTo('/authentification')
 		} catch (err: unknown) {
 			console.error('Erreur lors de la déconnexion:', err)
+			isLoggingOutFlag = false
 		}
 	}
 
@@ -252,9 +257,11 @@ export const useAuth = () => {
 			if (newUser?.id && !oldUser?.id) {
 				await ensureUserProfile()
 			} else if (!newUser && oldUser) {
-				// L'utilisateur Supabase a disparu - ne réinitialiser que si c'est une vraie déconnexion
-				if (!userDataStore.value || !isLoginStore.value) {
+				// L'utilisateur Supabase a disparu
+				// Ne réinitialiser que si c'est une vraie déconnexion (pas une race condition au refresh)
+				if (isLoggingOutFlag || (!userDataStore.value && !isLoginStore.value)) {
 					await resetStore()
+					isLoggingOutFlag = false
 				}
 			} else if (newUser?.id && oldUser?.id && newUser.id !== oldUser.id) {
 				await ensureUserProfile()

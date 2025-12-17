@@ -48,11 +48,11 @@ export default defineNuxtConfig({
 		serviceKey: process.env.NUXT_PUBLIC_SECRET_KEY,
 		redirect: false,
 		types: '~/types/supabase.ts',
+		// Active la gestion des cookies SSR pour persister la session
 		cookieOptions: {
-			secure: true,
+			secure: process.env.NODE_ENV === 'production',
 			sameSite: 'lax',
 			maxAge: 60 * 60 * 24 * 365, // 1 an
-			httpOnly: false, // Permet l'accès côté client
 		},
 	},
 

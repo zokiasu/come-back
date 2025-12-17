@@ -34,7 +34,8 @@
       "mcp__supabase__list_projects",
       "WebFetch(domain:dashboard-template.nuxt.dev)",
       "mcp__supabase__search_docs",
-      "Bash(tree:*)"
+      "Bash(tree:*)",
+      "Bash(git log:*)"
     ],
     "deny": []
   },
