@@ -29,21 +29,21 @@
 	const totalPages = computed(() => Math.ceil(totalNews.value / pageSizeValue.value))
 
 	// Select menu items
-	const verifiedOptions = [
-		{ label: 'Tous les statuts', value: 'all' as const },
-		{ label: 'Vérifiées', value: 'verified' as const },
-		{ label: 'En attente', value: 'pending' as const },
+	const verifiedOptions: { label: string; id: string }[] = [
+		{ label: 'Tous les statuts', id: 'all' },
+		{ label: 'Vérifiées', id: 'verified' },
+		{ label: 'En attente', id: 'pending' },
 	]
-	const periodOptions = [
-		{ label: 'Toutes les périodes', value: 'all' as const },
-		{ label: "Aujourd'hui", value: 'today' as const },
-		{ label: 'Cette semaine', value: 'week' as const },
-		{ label: 'Ce mois', value: 'month' as const },
+	const periodOptions: { label: string; id: string }[] = [
+		{ label: 'Toutes les périodes', id: 'all' },
+		{ label: "Aujourd'hui", id: 'today' },
+		{ label: 'Cette semaine', id: 'week' },
+		{ label: 'Ce mois', id: 'month' },
 	]
-	const pageSizeOptions = [
-		{ label: '20 par page', value: 20 },
-		{ label: '50 par page', value: 50 },
-		{ label: '100 par page', value: 100 },
+	const pageSizeOptions: { label: string; id: number }[] = [
+		{ label: '20 par page', id: 20 },
+		{ label: '50 par page', id: 50 },
+		{ label: '100 par page', id: 100 },
 	]
 
 	// Edit modal state
@@ -191,16 +191,6 @@
 		fetchNews()
 	}
 
-	// Select menu handlers
-	const handleVerifiedChange = (val: unknown) => {
-		filterVerifiedValue.value = typeof val === 'object' && val !== null ? (val as { value: typeof filterVerifiedValue.value }).value : val as typeof filterVerifiedValue.value
-	}
-	const handlePeriodChange = (val: unknown) => {
-		filterPeriodValue.value = typeof val === 'object' && val !== null ? (val as { value: typeof filterPeriodValue.value }).value : val as typeof filterPeriodValue.value
-	}
-	const handlePageSizeChange = (val: unknown) => {
-		pageSizeValue.value = typeof val === 'object' && val !== null ? (val as { value: number }).value : val as number
-	}
 
 	// Edit modal functions
 	const openEditModal = (news: News) => {
@@ -411,32 +401,29 @@
 
 			<!-- Filter by status -->
 			<USelectMenu
-				:model-value="filterVerifiedValue"
+				v-model="filterVerifiedValue"
 				:items="verifiedOptions"
-				value-key="value"
+				value-key="id"
 				class="w-full md:w-40"
 				:ui="{ base: 'bg-cb-quinary-900' }"
-				@update:model-value="handleVerifiedChange"
 			/>
 
 			<!-- Filter by period -->
 			<USelectMenu
-				:model-value="filterPeriodValue"
+				v-model="filterPeriodValue"
 				:items="periodOptions"
-				value-key="value"
+				value-key="id"
 				class="w-full md:w-44"
 				:ui="{ base: 'bg-cb-quinary-900' }"
-				@update:model-value="handlePeriodChange"
 			/>
 
 			<!-- Items per page -->
 			<USelectMenu
-				:model-value="pageSizeValue"
+				v-model="pageSizeValue"
 				:items="pageSizeOptions"
-				value-key="value"
+				value-key="id"
 				class="w-full md:w-36"
 				:ui="{ base: 'bg-cb-quinary-900' }"
-				@update:model-value="handlePageSizeChange"
 			/>
 
 			<!-- Refresh button -->

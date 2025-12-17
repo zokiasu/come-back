@@ -23,13 +23,13 @@
 
 	// Filters state
 	const search = ref('')
-	const typeFilter = ref<ReleaseType | ''>('')
+	const typeFilter = ref<string>('ALL')
 	const verifiedFilter = ref<'all' | 'verified' | 'pending'>('all')
 	const selectedArtists = ref<string[]>([])
 	const selectedArtistsWithLabel = ref<ArtistMenuItem[]>([])
 
 	// Sorting state
-	const sortColumn = ref<keyof Release>('date')
+	const sortColumn = ref<string>('date')
 	const sortDirection = ref<'asc' | 'desc'>('desc')
 
 	// Pagination state
@@ -46,31 +46,31 @@
 	const deletingReleaseId = ref<string | null>(null)
 
 	// Select menu options
-	const typeOptions = [
-		{ label: 'Tous les types', value: '' },
-		{ label: 'Single', value: 'SINGLE' },
-		{ label: 'Album', value: 'ALBUM' },
-		{ label: 'EP', value: 'EP' },
+	const typeOptions: { label: string; id: string }[] = [
+		{ label: 'Tous les types', id: 'ALL' },
+		{ label: 'Single', id: 'SINGLE' },
+		{ label: 'Album', id: 'ALBUM' },
+		{ label: 'EP', id: 'EP' },
 	]
 
-	const verifiedOptions = [
-		{ label: 'Tous les statuts', value: 'all' as const },
-		{ label: 'Vérifiées', value: 'verified' as const },
-		{ label: 'En attente', value: 'pending' as const },
+	const verifiedOptions: { label: string; id: string }[] = [
+		{ label: 'Tous les statuts', id: 'all' },
+		{ label: 'Vérifiées', id: 'verified' },
+		{ label: 'En attente', id: 'pending' },
 	]
 
-	const sortOptions = [
-		{ label: 'Date de sortie', value: 'date' },
-		{ label: 'Nom', value: 'name' },
-		{ label: 'Type', value: 'type' },
-		{ label: 'Année', value: 'year' },
-		{ label: 'Date création', value: 'created_at' },
+	const sortOptions: { label: string; id: string }[] = [
+		{ label: 'Date de sortie', id: 'date' },
+		{ label: 'Nom', id: 'name' },
+		{ label: 'Type', id: 'type' },
+		{ label: 'Année', id: 'year' },
+		{ label: 'Date création', id: 'created_at' },
 	]
 
-	const pageSizeOptions = [
-		{ label: '20 par page', value: 20 },
-		{ label: '50 par page', value: 50 },
-		{ label: '100 par page', value: 100 },
+	const pageSizeOptions: { label: string; id: number }[] = [
+		{ label: '20 par page', id: 20 },
+		{ label: '50 par page', id: 50 },
+		{ label: '100 par page', id: 100 },
 	]
 
 	// Artists menu for filter
@@ -86,13 +86,25 @@
 
 	// Statistics
 	const stats = computed(() => {
+		let singles = 0
+		let albums = 0
+		let eps = 0
+		let pending = 0
+
+		for (const r of releasesList.value) {
+			if (r.type === 'SINGLE') singles++
+			if (r.type === 'ALBUM') albums++
+			if (r.type === 'EP') eps++
+			if (!r.verified) pending++
+		}
+
 		return {
 			total: totalReleases.value,
 			loaded: releasesList.value.length,
-			singles: releasesList.value.filter((r) => r.type === 'SINGLE').length,
-			albums: releasesList.value.filter((r) => r.type === 'ALBUM').length,
-			eps: releasesList.value.filter((r) => r.type === 'EP').length,
-			pending: releasesList.value.filter((r) => !r.verified).length,
+			singles,
+			albums,
+			eps,
+			pending,
 		}
 	})
 
@@ -100,15 +112,31 @@
 	const fetchReleases = async () => {
 		isLoading.value = true
 
+		const filters = {
+			search: search.value || undefined,
+			type: typeFilter.value === 'ALL' ? undefined : typeFilter.value,
+			orderBy: sortColumn.value,
+			orderDirection: sortDirection.value,
+			artistIds: selectedArtists.value.length > 0 ? selectedArtists.value : undefined,
+			verified: verifiedFilter.value === 'all' ? undefined : verifiedFilter.value === 'verified',
+		}
+
+		console.log('🔍 fetchReleases appelé avec:', {
+			page: currentPage.value,
+			pageSize: pageSizeValue.value,
+			filters,
+			rawValues: {
+				typeFilter: typeFilter.value,
+				verifiedFilter: verifiedFilter.value,
+				sortColumn: sortColumn.value,
+				sortDirection: sortDirection.value,
+				search: search.value,
+				selectedArtists: selectedArtists.value,
+			},
+		})
+
 		try {
-			const result = await getReleasesByPage(currentPage.value, pageSizeValue.value, {
-				search: search.value || undefined,
-				type: typeFilter.value || undefined,
-				orderBy: sortColumn.value,
-				orderDirection: sortDirection.value,
-				artistIds: selectedArtists.value.length > 0 ? selectedArtists.value : undefined,
-				verified: verifiedFilter.value === 'all' ? undefined : verifiedFilter.value === 'verified',
-			})
+			const result = await getReleasesByPage(currentPage.value, pageSizeValue.value, filters)
 
 			releasesList.value = result.releases
 			totalReleases.value = result.total
@@ -159,23 +187,6 @@
 		if (!release.date || !release.year) return false
 		const dateYear = new Date(release.date).getFullYear()
 		return dateYear !== release.year
-	}
-
-	// Select menu handlers
-	const handleTypeChange = (val: unknown) => {
-		typeFilter.value = typeof val === 'object' && val !== null ? (val as { value: ReleaseType | '' }).value : val as ReleaseType | ''
-	}
-
-	const handleVerifiedChange = (val: unknown) => {
-		verifiedFilter.value = typeof val === 'object' && val !== null ? (val as { value: typeof verifiedFilter.value }).value : val as typeof verifiedFilter.value
-	}
-
-	const handleSortChange = (val: unknown) => {
-		sortColumn.value = typeof val === 'object' && val !== null ? (val as { value: keyof Release }).value : val as keyof Release
-	}
-
-	const handlePageSizeChange = (val: unknown) => {
-		pageSizeValue.value = typeof val === 'object' && val !== null ? (val as { value: number }).value : val as number
 	}
 
 	// Toggle sort direction
@@ -262,9 +273,10 @@
 		debouncedFetch()
 	})
 
-	watch([typeFilter, verifiedFilter, selectedArtists, sortColumn, sortDirection, pageSizeValue], () => {
+	watch([typeFilter, verifiedFilter, selectedArtists, sortColumn, sortDirection, pageSizeValue], async () => {
 		isFilterChange.value = true
 		currentPage.value = 1
+		await nextTick()
 		fetchReleases()
 	})
 
@@ -353,31 +365,28 @@
 				/>
 
 				<USelectMenu
-					:model-value="typeFilter"
+					v-model="typeFilter"
 					:items="typeOptions"
-					value-key="value"
+					value-key="id"
 					class="w-full md:w-40"
 					:ui="{ base: 'bg-cb-quinary-900' }"
-					@update:model-value="handleTypeChange"
 				/>
 
 				<USelectMenu
-					:model-value="verifiedFilter"
+					v-model="verifiedFilter"
 					:items="verifiedOptions"
-					value-key="value"
+					value-key="id"
 					class="w-full md:w-40"
 					:ui="{ base: 'bg-cb-quinary-900' }"
-					@update:model-value="handleVerifiedChange"
 				/>
 
 				<div class="flex items-center gap-2">
 					<USelectMenu
-						:model-value="sortColumn"
+						v-model="sortColumn"
 						:items="sortOptions"
-						value-key="value"
+						value-key="id"
 						class="w-full md:w-40"
 						:ui="{ base: 'bg-cb-quinary-900' }"
-						@update:model-value="handleSortChange"
 					/>
 					<UButton
 						:icon="sortDirection === 'asc' ? 'i-heroicons-bars-arrow-up' : 'i-heroicons-bars-arrow-down'"
@@ -388,12 +397,11 @@
 				</div>
 
 				<USelectMenu
-					:model-value="pageSizeValue"
+					v-model="pageSizeValue"
 					:items="pageSizeOptions"
-					value-key="value"
+					value-key="id"
 					class="w-full md:w-36"
 					:ui="{ base: 'bg-cb-quinary-900' }"
-					@update:model-value="handlePageSizeChange"
 				/>
 
 				<UButton
