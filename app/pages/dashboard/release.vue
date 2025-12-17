@@ -3,35 +3,77 @@
 		Release,
 		Artist,
 		ReleaseType,
-		PaginatedReleaseResponse,
 		ReleaseWithRelations,
 		ArtistMenuItem,
 	} from '~/types'
 	import { useSupabaseRelease } from '~/composables/Supabase/useSupabaseRelease'
 	import { useSupabaseArtist } from '~/composables/Supabase/useSupabaseArtist'
 	import { useUserStore } from '~/stores/user'
-	import { useInfiniteScroll } from '@vueuse/core'
 
 	const { deleteRelease: deleteReleaseFunction, getReleasesByPage } = useSupabaseRelease()
 	const { getAllArtists } = useSupabaseArtist()
 	const toast = useToast()
 	const userStore = useUserStore()
 
-	const releaseFetch = ref<ReleaseWithRelations[]>([])
-	const search = ref<string>('')
-	const sort = ref<keyof Release>('date')
-	const invertSort = ref<boolean>(true)
-	const isLoading = ref<boolean>(false)
-	const currentPage = ref<number>(1)
-	const totalPages = ref<number>(1)
-	const totalReleases = ref<number>(0)
-	const limitFetch = ref<number>(24)
-	const firstLoad = ref<boolean>(true)
-	const typeFilter = ref<ReleaseType | ''>('')
-	const selectedArtists = ref<string[]>([])
-	const selectedArtistsWithLabel = ref<ArtistMenuItem[]>([])
+	// Data state
+	const releasesList = ref<ReleaseWithRelations[]>([])
+	const isLoading = ref(false)
+	const totalReleases = ref(0)
 	const artistsList = ref<Artist[]>([])
 
+	// Filters state
+	const search = ref('')
+	const typeFilter = ref<ReleaseType | ''>('')
+	const verifiedFilter = ref<'all' | 'verified' | 'pending'>('all')
+	const selectedArtists = ref<string[]>([])
+	const selectedArtistsWithLabel = ref<ArtistMenuItem[]>([])
+
+	// Sorting state
+	const sortColumn = ref<keyof Release>('date')
+	const sortDirection = ref<'asc' | 'desc'>('desc')
+
+	// Pagination state
+	const currentPage = ref(1)
+	const pageSizeValue = ref(20)
+	const totalPages = computed(() => Math.ceil(totalReleases.value / pageSizeValue.value))
+
+	// Edit modal state
+	const isEditModalOpen = ref(false)
+	const editingRelease = ref<ReleaseWithRelations | null>(null)
+
+	// Delete modal state
+	const isDeleteModalOpen = ref(false)
+	const deletingReleaseId = ref<string | null>(null)
+
+	// Select menu options
+	const typeOptions = [
+		{ label: 'Tous les types', value: '' },
+		{ label: 'Single', value: 'SINGLE' },
+		{ label: 'Album', value: 'ALBUM' },
+		{ label: 'EP', value: 'EP' },
+	]
+
+	const verifiedOptions = [
+		{ label: 'Tous les statuts', value: 'all' as const },
+		{ label: 'Vérifiées', value: 'verified' as const },
+		{ label: 'En attente', value: 'pending' as const },
+	]
+
+	const sortOptions = [
+		{ label: 'Date de sortie', value: 'date' },
+		{ label: 'Nom', value: 'name' },
+		{ label: 'Type', value: 'type' },
+		{ label: 'Année', value: 'year' },
+		{ label: 'Date création', value: 'created_at' },
+	]
+
+	const pageSizeOptions = [
+		{ label: '20 par page', value: 20 },
+		{ label: '50 par page', value: 50 },
+		{ label: '100 par page', value: 100 },
+	]
+
+	// Artists menu for filter
 	const artistsForMenu = computed((): ArtistMenuItem[] => {
 		return artistsList.value.map((artist) => ({
 			id: artist.id,
@@ -42,69 +84,39 @@
 		}))
 	})
 
-	const scrollContainer = useTemplateRef('scrollContainer')
-	const hasMore = computed(() => currentPage.value <= totalPages.value)
+	// Statistics
+	const stats = computed(() => {
+		return {
+			total: totalReleases.value,
+			loaded: releasesList.value.length,
+			singles: releasesList.value.filter((r) => r.type === 'SINGLE').length,
+			albums: releasesList.value.filter((r) => r.type === 'ALBUM').length,
+			eps: releasesList.value.filter((r) => r.type === 'EP').length,
+			pending: releasesList.value.filter((r) => !r.verified).length,
+		}
+	})
 
-	/**
-	 * Reset la recherche et recharge tous les releases
-	 */
-	const resetSearch = () => {
-		search.value = ''
-		getRelease(true)
-	}
-
-	/**
-	 * Efface la sélection d'artistes
-	 */
-	const clearArtistSelection = () => {
-		selectedArtists.value = []
-		selectedArtistsWithLabel.value = []
-	}
-
-	/**
-	 * Récupère les releases depuis Supabase
-	 */
-	const getRelease = async (firstCall: boolean = false): Promise<void> => {
-		if (isLoading.value) return
+	// Fetch releases
+	const fetchReleases = async () => {
 		isLoading.value = true
 
 		try {
-			// Si c'est le premier appel, réinitialiser la page
-			if (firstCall) {
-				currentPage.value = 1
-				releaseFetch.value = []
-			}
+			const result = await getReleasesByPage(currentPage.value, pageSizeValue.value, {
+				search: search.value || undefined,
+				type: typeFilter.value || undefined,
+				orderBy: sortColumn.value,
+				orderDirection: sortDirection.value,
+				artistIds: selectedArtists.value.length > 0 ? selectedArtists.value : undefined,
+				verified: verifiedFilter.value === 'all' ? undefined : verifiedFilter.value === 'verified',
+			})
 
-			// Récupérer les releases pour la page courante
-			const result: PaginatedReleaseResponse = await getReleasesByPage(
-				currentPage.value,
-				limitFetch.value,
-				{
-					search: search.value || undefined,
-					type: typeFilter.value || undefined,
-					orderBy: sort.value,
-					orderDirection: invertSort.value ? 'desc' : 'asc',
-					artistIds: selectedArtists.value.length > 0 ? selectedArtists.value : undefined,
-				},
-			)
-
-			// Mettre à jour les données
+			releasesList.value = result.releases
 			totalReleases.value = result.total
-			totalPages.value = result.totalPages
-
-			// Ajouter les nouveaux releases à la liste
-			if (firstCall) {
-				releaseFetch.value = result.releases
-			} else {
-				releaseFetch.value = [...releaseFetch.value, ...result.releases]
-			}
-
-			// Incrémenter la page courante
-			currentPage.value++
 		} catch (error) {
 			console.error('Erreur lors de la récupération des releases:', error)
 			toast.add({
-				title: 'Erreur lors du chargement des releases',
+				title: 'Erreur',
+				description: 'Erreur lors du chargement des releases',
 				color: 'error',
 			})
 		} finally {
@@ -112,112 +124,168 @@
 		}
 	}
 
-	const deleteRelease = async (id: string): Promise<void> => {
+	// Format date
+	const formatDate = (dateString: string | null) => {
+		if (!dateString) return '-'
+		return new Date(dateString).toLocaleDateString('fr-FR', {
+			year: 'numeric',
+			month: 'short',
+			day: 'numeric',
+		})
+	}
+
+	// Format artists
+	const formatArtists = (artists: Artist[] | undefined) => {
+		if (!artists || artists.length === 0) return '-'
+		return artists.map((a) => a.name).join(', ')
+	}
+
+	// Get type badge color
+	const getTypeBadgeColor = (type: string | null) => {
+		switch (type) {
+			case 'ALBUM':
+				return 'primary'
+			case 'SINGLE':
+				return 'success'
+			case 'EP':
+				return 'warning'
+			default:
+				return 'neutral'
+		}
+	}
+
+	// Check if year mismatch with date
+	const hasYearMismatch = (release: ReleaseWithRelations) => {
+		if (!release.date || !release.year) return false
+		const dateYear = new Date(release.date).getFullYear()
+		return dateYear !== release.year
+	}
+
+	// Select menu handlers
+	const handleTypeChange = (val: unknown) => {
+		typeFilter.value = typeof val === 'object' && val !== null ? (val as { value: ReleaseType | '' }).value : val as ReleaseType | ''
+	}
+
+	const handleVerifiedChange = (val: unknown) => {
+		verifiedFilter.value = typeof val === 'object' && val !== null ? (val as { value: typeof verifiedFilter.value }).value : val as typeof verifiedFilter.value
+	}
+
+	const handleSortChange = (val: unknown) => {
+		sortColumn.value = typeof val === 'object' && val !== null ? (val as { value: keyof Release }).value : val as keyof Release
+	}
+
+	const handlePageSizeChange = (val: unknown) => {
+		pageSizeValue.value = typeof val === 'object' && val !== null ? (val as { value: number }).value : val as number
+	}
+
+	// Toggle sort direction
+	const toggleSortDirection = () => {
+		sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc'
+	}
+
+	// Edit modal
+	const openEditModal = (release: ReleaseWithRelations) => {
+		editingRelease.value = release
+		isEditModalOpen.value = true
+	}
+
+	const closeEditModal = () => {
+		isEditModalOpen.value = false
+		editingRelease.value = null
+	}
+
+	const handleReleaseSaved = () => {
+		closeEditModal()
+		fetchReleases()
+	}
+
+	// Delete modal
+	const openDeleteModal = (releaseId: string) => {
+		deletingReleaseId.value = releaseId
+		isDeleteModalOpen.value = true
+	}
+
+	const confirmDelete = async () => {
+		if (!deletingReleaseId.value) return
+
 		try {
-			const res = await deleteReleaseFunction(id)
-			if (res) {
+			const success = await deleteReleaseFunction(deletingReleaseId.value)
+			if (success) {
 				toast.add({
-					title: 'Release supprimé',
+					title: 'Succès',
+					description: 'Release supprimée',
 					color: 'success',
 				})
-				releaseFetch.value = releaseFetch.value.filter((release) => release.id !== id)
+				fetchReleases()
 			} else {
-				console.log('Erreur lors de la suppression du release')
 				toast.add({
-					title: 'Erreur lors de la suppression du release',
+					title: 'Erreur',
+					description: 'Erreur lors de la suppression',
 					color: 'error',
 				})
 			}
 		} catch (error) {
-			console.error('Erreur lors de la suppression du release:', error)
+			console.error('Erreur lors de la suppression:', error)
 			toast.add({
-				title: 'Erreur lors de la suppression du release',
+				title: 'Erreur',
+				description: 'Erreur lors de la suppression',
 				color: 'error',
 			})
+		} finally {
+			isDeleteModalOpen.value = false
+			deletingReleaseId.value = null
 		}
 	}
 
-	// Infinite scroll avec VueUse
-	useInfiniteScroll(
-		scrollContainer,
-		async () => {
-			// Charger plus de releases si possible et pas en recherche
-			if (hasMore.value && !isLoading.value && search.value.length < 2) {
-				await getRelease(false)
-			}
-		},
-		{
-			distance: 100, // Se déclenche à 100px du bas
-			direction: 'bottom',
-		},
-	)
+	// Clear artist selection
+	const clearArtistSelection = () => {
+		selectedArtists.value = []
+		selectedArtistsWithLabel.value = []
+	}
 
-	// Hooks
-	onMounted(async () => {
-		try {
-			// Charger seulement les artistes actifs
-			artistsList.value = await getAllArtists({ isActive: true })
-		} catch (error) {
-			console.error('Erreur lors du chargement des artistes:', error)
-			toast.add({
-				title: 'Erreur lors du chargement des artistes',
-				color: 'error',
-			})
-		}
-		// Chargement initial des releases
-		getRelease(true)
-	})
-
-	// Synchroniser selectedArtistsWithLabel avec selectedArtists
+	// Sync selectedArtistsWithLabel with selectedArtists
 	watch(selectedArtistsWithLabel, (newVal: ArtistMenuItem[]) => {
 		selectedArtists.value = newVal.map((artist) => artist.id)
 	})
 
-	// Watchers pour les filtres
-	watch([sort, selectedArtists, typeFilter, invertSort], async () => {
-		await getRelease(true)
-	})
+	// Track if filter change triggered the page reset
+	const isFilterChange = ref(false)
 
-	// Watcher pour la recherche - déclenche automatiquement la recherche
-	const debouncedSearch = useDebounce(() => {
-		getRelease(true)
+	// Debounced search
+	const debouncedFetch = useDebounce(() => {
+		isFilterChange.value = true
+		currentPage.value = 1
+		fetchReleases()
 	}, 300)
 
 	watch(search, () => {
-		debouncedSearch()
+		debouncedFetch()
 	})
 
-	const filteredReleaseList = computed(() => {
-		// Maintenant que la recherche et le tri se font côté serveur via getReleasesByPage(),
-		// on retourne simplement la liste des releases
-		return releaseFetch.value || []
+	watch([typeFilter, verifiedFilter, selectedArtists, sortColumn, sortDirection, pageSizeValue], () => {
+		isFilterChange.value = true
+		currentPage.value = 1
+		fetchReleases()
 	})
 
-	/**
-	 * Charge tous les releases
-	 */
-	const loadAllReleases = async (): Promise<void> => {
-		try {
-			const result: PaginatedReleaseResponse = await getReleasesByPage(
-				1,
-				totalReleases.value,
-				{
-					search: search.value || undefined,
-					type: typeFilter.value || undefined,
-					orderBy: sort.value,
-					orderDirection: invertSort.value ? 'desc' : 'asc',
-					artistIds: selectedArtists.value.length > 0 ? selectedArtists.value : undefined,
-				},
-			)
-			releaseFetch.value = result.releases
-		} catch (error) {
-			console.error('Erreur lors du chargement de tous les releases:', error)
-			toast.add({
-				title: 'Erreur lors du chargement de tous les releases',
-				color: 'error',
-			})
+	// Watch page changes from pagination
+	watch(currentPage, () => {
+		if (isFilterChange.value) {
+			isFilterChange.value = false
+			return
 		}
-	}
+		fetchReleases()
+	})
+
+	// Initial load
+	onMounted(async () => {
+		try {
+			artistsList.value = await getAllArtists({ isActive: true })
+		} catch (error) {
+			console.error('Erreur lors du chargement des artistes:', error)
+		}
+		fetchReleases()
+	})
 
 	definePageMeta({
 		middleware: ['admin'],
@@ -226,160 +294,317 @@
 </script>
 
 <template>
-	<div
-		ref="scrollContainer"
-		class="scrollBarLight relative h-full space-y-3 overflow-hidden overflow-y-scroll p-6"
-	>
-		<section
-			id="searchbar"
-			class="bg-cb-secondary-950 sticky top-0 z-50 w-full space-y-2 pb-2"
-		>
-			<div class="relative flex gap-2">
+	<div class="scrollBarLight h-full space-y-4 overflow-y-auto p-6">
+		<!-- Header with stats -->
+		<div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+			<div class="flex items-center gap-4">
+				<div>
+					<h1 class="text-2xl font-bold">Gestion des Releases</h1>
+					<p class="text-cb-tertiary-500 text-sm">
+						{{ stats.loaded }} / {{ stats.total }} releases chargées
+					</p>
+				</div>
 				<UButton
 					v-if="userStore?.isAdminStore"
 					to="/release/create"
 					icon="i-heroicons-plus"
-					variant="solid"
 					size="sm"
-					label="Create a release"
-					title="Create a release"
-					:ui="{
-						label: 'hidden lg:flex',
-					}"
-					class="bg-cb-primary-800 whitespace-nowrap text-white"
-				/>
-				<div class="relative flex-1">
-					<input
-						id="search-input"
-						v-model="search"
-						type="text"
-						placeholder="Search"
-						class="bg-cb-quinary-900 placeholder-cb-tertiary-200 focus:bg-cb-tertiary-200 focus:text-cb-quinary-900 focus:placeholder-cb-quinary-900 w-full rounded border-none px-5 py-2 drop-shadow-xl transition-all duration-300 ease-in-out focus:outline-none"
-					/>
-					<button
-						v-if="search.length > 0"
-						class="absolute top-1/2 right-2 -translate-y-1/2 rounded bg-red-500 px-2 py-1 text-xs text-white hover:bg-red-600"
-						title="Effacer la recherche"
-						@click="resetSearch"
-					>
-						✕
-					</button>
-				</div>
-				<div class="flex space-x-2">
-					<select
-						v-model="sort"
-						class="bg-cb-quinary-900 placeholder-cb-tertiary-200 hover:bg-cb-tertiary-200 hover:text-cb-quinary-900 w-full rounded border-none p-2 text-xs uppercase drop-shadow-xl transition-all duration-300 ease-in-out focus:outline-none sm:w-fit"
-					>
-						<option value="name">Name</option>
-						<option value="type">Type</option>
-						<option value="date">Date</option>
-						<option value="year">Year</option>
-						<option value="created_at">Last Created</option>
-					</select>
-					<button
-						class="bg-cb-quinary-900 placeholder-cb-tertiary-200 hover:bg-cb-tertiary-200 hover:text-cb-quinary-900 rounded border-none p-2 drop-shadow-xl transition-all duration-300 ease-in-out focus:outline-none"
-						@click="invertSort = !invertSort"
-					>
-						<icon-sort v-if="!invertSort" class="text-cb-tertiary-200 h-6 w-6" />
-						<icon-sort-reverse v-else class="text-cb-tertiary-200 h-6 w-6" />
-					</button>
-				</div>
-			</div>
-
-			<!-- Filtre par type de release -->
-			<div class="flex w-full flex-col gap-2">
-				<label class="text-sm font-medium text-gray-300">Filtrer par type</label>
-				<select
-					v-model="typeFilter"
-					class="bg-cb-quinary-900 placeholder-cb-tertiary-200 focus:bg-cb-tertiary-200 focus:text-cb-quinary-900 w-full rounded border-none p-2 drop-shadow-xl transition-all duration-300 ease-in-out focus:outline-none"
+					class="bg-cb-primary-800 text-white"
 				>
-					<option value="">Tous les types</option>
-					<option value="SINGLE">Single</option>
-					<option value="ALBUM">Album</option>
-					<option value="EP">EP</option>
-				</select>
+					Nouvelle release
+				</UButton>
 			</div>
 
-			<!-- Sélection d'artistes -->
-			<div class="flex w-full flex-col gap-2">
-				<label class="text-sm font-medium text-gray-300">
-					Filtrer par artistes
-					<span v-if="selectedArtists.length > 0" class="text-xs text-gray-400">
-						({{ selectedArtists.length }} sélectionné{{
-							selectedArtists.length > 1 ? 's' : ''
-						}})
-					</span>
-				</label>
+			<!-- Stats cards -->
+			<div class="flex flex-wrap gap-2">
+				<div class="bg-cb-quaternary-950 rounded-lg px-3 py-1.5 text-center">
+					<p class="text-lg font-bold">{{ stats.total }}</p>
+					<p class="text-cb-tertiary-500 text-xs">Total</p>
+				</div>
+				<div class="rounded-lg bg-green-900/30 px-3 py-1.5 text-center">
+					<p class="text-lg font-bold text-green-400">{{ stats.singles }}</p>
+					<p class="text-xs text-green-400/70">Singles</p>
+				</div>
+				<div class="rounded-lg bg-blue-900/30 px-3 py-1.5 text-center">
+					<p class="text-lg font-bold text-blue-400">{{ stats.albums }}</p>
+					<p class="text-xs text-blue-400/70">Albums</p>
+				</div>
+				<div class="rounded-lg bg-amber-900/30 px-3 py-1.5 text-center">
+					<p class="text-lg font-bold text-amber-400">{{ stats.eps }}</p>
+					<p class="text-xs text-amber-400/70">EPs</p>
+				</div>
+				<div v-if="stats.pending > 0" class="rounded-lg bg-red-900/30 px-3 py-1.5 text-center">
+					<p class="text-lg font-bold text-red-400">{{ stats.pending }}</p>
+					<p class="text-xs text-red-400/70">À vérifier</p>
+				</div>
+			</div>
+		</div>
+
+		<!-- Filters -->
+		<div class="bg-cb-quaternary-950 space-y-3 rounded-lg p-4">
+			<!-- Row 1: Search + Type + Verified -->
+			<div class="flex flex-wrap items-center gap-3">
+				<UInput
+					v-model="search"
+					placeholder="Rechercher..."
+					icon="i-heroicons-magnifying-glass"
+					class="w-full md:w-64"
+					:ui="{ base: 'bg-cb-quinary-900' }"
+				/>
+
+				<USelectMenu
+					:model-value="typeFilter"
+					:items="typeOptions"
+					value-key="value"
+					class="w-full md:w-40"
+					:ui="{ base: 'bg-cb-quinary-900' }"
+					@update:model-value="handleTypeChange"
+				/>
+
+				<USelectMenu
+					:model-value="verifiedFilter"
+					:items="verifiedOptions"
+					value-key="value"
+					class="w-full md:w-40"
+					:ui="{ base: 'bg-cb-quinary-900' }"
+					@update:model-value="handleVerifiedChange"
+				/>
+
+				<div class="flex items-center gap-2">
+					<USelectMenu
+						:model-value="sortColumn"
+						:items="sortOptions"
+						value-key="value"
+						class="w-full md:w-40"
+						:ui="{ base: 'bg-cb-quinary-900' }"
+						@update:model-value="handleSortChange"
+					/>
+					<UButton
+						:icon="sortDirection === 'asc' ? 'i-heroicons-bars-arrow-up' : 'i-heroicons-bars-arrow-down'"
+						color="neutral"
+						variant="ghost"
+						@click="toggleSortDirection"
+					/>
+				</div>
+
+				<USelectMenu
+					:model-value="pageSizeValue"
+					:items="pageSizeOptions"
+					value-key="value"
+					class="w-full md:w-36"
+					:ui="{ base: 'bg-cb-quinary-900' }"
+					@update:model-value="handlePageSizeChange"
+				/>
+
+				<UButton
+					icon="i-heroicons-arrow-path"
+					color="neutral"
+					variant="ghost"
+					:loading="isLoading"
+					@click="fetchReleases"
+				/>
+			</div>
+
+			<!-- Row 2: Artist filter -->
+			<div class="flex items-center gap-3">
 				<UInputMenu
 					v-model="selectedArtistsWithLabel"
 					:items="artistsForMenu"
 					by="id"
 					multiple
-					placeholder="Sélectionner des artistes..."
+					placeholder="Filtrer par artistes..."
 					searchable
 					searchable-placeholder="Rechercher un artiste..."
-					class="bg-cb-quaternary-950 text-tertiary w-full cursor-pointer ring-transparent sm:min-w-64"
+					class="bg-cb-quinary-900 flex-1"
 					:ui="{
 						content: 'bg-cb-quaternary-950',
 						item: 'rounded cursor-pointer data-highlighted:before:bg-cb-primary-900/30 hover:bg-cb-primary-900',
 					}"
 				/>
-				<button
+				<UButton
 					v-if="selectedArtists.length > 0"
-					class="self-start text-xs text-red-400 hover:text-red-300"
+					label="Effacer"
+					color="error"
+					variant="ghost"
+					size="sm"
 					@click="clearArtistSelection"
-				>
-					Effacer la sélection
-				</button>
-			</div>
-		</section>
-
-		<div
-			v-if="filteredReleaseList && filteredReleaseList.length > 0"
-			id="release-list"
-			class="grid grid-cols-1 items-center justify-center gap-5 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 2xl:gap-2"
-		>
-			<div
-				v-for="release in filteredReleaseList"
-				:key="`key_` + release.id_youtube_music"
-				class="h-full w-full"
-			>
-				<LazyCardDashboardRelease
-					:id="release.id"
-					:image="release.image || undefined"
-					:name="release.name"
-					:description="release.description || ''"
-					:type="release.type || ''"
-					:id-youtube-music="release.id_youtube_music || ''"
-					:artists-name="release.artists?.[0]?.name || ''"
-					:artists="release.artists || []"
-					:musics="release.musics || []"
-					:created-at="release.created_at || undefined"
-					:date="release.date || ''"
-					:need-to-be-verified="!release.verified"
-					:year-released="release.year || 0"
-					:platform-list="[]"
-					@delete-release="deleteRelease"
 				/>
 			</div>
 		</div>
 
-		<p
-			v-else-if="!isLoading && !firstLoad"
-			class="bg-cb-quaternary-950 w-full p-5 text-center font-semibold uppercase"
-		>
-			Aucun release trouvé
-		</p>
+		<!-- Releases List -->
+		<div class="bg-cb-quaternary-950 overflow-hidden rounded-lg">
+			<!-- Loading state -->
+			<div v-if="isLoading && releasesList.length === 0" class="space-y-2 p-4">
+				<SkeletonDefault v-for="i in 5" :key="i" class="h-20 w-full rounded-lg" />
+			</div>
 
-		<!-- Indicateurs de chargement -->
-		<LoadingIndicator
-			:show="isLoading && firstLoad"
-			message="Chargement des releases..."
-		/>
+			<!-- Empty state -->
+			<div v-else-if="!isLoading && releasesList.length === 0" class="py-16 text-center">
+				<UIcon name="i-heroicons-musical-note" class="text-cb-tertiary-500 mx-auto size-16 opacity-50" />
+				<p class="text-cb-tertiary-500 mt-4">Aucune release trouvée</p>
+			</div>
 
-		<LoadingIndicator
-			:show="isLoading && !firstLoad"
-			message="Chargement de plus de releases..."
-		/>
+			<!-- Releases -->
+			<div v-else class="divide-cb-quinary-900 divide-y">
+				<div
+					v-for="release in releasesList"
+					:key="release.id"
+					class="hover:bg-cb-quinary-900/30 group flex items-center gap-4 p-3 transition-colors"
+					:class="{ 'bg-red-900/10': !release.verified || hasYearMismatch(release) }"
+				>
+					<!-- Image -->
+					<NuxtLink :to="`/release/${release.id}`" class="shrink-0">
+						<NuxtImg
+							v-if="release.image"
+							:src="release.image"
+							:alt="release.name"
+							format="webp"
+							class="size-16 rounded-lg object-cover"
+						/>
+						<div v-else class="bg-cb-quinary-900 flex size-16 items-center justify-center rounded-lg">
+							<UIcon name="i-heroicons-musical-note" class="text-cb-tertiary-500 size-8" />
+						</div>
+					</NuxtLink>
+
+					<!-- Info -->
+					<div class="min-w-0 flex-1">
+						<div class="flex items-center gap-2">
+							<NuxtLink
+								:to="`/release/${release.id}`"
+								class="hover:text-cb-primary-900 truncate font-semibold transition-colors"
+							>
+								{{ release.name }}
+							</NuxtLink>
+							<UBadge :color="getTypeBadgeColor(release.type)" variant="subtle" size="xs">
+								{{ release.type || 'N/A' }}
+							</UBadge>
+							<UBadge v-if="!release.verified" color="error" variant="subtle" size="xs">
+								Non vérifié
+							</UBadge>
+							<UBadge v-if="hasYearMismatch(release)" color="warning" variant="subtle" size="xs">
+								Année incorrecte
+							</UBadge>
+						</div>
+						<p class="text-cb-tertiary-400 truncate text-sm">
+							{{ formatArtists(release.artists) }}
+						</p>
+						<div class="text-cb-tertiary-500 mt-1 flex items-center gap-3 text-xs">
+							<span>{{ formatDate(release.date) }}</span>
+							<span v-if="release.year">({{ release.year }})</span>
+							<span v-if="release.id_youtube_music" class="text-cb-tertiary-600 truncate">
+								YTM: {{ release.id_youtube_music }}
+							</span>
+						</div>
+					</div>
+
+					<!-- Musics count -->
+					<div v-if="release.musics?.length" class="text-cb-tertiary-500 hidden text-center md:block">
+						<p class="text-lg font-semibold">{{ release.musics.length }}</p>
+						<p class="text-xs">pistes</p>
+					</div>
+
+					<!-- Actions -->
+					<div class="flex shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+						<UButton
+							icon="i-heroicons-pencil-square"
+							color="neutral"
+							variant="ghost"
+							size="sm"
+							@click="openEditModal(release)"
+						/>
+						<UButton
+							icon="i-heroicons-trash"
+							color="error"
+							variant="ghost"
+							size="sm"
+							@click="openDeleteModal(release.id)"
+						/>
+						<UButton
+							:to="`/release/${release.id}`"
+							icon="i-heroicons-arrow-top-right-on-square"
+							color="neutral"
+							variant="ghost"
+							size="sm"
+							target="_blank"
+						/>
+					</div>
+				</div>
+			</div>
+
+			<!-- Pagination -->
+			<div
+				v-if="totalPages > 1"
+				class="border-cb-quinary-900 flex items-center justify-between border-t px-4 py-3"
+			>
+				<p class="text-cb-tertiary-500 text-sm">
+					Page {{ currentPage }} sur {{ totalPages }}
+				</p>
+				<UPagination
+					v-model:page="currentPage"
+					:total="totalReleases"
+					:items-per-page="pageSizeValue"
+				/>
+			</div>
+		</div>
+
+		<!-- Edit Modal -->
+		<UModal v-model:open="isEditModalOpen">
+			<template #content>
+				<div class="bg-cb-secondary-950 p-6">
+					<div class="mb-4 flex items-center justify-between">
+						<h3 class="text-xl font-bold">Modifier la release</h3>
+						<UButton
+							icon="i-heroicons-x-mark"
+							color="neutral"
+							variant="ghost"
+							@click="closeEditModal"
+						/>
+					</div>
+					<FormEditRelease
+						v-if="editingRelease"
+						:id="editingRelease.id"
+						:name="editingRelease.name"
+						:type="editingRelease.type || ''"
+						:id-youtube-music="editingRelease.id_youtube_music || ''"
+						:date="editingRelease.date || ''"
+						:year-released="editingRelease.year || 0"
+						:need-to-be-verified="!editingRelease.verified"
+						@saved="handleReleaseSaved"
+						@close="closeEditModal"
+					/>
+				</div>
+			</template>
+		</UModal>
+
+		<!-- Delete Confirmation Modal -->
+		<UModal v-model:open="isDeleteModalOpen">
+			<template #content>
+				<div class="bg-cb-secondary-950 space-y-5 p-6">
+					<div class="text-center">
+						<UIcon name="i-heroicons-exclamation-triangle" class="mx-auto size-12 text-red-500" />
+						<h3 class="mt-4 text-lg font-bold">Confirmer la suppression</h3>
+						<p class="text-cb-tertiary-400 mt-2 text-sm">
+							Cette action est irréversible. La release et toutes ses associations seront supprimées.
+						</p>
+					</div>
+					<div class="flex gap-3">
+						<UButton
+							label="Annuler"
+							color="neutral"
+							variant="outline"
+							class="flex-1"
+							@click="isDeleteModalOpen = false"
+						/>
+						<UButton
+							label="Supprimer"
+							color="error"
+							class="flex-1"
+							@click="confirmDelete"
+						/>
+					</div>
+				</div>
+			</template>
+		</UModal>
 	</div>
 </template>
