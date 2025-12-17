@@ -236,7 +236,10 @@ export async function fetchArtistsByPage(
 			*,
 			social_links:artist_social_links(*),
 			platform_links:artist_platform_links(*),
-			companies:artist_companies(*, company:companies(*))
+			companies:artist_companies(*, company:companies(*)),
+			groups:artist_relations!artist_relations_member_id_fkey(
+				group:artists!artist_relations_group_id_fkey(id, name, image)
+			)
 		`,
 		{ count: 'exact' },
 	)
@@ -299,11 +302,12 @@ export async function fetchArtistsByPage(
 	}
 
 	// Transformer les données
-	let transformedData = data.map((artist) => ({
+	let transformedData = data.map((artist: any) => ({
 		...artist,
 		social_links: artist.social_links || [],
 		platform_links: artist.platform_links || [],
 		companies: artist.companies || [],
+		groups: artist.groups?.map((g: any) => g.group).filter(Boolean) || [],
 	}))
 
 	// Filtrage côté client pour les relations
