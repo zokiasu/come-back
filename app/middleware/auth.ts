@@ -1,38 +1,44 @@
-import { AUTH_INIT_TIMEOUT_MS } from '~/constants/auth'
+import { AUTH_INIT_TIMEOUT_MS, AUTH_MAX_RETRY_ATTEMPTS, AUTH_RETRY_DELAY_MS } from '~/constants/auth'
 
 export default defineNuxtRouteMiddleware(async (to, from) => {
 	const user = useSupabaseUser()
+	const userStore = useUserStore()
 
-	// SSR: Vérification simple côté serveur
+	// SSR: Laisser passer, la vérification complète se fait côté client
 	if (import.meta.server) {
-		if (!user.value) {
-			return navigateTo('/authentification')
-		}
 		return
 	}
 
-	// Client: Attendre l'initialisation si nécessaire
-	if (import.meta.client) {
-		const { ensureAuthInitialized } = useAuth()
+	// Client: Attendre l'initialisation
+	const { ensureAuthInitialized, userData } = useAuth()
 
-		// Tentative rapide d'initialisation avec timeout configuré
-		try {
-			await Promise.race([
-				ensureAuthInitialized(),
-				new Promise((_, reject) =>
-					setTimeout(() => reject(new Error('Auth timeout')), AUTH_INIT_TIMEOUT_MS),
-				),
-			])
-		} catch (error) {
-			// En cas de timeout, vérifier quand même si user existe
-			if (!user.value) {
-				return navigateTo('/authentification')
-			}
-		}
+	// Attendre l'initialisation de l'auth (restauration session + localStorage)
+	try {
+		await Promise.race([
+			ensureAuthInitialized(),
+			new Promise((_, reject) =>
+				setTimeout(() => reject(new Error('Auth timeout')), AUTH_INIT_TIMEOUT_MS),
+			),
+		])
+	} catch {
+		// Timeout - continuer avec les vérifications
 	}
 
-	// Vérification finale
-	if (!user.value) {
+	// Attendre que les données utilisateur soient disponibles
+	let attempts = 0
+	while (
+		!userData.value &&
+		!userStore.userDataStore &&
+		attempts < AUTH_MAX_RETRY_ATTEMPTS
+	) {
+		await new Promise((resolve) => setTimeout(resolve, AUTH_RETRY_DELAY_MS))
+		attempts++
+	}
+
+	// Vérifier la connexion (Supabase OU données persistées dans le store)
+	const isAuthenticated = !!user.value?.id || (!!userStore.userDataStore && userStore.isLoginStore)
+
+	if (!isAuthenticated) {
 		return navigateTo('/authentification')
 	}
 })
