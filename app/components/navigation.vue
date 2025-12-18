@@ -29,6 +29,10 @@
 		(route.name as string)?.startsWith('dashboard-'),
 	)
 
+	const routeIsRanking = computed(() =>
+		(route.name as string)?.startsWith('ranking'),
+	)
+
 	// Utiliser le composable Nuxt pour le scroll
 	const { y: scrollY } = useWindowScroll()
 
@@ -93,7 +97,7 @@
 					>
 						Artists
 					</NuxtLink>
-					<!-- Liens admin rendus uniquement côté client pour éviter les problèmes d'hydratation SSR -->
+					<!-- Liens utilisateur connecté rendus uniquement côté client pour éviter les problèmes d'hydratation SSR -->
 					<ClientOnly>
 						<NuxtLink
 							v-if="isUserAdmin"
@@ -103,11 +107,11 @@
 							Dashboard
 						</NuxtLink>
 						<NuxtLink
-							v-if="isUserAdmin"
-							:to="`/ranking/music`"
-							:class="routeIsDashboard ? 'font-semibold text-white' : 'text-zinc-500'"
+							v-if="isUserLoggedIn"
+							:to="`/ranking`"
+							:class="routeIsRanking ? 'font-semibold text-white' : 'text-zinc-500'"
 						>
-							Ranking Music
+							Rankings
 						</NuxtLink>
 					</ClientOnly>
 				</div>

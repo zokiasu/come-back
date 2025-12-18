@@ -392,6 +392,10 @@
 		isPlayingVideo.value = false
 		idYoutubeVideo.value = ''
 
+		// Vider la playlist pour permettre de relancer une musique directement
+		const { clearPlaylist } = usePlaylist()
+		clearPlaylist()
+
 		if (player.value) {
 			try {
 				player.value?.destroy()
