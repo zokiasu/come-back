@@ -43,6 +43,36 @@ export type MusicRelease = Tables<'music_releases'>
 export type NewsArtist = Tables<'news_artists_junction'>
 export type Company = Tables<'companies'>
 
+// Types pour les rankings utilisateur
+export interface UserRanking {
+	id: string
+	user_id: string
+	name: string
+	description: string | null
+	is_public: boolean
+	created_at: string | null
+	updated_at: string | null
+}
+
+export interface UserRankingItem {
+	id: string
+	ranking_id: string
+	music_id: string
+	position: number
+	added_at: string | null
+}
+
+export interface UserRankingWithItems extends UserRanking {
+	items: (UserRankingItem & { music: Music })[]
+	item_count: number
+}
+
+export interface UserRankingWithPreview extends UserRanking {
+	item_count: number
+	preview_thumbnails: (string | null)[]
+	user?: User
+}
+
 // Types pour les insertions
 export type UserInsert = TablesInsert<'users'>
 export type ArtistInsert = TablesInsert<'artists'>

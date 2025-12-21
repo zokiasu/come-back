@@ -73,6 +73,14 @@
 			</NuxtLink> -->
 
 			<NuxtLink
+				v-if="isUserLoggedIn"
+				to="/ranking"
+				class="flex w-full items-center justify-center py-2 transition-all duration-500 ease-in-out hover:bg-zinc-500/50"
+			>
+				<UIcon name="i-heroicons-musical-note" class="mx-auto h-5 w-5" />
+			</NuxtLink>
+
+			<NuxtLink
 				v-if="isAdminStore && isClient"
 				to="/dashboard/artist"
 				class="flex w-full items-center justify-center py-2 transition-all duration-500 ease-in-out hover:bg-zinc-500/50"
