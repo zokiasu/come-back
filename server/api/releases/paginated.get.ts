@@ -41,31 +41,30 @@ export default defineEventHandler(async (event) => {
 
 		// If filtering by artists, use inner join
 		if (artistIds && artistIds.length > 0) {
-			// For count query
-			countQuery = supabase
-				.from('releases')
-				.select('id', { count: 'exact', head: true })
-				.in(
-					'id',
-					supabase.from('artist_releases').select('release_id').in('artist_id', artistIds),
-				)
+			// First, get release IDs that match the artist filter
+			const { data: releaseIdsData, error: releaseIdsError } = await supabase
+				.from('artist_releases')
+				.select('release_id')
+				.in('artist_id', artistIds)
 
-			// For data query
-			dataQuery = supabase
-				.from('releases')
-				.select(
-					`
-					*,
-					artists:artist_releases!inner(
-						artist:artists(*)
-					),
-					musics:music_releases(
-						music:musics(*)
-					),
-					platform_links:release_platform_links(*)
-				`,
-				)
-				.in('artist_releases.artist_id', artistIds)
+			if (releaseIdsError) throw releaseIdsError
+
+			const releaseIds = [...new Set(releaseIdsData?.map((r) => r.release_id) || [])]
+
+			// If no releases found for these artists, return empty result early
+			if (releaseIds.length === 0) {
+				return {
+					releases: [],
+					total: 0,
+					page,
+					limit,
+					totalPages: 0,
+				}
+			}
+
+			// Apply release ID filter to both queries
+			countQuery = countQuery.in('id', releaseIds)
+			dataQuery = dataQuery.in('id', releaseIds)
 		}
 
 		// Apply filters to both queries

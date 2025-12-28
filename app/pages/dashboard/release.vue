@@ -292,7 +292,7 @@
 	// Initial load
 	onMounted(async () => {
 		try {
-			artistsList.value = await getAllArtists({ isActive: true })
+			artistsList.value = await getAllArtists()
 		} catch (error) {
 			console.error('Erreur lors du chargement des artistes:', error)
 		}

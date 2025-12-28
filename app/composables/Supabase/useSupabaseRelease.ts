@@ -111,16 +111,10 @@ export function useSupabaseRelease() {
 
 	// Supprime une release
 	const deleteRelease = async (id: string) => {
-		// Supprimer d'abord les relations avec les artistes
-		await supabase.from('artist_releases').delete().eq('release_id', id)
-
-		// Supprimer les relations avec les musiques
-		await supabase.from('music_releases').delete().eq('release_id', id)
-
-		// Supprimer la release
-		const { error } = await supabase.from('releases').delete().eq('id', id)
-
-		if (error) {
+		try {
+			await $fetch(`/api/releases/${id}`, { method: 'DELETE' })
+			return true
+		} catch (error) {
 			console.error('Erreur lors de la suppression de la release:', error)
 			toast.add({
 				title: 'Erreur lors de la suppression de la release',
@@ -128,8 +122,6 @@ export function useSupabaseRelease() {
 			})
 			return false
 		}
-
-		return true
 	}
 
 	// Récupère toutes les releases
