@@ -305,7 +305,21 @@ const pageDescription = computed(() => {
 	if (!ranking.value) return 'Découvrez ce classement musical sur Comeback'
 	const itemCount = ranking.value.item_count || ranking.value.items.length
 	const userName = ranking.value.user?.name || 'Un utilisateur'
-	return `${userName} a créé un classement de ${itemCount} musique${itemCount > 1 ? 's' : ''}. Découvrez son top sur Comeback !`
+
+	// Build teaser with top 7 musics
+	const topMusics = ranking.value.items.slice(0, 7)
+	if (topMusics.length === 0) {
+		return `${userName} a créé un classement de ${itemCount} musique${itemCount > 1 ? 's' : ''}. Découvrez son top sur Comeback !`
+	}
+
+	const teaserList = topMusics
+		.map((item, index) => `${index + 1}. ${item.music.name || item.music.title}`)
+		.join(' ')
+
+	const hasMore = itemCount > 7
+	const suffix = hasMore ? '...' : ''
+
+	return `${teaserList}${suffix}`
 })
 const coverImage = computed(() => {
 	if (!ranking.value || ranking.value.items.length === 0) return null
