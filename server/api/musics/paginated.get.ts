@@ -25,7 +25,75 @@ export default defineEventHandler(async (event) => {
 		// Calculate offset
 		const offset = (page - 1) * limit
 
-		// If filtering by artists or styles, first get the music IDs
+		// Use optimized RPC function when filtering by styles (avoids large IN clauses)
+		if (styles && styles.length > 0) {
+			const { data: rpcData, error: rpcError } = await supabase.rpc(
+				'get_paginated_musics_by_styles',
+				{
+					style_filters: styles,
+					search_term: search || null,
+					year_filters: years || null,
+					is_mv: ismv ?? null,
+					order_column: orderBy,
+					order_dir: orderDirection,
+					page_limit: limit,
+					page_offset: offset,
+				},
+			)
+
+			if (rpcError) {
+				console.error('Error fetching musics by styles:', rpcError)
+				throw rpcError
+			}
+
+			const musicIds = rpcData?.map((m: { id: string }) => m.id) || []
+			const total = rpcData?.[0]?.total_count || 0
+
+			// Fetch full music data with relations for the filtered IDs
+			let musicsWithRelations: Tables<'musics'>[] = []
+			if (musicIds.length > 0) {
+				const { data: fullData, error: fullError } = await supabase
+					.from('musics')
+					.select(
+						`
+						*,
+						artists:music_artists(
+							artist:artists(*)
+						),
+						releases:music_releases(
+							release:releases(*)
+						)
+					`,
+					)
+					.in('id', musicIds)
+
+				if (fullError) throw fullError
+
+				// Preserve the order from RPC by sorting according to musicIds order
+				const idOrderMap = new Map(musicIds.map((id, index) => [id, index]))
+				musicsWithRelations = (fullData || []).sort(
+					(a, b) => (idOrderMap.get(a.id) ?? 0) - (idOrderMap.get(b.id) ?? 0),
+				)
+			}
+
+			const transformedData = musicsWithRelations.map((music) => ({
+				...music,
+				artists: transformJunction<Tables<'artists'>>(music.artists, 'artist'),
+				releases: transformJunction<Tables<'releases'>>(music.releases, 'release'),
+			}))
+
+			const totalPages = Math.ceil(Number(total) / limit)
+
+			return {
+				musics: transformedData,
+				total: Number(total),
+				page,
+				limit,
+				totalPages,
+			}
+		}
+
+		// Standard query path (no style filter)
 		let musicIdsToFilter: string[] | undefined
 
 		// Filter by specific artists
@@ -38,28 +106,6 @@ export default defineEventHandler(async (event) => {
 			if (musicArtistsError) throw musicArtistsError
 
 			musicIdsToFilter = [...new Set(musicArtistsData?.map((ma) => ma.music_id) || [])]
-		}
-
-		// Filter by artist styles using RPC function for better performance
-		if (styles && styles.length > 0) {
-			const { data: musicIdsFromStyles, error: stylesError } = await supabase.rpc(
-				'get_music_ids_by_styles',
-				{ style_filters: styles },
-			)
-
-			if (stylesError) {
-				console.error('Error fetching music IDs by styles:', stylesError)
-				throw stylesError
-			}
-
-			const stylesMusicIds = musicIdsFromStyles?.map((row: { music_id: string }) => row.music_id) || []
-
-			// Union with existing filter (combine both artist and style filters)
-			if (musicIdsToFilter) {
-				musicIdsToFilter = [...new Set([...musicIdsToFilter, ...stylesMusicIds])]
-			} else {
-				musicIdsToFilter = stylesMusicIds
-			}
 		}
 
 		// Build base query for count
@@ -78,7 +124,7 @@ export default defineEventHandler(async (event) => {
 			`,
 		)
 
-		// Apply artist/style filter if specified
+		// Apply artist filter if specified
 		if (musicIdsToFilter !== undefined) {
 			if (musicIdsToFilter.length > 0) {
 				countQuery = countQuery.in('id', musicIdsToFilter)
@@ -106,14 +152,20 @@ export default defineEventHandler(async (event) => {
 			dataQuery = dataQuery.eq('ismv', ismv)
 		}
 
-		// Exclude instrumental and sped up versions
+		// Exclude instrumental, sped up, and live versions
 		countQuery = countQuery.not('name', 'ilike', '%Inst.%')
 		countQuery = countQuery.not('name', 'ilike', '%Instrumental%')
 		countQuery = countQuery.not('name', 'ilike', '%Sped Up%')
+		countQuery = countQuery.not('name', 'ilike', '%(live)%')
+		countQuery = countQuery.not('name', 'ilike', '%[live]%')
+		countQuery = countQuery.not('name', 'ilike', '% - Live%')
 
 		dataQuery = dataQuery.not('name', 'ilike', '%Inst.%')
 		dataQuery = dataQuery.not('name', 'ilike', '%Instrumental%')
 		dataQuery = dataQuery.not('name', 'ilike', '%Sped Up%')
+		dataQuery = dataQuery.not('name', 'ilike', '%(live)%')
+		dataQuery = dataQuery.not('name', 'ilike', '%[live]%')
+		dataQuery = dataQuery.not('name', 'ilike', '% - Live%')
 
 		// Apply sorting only to data query
 		dataQuery = dataQuery.order(orderBy, { ascending: orderDirection === 'asc' })

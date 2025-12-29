@@ -350,28 +350,15 @@ export function useSupabaseRanking() {
 		items: { id: string; position: number }[]
 	): Promise<boolean> => {
 		try {
-			// Mettre à jour chaque item avec sa nouvelle position
-			// On utilise une position temporaire négative pour éviter les conflits de contrainte UNIQUE
-			for (let i = 0; i < items.length; i++) {
-				await supabase
-					.from('user_ranking_items')
-					.update({ position: -(i + 1) })
-					.eq('id', items[i].id)
-			}
+			// Utiliser la fonction RPC atomique pour éviter les conflits 409
+			const { error } = await supabase.rpc('reorder_ranking_items_atomic', {
+				p_ranking_id: rankingId,
+				p_items: items,
+			})
 
-			// Puis on remet les positions positives
-			for (let i = 0; i < items.length; i++) {
-				await supabase
-					.from('user_ranking_items')
-					.update({ position: items[i].position })
-					.eq('id', items[i].id)
+			if (error) {
+				throw error
 			}
-
-			// Mettre à jour updated_at du ranking parent
-			await supabase
-				.from('user_rankings')
-				.update({ updated_at: new Date().toISOString() })
-				.eq('id', rankingId)
 
 			return true
 		} catch (error) {

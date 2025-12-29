@@ -1,5 +1,5 @@
 <template>
-	<div class="flex h-0 flex-1 overflow-hidden">
+	<div class="flex h-[calc(100vh-5rem)] overflow-hidden">
 		<!-- Main content: Music exploration -->
 		<div ref="scrollContainer" class="scrollBarLight min-w-0 flex-1 overflow-y-auto p-5">
 			<!-- Header with back button -->
@@ -210,7 +210,7 @@
 
 		<!-- Sidebar: Current ranking -->
 		<div
-			class="bg-cb-quaternary-950 flex max-h-[calc(100vh-5rem)] w-80 shrink-0 sticky top-0 flex-col overflow-hidden border-l border-zinc-700 lg:w-96"
+			class="bg-cb-quaternary-950 flex w-80 shrink-0 flex-col overflow-hidden border-l border-zinc-700 lg:w-96"
 		>
 			<!-- Ranking header -->
 			<div class="border-b border-zinc-700 p-4">
@@ -489,15 +489,29 @@
 	const availableYears = [2020, 2021, 2022, 2023, 2024, 2025]
 	const availableStyles = [
 		'K-Pop',
+		'K-Hiphop',
+		'K-R&B',
+		'K-Ballad',
+		'K-Rap',
+		'K-Rock',
+		'K-Indie',
+		'K-Soul',
+		'Korean Trot',
 		'J-Pop',
+		'J-Hiphop',
+		'J-R&B',
+		'J-Rock',
 		'C-Pop',
-		'T-Pop',
-		'V-Pop',
-		'Hip-Hop',
-		'R&B',
-		'Rock',
+		'C-Hiphop',
+		'C-Rap',
+		'Mando-Pop',
+		'Mando-Hiphop',
+		'Thai-Pop',
+		'Thai-Hiphop',
+		'Thai-Rap',
+		'Thai-R&B',
 		'Pop',
-		'Ballad',
+		'R&B',
 	]
 
 	const artistsForMenu = computed((): ArtistMenuItem[] => {
@@ -661,26 +675,46 @@
 		addingMusicId.value = music.id
 
 		if (isInRanking) {
-			await removeMusicFromRanking(rankingId.value, music.id)
+			// Retirer de la liste locale immédiatement
+			if (ranking.value) {
+				ranking.value.items = ranking.value.items.filter((item) => item.music_id !== music.id)
+				localRankingItems.value = [...ranking.value.items]
+			}
+			// Supprimer en arrière-plan
+			removeMusicFromRanking(rankingId.value, music.id)
 		} else {
-			await addMusicToRanking(rankingId.value, music.id)
+			// Ajouter à la liste locale immédiatement
+			const newItem = await addMusicToRanking(rankingId.value, music.id)
+			if (newItem && ranking.value) {
+				const itemWithMusic = {
+					...newItem,
+					music: {
+						...music,
+						artists: music.artists || [],
+					},
+				} as UserRankingItem & { music: Music }
+				ranking.value.items = [...ranking.value.items, itemWithMusic]
+				localRankingItems.value = [...ranking.value.items]
+			}
 		}
 
-		// Reload ranking to get updated items
-		await loadRanking()
 		addingMusicId.value = null
 	}
 
 	const removeFromRanking = async (musicId: string) => {
-		await removeMusicFromRanking(rankingId.value, musicId)
-		await loadRanking()
+		// Retirer de la liste locale immédiatement
+		if (ranking.value) {
+			ranking.value.items = ranking.value.items.filter((item) => item.music_id !== musicId)
+			localRankingItems.value = [...ranking.value.items]
+		}
+		// Supprimer en arrière-plan
+		removeMusicFromRanking(rankingId.value, musicId)
 	}
 
 	// Play music
 	const handlePlayMusic = (music: Music) => {
-		const videoId = music.id_youtube_music || music.id_youtube
-		if (!videoId) return
-		addToPlaylist(videoId, music.title || music.name || '', formatArtists(music.artists || []))
+		if (!music.id_youtube_music) return
+		addToPlaylist(music.id_youtube_music, music.title || music.name || '', formatArtists(music.artists || []))
 	}
 
 	const isCurrentlyPlaying = (videoId: string | null | undefined): boolean => {
@@ -742,8 +776,13 @@
 			position: index + 1,
 		}))
 
-		await reorderRankingItems(rankingId.value, newPositions)
-		await loadRanking()
+		// Mettre à jour l'état local du ranking sans recharger
+		if (ranking.value) {
+			ranking.value.items = [...localRankingItems.value]
+		}
+
+		// Sauvegarder en arrière-plan sans attendre
+		reorderRankingItems(rankingId.value, newPositions)
 	}
 
 	// Filter functions
