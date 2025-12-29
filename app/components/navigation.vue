@@ -97,6 +97,12 @@
 					>
 						Artists
 					</NuxtLink>
+					<NuxtLink
+						:to="`/ranking/explore`"
+						:class="routeIsRanking ? 'font-semibold text-white' : 'text-zinc-500'"
+					>
+						Rankings
+					</NuxtLink>
 					<!-- Liens utilisateur connecté rendus uniquement côté client pour éviter les problèmes d'hydratation SSR -->
 					<ClientOnly>
 						<NuxtLink
@@ -105,13 +111,6 @@
 							:class="routeIsDashboard ? 'font-semibold text-white' : 'text-zinc-500'"
 						>
 							Dashboard
-						</NuxtLink>
-						<NuxtLink
-							v-if="isUserLoggedIn"
-							:to="`/ranking`"
-							:class="routeIsRanking ? 'font-semibold text-white' : 'text-zinc-500'"
-						>
-							Rankings
 						</NuxtLink>
 					</ClientOnly>
 				</div>

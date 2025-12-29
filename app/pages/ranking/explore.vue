@@ -1,21 +1,22 @@
 <template>
 	<div class="container mx-auto min-h-screen p-5">
 		<!-- Header -->
-		<div class="mb-6">
-			<div class="flex items-center gap-3">
-				<UButton
-					icon="i-heroicons-arrow-left"
-					color="neutral"
-					variant="ghost"
-					to="/ranking"
-				/>
-				<div>
-					<h1 class="text-2xl font-bold">Explorer les rankings</h1>
-					<p class="text-cb-tertiary-500 text-sm">
-						Découvrez les classements de musiques créés par la communauté
-					</p>
-				</div>
+		<div class="mb-6 flex items-center justify-between">
+			<div>
+				<h1 class="text-2xl font-bold">Explorer les rankings</h1>
+				<p class="text-cb-tertiary-500 text-sm">
+					Découvrez les classements de musiques créés par la communauté
+				</p>
 			</div>
+			<ClientOnly>
+				<UButton
+					v-if="isUserLoggedIn"
+					icon="i-heroicons-queue-list"
+					label="Mes Rankings"
+					to="/ranking"
+					class="cb_button"
+				/>
+			</ClientOnly>
 		</div>
 
 		<!-- Loading state -->
@@ -82,21 +83,34 @@
 						{{ ranking.description }}
 					</p>
 
-					<!-- User info -->
-					<div class="mt-2 flex items-center gap-2">
-						<NuxtImg
-							v-if="ranking.user?.photo_url"
-							:src="ranking.user.photo_url"
-							:alt="ranking.user.name"
-							class="size-5 rounded-full object-cover"
-							format="webp"
-						/>
-						<div v-else class="bg-cb-quinary-900 flex size-5 items-center justify-center rounded-full">
-							<UIcon name="i-heroicons-user" class="text-cb-tertiary-500 size-3" />
+					<!-- User info + Edit button -->
+					<div class="mt-2 flex items-center justify-between">
+						<div class="flex min-w-0 items-center gap-2">
+							<NuxtImg
+								v-if="ranking.user?.photo_url"
+								:src="ranking.user.photo_url"
+								:alt="ranking.user.name"
+								class="size-5 shrink-0 rounded-full object-cover"
+								format="webp"
+							/>
+							<div v-else class="bg-cb-quinary-900 flex size-5 shrink-0 items-center justify-center rounded-full">
+								<UIcon name="i-heroicons-user" class="text-cb-tertiary-500 size-3" />
+							</div>
+							<span class="text-cb-tertiary-500 truncate text-xs">
+								{{ ranking.user?.name || 'Utilisateur' }}
+							</span>
 						</div>
-						<span class="text-cb-tertiary-500 truncate text-xs">
-							{{ ranking.user?.name || 'Utilisateur' }}
-						</span>
+
+						<!-- Edit button (owner only) -->
+						<NuxtLink
+							v-if="ranking.user_id === currentUserId"
+							:to="`/ranking/music/${ranking.id}`"
+							class="bg-cb-quinary-900 hover:bg-cb-primary-900 flex size-8 shrink-0 items-center justify-center rounded-full transition-colors"
+							title="Modifier ce ranking"
+							@click.stop
+						>
+							<UIcon name="i-heroicons-pencil" class="size-4" />
+						</NuxtLink>
 					</div>
 				</div>
 			</NuxtLink>
@@ -115,8 +129,13 @@
 
 <script setup lang="ts">
 	import type { UserRankingWithPreview } from '~/types'
+	import { storeToRefs } from 'pinia'
 
 	const { getPublicRankings } = useSupabaseRanking()
+	const userStore = useUserStore()
+	const { isLoginStore, isHydrated } = storeToRefs(userStore)
+	const currentUserId = computed(() => userStore.user?.id)
+	const isUserLoggedIn = computed(() => isHydrated.value && isLoginStore.value)
 
 	// State
 	const rankings = ref<UserRankingWithPreview[]>([])
@@ -156,7 +175,4 @@
 		loadRankings()
 	})
 
-	definePageMeta({
-		middleware: ['auth'],
-	})
 </script>
