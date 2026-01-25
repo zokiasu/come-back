@@ -208,6 +208,7 @@
 		)
 			.then((newArtist) => {
 				isUploadingEdit.value = false
+				resetForm()
 				toast.add({
 					title: 'Artist created successfully',
 					description: 'Artist created successfully',
@@ -222,6 +223,25 @@
 					color: 'error',
 				})
 			})
+	}
+
+	const resetForm = () => {
+		artistImage.value = 'https://i.ibb.co/wLhbFZx/Frame-255.png'
+		artistName.value = ''
+		artistIdYoutubeMusic.value = ''
+		birthdayToDate.value = null
+		debutDateToDate.value = null
+		artistGroups.value = []
+		artistMembers.value = []
+		artistGender.value = 'UNKNOWN'
+		artistType.value = 'SOLO'
+		artistActiveCareer.value = true
+		artistStyles.value = []
+		artistTags.value = []
+		artistCompanies.value = []
+		artistDescription.value = ''
+		platformLinkManager.reset()
+		socialLinkManager.reset()
 	}
 
 	const closeModalCreateArtist = async () => {
