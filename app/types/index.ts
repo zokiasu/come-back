@@ -112,6 +112,81 @@ export type CompanyArtist = Tables<'artist_companies'> & {
 	artist?: Artist
 }
 
+// ===== TYPES POUR LES TABLES DE JONCTION =====
+/**
+ * Generic type for junction table results from Supabase
+ * When selecting with nested relations, Supabase returns objects like:
+ * { artist: Artist } or { release: Release }
+ */
+export interface JunctionWithArtist {
+	artist: Tables<'artists'> | null
+}
+
+export interface JunctionWithRelease {
+	release: Tables<'releases'> | null
+}
+
+export interface JunctionWithMusic {
+	music: Tables<'musics'> | null
+}
+
+export interface JunctionWithGroup {
+	group: Tables<'artists'> | null
+}
+
+export interface JunctionWithMember {
+	member: Tables<'artists'> | null
+}
+
+export interface JunctionWithArtists {
+	artists: Tables<'artists'> | null
+}
+
+/**
+ * Type for music with junction relations from Supabase query
+ */
+export interface MusicWithJunctions extends Tables<'musics'> {
+	artists?: JunctionWithArtist[]
+	releases?: JunctionWithRelease[]
+}
+
+/**
+ * Type for release with junction relations from Supabase query
+ */
+export interface ReleaseWithJunctions extends Tables<'releases'> {
+	artists?: JunctionWithArtist[]
+	artist_releases?: JunctionWithArtist[]
+	musics?: JunctionWithMusic[]
+}
+
+/**
+ * Type for artist with junction relations from Supabase query
+ */
+export interface ArtistWithJunctions extends Tables<'artists'> {
+	groups?: JunctionWithGroup[]
+	members?: JunctionWithMember[]
+	releases?: JunctionWithRelease[]
+}
+
+/**
+ * Type for news with junction relations from Supabase query
+ */
+export interface NewsWithJunctions extends Tables<'news'> {
+	artists?: JunctionWithArtists[]
+}
+
+/**
+ * Type for ranking item with music junction from Supabase query
+ */
+export interface RankingItemWithJunctions {
+	id: string
+	ranking_id: string
+	music_id: string
+	position: number
+	added_at: string | null
+	music?: MusicWithJunctions | null
+}
+
 // ===== TYPES UTILITAIRES =====
 export interface QueryOptions {
 	limit?: number

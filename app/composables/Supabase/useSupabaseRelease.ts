@@ -9,6 +9,16 @@ import type {
 } from '~/types'
 import type { Database, TablesInsert, TablesUpdate } from '~/types/supabase'
 
+// Types pour les données jointes
+interface ArtistJunction {
+	artist: Artist
+}
+
+interface ReleaseWithArtistJunctions extends Omit<Release, 'artists'> {
+	artists?: ArtistJunction[]
+	artist_releases?: ArtistJunction[]
+}
+
 export function useSupabaseRelease() {
 	const supabase = useSupabaseClient<Database>()
 	const toast = useToast()
@@ -279,9 +289,9 @@ export function useSupabaseRelease() {
 		}
 
 		// Transformer les données pour avoir un format plus simple à utiliser
-		const transformedData = data.map((release: any) => ({
+		const transformedData = (data as ReleaseWithArtistJunctions[]).map((release) => ({
 			...release,
-			artists: release.artist_releases.map((ar: any) => ar.artist),
+			artists: release.artist_releases?.map((ar: ArtistJunction) => ar.artist) || [],
 		})) as Release[]
 
 		callback(transformedData)
@@ -318,9 +328,9 @@ export function useSupabaseRelease() {
 			}
 
 			// Transformer les données pour avoir un format plus simple
-			const formattedData = data.map((release) => ({
+			const formattedData = (data as ReleaseWithArtistJunctions[]).map((release) => ({
 				...release,
-				artists: release.artists?.map((ar: any) => ar.artist) || [],
+				artists: release.artists?.map((ar: ArtistJunction) => ar.artist) || [],
 			}))
 
 			return formattedData as Release[]
@@ -375,9 +385,9 @@ export function useSupabaseRelease() {
 			}
 
 			// Transformer les données pour avoir un format plus simple
-			const transformedData = data.map((release: any) => ({
+			const transformedData = (data as ReleaseWithArtistJunctions[]).map((release) => ({
 				...release,
-				artists: release.artist_releases.map((ar: any) => ar.artist),
+				artists: release.artist_releases?.map((ar: ArtistJunction) => ar.artist) || [],
 			})) as Release[]
 
 			return transformedData

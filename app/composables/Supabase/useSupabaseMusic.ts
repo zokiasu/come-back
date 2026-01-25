@@ -340,8 +340,8 @@ export function useSupabaseMusic() {
 			// Transformer les données
 			const formattedData = (detailedMusics as MusicWithRelations[]).map((music) => ({
 				...music,
-				artists: music.artists?.map((a: any) => a.artist) || [],
-				releases: music.releases?.map((r: any) => r.release) || [],
+				artists: music.artists?.map((a: ArtistJunction) => a.artist) || [],
+				releases: music.releases?.map((r: ReleaseJunction) => r.release) || [],
 			}))
 
 			return formattedData
@@ -400,8 +400,8 @@ export function useSupabaseMusic() {
 			// Transformer les données
 			const formattedData = (detailedMusics as MusicWithRelations[]).map((music) => ({
 				...music,
-				artists: music.artists?.map((a: any) => a.artist) || [],
-				releases: music.releases?.map((r: any) => r.release) || [],
+				artists: music.artists?.map((a: ArtistJunction) => a.artist) || [],
+				releases: music.releases?.map((r: ReleaseJunction) => r.release) || [],
 			}))
 
 			return formattedData
@@ -624,8 +624,8 @@ export function useSupabaseMusic() {
 			// Transform the data to match the expected format
 			const transformedData = (data as MusicWithRelations[]).map((music) => ({
 				...music,
-				artists: music.artists?.map((ma: any) => ma.artist) || [],
-				releases: music.releases?.map((mr: any) => mr.release) || [],
+				artists: music.artists?.map((ma: ArtistJunction) => ma.artist) || [],
+				releases: music.releases?.map((mr: ReleaseJunction) => mr.release) || [],
 			}))
 
 			return transformedData as Music[]
