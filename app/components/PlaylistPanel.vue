@@ -61,12 +61,16 @@
 				<div class="flex items-center gap-2">
 					<button
 						v-if="playlist.length > 0"
+						type="button"
+						aria-label="Clear playlist"
 						class="text-cb-tertiary-400 hover:text-cb-primary-900 rounded p-1 text-sm"
 						@click="handleClearPlaylist"
 					>
 						Vider
 					</button>
 					<button
+						type="button"
+						aria-label="Close playlist panel"
 						class="text-cb-tertiary-400 hover:text-cb-tertiary-200 rounded p-1"
 						@click="isOpen = false"
 					>
@@ -109,12 +113,14 @@
 					>
 						<!-- Play Button / Current Indicator -->
 						<button
+							type="button"
 							class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors"
 							:class="{
 								'bg-cb-primary-900 text-white': index === currentIndex,
 								'bg-cb-quaternary-900 hover:bg-cb-primary-900 group-hover:text-white':
 									index !== currentIndex,
 							}"
+							:aria-label="index === currentIndex ? `Pause ${item.title}` : `Play ${item.title}`"
 							@click="handlePlayItem(index)"
 						>
 							<IconPause v-if="index === currentIndex" class="h-4 w-4" />
@@ -145,7 +151,9 @@
 							class="flex shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100"
 						>
 							<button
+								type="button"
 								class="text-cb-tertiary-500 hover:text-cb-primary-900 rounded p-1"
+								:aria-label="`Remove ${item.title} from playlist`"
 								@click="handleRemoveItem(index)"
 							>
 								<IconDelete class="h-4 w-4" />

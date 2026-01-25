@@ -56,7 +56,7 @@
 		<UButton
 			icon="material-symbols:search"
 			variant="soft"
-			title="Search"
+			aria-label="Open search"
 			class="lg:bg-cb-quaternary-950 lg:hover:bg-cb-tertiary-200/20 w-full items-center justify-center rounded-none bg-transparent text-white lg:aspect-square lg:h-full lg:rounded lg:text-xs"
 			@click="isOpen = true"
 		/>
@@ -65,26 +65,33 @@
 			<div
 				class="bg-cb-quinary-950/75 relative min-h-[80dvh] space-y-2 p-5 lg:min-h-[20dvh]"
 			>
+				<label for="search-input" class="sr-only">Search for artists</label>
 				<input
 					id="search-input"
 					v-model="searchInput"
 					type="text"
 					placeholder="Search Artist..."
+					aria-label="Search for artists"
 					class="bg-cb-quinary-900 placeholder-cb-tertiary-200 focus:bg-cb-tertiary-200 focus:text-cb-quinary-900 focus:placeholder-cb-quinary-900 w-full rounded border-none px-5 py-2 drop-shadow-xl transition-all duration-300 ease-in-out focus:outline-none"
 				/>
 				<div v-if="isLoading" class="flex items-center justify-center py-4">
 					<div class="text-cb-tertiary-200 text-sm">Searching...</div>
 				</div>
-				<div v-else-if="artists.length" class="flex flex-col gap-2">
-					<div
+				<ul v-else-if="artists.length" class="flex flex-col gap-2" role="listbox" aria-label="Search results">
+					<li
 						v-for="artist in artists"
 						:key="artist.id"
-						class="cursor-pointer"
-						@click="() => { $router.push(`/artist/${artist.id}`); closeModal(); }"
+						role="option"
 					>
-						<p class="bg-cb-primary-900 w-full rounded p-2 text-xs hover:bg-cb-primary-800 transition-colors">{{ artist.name }}</p>
-					</div>
-				</div>
+						<button
+							type="button"
+							class="bg-cb-primary-900 w-full rounded p-2 text-left text-xs hover:bg-cb-primary-800 transition-colors cursor-pointer"
+							@click="() => { $router.push(`/artist/${artist.id}`); closeModal(); }"
+						>
+							{{ artist.name }}
+						</button>
+					</li>
+				</ul>
 				<div v-else-if="searchInput.length >= 2" class="py-4 text-center">
 					<div class="text-cb-tertiary-400 text-sm">No artists found</div>
 				</div>
