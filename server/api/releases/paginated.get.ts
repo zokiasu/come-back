@@ -1,20 +1,20 @@
 import type { Tables } from '~/server/types/api'
 
+const ALLOWED_ORDER_COLUMNS = ['date', 'name', 'created_at', 'updated_at'] as const
+
 export default defineEventHandler(async (event) => {
 	const supabase = useServerSupabase()
 
 	try {
-		// Parse query parameters
+		// Parse and validate query parameters
 		const query = getQuery(event)
-		const page = Number(query.page) || 1
-		const limit = Number(query.limit) || 24
-		const search = query.search as string | undefined
+		const page = validatePageParam(Number(query.page))
+		const limit = validateLimitParam(Number(query.limit), 24)
+		const search = validateSearchParam(query.search as string | undefined)
 		const type = query.type as string | undefined
-		const orderBy = (query.orderBy as string) || 'date'
-		const orderDirection = (query.orderDirection as string) || 'desc'
-		const artistIds = query.artistIds
-			? (query.artistIds as string).split(',')
-			: undefined
+		const orderBy = validateOrderBy(query.orderBy as string, ALLOWED_ORDER_COLUMNS, 'date')
+		const orderDirection = validateOrderDirection(query.orderDirection as string, 'desc')
+		const artistIds = validateArrayParam(query.artistIds as string | undefined, 'artistIds')
 		const verified = query.verified !== undefined
 			? query.verified === 'true'
 			: undefined

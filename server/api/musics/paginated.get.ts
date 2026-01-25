@@ -1,26 +1,22 @@
 import type { Tables } from '~/server/types/api'
 
+const ALLOWED_ORDER_COLUMNS = ['date', 'name', 'created_at', 'release_year'] as const
+
 export default defineEventHandler(async (event) => {
 	const supabase = useServerSupabase()
 
 	try {
-		// Parse query parameters
+		// Parse and validate query parameters
 		const query = getQuery(event)
-		const page = Number(query.page) || 1
-		const limit = Number(query.limit) || 20
-		const search = query.search as string | undefined
-		const years = query.years
-			? (query.years as string).split(',').filter(Boolean).map(Number)
-			: undefined
-		const orderBy = (query.orderBy as string) || 'date'
-		const orderDirection = (query.orderDirection as string) || 'desc'
+		const page = validatePageParam(Number(query.page))
+		const limit = validateLimitParam(Number(query.limit), 20)
+		const search = validateSearchParam(query.search as string | undefined)
+		const years = validateNumericArrayParam(query.years as string | undefined, 'years')
+		const orderBy = validateOrderBy(query.orderBy as string, ALLOWED_ORDER_COLUMNS, 'date')
+		const orderDirection = validateOrderDirection(query.orderDirection as string, 'desc')
 		const ismv = query.ismv === 'true' ? true : query.ismv === 'false' ? false : undefined
-		const artistIds = query.artistIds
-			? (query.artistIds as string).split(',').filter(Boolean)
-			: undefined
-		const styles = query.styles
-			? (query.styles as string).split(',').filter(Boolean)
-			: undefined
+		const artistIds = validateArrayParam(query.artistIds as string | undefined, 'artistIds')
+		const styles = validateArrayParam(query.styles as string | undefined, 'styles')
 
 		// Calculate offset
 		const offset = (page - 1) * limit
