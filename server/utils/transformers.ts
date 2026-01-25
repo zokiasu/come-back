@@ -6,6 +6,37 @@ import type {
 } from '~/server/types/api'
 
 /**
+ * Type for junction table row with a nested entity
+ * Used when Supabase returns junction data with nested relations
+ */
+export type JunctionRow<K extends string, T> = {
+	[key in K]: T | null
+}
+
+/**
+ * Type for raw data from Supabase that may include junction tables
+ */
+export type RawArtistData = Tables<'artists'> & {
+	groups?: JunctionRow<'group', Tables<'artists'>>[]
+	members?: JunctionRow<'member', Tables<'artists'>>[]
+	releases?: JunctionRow<'release', Tables<'releases'>>[]
+	companies?: (Tables<'artist_companies'> & { company: Tables<'companies'> })[]
+	social_links?: Tables<'artist_social_links'>[]
+	platform_links?: Tables<'artist_platform_links'>[]
+}
+
+export type RawReleaseData = Tables<'releases'> & {
+	artists?: JunctionRow<'artist', Tables<'artists'>>[]
+	musics?: JunctionRow<'music', Tables<'musics'>>[]
+	platform_links?: Tables<'release_platform_links'>[]
+}
+
+export type RawMusicData = Tables<'musics'> & {
+	artists?: JunctionRow<'artist', Tables<'artists'>>[]
+	releases?: JunctionRow<'release', Tables<'releases'>>[]
+}
+
+/**
  * Generic transformer for junction table data
  * Extracts the related entity from junction table results
  *
@@ -20,12 +51,12 @@ import type {
  * // Result: Release[]
  * ```
  */
-export const transformJunction = <T>(
-	junctionData: any[] | null | undefined,
-	key: string
+export const transformJunction = <T, K extends string>(
+	junctionData: JunctionRow<K, T>[] | null | undefined,
+	key: K
 ): T[] => {
 	if (!junctionData || junctionData.length === 0) return []
-	return junctionData.map((item) => item[key]).filter(Boolean) as T[]
+	return junctionData.map((item) => item[key]).filter((item): item is T => item !== null)
 }
 
 /**
@@ -51,7 +82,7 @@ export const transformJunction = <T>(
  * ```
  */
 export const transformArtistWithRelations = (
-	rawArtist: any,
+	rawArtist: RawArtistData,
 	options?: {
 		includeGroups?: boolean
 		includeMembers?: boolean
@@ -121,7 +152,7 @@ export const transformArtistWithRelations = (
  * ```
  */
 export const transformReleaseWithRelations = (
-	rawRelease: any,
+	rawRelease: RawReleaseData,
 	options?: {
 		includeArtists?: boolean
 		includeMusics?: boolean
@@ -172,7 +203,7 @@ export const transformReleaseWithRelations = (
  * ```
  */
 export const transformMusicWithRelations = (
-	rawMusic: any,
+	rawMusic: RawMusicData,
 	options?: {
 		includeArtists?: boolean
 		includeReleases?: boolean
