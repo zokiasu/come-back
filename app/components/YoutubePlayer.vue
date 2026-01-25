@@ -22,6 +22,8 @@
 	const isSeeking = ref(false)
 
 	let intervalId: ReturnType<typeof setInterval> | null = null
+	let originalConsoleError: typeof console.error | null = null
+	let youtubeErrorHandler: ((event: ErrorEvent) => void) | null = null
 
 	// Création du lecteur YouTube
 	const createPlayer = () => {
@@ -138,10 +140,12 @@
 		}
 	}
 
-	// Intercepter les erreurs de postMessage
-	if (import.meta.client) {
+	// Set up YouTube error filtering (will be cleaned up in onBeforeUnmount)
+	const setupYouTubeErrorFiltering = () => {
+		if (!import.meta.client) return
+
 		// Filtrer les erreurs postMessage YouTube au niveau global
-		window.addEventListener('error', (event) => {
+		youtubeErrorHandler = (event: ErrorEvent) => {
 			if (
 				event.error &&
 				event.error.message &&
@@ -150,12 +154,13 @@
 			) {
 				console.log('🎵 Info: Communication YouTube iframe (normal en développement)')
 				event.preventDefault()
-				return false
+				return
 			}
-		})
+		}
+		window.addEventListener('error', youtubeErrorHandler)
 
 		// Filtrer aussi les erreurs de console
-		const originalConsoleError = console.error
+		originalConsoleError = console.error
 		console.error = (...args) => {
 			const message = args.join(' ')
 			// Filtrer les erreurs postMessage YouTube connues (non critiques)
@@ -163,7 +168,26 @@
 				console.log('🎵 Info: Communication YouTube iframe (normal en localhost)')
 				return
 			}
-			originalConsoleError.apply(console, args)
+			if (originalConsoleError) {
+				originalConsoleError.apply(console, args)
+			}
+		}
+	}
+
+	// Clean up YouTube error filtering
+	const cleanupYouTubeErrorFiltering = () => {
+		if (!import.meta.client) return
+
+		// Remove window error listener
+		if (youtubeErrorHandler) {
+			window.removeEventListener('error', youtubeErrorHandler)
+			youtubeErrorHandler = null
+		}
+
+		// Restore original console.error
+		if (originalConsoleError) {
+			console.error = originalConsoleError
+			originalConsoleError = null
 		}
 	}
 
@@ -286,6 +310,7 @@
 
 	onMounted(() => {
 		console.log('🎵 Montage du composant YoutubePlayer')
+		setupYouTubeErrorFiltering()
 		initYTPlayer()
 		intervalId = setInterval(updateCurrentTime, 1000)
 	})
@@ -304,6 +329,9 @@
 				console.warn('⚠️ Erreur lors de la destruction du lecteur:', error)
 			}
 		}
+
+		// Clean up YouTube error filtering to prevent memory leaks
+		cleanupYouTubeErrorFiltering()
 	})
 
 	const togglePlayPause = () => {
