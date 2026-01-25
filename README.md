@@ -93,6 +93,8 @@ npm run dev          # Serveur de développement
 npm run build        # Build production
 npm run lint:fix     # ESLint + Prettier
 npm run format       # Prettier uniquement
+npm run typecheck    # Vérification TypeScript
+npm run check        # Lint + Typecheck (CI)
 ```
 
 ## Stratégie de Rendu
