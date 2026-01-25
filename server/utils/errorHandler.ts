@@ -1,4 +1,4 @@
-import type { H3Error } from 'h3'
+import type { H3Error, H3Event } from 'h3'
 import type { PostgrestError } from '@supabase/supabase-js'
 
 /**
@@ -175,7 +175,7 @@ export const createInternalError = (
  * ```
  */
 export const validateRouteParam = (
-	event: any,
+	event: H3Event,
 	paramName: string,
 	resourceName: string
 ): string => {
@@ -203,13 +203,13 @@ export const validateRouteParam = (
  * })
  * ```
  */
-export const validateQueryParams = <T extends Record<string, any>>(
-	event: any,
+export const validateQueryParams = <T extends Record<string, unknown>>(
+	event: H3Event,
 	schema: Record<
 		keyof T,
 		{
 			type: 'string' | 'number' | 'boolean'
-			default?: any
+			default?: string | number | boolean
 			min?: number
 			max?: number
 			required?: boolean
@@ -217,7 +217,7 @@ export const validateQueryParams = <T extends Record<string, any>>(
 	>
 ): T => {
 	const query = getQuery(event)
-	const result: any = {}
+	const result: Record<string, unknown> = {}
 
 	for (const [key, config] of Object.entries(schema)) {
 		const value = query[key]
