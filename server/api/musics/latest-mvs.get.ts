@@ -1,6 +1,9 @@
 import type { Tables } from '~/server/types/api'
 
 export default defineEventHandler(async (event) => {
+	// Cache for 1 hour, stale-while-revalidate for 5 minutes
+	setHeader(event, 'Cache-Control', 'public, max-age=3600, stale-while-revalidate=300')
+
 	const supabase = useServerSupabase()
 	const query = getQuery(event)
 	const limit = parseInt((query.limit as string) || '14', 10)

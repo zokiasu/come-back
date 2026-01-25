@@ -1,6 +1,9 @@
 import type { Tables } from '~/server/types/api'
 
 export default defineEventHandler(async (event) => {
+	// Cache for 24 hours, stale-while-revalidate for 1 hour (calendar data is stable)
+	setHeader(event, 'Cache-Control', 'public, max-age=86400, stale-while-revalidate=3600')
+
 	const supabase = useServerSupabase()
 	const query = getQuery(event)
 	const month = parseInt((query.month as string) || String(new Date().getMonth()), 10)
