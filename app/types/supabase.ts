@@ -694,6 +694,83 @@ export type Database = {
 					},
 				]
 			}
+			user_ranking_items: {
+				Row: {
+					added_at: string | null
+					id: string
+					music_id: string
+					position: number
+					ranking_id: string
+				}
+				Insert: {
+					added_at?: string | null
+					id?: string
+					music_id: string
+					position: number
+					ranking_id: string
+				}
+				Update: {
+					added_at?: string | null
+					id?: string
+					music_id?: string
+					position?: number
+					ranking_id?: string
+				}
+				Relationships: [
+					{
+						foreignKeyName: 'user_ranking_items_music_id_fkey'
+						columns: ['music_id']
+						isOneToOne: false
+						referencedRelation: 'musics'
+						referencedColumns: ['id']
+					},
+					{
+						foreignKeyName: 'user_ranking_items_ranking_id_fkey'
+						columns: ['ranking_id']
+						isOneToOne: false
+						referencedRelation: 'user_rankings'
+						referencedColumns: ['id']
+					},
+				]
+			}
+			user_rankings: {
+				Row: {
+					created_at: string | null
+					description: string | null
+					id: string
+					is_public: boolean | null
+					name: string
+					updated_at: string | null
+					user_id: string
+				}
+				Insert: {
+					created_at?: string | null
+					description?: string | null
+					id?: string
+					is_public?: boolean | null
+					name: string
+					updated_at?: string | null
+					user_id: string
+				}
+				Update: {
+					created_at?: string | null
+					description?: string | null
+					id?: string
+					is_public?: boolean | null
+					name?: string
+					updated_at?: string | null
+					user_id?: string
+				}
+				Relationships: [
+					{
+						foreignKeyName: 'user_rankings_user_id_fkey'
+						columns: ['user_id']
+						isOneToOne: false
+						referencedRelation: 'users'
+						referencedColumns: ['id']
+					},
+				]
+			}
 			users: {
 				Row: {
 					created_at: string
@@ -762,6 +839,12 @@ export type Database = {
 					total_releases: number
 				}[]
 			}
+			get_music_ids_by_styles: {
+				Args: { style_filters: string[] }
+				Returns: {
+					music_id: string
+				}[]
+			}
 			get_musics_temporal_stats_with_fallback: {
 				Args: {
 					filter_month?: number
@@ -772,6 +855,34 @@ export type Database = {
 					count_value: number
 					period_date: string
 					period_label: string
+				}[]
+			}
+			get_paginated_musics_by_styles: {
+				Args: {
+					is_mv?: boolean
+					order_column?: string
+					order_dir?: string
+					page_limit?: number
+					page_offset?: number
+					search_term?: string
+					style_filters: string[]
+					year_filters?: number[]
+				}
+				Returns: {
+					created_at: string
+					date: string
+					description: string
+					duration: number
+					id: string
+					id_youtube_music: string
+					ismv: boolean
+					name: string
+					release_year: number
+					thumbnails: Json
+					total_count: number
+					type: Database['public']['Enums']['music_type']
+					updated_at: string
+					verified: boolean
 				}[]
 			}
 			get_random_music_ids: {
@@ -962,6 +1073,14 @@ export type Database = {
 				Returns: boolean
 			}
 			is_supabase_or_firebase_project_jwt: { Args: never; Returns: boolean }
+			reorder_ranking_items_after_delete: {
+				Args: { p_deleted_position: number; p_ranking_id: string }
+				Returns: undefined
+			}
+			reorder_ranking_items_atomic: {
+				Args: { p_items: Json; p_ranking_id: string }
+				Returns: undefined
+			}
 			search_artists_fulltext: {
 				Args: {
 					artist_type?: string
@@ -1059,10 +1178,8 @@ export type Tables<
 		}
 		? R
 		: never
-	: DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema['Tables'] &
-				DefaultSchema['Views'])
-		? (DefaultSchema['Tables'] &
-				DefaultSchema['Views'])[DefaultSchemaTableNameOrOptions] extends {
+	: DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
+		? (DefaultSchema['Tables'] & DefaultSchema['Views'])[DefaultSchemaTableNameOrOptions] extends {
 				Row: infer R
 			}
 			? R
