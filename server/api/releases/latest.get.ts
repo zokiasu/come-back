@@ -6,7 +6,7 @@ export default defineEventHandler(async (event) => {
 
 	const supabase = useServerSupabase()
 	const query = getQuery(event)
-	const limit = parseInt((query.limit as string) || '8', 10)
+	const limit = validateLimitParam(Number(query.limit), 8)
 
 	const { data, error } = await supabase
 		.from('releases')
