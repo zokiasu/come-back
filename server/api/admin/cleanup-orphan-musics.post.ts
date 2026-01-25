@@ -69,6 +69,9 @@ export default defineEventHandler(async (event) => {
 			}
 		}
 
+		// Track partial errors
+		const partialErrors: { table: string; error: string }[] = []
+
 		// Supprimer les relations music_artists
 		const { error: deleteArtistsError } = await supabase
 			.from('music_artists')
@@ -77,6 +80,7 @@ export default defineEventHandler(async (event) => {
 
 		if (deleteArtistsError) {
 			console.error('Erreur suppression music_artists:', deleteArtistsError)
+			partialErrors.push({ table: 'music_artists', error: deleteArtistsError.message })
 		}
 
 		// Supprimer les musiques orphelines
@@ -89,6 +93,7 @@ export default defineEventHandler(async (event) => {
 			throw createError({
 				statusCode: 500,
 				statusMessage: 'Erreur lors de la suppression des musiques',
+				data: { partialErrors },
 			})
 		}
 
@@ -101,6 +106,7 @@ export default defineEventHandler(async (event) => {
 				orphanMusics: orphanMusics.length,
 				deleted: orphanIds.length,
 			},
+			partialErrors: partialErrors.length > 0 ? partialErrors : undefined,
 		}
 	} catch (error) {
 		if (isH3Error(error)) {

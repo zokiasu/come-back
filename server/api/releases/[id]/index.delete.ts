@@ -34,6 +34,9 @@ export default defineEventHandler(async (event) => {
 
 		const musicIds = musicRelations?.map((r) => r.music_id) || []
 
+		// Track errors for reporting
+		const deletionErrors: { table: string; error: string }[] = []
+
 		// Supprimer les relations avec les artistes
 		const { error: artistRelError } = await supabase
 			.from('artist_releases')
@@ -42,6 +45,7 @@ export default defineEventHandler(async (event) => {
 
 		if (artistRelError) {
 			console.error('Error deleting artist_releases:', artistRelError)
+			deletionErrors.push({ table: 'artist_releases', error: artistRelError.message })
 		}
 
 		// Supprimer les relations avec les musiques
@@ -52,6 +56,7 @@ export default defineEventHandler(async (event) => {
 
 		if (musicRelError) {
 			console.error('Error deleting music_releases:', musicRelError)
+			deletionErrors.push({ table: 'music_releases', error: musicRelError.message })
 		}
 
 		// Supprimer les liens de plateforme
@@ -62,6 +67,7 @@ export default defineEventHandler(async (event) => {
 
 		if (platformLinksError) {
 			console.error('Error deleting release_platform_links:', platformLinksError)
+			deletionErrors.push({ table: 'release_platform_links', error: platformLinksError.message })
 		}
 
 		// Supprimer les musiques orphelines (non liées à d'autres releases)
@@ -79,10 +85,15 @@ export default defineEventHandler(async (event) => {
 
 			if (orphanMusicIds.length > 0) {
 				// Supprimer les relations music_artists des musiques orphelines
-				await supabase
+				const { error: musicArtistsError } = await supabase
 					.from('music_artists')
 					.delete()
 					.in('music_id', orphanMusicIds)
+
+				if (musicArtistsError) {
+					console.error('Error deleting music_artists:', musicArtistsError)
+					deletionErrors.push({ table: 'music_artists', error: musicArtistsError.message })
+				}
 
 				// Supprimer les musiques orphelines
 				const { error: deleteMusicsError } = await supabase
@@ -92,6 +103,7 @@ export default defineEventHandler(async (event) => {
 
 				if (deleteMusicsError) {
 					console.error('Error deleting orphan musics:', deleteMusicsError)
+					deletionErrors.push({ table: 'musics', error: deleteMusicsError.message })
 				}
 			}
 		}
@@ -106,7 +118,11 @@ export default defineEventHandler(async (event) => {
 			throw deleteError
 		}
 
-		return { success: true }
+		// Return success with any partial errors reported
+		return {
+			success: true,
+			partialErrors: deletionErrors.length > 0 ? deletionErrors : undefined,
+		}
 	} catch (error) {
 		if (isH3Error(error)) {
 			throw error
