@@ -1,97 +1,110 @@
-# 🎵 Comeback
+# Comeback
 
-## 📋 Description
+Plateforme française de suivi des sorties musicales K-pop et artistes asiatiques.
 
-**Comeback** est une application web dédiée à la musique, construite avec des technologies modernes. Elle permet de gérer des artistes, des sorties musicales, et offre une expérience utilisateur complète avec authentification et gestion des données.
+## Technologies
 
-## 🛠️ Technologies utilisées
+- **Frontend**: Nuxt 3, Vue 3, TypeScript, Tailwind CSS 4, Nuxt UI
+- **Backend**: Nitro (serveur Nuxt), Supabase (PostgreSQL, Auth, Storage)
+- **State**: Pinia avec persistance localStorage
 
-VueJS 3 - NuxtJS 3 - Pinia - TailwindCSS - Supabase (Database, Auth, Storage)
+## Fonctionnalités
 
-## ⚙️ Fonctionnalités principales
+### Artistes
 
-### 🎤 Gestion des artistes
+- Gestion complète (CRUD) avec liens sociaux et plateformes
+- Relations entre artistes (groupes, membres, sous-unités)
+- Recherche full-text avec Supabase
+- Associations avec labels/agences
 
-- **Création d'artistes** : Ajouter de nouveaux artistes avec leurs informations détaillées.
-- **Recherche d'artistes** : Utilisation de Supabase full-text search pour une recherche rapide et pertinente.
-- **Profils d'artistes** : Pages dédiées avec informations complètes et liens sociaux.
+### Releases & Musiques
 
-### 🎵 Gestion des sorties musicales
+- Suivi des sorties (albums, singles, EPs)
+- Import de playlists YouTube avec métadonnées automatiques
+- Calendrier des sorties par mois
+- Lecteur YouTube intégré avec playlist
 
-- **Ajout de nouvelles sorties** : Interface intuitive pour créer des entrées de musique.
-- **Intégration YouTube** : Récupération automatique des métadonnées via l'API YouTube.
-- **Gestion des playlists** : Importation de playlists YouTube complètes.
-- **Stockage des données** : Toutes les informations sont sauvegardées dans Supabase.
+### Rankings
 
-### 🔐 Authentification et sécurité
+- Création de classements musicaux personnalisés
+- Partage public des rankings
+- Exploration des rankings de la communauté
 
-- **Authentification Google** : Connexion sécurisée via Supabase Auth.
-- **Gestion des rôles** : Système de permissions avec rôles utilisateur et administrateur.
-- **Middleware de protection** : Routes protégées selon les permissions.
+### Authentification
 
-## 📦 Installation et utilisation
+- OAuth Google via Supabase Auth
+- Rôles : `USER`, `CONTRIBUTOR`, `ADMIN`
+- Middleware de protection des routes
 
-### Prérequis
-
-- Node.js (version 18 ou supérieure)
-- npm ou yarn
-- Compte Supabase
-- Clé API YouTube Data v3 (optionnel, pour l'intégration YouTube)
-
-### Installation
+## Installation
 
 ```bash
-# Cloner le repository
-git clone https://github.com/votre-username/comeback-nuxt3.git
-
-# Installer les dépendances
+# Prérequis: Node.js 18+
 npm install
 
-# Configurer les variables d'environnement
+# Variables d'environnement
 cp .env.example .env.local
-# Remplir les variables Supabase et API keys
 
-# Lancer en mode développement
+# Développement
 npm run dev
-```
 
-### Variables d'environnement requises
-
-```bash
-# Supabase
-SUPABASE_URL=your_supabase_project_url
-SUPABASE_ANON_KEY=your_supabase_anon_key
-
-# YouTube API (optionnel)
-YOUTUBE_API_KEY=your_youtube_api_key
-
-```
-
-## 🚀 Déploiement
-
-L'application est optimisée pour Vercel et peut être déployée facilement :
-
-```bash
+# Production
 npm run build
 ```
 
-## 📁 Structure du projet
+## Variables d'Environnement
 
-```
-├── components/          # Composants Vue réutilisables
-├── composables/         # Composables Vue/Nuxt
-├── middleware/          # Middleware de routage
-├── pages/              # Pages de l'application
-├── stores/             # Stores Pinia
-├── types/              # Types TypeScript
-├── public/             # Assets statiques
-└── nuxt.config.ts      # Configuration Nuxt
+```bash
+SUPABASE_URL=           # URL du projet Supabase
+SUPABASE_KEY=           # Clé anon Supabase
+SUPABASE_SECRET_KEY=    # Clé service role (server-side)
+YOUTUBE_API_KEY=        # API YouTube Data v3
 ```
 
-## 🤝 Contribution
+## Structure
 
-Les contributions sont les bienvenues ! N'hésitez pas à ouvrir des issues ou proposer des pull requests.
+```
+app/
+├── components/       # Composants Vue (Card/, Modal/, Form/, Icon/)
+├── composables/      # Logique réutilisable
+│   ├── Supabase/    # Opérations DB (useSupabase[Table].ts)
+│   └── auth/        # Authentification
+├── pages/           # Routes (file-based routing)
+├── middleware/      # Guards (auth.ts, admin.ts)
+├── stores/          # Pinia (user.ts)
+└── types/           # TypeScript (supabase.ts généré)
 
-## 📄 Licence
+server/
+├── api/             # Endpoints Nitro
+│   ├── admin/       # Endpoints admin protégés
+│   ├── artists/     # /api/artists/*
+│   ├── releases/    # /api/releases/*
+│   └── musics/      # /api/musics/*
+└── utils/
+    ├── supabase.ts  # Client Supabase (service role)
+    ├── auth.ts      # Helpers auth (requireAdmin, requireAuth)
+    └── validation.ts # Validation des inputs
+```
 
-Ce projet est sous licence MIT.
+## Scripts
+
+```bash
+npm run dev          # Serveur de développement
+npm run build        # Build production
+npm run lint:fix     # ESLint + Prettier
+npm run format       # Prettier uniquement
+```
+
+## Stratégie de Rendu
+
+| Route | Mode | Cache |
+|-------|------|-------|
+| `/` | ISR | 1h |
+| `/calendar` | SSG | 24h |
+| `/dashboard/*` | SPA | - |
+| `/api/releases/latest` | API | 1h |
+| `/api/calendar/releases` | API | 24h |
+
+## Licence
+
+MIT
