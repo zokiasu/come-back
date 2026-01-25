@@ -36,7 +36,11 @@
       "mcp__supabase__search_docs",
       "Bash(tree:*)",
       "Bash(git log:*)",
-      "Bash(npx tsx:*)"
+      "Bash(npx tsx:*)",
+      "Bash(for f in app/pages/**/*.vue)",
+      "Bash(do wc -l \"$f\")",
+      "Bash(done)",
+      "Bash(xargs:*)"
     ],
     "deny": []
   },
