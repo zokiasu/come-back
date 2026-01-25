@@ -30,3 +30,5 @@ logs
 service-account.json
 
 .well-known
+
+.claude/
