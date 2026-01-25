@@ -1,7 +1,8 @@
 export default defineEventHandler(async (event) => {
-	const supabase = useServerSupabase()
+	// Verify admin authentication
+	await requireAdmin(event)
 
-	// Vérifier que l'utilisateur est admin (optionnel mais recommandé)
+	const supabase = useServerSupabase()
 	const query = getQuery(event)
 	const dryRun = query.dryRun === 'true'
 

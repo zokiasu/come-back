@@ -1,6 +1,8 @@
 export default defineEventHandler(async (event) => {
-	const supabase = useServerSupabase()
+	// Verify admin authentication
+	await requireAdmin(event)
 
+	const supabase = useServerSupabase()
 	const releaseId = getRouterParam(event, 'id')
 	if (!releaseId) {
 		throw createError({
