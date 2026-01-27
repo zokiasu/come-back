@@ -12,6 +12,7 @@
 
 	// Timestamp pour forcer le refresh
 	const refreshTimestamp = ref(Date.now())
+	const musicsTimestamp = ref(Date.now())
 
 	// SSR-compatible data fetching avec useFetch + refresh pour temps réel
 	const { data: comebacks, pending: newsFetching, refresh: refreshNews } = await useFetch(() => `/api/news/latest?_t=${refreshTimestamp.value}`, {
@@ -53,11 +54,11 @@
 	const {
 		data: musics,
 		pending: musicsFetching,
-		refresh: refreshMusics,
-	} = await useFetch('/api/musics/random', {
+	} = await useFetch(() => `/api/musics/random?_t=${musicsTimestamp.value}`, {
 		default: () => [],
 		server: false,
 		query: { limit: 4 },
+		watch: [musicsTimestamp],
 		transform: (data: any[]) =>
 			data.sort(
 				(a, b) => new Date(b.date || '').getTime() - new Date(a.date || '').getTime(),
@@ -83,8 +84,8 @@
 		})
 	})
 
-	const reloadDiscoverMusic = async () => {
-		await refreshMusics()
+	const reloadDiscoverMusic = () => {
+		musicsTimestamp.value = Date.now()
 	}
 
 	// 🔄 Temps réel - Écoute les changements en base après hydratation
@@ -281,7 +282,7 @@
 					<SkeletonDefault
 						v-for="i in 7"
 						:key="i"
-						class="aspect-video w-20 flex-shrink-0 rounded-lg md:w-24"
+						class="aspect-video w-20 shrink-0 rounded-lg md:w-24"
 					/>
 				</div>
 			</div>

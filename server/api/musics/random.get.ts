@@ -11,10 +11,17 @@ export default defineEventHandler(async (event) => {
 		// Évite les jointures complexes qui causent des timeouts
 
 		// 1. Obtenir un count estimé (très rapide)
+		// Exclure les instrumentales, sped up et versions live (basé sur le nom)
 		const { count } = await supabase
 			.from('musics')
 			.select('*', { count: 'estimated', head: true })
 			.not('id_youtube_music', 'is', null)
+			.not('name', 'ilike', '%Inst.%')
+			.not('name', 'ilike', '%Instrumental%')
+			.not('name', 'ilike', '%Sped Up%')
+			.not('name', 'ilike', '%(live)%')
+			.not('name', 'ilike', '%[live]%')
+			.not('name', 'ilike', '% - Live%')
 
 		if (!count || count === 0) {
 			return []
@@ -25,6 +32,7 @@ export default defineEventHandler(async (event) => {
 		const randomOffset = Math.floor(Math.random() * maxOffset)
 
 		// 3. Une seule requête avec jointures légères (artistes et releases)
+		// Appliquer les mêmes filtres que pour le count
 		const { data, error } = await supabase
 			.from('musics')
 			.select(
@@ -45,6 +53,12 @@ export default defineEventHandler(async (event) => {
 			`,
 			)
 			.not('id_youtube_music', 'is', null)
+			.not('name', 'ilike', '%Inst.%')
+			.not('name', 'ilike', '%Instrumental%')
+			.not('name', 'ilike', '%Sped Up%')
+			.not('name', 'ilike', '%(live)%')
+			.not('name', 'ilike', '%[live]%')
+			.not('name', 'ilike', '% - Live%')
 			.range(randomOffset, randomOffset + limit * 3 - 1)
 			.order('date', { ascending: false })
 
