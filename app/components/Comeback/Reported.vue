@@ -10,7 +10,7 @@
 	})
 
 	const displayAll = ref(false)
-	const maxDisplay = ref(12)
+	const maxDisplay = ref(9)
 
 	const comebackToDisplay = computed(() => {
 		return displayAll.value

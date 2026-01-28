@@ -92,7 +92,17 @@
 	onMounted(() => {
 		const supabase = useSupabaseClient()
 
-		// Channel pour les news/comebacks
+		// Fonction de refresh des news
+		const refreshNewsData = async () => {
+			try {
+				const freshData = await $fetch(`/api/news/latest?_t=${Date.now()}`)
+				comebacks.value = freshData // Pas besoin de tri, déjà triées par l'API
+			} catch (error) {
+				console.error('Error refreshing news:', error)
+			}
+		}
+
+		// Channel pour les news/comebacks (écoute aussi la table de jonction pour les artistes)
 		const newsChannel = supabase
 			.channel('news-realtime')
 			.on('postgres_changes',
@@ -101,15 +111,15 @@
 					schema: 'public',
 					table: 'news'
 				},
-				async (payload) => {
-					// Force un refresh direct avec $fetch (bypass du cache useFetch)
-					try {
-						const freshData = await $fetch('/api/news/latest')
-						comebacks.value = freshData // Pas besoin de tri, déjà triées par l'API
-					} catch (error) {
-						console.error('Error refreshing news:', error)
-					}
-				}
+				refreshNewsData
+			)
+			.on('postgres_changes',
+				{
+					event: 'INSERT',
+					schema: 'public',
+					table: 'news_artists_junction'
+				},
+				refreshNewsData
 			)
 			.subscribe()
 
