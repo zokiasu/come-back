@@ -1,6 +1,15 @@
-import type { Tables } from '~/server/types/api'
+import type { Tables } from '#server/types/api'
+import {
+	applyMusicFilters,
+	applyMusicNameExclusions,
+	applyVerifiedArtistFilter,
+} from '#server/utils/queryFilters'
 
 const ALLOWED_ORDER_COLUMNS = ['date', 'name', 'created_at', 'release_year'] as const
+type MusicWithRelations = Tables<'musics'> & {
+	artists?: Array<{ artist: Tables<'artists'> | null }>
+	releases?: Array<{ release: Tables<'releases'> | null }>
+}
 
 export default defineEventHandler(async (event) => {
 	const supabase = useServerSupabase()
@@ -34,9 +43,9 @@ export default defineEventHandler(async (event) => {
 				'get_paginated_musics_by_styles',
 				{
 					style_filters: styles,
-					search_term: search || null,
-					year_filters: years || null,
-					is_mv: ismv ?? null,
+					search_term: search || undefined,
+					year_filters: years || undefined,
+					is_mv: ismv ?? undefined,
 					order_column: orderBy,
 					order_dir: orderDirection,
 					page_limit: limit,
@@ -53,9 +62,9 @@ export default defineEventHandler(async (event) => {
 			const total = rpcData?.[0]?.total_count || 0
 
 			// Fetch full music data with relations for the filtered IDs
-			let musicsWithRelations: Tables<'musics'>[] = []
+			let musicsWithRelations: MusicWithRelations[] = []
 			if (musicIds.length > 0) {
-				const { data: fullData, error: fullError } = await supabase
+				let dataQuery = supabase
 					.from('musics')
 					.select(
 						`
@@ -68,8 +77,8 @@ export default defineEventHandler(async (event) => {
 						)
 					`,
 					)
-					.eq('artists.artist.verified', true)
-					.in('id', musicIds)
+				dataQuery = applyVerifiedArtistFilter(dataQuery)
+				const { data: fullData, error: fullError } = await dataQuery.in('id', musicIds)
 
 				if (fullError) throw fullError
 
@@ -82,8 +91,8 @@ export default defineEventHandler(async (event) => {
 
 			const transformedData = musicsWithRelations.map((music) => ({
 				...music,
-				artists: transformJunction<Tables<'artists'>>(music.artists, 'artist'),
-				releases: transformJunction<Tables<'releases'>>(music.releases, 'release'),
+				artists: transformJunction(music.artists, 'artist'),
+				releases: transformJunction(music.releases, 'release'),
 			}))
 
 			const totalPages = Math.ceil(Number(total) / limit)
@@ -129,7 +138,8 @@ export default defineEventHandler(async (event) => {
 				)
 			`,
 			)
-			.eq('artists.artist.verified', true)
+		dataQuery = applyVerifiedArtistFilter(dataQuery)
+		countQuery = applyVerifiedArtistFilter(countQuery)
 
 		// Apply artist filter if specified
 		if (musicIdsToFilter !== undefined) {
@@ -144,35 +154,12 @@ export default defineEventHandler(async (event) => {
 		}
 
 		// Apply filters to both queries
-		if (search) {
-			countQuery = countQuery.ilike('name', `%${search}%`)
-			dataQuery = dataQuery.ilike('name', `%${search}%`)
-		}
-
-		if (years && years.length > 0) {
-			countQuery = countQuery.in('release_year', years)
-			dataQuery = dataQuery.in('release_year', years)
-		}
-
-		if (ismv !== undefined) {
-			countQuery = countQuery.eq('ismv', ismv)
-			dataQuery = dataQuery.eq('ismv', ismv)
-		}
+		countQuery = applyMusicFilters(countQuery, { search, years, ismv })
+		dataQuery = applyMusicFilters(dataQuery, { search, years, ismv })
 
 		// Exclude instrumental, sped up, and live versions
-		countQuery = countQuery.not('name', 'ilike', '%Inst.%')
-		countQuery = countQuery.not('name', 'ilike', '%Instrumental%')
-		countQuery = countQuery.not('name', 'ilike', '%Sped Up%')
-		countQuery = countQuery.not('name', 'ilike', '%(live)%')
-		countQuery = countQuery.not('name', 'ilike', '%[live]%')
-		countQuery = countQuery.not('name', 'ilike', '% - Live%')
-
-		dataQuery = dataQuery.not('name', 'ilike', '%Inst.%')
-		dataQuery = dataQuery.not('name', 'ilike', '%Instrumental%')
-		dataQuery = dataQuery.not('name', 'ilike', '%Sped Up%')
-		dataQuery = dataQuery.not('name', 'ilike', '%(live)%')
-		dataQuery = dataQuery.not('name', 'ilike', '%[live]%')
-		dataQuery = dataQuery.not('name', 'ilike', '% - Live%')
+		countQuery = applyMusicNameExclusions(countQuery)
+		dataQuery = applyMusicNameExclusions(dataQuery)
 
 		// Apply sorting only to data query
 		dataQuery = dataQuery.order(orderBy, { ascending: orderDirection === 'asc' })
@@ -190,8 +177,8 @@ export default defineEventHandler(async (event) => {
 		// Transform data to extract junction relations
 		const transformedData = (dataResult.data || []).map((music) => ({
 			...music,
-			artists: transformJunction<Tables<'artists'>>(music.artists, 'artist'),
-			releases: transformJunction<Tables<'releases'>>(music.releases, 'release'),
+			artists: transformJunction(music.artists, 'artist'),
+			releases: transformJunction(music.releases, 'release'),
 		}))
 
 		const total = countResult.count || 0
@@ -216,3 +203,4 @@ export default defineEventHandler(async (event) => {
 		throw createInternalError('Failed to fetch paginated musics', error)
 	}
 })
+
