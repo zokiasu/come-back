@@ -1,4 +1,4 @@
-<template>
+r<template>
 	<UApp>
 		<NuxtLayout>
 			<NuxtLoadingIndicator color="#9E0102" />
