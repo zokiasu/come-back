@@ -12,22 +12,31 @@ export default defineEventHandler(async (event) => {
 		const limit = validateLimitParam(Number(query.limit), 24)
 		const search = validateSearchParam(query.search as string | undefined)
 		const type = query.type as string | undefined
-		const orderBy = validateOrderBy(query.orderBy as string, ALLOWED_ORDER_COLUMNS, 'date')
+		const orderBy = validateOrderBy(
+			query.orderBy as string,
+			ALLOWED_ORDER_COLUMNS,
+			'date',
+		)
 		const orderDirection = validateOrderDirection(query.orderDirection as string, 'desc')
-		const artistIds = validateArrayParam(query.artistIds as string | undefined, 'artistIds')
-		const verified = query.verified !== undefined
-			? query.verified === 'true'
-			: undefined
+		const artistIds = validateArrayParam(
+			query.artistIds as string | undefined,
+			'artistIds',
+		)
+		const verified = query.verified !== undefined ? query.verified === 'true' : undefined
 
 		// Calculate offset
 		const offset = (page - 1) * limit
 
 		// Build base query for count
-		let countQuery = supabase.from('releases').select('id', { count: 'exact', head: true })
+		let countQuery = supabase
+			.from('releases')
+			.select('id', { count: 'exact', head: true })
 
 		// Build base query for data
-		let dataQuery = supabase.from('releases').select(
-			`
+		let dataQuery = supabase
+			.from('releases')
+			.select(
+				`
 				*,
 				artists:artist_releases(
 					artist:artists(*)
@@ -37,8 +46,8 @@ export default defineEventHandler(async (event) => {
 				),
 				platform_links:release_platform_links(*)
 			`,
-		)
-		.eq('artists.artist.verified', true)
+			)
+			.eq('artists.artist.verified', true)
 
 		// If filtering by artists, use inner join
 		if (artistIds && artistIds.length > 0) {

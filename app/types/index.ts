@@ -242,13 +242,17 @@ export interface PaginatedResponse<T> {
 	totalPages: number
 }
 
-export interface PaginatedReleaseResponse
-	extends Omit<PaginatedResponse<ReleaseWithRelations>, 'items'> {
+export interface PaginatedReleaseResponse extends Omit<
+	PaginatedResponse<ReleaseWithRelations>,
+	'items'
+> {
 	releases: ReleaseWithRelations[]
 }
 
-export interface PaginatedArtistResponse
-	extends Omit<PaginatedResponse<Artist>, 'items'> {
+export interface PaginatedArtistResponse extends Omit<
+	PaginatedResponse<Artist>,
+	'items'
+> {
 	artists: Artist[]
 }
 
@@ -256,8 +260,10 @@ export interface PaginatedMusicResponse extends Omit<PaginatedResponse<Music>, '
 	musics: Music[]
 }
 
-export interface PaginatedCompanyResponse
-	extends Omit<PaginatedResponse<Company>, 'items'> {
+export interface PaginatedCompanyResponse extends Omit<
+	PaginatedResponse<Company>,
+	'items'
+> {
 	companies: Company[]
 }
 

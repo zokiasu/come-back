@@ -6,7 +6,12 @@
 	import { CalendarDate } from '@internationalized/date'
 
 	const toast = useToast()
-	const { getAllNews, deleteNews: deleteNewsFunction, updateNews, updateNewsArtistsRelations } = useSupabaseNews()
+	const {
+		getAllNews,
+		deleteNews: deleteNewsFunction,
+		updateNews,
+		updateNewsArtistsRelations,
+	} = useSupabaseNews()
 	const { searchArtistsFullText } = useSupabaseSearch()
 
 	// Data state
@@ -52,7 +57,9 @@
 	const isUpdating = ref(false)
 	const editNewsDate = ref<Date | null>(null)
 	const editNewsMessage = ref('')
-	const artistListSelected = ref<{ id: string; name: string; picture: string | null }[]>([])
+	const artistListSelected = ref<{ id: string; name: string; picture: string | null }[]>(
+		[],
+	)
 	const searchArtist = ref('')
 	const artistListSearched = ref<Artist[]>([])
 
@@ -190,7 +197,6 @@
 		currentPage.value = 1
 		fetchNews()
 	}
-
 
 	// Edit modal functions
 	const openEditModal = (news: News) => {
@@ -460,7 +466,11 @@
 						Artiste(s)
 						<UIcon
 							v-if="sortColumn === 'artist'"
-							:name="sortDirection === 'asc' ? 'i-heroicons-chevron-up' : 'i-heroicons-chevron-down'"
+							:name="
+								sortDirection === 'asc'
+									? 'i-heroicons-chevron-up'
+									: 'i-heroicons-chevron-down'
+							"
 							class="size-4"
 						/>
 					</button>
@@ -499,7 +509,11 @@
 						Date
 						<UIcon
 							v-if="sortColumn === 'date'"
-							:name="sortDirection === 'asc' ? 'i-heroicons-chevron-up' : 'i-heroicons-chevron-down'"
+							:name="
+								sortDirection === 'asc'
+									? 'i-heroicons-chevron-up'
+									: 'i-heroicons-chevron-down'
+							"
 							class="size-4"
 						/>
 					</button>
@@ -561,7 +575,10 @@
 				<!-- Empty state -->
 				<template #empty>
 					<div class="text-cb-tertiary-500 py-10 text-center">
-						<UIcon name="i-heroicons-document-magnifying-glass" class="mx-auto size-12 opacity-50" />
+						<UIcon
+							name="i-heroicons-document-magnifying-glass"
+							class="mx-auto size-12 opacity-50"
+						/>
 						<p class="mt-2">Aucune news trouvée</p>
 					</div>
 				</template>
@@ -691,7 +708,10 @@
 			<template #content>
 				<div class="bg-cb-secondary-950 space-y-5 p-6">
 					<div class="text-center">
-						<UIcon name="i-heroicons-exclamation-triangle" class="mx-auto size-12 text-red-500" />
+						<UIcon
+							name="i-heroicons-exclamation-triangle"
+							class="mx-auto size-12 text-red-500"
+						/>
 						<h3 class="mt-4 text-lg font-bold">Confirmer la suppression</h3>
 						<p class="text-cb-tertiary-400 mt-2 text-sm">
 							Cette action est irréversible. La news sera définitivement supprimée.

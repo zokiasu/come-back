@@ -11,12 +11,16 @@
 	const route = useRoute()
 
 	// SSR-compatible data fetching avec API complète
-	const { data: companyData, pending: isFetchingCompany, error: fetchError } = await useFetch(`/api/companies/${route.params.id}/complete`, {
+	const {
+		data: companyData,
+		pending: isFetchingCompany,
+		error: fetchError,
+	} = await useFetch(`/api/companies/${route.params.id}/complete`, {
 		server: true,
 		default: () => ({
 			company: null,
-			company_artists: []
-		})
+			company_artists: [],
+		}),
 	})
 
 	// Réactivité des données

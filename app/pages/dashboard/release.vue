@@ -118,7 +118,8 @@
 			orderBy: sortColumn.value,
 			orderDirection: sortDirection.value,
 			artistIds: selectedArtists.value.length > 0 ? selectedArtists.value : undefined,
-			verified: verifiedFilter.value === 'all' ? undefined : verifiedFilter.value === 'verified',
+			verified:
+				verifiedFilter.value === 'all' ? undefined : verifiedFilter.value === 'verified',
 		}
 
 		console.log('🔍 fetchReleases appelé avec:', {
@@ -136,7 +137,11 @@
 		})
 
 		try {
-			const result = await getReleasesByPage(currentPage.value, pageSizeValue.value, filters)
+			const result = await getReleasesByPage(
+				currentPage.value,
+				pageSizeValue.value,
+				filters,
+			)
 
 			releasesList.value = result.releases
 			totalReleases.value = result.total
@@ -273,12 +278,22 @@
 		debouncedFetch()
 	})
 
-	watch([typeFilter, verifiedFilter, selectedArtists, sortColumn, sortDirection, pageSizeValue], async () => {
-		isFilterChange.value = true
-		currentPage.value = 1
-		await nextTick()
-		fetchReleases()
-	})
+	watch(
+		[
+			typeFilter,
+			verifiedFilter,
+			selectedArtists,
+			sortColumn,
+			sortDirection,
+			pageSizeValue,
+		],
+		async () => {
+			isFilterChange.value = true
+			currentPage.value = 1
+			await nextTick()
+			fetchReleases()
+		},
+	)
 
 	// Watch page changes from pagination
 	watch(currentPage, () => {
@@ -345,7 +360,10 @@
 					<p class="text-lg font-bold text-amber-400">{{ stats.eps }}</p>
 					<p class="text-xs text-amber-400/70">EPs</p>
 				</div>
-				<div v-if="stats.pending > 0" class="rounded-lg bg-red-900/30 px-3 py-1.5 text-center">
+				<div
+					v-if="stats.pending > 0"
+					class="rounded-lg bg-red-900/30 px-3 py-1.5 text-center"
+				>
 					<p class="text-lg font-bold text-red-400">{{ stats.pending }}</p>
 					<p class="text-xs text-red-400/70">À vérifier</p>
 				</div>
@@ -389,7 +407,11 @@
 						:ui="{ base: 'bg-cb-quinary-900' }"
 					/>
 					<UButton
-						:icon="sortDirection === 'asc' ? 'i-heroicons-bars-arrow-up' : 'i-heroicons-bars-arrow-down'"
+						:icon="
+							sortDirection === 'asc'
+								? 'i-heroicons-bars-arrow-up'
+								: 'i-heroicons-bars-arrow-down'
+						"
 						color="neutral"
 						variant="ghost"
 						@click="toggleSortDirection"
@@ -449,7 +471,10 @@
 
 			<!-- Empty state -->
 			<div v-else-if="!isLoading && releasesList.length === 0" class="py-16 text-center">
-				<UIcon name="i-heroicons-musical-note" class="text-cb-tertiary-500 mx-auto size-16 opacity-50" />
+				<UIcon
+					name="i-heroicons-musical-note"
+					class="text-cb-tertiary-500 mx-auto size-16 opacity-50"
+				/>
 				<p class="text-cb-tertiary-500 mt-4">Aucune release trouvée</p>
 			</div>
 
@@ -470,8 +495,14 @@
 							format="webp"
 							class="size-16 rounded-lg object-cover"
 						/>
-						<div v-else class="bg-cb-quinary-900 flex size-16 items-center justify-center rounded-lg">
-							<UIcon name="i-heroicons-musical-note" class="text-cb-tertiary-500 size-8" />
+						<div
+							v-else
+							class="bg-cb-quinary-900 flex size-16 items-center justify-center rounded-lg"
+						>
+							<UIcon
+								name="i-heroicons-musical-note"
+								class="text-cb-tertiary-500 size-8"
+							/>
 						</div>
 					</NuxtLink>
 
@@ -490,7 +521,12 @@
 							<UBadge v-if="!release.verified" color="error" variant="subtle" size="xs">
 								Non vérifié
 							</UBadge>
-							<UBadge v-if="hasYearMismatch(release)" color="warning" variant="subtle" size="xs">
+							<UBadge
+								v-if="hasYearMismatch(release)"
+								color="warning"
+								variant="subtle"
+								size="xs"
+							>
 								Année incorrecte
 							</UBadge>
 						</div>
@@ -507,13 +543,18 @@
 					</div>
 
 					<!-- Musics count -->
-					<div v-if="release.musics?.length" class="text-cb-tertiary-500 hidden text-center md:block">
+					<div
+						v-if="release.musics?.length"
+						class="text-cb-tertiary-500 hidden text-center md:block"
+					>
 						<p class="text-lg font-semibold">{{ release.musics.length }}</p>
 						<p class="text-xs">pistes</p>
 					</div>
 
 					<!-- Actions -->
-					<div class="flex shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+					<div
+						class="flex shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100"
+					>
 						<UButton
 							icon="i-heroicons-pencil-square"
 							color="neutral"
@@ -590,10 +631,14 @@
 			<template #content>
 				<div class="bg-cb-secondary-950 space-y-5 p-6">
 					<div class="text-center">
-						<UIcon name="i-heroicons-exclamation-triangle" class="mx-auto size-12 text-red-500" />
+						<UIcon
+							name="i-heroicons-exclamation-triangle"
+							class="mx-auto size-12 text-red-500"
+						/>
 						<h3 class="mt-4 text-lg font-bold">Confirmer la suppression</h3>
 						<p class="text-cb-tertiary-400 mt-2 text-sm">
-							Cette action est irréversible. La release et toutes ses associations seront supprimées.
+							Cette action est irréversible. La release et toutes ses associations seront
+							supprimées.
 						</p>
 					</div>
 					<div class="flex gap-3">

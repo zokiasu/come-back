@@ -18,7 +18,10 @@
 
 		<!-- Loading state -->
 		<div v-if="isLoading" class="flex items-center justify-center py-20">
-			<UIcon name="line-md:loading-twotone-loop" class="text-cb-primary-900 size-8 animate-spin" />
+			<UIcon
+				name="line-md:loading-twotone-loop"
+				class="text-cb-primary-900 size-8 animate-spin"
+			/>
 		</div>
 
 		<!-- Empty state -->
@@ -40,7 +43,10 @@
 		</div>
 
 		<!-- Rankings grid -->
-		<div v-else class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+		<div
+			v-else
+			class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+		>
 			<NuxtLink
 				v-for="ranking in rankings"
 				:key="ranking.id"
@@ -107,7 +113,7 @@
 
 				<!-- Actions (visible on hover) -->
 				<div
-					class="absolute right-2 top-2 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100"
+					class="absolute top-2 right-2 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100"
 				>
 					<UButton
 						icon="i-heroicons-pencil"
@@ -220,8 +226,8 @@
 				<div class="bg-cb-secondary-950 p-6">
 					<h2 class="mb-2 text-lg font-semibold">Supprimer le ranking</h2>
 					<p class="text-cb-tertiary-500 mb-4">
-						Êtes-vous sûr de vouloir supprimer "{{ deletingRanking?.name }}" ? Cette action
-						est irréversible.
+						Êtes-vous sûr de vouloir supprimer "{{ deletingRanking?.name }}" ? Cette
+						action est irréversible.
 					</p>
 					<div class="flex justify-end gap-2">
 						<UButton
@@ -302,7 +308,7 @@
 		isCreating.value = true
 		const created = await createRanking(
 			newRankingName.value.trim(),
-			newRankingDescription.value.trim() || undefined
+			newRankingDescription.value.trim() || undefined,
 		)
 		isCreating.value = false
 

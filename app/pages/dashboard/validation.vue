@@ -334,11 +334,7 @@
 							>
 								{{ artist.name }}
 							</NuxtLink>
-							<UBadge
-								:color="getTypeBadgeColor(artist.type)"
-								variant="subtle"
-								size="xs"
-							>
+							<UBadge :color="getTypeBadgeColor(artist.type)" variant="subtle" size="xs">
 								{{ artist.type || 'N/A' }}
 							</UBadge>
 							<UBadge
@@ -360,7 +356,10 @@
 						</p>
 
 						<!-- Styles -->
-						<div v-if="artist.styles && artist.styles.length" class="mt-1 flex flex-wrap gap-1">
+						<div
+							v-if="artist.styles && artist.styles.length"
+							class="mt-1 flex flex-wrap gap-1"
+						>
 							<span
 								v-for="style in artist.styles.slice(0, 3)"
 								:key="style"
@@ -375,7 +374,10 @@
 
 						<!-- Creator info -->
 						<div class="mt-1 flex items-center gap-1.5">
-							<UIcon name="i-heroicons-user-circle" class="text-cb-tertiary-500 size-3.5" />
+							<UIcon
+								name="i-heroicons-user-circle"
+								class="text-cb-tertiary-500 size-3.5"
+							/>
 							<span class="text-cb-tertiary-500 text-xs">
 								Ajouté par
 								<span class="text-cb-tertiary-300 font-medium">

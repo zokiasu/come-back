@@ -1,6 +1,5 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '~/types/supabase'
-import type { SupabaseClient } from '@supabase/supabase-js'
 
 /**
  * Singleton instance of the Supabase client
@@ -59,7 +58,7 @@ export const useServerSupabase = (): SupabaseClient<Database> => {
 				autoRefreshToken: false,
 				detectSessionInUrl: false,
 			},
-		}
+		},
 	)
 
 	return _supabaseClient

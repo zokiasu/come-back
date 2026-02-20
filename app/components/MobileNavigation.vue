@@ -12,10 +12,10 @@
 	try {
 		const userStore = useUserStore()
 		const storeRefs = storeToRefs(userStore)
-		userDataStore = storeRefs.userDataStore
-		isLoginStore = storeRefs.isLoginStore
-		isAdminStore = storeRefs.isAdminStore
-		isHydrated = storeRefs.isHydrated
+		userDataStore.value = storeRefs.userDataStore
+		isLoginStore.value = storeRefs.isLoginStore
+		isAdminStore.value = storeRefs.isAdminStore
+		isHydrated.value = storeRefs.isHydrated
 	} catch (error) {
 		console.warn('Store not available in mobile navigation:', error)
 	}

@@ -12,10 +12,17 @@ export default defineEventHandler(async (event) => {
 		const limit = validateLimitParam(Number(query.limit), 20)
 		const search = validateSearchParam(query.search as string | undefined)
 		const years = validateNumericArrayParam(query.years as string | undefined, 'years')
-		const orderBy = validateOrderBy(query.orderBy as string, ALLOWED_ORDER_COLUMNS, 'date')
+		const orderBy = validateOrderBy(
+			query.orderBy as string,
+			ALLOWED_ORDER_COLUMNS,
+			'date',
+		)
 		const orderDirection = validateOrderDirection(query.orderDirection as string, 'desc')
 		const ismv = query.ismv === 'true' ? true : query.ismv === 'false' ? false : undefined
-		const artistIds = validateArrayParam(query.artistIds as string | undefined, 'artistIds')
+		const artistIds = validateArrayParam(
+			query.artistIds as string | undefined,
+			'artistIds',
+		)
 		const styles = validateArrayParam(query.styles as string | undefined, 'styles')
 
 		// Calculate offset
@@ -109,8 +116,10 @@ export default defineEventHandler(async (event) => {
 		let countQuery = supabase.from('musics').select('id', { count: 'exact', head: true })
 
 		// Build base query for data
-		let dataQuery = supabase.from('musics').select(
-			`
+		let dataQuery = supabase
+			.from('musics')
+			.select(
+				`
 				*,
 				artists:music_artists(
 					artist:artists(*)
@@ -119,8 +128,8 @@ export default defineEventHandler(async (event) => {
 					release:releases(*)
 				)
 			`,
-		)
-		.eq('artists.artist.verified', true)
+			)
+			.eq('artists.artist.verified', true)
 
 		// Apply artist filter if specified
 		if (musicIdsToFilter !== undefined) {

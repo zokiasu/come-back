@@ -67,7 +67,10 @@ export default defineEventHandler(async (event) => {
 
 		if (platformLinksError) {
 			console.error('Error deleting release_platform_links:', platformLinksError)
-			deletionErrors.push({ table: 'release_platform_links', error: platformLinksError.message })
+			deletionErrors.push({
+				table: 'release_platform_links',
+				error: platformLinksError.message,
+			})
 		}
 
 		// Supprimer les musiques orphelines (non liées à d'autres releases)
@@ -92,7 +95,10 @@ export default defineEventHandler(async (event) => {
 
 				if (musicArtistsError) {
 					console.error('Error deleting music_artists:', musicArtistsError)
-					deletionErrors.push({ table: 'music_artists', error: musicArtistsError.message })
+					deletionErrors.push({
+						table: 'music_artists',
+						error: musicArtistsError.message,
+					})
 				}
 
 				// Supprimer les musiques orphelines

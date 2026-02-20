@@ -13,7 +13,11 @@
 
 		// Compare only the date part, not the time
 		const todayDateOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate())
-		const futureDateOnly = new Date(future.getFullYear(), future.getMonth(), future.getDate())
+		const futureDateOnly = new Date(
+			future.getFullYear(),
+			future.getMonth(),
+			future.getDate(),
+		)
 
 		const differenceInTime = futureDateOnly.getTime() - todayDateOnly.getTime()
 		const differenceInDays = differenceInTime / (1000 * 3600 * 24)
@@ -30,7 +34,11 @@
 
 		// Compare only the date part, not the time
 		const todayDateOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate())
-		const inputDateOnly = new Date(inputDate.getFullYear(), inputDate.getMonth(), inputDate.getDate())
+		const inputDateOnly = new Date(
+			inputDate.getFullYear(),
+			inputDate.getMonth(),
+			inputDate.getDate(),
+		)
 
 		return inputDateOnly.getTime() < todayDateOnly.getTime()
 	}
@@ -108,7 +116,7 @@
 		>
 			<p
 				v-if="!isDatePassed(new Date(props.date)) && !isSameDate(new Date(props.date))"
-				class="my-auto text-lg font-bold whitespace-nowrap lg:text-xl select-none"
+				class="my-auto text-lg font-bold whitespace-nowrap select-none lg:text-xl"
 				:title="formatDateForTooltip(props.date)"
 			>
 				D-{{ daysUntil(new Date(props.date)) }}

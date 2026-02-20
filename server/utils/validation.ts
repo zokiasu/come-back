@@ -49,7 +49,7 @@ export const validateSearchParam = (search: string | undefined): string | undefi
  */
 export const validateArrayParam = (
 	value: string | undefined,
-	paramName: string
+	paramName: string,
 ): string[] | undefined => {
 	if (!value) return undefined
 
@@ -80,7 +80,7 @@ export const validateNumericArrayParam = (
 	value: string | undefined,
 	paramName: string,
 	min: number = VALIDATION_LIMITS.MIN_YEAR,
-	max: number = VALIDATION_LIMITS.MAX_YEAR
+	max: number = VALIDATION_LIMITS.MAX_YEAR,
 ): number[] | undefined => {
 	if (!value) return undefined
 
@@ -126,13 +126,13 @@ export const validateNumericArrayParam = (
  */
 export const validateLimitParam = (
 	limit: number | undefined,
-	defaultLimit: number = 20
+	defaultLimit: number = 20,
 ): number => {
 	if (!limit || isNaN(limit)) return defaultLimit
 
 	return Math.min(
 		Math.max(limit, VALIDATION_LIMITS.MIN_PAGE_SIZE),
-		VALIDATION_LIMITS.MAX_PAGE_SIZE
+		VALIDATION_LIMITS.MAX_PAGE_SIZE,
 	)
 }
 
@@ -157,7 +157,7 @@ export const validatePageParam = (page: number | undefined): number => {
  */
 export const validateOrderDirection = (
 	direction: string | undefined,
-	defaultDirection: 'asc' | 'desc' = 'desc'
+	defaultDirection: 'asc' | 'desc' = 'desc',
 ): 'asc' | 'desc' => {
 	if (direction === 'asc' || direction === 'desc') return direction
 	return defaultDirection
@@ -174,7 +174,7 @@ export const validateOrderDirection = (
 export const validateOrderBy = (
 	orderBy: string | undefined,
 	allowedColumns: readonly string[],
-	defaultColumn: string
+	defaultColumn: string,
 ): string => {
 	if (orderBy && allowedColumns.includes(orderBy)) return orderBy
 	return defaultColumn

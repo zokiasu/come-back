@@ -56,15 +56,15 @@ server/
 
 ### Composables Principaux
 
-| Composable | Usage |
-|------------|-------|
-| `useSupabaseArtist` | CRUD artistes, relations, recherche |
-| `useSupabaseMusic` | CRUD musiques, associations artistes/releases |
-| `useSupabaseRelease` | CRUD releases, associations artistes |
-| `useSupabaseRanking` | Rankings utilisateur, items, partage public |
-| `useSupabaseSearch` | Recherche full-text avec debounce |
-| `useAuth` | Init auth, sync user, logout |
-| `usePlaylist` | État playlist YouTube, skip, clear |
+| Composable           | Usage                                         |
+| -------------------- | --------------------------------------------- |
+| `useSupabaseArtist`  | CRUD artistes, relations, recherche           |
+| `useSupabaseMusic`   | CRUD musiques, associations artistes/releases |
+| `useSupabaseRelease` | CRUD releases, associations artistes          |
+| `useSupabaseRanking` | Rankings utilisateur, items, partage public   |
+| `useSupabaseSearch`  | Recherche full-text avec debounce             |
+| `useAuth`            | Init auth, sync user, logout                  |
+| `usePlaylist`        | État playlist YouTube, skip, clear            |
 
 ### Base de Données
 
@@ -98,22 +98,22 @@ import type { Tables, ArtistWithRelations } from '~/server/types/api'
 ```typescript
 // Toujours utiliser les utilitaires serveur
 export default defineEventHandler(async (event) => {
-    // Auth pour endpoints protégés
-    await requireAdmin(event)  // ou requireAuth, requireContributor
+	// Auth pour endpoints protégés
+	await requireAdmin(event) // ou requireAuth, requireContributor
 
-    // Validation des inputs
-    const search = validateSearchParam(query.search as string)
-    const artistIds = validateArrayParam(query.artistIds as string, 'artistIds')
-    const limit = validateLimitParam(Number(query.limit), 20)
+	// Validation des inputs
+	const search = validateSearchParam(query.search as string)
+	const artistIds = validateArrayParam(query.artistIds as string, 'artistIds')
+	const limit = validateLimitParam(Number(query.limit), 20)
 
-    // Cache pour endpoints read-only
-    setHeader(event, 'Cache-Control', 'public, max-age=3600, stale-while-revalidate=300')
+	// Cache pour endpoints read-only
+	setHeader(event, 'Cache-Control', 'public, max-age=3600, stale-while-revalidate=300')
 
-    // Client Supabase
-    const supabase = useServerSupabase()
+	// Client Supabase
+	const supabase = useServerSupabase()
 
-    // Gestion d'erreur
-    if (error) throw handleSupabaseError(error, 'context')
+	// Gestion d'erreur
+	if (error) throw handleSupabaseError(error, 'context')
 })
 ```
 
@@ -121,29 +121,29 @@ export default defineEventHandler(async (event) => {
 
 ```vue
 <script setup lang="ts">
-// Imports de types
-import type { Artist } from '~/types'
+	// Imports de types
+	import type { Artist } from '~/types'
 
-// Props typées
-const props = defineProps<{
-    artist: Artist
-    loading?: boolean
-}>()
+	// Props typées
+	const props = defineProps<{
+		artist: Artist
+		loading?: boolean
+	}>()
 
-// Emits typés
-const emit = defineEmits<{
-    select: [artist: Artist]
-}>()
+	// Emits typés
+	const emit = defineEmits<{
+		select: [artist: Artist]
+	}>()
 </script>
 
 <template>
-    <!-- Accessibilité: toujours type="button" et aria-label sur les boutons icônes -->
-    <button type="button" aria-label="Close panel" @click="close">
-        <IconClose />
-    </button>
+	<!-- Accessibilité: toujours type="button" et aria-label sur les boutons icônes -->
+	<button type="button" aria-label="Close panel" @click="close">
+		<IconClose />
+	</button>
 
-    <!-- Préférer UButton de Nuxt UI -->
-    <UButton icon="i-heroicons-x-mark" aria-label="Close" @click="close" />
+	<!-- Préférer UButton de Nuxt UI -->
+	<UButton icon="i-heroicons-x-mark" aria-label="Close" @click="close" />
 </template>
 ```
 
@@ -158,20 +158,20 @@ const { data } = await useFetch('/api/musics/random', { server: false })
 
 // Avec transformation
 const { data } = await useFetch('/api/releases/paginated', {
-    query: { page, limit, search },
-    transform: (data) => data.releases
+	query: { page, limit, search },
+	transform: (data) => data.releases,
 })
 ```
 
 ## Stratégie de Rendu
 
-| Route | Mode | Détails |
-|-------|------|---------|
-| `/` | ISR | 3600s revalidation |
-| `/calendar` | SSG | Prerender |
-| `/authentification` | SPA | Client-side only |
-| `/dashboard/**` | SPA | Client-side only |
-| `/settings/**` | SSR | Hybride |
+| Route               | Mode | Détails            |
+| ------------------- | ---- | ------------------ |
+| `/`                 | ISR  | 3600s revalidation |
+| `/calendar`         | SSG  | Prerender          |
+| `/authentification` | SPA  | Client-side only   |
+| `/dashboard/**`     | SPA  | Client-side only   |
+| `/settings/**`      | SSR  | Hybride            |
 
 ## Sécurité
 
@@ -179,10 +179,10 @@ const { data } = await useFetch('/api/releases/paginated', {
 
 ```typescript
 // Admin uniquement
-await requireAdmin(event)  // 403 si non-admin
+await requireAdmin(event) // 403 si non-admin
 
 // Utilisateur connecté
-await requireAuth(event)   // 401 si non connecté
+await requireAuth(event) // 401 si non connecté
 
 // Contributeur ou admin
 await requireContributor(event)
@@ -192,9 +192,9 @@ await requireContributor(event)
 
 ```typescript
 // Limites de validation (server/utils/validation.ts)
-MAX_SEARCH_LENGTH: 255      // Longueur max recherche
-MAX_ARRAY_ITEMS: 100        // Nombre max d'items dans un array
-MAX_PAGE_SIZE: 100          // Limite pagination
+MAX_SEARCH_LENGTH: 255 // Longueur max recherche
+MAX_ARRAY_ITEMS: 100 // Nombre max d'items dans un array
+MAX_PAGE_SIZE: 100 // Limite pagination
 ```
 
 ## Rappels

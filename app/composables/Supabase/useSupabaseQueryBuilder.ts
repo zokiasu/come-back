@@ -86,7 +86,9 @@ export const useSupabaseQueryBuilder = () => {
 	/**
 	 * Applique le tri à une requête
 	 */
-	const applySorting = <T extends { order: (column: string, options?: { ascending?: boolean }) => T }>(
+	const applySorting = <
+		T extends { order: (column: string, options?: { ascending?: boolean }) => T },
+	>(
 		query: T,
 		sortOptions: SortOptions<unknown>,
 		defaultColumn: string = 'created_at',
@@ -188,9 +190,7 @@ export const useSupabaseQueryBuilder = () => {
 			[parentColumn]: parentId,
 		}))
 
-		const { error } = await supabase
-			.from(tableName)
-			.insert(itemsWithParentId as any)
+		const { error } = await supabase.from(tableName).insert(itemsWithParentId as any)
 
 		if (error) {
 			handleError(error, `l'insertion des éléments ${String(tableName)}`, {

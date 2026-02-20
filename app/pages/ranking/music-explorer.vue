@@ -310,14 +310,10 @@
 	}
 
 	// Setup infinite scroll on window
-	useInfiniteScroll(
-		import.meta.client ? window : null,
-		loadMore,
-		{
-			distance: 300,
-			canLoadMore: () => hasMore.value && !loading.value,
-		},
-	)
+	useInfiniteScroll(import.meta.client ? window : null, loadMore, {
+		distance: 300,
+		canLoadMore: () => hasMore.value && !loading.value,
+	})
 
 	function formatArtists(artists: { name: string }[] = []) {
 		return artists.map((a) => a.name).join(', ')

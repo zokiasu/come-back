@@ -93,7 +93,6 @@
 		}))
 	})
 
-
 	const sendCreateArtist = async () => {
 		isUploadingEdit.value = true
 

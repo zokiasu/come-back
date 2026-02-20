@@ -58,7 +58,10 @@
 				class="bg-cb-quinary-900/70 absolute inset-0 flex flex-col justify-between p-2 lg:p-3"
 			>
 				<div class="space-y-1 text-left">
-					<p v-if="music.name" class="font-semibold group-hover:text-cb-primary-900 lg:text-xl">
+					<p
+						v-if="music.name"
+						class="group-hover:text-cb-primary-900 font-semibold lg:text-xl"
+					>
 						{{ music.name }}
 					</p>
 					<div class="flex flex-wrap items-center gap-1 text-sm">

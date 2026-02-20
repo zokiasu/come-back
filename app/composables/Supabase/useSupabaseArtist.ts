@@ -10,8 +10,6 @@ import {
 	fetchArtistsByPage,
 	fetchLatestArtists,
 	type ArtistPageOptions,
-} from './helpers/artist'
-import {
 	createArtistRecord,
 	updateArtistRecord,
 	analyzeArtistDeletionImpact,
@@ -86,8 +84,14 @@ export function useSupabaseArtist() {
 		return deleteArtistSafely(
 			supabase,
 			id,
-			(message) => toast.add({ title: 'Artiste supprimé', description: message, color: 'success' }),
-			(message) => toast.add({ title: 'Erreur de suppression', description: message, color: 'error' }),
+			(message) =>
+				toast.add({ title: 'Artiste supprimé', description: message, color: 'success' }),
+			(message) =>
+				toast.add({
+					title: 'Erreur de suppression',
+					description: message,
+					color: 'error',
+				}),
 		)
 	}
 
@@ -96,8 +100,14 @@ export function useSupabaseArtist() {
 		return deleteArtistSimply(
 			supabase,
 			id,
-			(message) => toast.add({ title: 'Artiste supprimé', description: message, color: 'success' }),
-			(message) => toast.add({ title: 'Erreur de suppression', description: message, color: 'error' }),
+			(message) =>
+				toast.add({ title: 'Artiste supprimé', description: message, color: 'success' }),
+			(message) =>
+				toast.add({
+					title: 'Erreur de suppression',
+					description: message,
+					color: 'error',
+				}),
 		)
 	}
 

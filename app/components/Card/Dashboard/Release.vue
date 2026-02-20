@@ -25,9 +25,7 @@
 	})
 
 	interface Emits {
-		(e: 'deleteRelease', id: string): void
-		(e: 'updateRelease', id: string): void
-		(e: 'release-verified', id: string): void
+		(e: 'deleteRelease' | 'updateRelease' | 'release-verified', id: string): void
 	}
 
 	const emit = defineEmits<Emits>()

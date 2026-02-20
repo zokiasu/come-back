@@ -107,7 +107,9 @@ export async function fetchAllArtists(
 /**
  * Récupère tous les artistes (version légère)
  */
-export async function fetchAllArtistsLight(supabase: SupabaseClientType): Promise<Artist[]> {
+export async function fetchAllArtistsLight(
+	supabase: SupabaseClientType,
+): Promise<Artist[]> {
 	const { data, error } = await supabase.from('artists').select('*')
 
 	if (error) {

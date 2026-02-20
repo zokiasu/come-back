@@ -8,24 +8,25 @@ Devenir **la référence communautaire** pour suivre, noter et découvrir la mus
 
 ## Ce qui existe déjà
 
-| Feature | Status |
-|---------|--------|
-| Catalogue artistes/releases/musiques | OK |
-| Dashboard admin complet | OK |
-| Système de ranking utilisateur | OK |
-| Calendrier des sorties | OK |
-| News/comebacks en temps réel | OK |
-| Auth Google OAuth | OK |
-| Pages artistes détaillées | OK |
-| Script d'import auto (Spotify/YT Music) | OK |
-| Recherche full-text avec filtres | OK |
-| Liens plateformes (Spotify, Apple Music...) | OK |
+| Feature                                     | Status |
+| ------------------------------------------- | ------ |
+| Catalogue artistes/releases/musiques        | OK     |
+| Dashboard admin complet                     | OK     |
+| Système de ranking utilisateur              | OK     |
+| Calendrier des sorties                      | OK     |
+| News/comebacks en temps réel                | OK     |
+| Auth Google OAuth                           | OK     |
+| Pages artistes détaillées                   | OK     |
+| Script d'import auto (Spotify/YT Music)     | OK     |
+| Recherche full-text avec filtres            | OK     |
+| Liens plateformes (Spotify, Apple Music...) | OK     |
 
 ---
 
 ## Ce qui manque (par ordre de priorité)
 
 ### Engagement utilisateur
+
 - [ ] Système de follow d'artistes
 - [ ] Feed personnalisé basé sur les follows
 - [ ] Notifications (push + email)
@@ -33,18 +34,21 @@ Devenir **la référence communautaire** pour suivre, noter et découvrir la mus
 - [ ] Statut d'écoute (Want to Listen / Listening / Completed / Dropped)
 
 ### Social
+
 - [ ] Profils enrichis (stats, bio, compteurs)
 - [ ] Feed d'activité ("X a noté l'album Y 9/10")
 - [ ] Commentaires sur les pages artistes/releases
 - [ ] Follow entre utilisateurs
 
 ### Découverte
+
 - [ ] Section trending (artistes/releases populaires)
 - [ ] Recommandations basées sur les goûts
 - [ ] Artistes similaires
 - [ ] Countdown pages pour les prochaines sorties
 
 ### Monétisation
+
 - [ ] Liens d'affiliation sur toutes les pages
 - [ ] SEO optimisé pour le trafic organique
 - [ ] Offre premium (notifications illimitées, stats avancées, pas de pub)
@@ -59,6 +63,7 @@ Devenir **la référence communautaire** pour suivre, noter et découvrir la mus
 ### 1.1 Système de Follow
 
 **Nouvelle table Supabase :**
+
 ```sql
 create table user_artist_follows (
   id uuid default gen_random_uuid() primary key,
@@ -80,6 +85,7 @@ $$ language sql stable;
 ```
 
 **Implémentation :**
+
 - [ ] Créer la table `user_artist_follows` sur Supabase
 - [ ] Créer le composable `useSupabaseFollow.ts` (follow, unfollow, isFollowing, getFollowedArtists, getFollowerCount)
 - [ ] Ajouter un bouton **Follow** sur la page artiste (`/artist/[id]`)
@@ -100,6 +106,7 @@ $$ language sql stable;
 ### 1.3 Notifications (Base)
 
 **Nouvelle table :**
+
 ```sql
 create table user_notifications (
   id uuid default gen_random_uuid() primary key,
@@ -143,6 +150,7 @@ create index idx_notifications_user on user_notifications(user_id, read, created
 ### 2.1 Système de Scoring / Reviews
 
 **Nouvelles tables :**
+
 ```sql
 create table user_release_reviews (
   id uuid default gen_random_uuid() primary key,
@@ -179,6 +187,7 @@ group by release_id;
 > Le coeur de MyDramaList appliqué à la musique.
 
 **Nouvelle table :**
+
 ```sql
 create table user_release_status (
   id uuid default gen_random_uuid() primary key,
@@ -204,6 +213,7 @@ create index idx_status_user on user_release_status(user_id, status);
 ### 2.3 Profils Enrichis
 
 **Modifications table `users` :**
+
 ```sql
 alter table users add column bio text;
 alter table users add column is_public boolean default true;
@@ -349,6 +359,7 @@ create table user_follows_users (
 ### 5.2 Premium "Comeback Pro"
 
 **Features premium potentielles :**
+
 - Notifications illimitées (gratuit = 5 artistes suivis)
 - Stats avancées sur le profil (graphiques d'écoute, genres, etc.)
 - Pas de publicité
@@ -381,25 +392,30 @@ create table user_follows_users (
 ## Métriques de Succès
 
 ### Phase 1
+
 - [ ] 100+ utilisateurs inscrits
 - [ ] 50+ utilisateurs avec au moins 1 artiste suivi
 - [ ] Taux de rétention J7 > 20%
 
 ### Phase 2
+
 - [ ] 500+ reviews publiées
 - [ ] 1000+ statuts d'écoute créés
 - [ ] Temps moyen par session > 5 min
 
 ### Phase 3
+
 - [ ] 50+ commentaires par semaine
 - [ ] 100+ listes publiques créées
 - [ ] Croissance organique via partage social
 
 ### Phase 4
+
 - [ ] 10 000+ visites mensuelles via SEO
 - [ ] CTR > 3% sur les liens d'affiliation
 
 ### Phase 5
+
 - [ ] Premiers revenus d'affiliation
 - [ ] 50+ abonnés premium
 - [ ] Rentabilité des coûts d'hébergement
@@ -408,16 +424,16 @@ create table user_follows_users (
 
 ## Stack Technique Additionnelle à Prévoir
 
-| Besoin | Solution suggérée |
-|--------|-------------------|
-| Emails transactionnels | Resend ou Brevo (gratuit jusqu'à 300/jour) |
-| Push notifications | Web Push API + service worker |
-| Paiements | Stripe |
-| Analytics | Plausible ou Umami (privacy-friendly) |
-| SEO monitoring | Google Search Console |
-| File storage (avatars, bannières) | Supabase Storage |
-| Rate limiting API | Nuxt server middleware custom |
-| Cache avancé | Upstash Redis (serverless) |
+| Besoin                            | Solution suggérée                          |
+| --------------------------------- | ------------------------------------------ |
+| Emails transactionnels            | Resend ou Brevo (gratuit jusqu'à 300/jour) |
+| Push notifications                | Web Push API + service worker              |
+| Paiements                         | Stripe                                     |
+| Analytics                         | Plausible ou Umami (privacy-friendly)      |
+| SEO monitoring                    | Google Search Console                      |
+| File storage (avatars, bannières) | Supabase Storage                           |
+| Rate limiting API                 | Nuxt server middleware custom              |
+| Cache avancé                      | Upstash Redis (serverless)                 |
 
 ---
 

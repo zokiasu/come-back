@@ -15,14 +15,18 @@
 	const showMultipleArtistModal = ref(false)
 
 	// SSR-compatible data fetching avec API complète
-	const { data: artistData, pending: isFetchingArtist, error: fetchError } = await useFetch(`/api/artists/${route.params.id}/complete`, {
+	const {
+		data: artistData,
+		pending: isFetchingArtist,
+		error: fetchError,
+	} = await useFetch(`/api/artists/${route.params.id}/complete`, {
 		server: true,
 		default: () => ({
 			artist: null,
 			social_links: [],
 			platform_links: [],
-			random_musics: []
-		})
+			random_musics: [],
+		}),
 	})
 
 	// Réactivité des données
@@ -39,8 +43,6 @@
 			imageBackground.value = artist.value.image
 		}
 	})
-
-
 
 	const members = computed(
 		() =>

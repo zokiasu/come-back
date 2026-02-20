@@ -99,13 +99,13 @@ npm run check        # Lint + Typecheck (CI)
 
 ## Stratégie de Rendu
 
-| Route | Mode | Cache |
-|-------|------|-------|
-| `/` | ISR | 1h |
-| `/calendar` | SSG | 24h |
-| `/dashboard/*` | SPA | - |
-| `/api/releases/latest` | API | 1h |
-| `/api/calendar/releases` | API | 24h |
+| Route                    | Mode | Cache |
+| ------------------------ | ---- | ----- |
+| `/`                      | ISR  | 1h    |
+| `/calendar`              | SSG  | 24h   |
+| `/dashboard/*`           | SPA  | -     |
+| `/api/releases/latest`   | API  | 1h    |
+| `/api/calendar/releases` | API  | 24h   |
 
 ## Licence
 

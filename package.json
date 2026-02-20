@@ -50,13 +50,11 @@
 	"resolutions": {
 		"picomatch": "^4.0.2",
 		"@vueuse/core": "13.9.0",
-		"minimatch": "^10.2.1",
-		"ajv": "^8.18.0"
+		"minimatch": "^10.2.1"
 	},
 	"overrides": {
 		"@vueuse/core": "13.9.0",
-		"minimatch": "^10.2.1",
-		"ajv": "^8.18.0"
+		"minimatch": "^10.2.1"
 	},
 	"alias": {
 		"process": false

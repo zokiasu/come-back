@@ -1,4 +1,8 @@
-import { AUTH_INIT_TIMEOUT_MS, AUTH_MAX_RETRY_ATTEMPTS, AUTH_RETRY_DELAY_MS } from '~/constants/auth'
+import {
+	AUTH_INIT_TIMEOUT_MS,
+	AUTH_MAX_RETRY_ATTEMPTS,
+	AUTH_RETRY_DELAY_MS,
+} from '~/constants/auth'
 
 export default defineNuxtRouteMiddleware(async (to, from) => {
 	const user = useSupabaseUser()
@@ -36,7 +40,8 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
 	}
 
 	// Vérifier la connexion (Supabase OU données persistées dans le store)
-	const isAuthenticated = !!user.value?.id || (!!userStore.userDataStore && userStore.isLoginStore)
+	const isAuthenticated =
+		!!user.value?.id || (!!userStore.userDataStore && userStore.isLoginStore)
 
 	if (!isAuthenticated) {
 		return navigateTo('/authentification')

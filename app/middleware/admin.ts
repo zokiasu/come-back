@@ -42,7 +42,8 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
 	}
 
 	// Vérifier la connexion (Supabase OU données persistées dans le store)
-	const isAuthenticated = !!user.value?.id || (!!userStore.userDataStore && userStore.isLoginStore)
+	const isAuthenticated =
+		!!user.value?.id || (!!userStore.userDataStore && userStore.isLoginStore)
 
 	if (!isAuthenticated) {
 		return navigateTo('/authentification')

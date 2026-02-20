@@ -52,10 +52,7 @@ export const isPostgrestError = (error: unknown): error is PostgrestError => {
  * if (error) throw handleSupabaseError(error, 'artists.select')
  * ```
  */
-export const handleSupabaseError = (
-	error: PostgrestError,
-	context?: string
-): H3Error => {
+export const handleSupabaseError = (error: PostgrestError, context?: string): H3Error => {
 	console.error(`[Supabase Error${context ? ` - ${context}` : ''}]:`, {
 		code: error.code,
 		message: error.message,
@@ -117,10 +114,7 @@ export const createNotFoundError = (resource: string, id?: string): H3Error => {
  * if (!artistId) throw createBadRequestError('Artist ID is required')
  * ```
  */
-export const createBadRequestError = (
-	message: string,
-	details?: unknown
-): H3Error => {
+export const createBadRequestError = (message: string, details?: unknown): H3Error => {
 	return createError({
 		statusCode: 400,
 		statusMessage: 'Bad Request',
@@ -145,10 +139,7 @@ export const createBadRequestError = (
  * }
  * ```
  */
-export const createInternalError = (
-	message: string,
-	error?: unknown
-): H3Error => {
+export const createInternalError = (message: string, error?: unknown): H3Error => {
 	if (error) {
 		console.error('[Internal Error]:', error)
 	}
@@ -177,7 +168,7 @@ export const createInternalError = (
 export const validateRouteParam = (
 	event: H3Event,
 	paramName: string,
-	resourceName: string
+	resourceName: string,
 ): string => {
 	const param = getRouterParam(event, paramName)
 
@@ -214,7 +205,7 @@ export const validateQueryParams = <T extends Record<string, unknown>>(
 			max?: number
 			required?: boolean
 		}
-	>
+	>,
 ): T => {
 	const query = getQuery(event)
 	const result: Record<string, unknown> = {}
@@ -238,18 +229,16 @@ export const validateQueryParams = <T extends Record<string, unknown>>(
 			case 'number': {
 				const parsed = parseInt(value as string)
 				if (isNaN(parsed)) {
-					throw createBadRequestError(
-						`Query parameter "${key}" must be a number`
-					)
+					throw createBadRequestError(`Query parameter "${key}" must be a number`)
 				}
 				if (config.min !== undefined && parsed < config.min) {
 					throw createBadRequestError(
-						`Query parameter "${key}" must be at least ${config.min}`
+						`Query parameter "${key}" must be at least ${config.min}`,
 					)
 				}
 				if (config.max !== undefined && parsed > config.max) {
 					throw createBadRequestError(
-						`Query parameter "${key}" must be at most ${config.max}`
+						`Query parameter "${key}" must be at most ${config.max}`,
 					)
 				}
 				result[key] = parsed
