@@ -2,6 +2,7 @@
 import withNuxt from './.nuxt/eslint.config.mjs'
 
 export default withNuxt({
+	ignores: ['eslint.config.mjs'],
 	rules: {
 		// Vue rules
 		'vue/multi-word-component-names': 'off',
@@ -13,7 +14,6 @@ export default withNuxt({
 		'@typescript-eslint/no-explicit-any': 'warn',
 		'@typescript-eslint/ban-ts-comment': 'off',
 		'@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
-		'@typescript-eslint/consistent-type-imports': ['warn', { prefer: 'type-imports' }],
 
 		// General rules
 		'no-console': ['warn', { allow: ['error', 'warn'] }],
