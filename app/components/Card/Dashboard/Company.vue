@@ -150,15 +150,15 @@
 				<div class="flex space-x-2">
 					<button
 						class="bg-cb-primary-900 hover:bg-cb-primary-800 rounded px-2 py-1 text-xs text-white transition-colors"
-						@click="handleEdit"
 						title="Edit company"
+						@click="handleEdit"
 					>
 						✏️
 					</button>
 					<button
 						class="rounded bg-red-600 px-2 py-1 text-xs text-white transition-colors hover:bg-red-700"
-						@click="handleDelete"
 						title="Delete company"
+						@click="handleDelete"
 					>
 						🗑️
 					</button>

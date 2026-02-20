@@ -37,12 +37,12 @@
 							<UInput v-model="member.debut_date" type="date" class="w-full" />
 						</UFormField>
 						<UButton
+							v-if="members.length > 1"
 							label="Remove"
 							icon="i-heroicons-minus"
 							color="error"
 							variant="subtle"
 							@click.prevent="removeMember(idx)"
-							v-if="members.length > 1"
 						/>
 					</div>
 					<UButton

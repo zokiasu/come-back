@@ -215,7 +215,7 @@
 		</template>
 
 		<!-- Formulaire -->
-		<form @submit.prevent="handleSubmit" class="space-y-6">
+		<form class="space-y-6" @submit.prevent="handleSubmit">
 			<!-- Nom (requis) -->
 			<div>
 				<label class="text-cb-tertiary-200 mb-2 block text-sm font-medium">

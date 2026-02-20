@@ -719,8 +719,8 @@
 
 							<!-- Bouton de suppression -->
 							<button
-								@click="removeCompanyRelation(index)"
 								class="ml-3 rounded bg-red-600 p-2 text-xs text-white hover:bg-red-700"
+								@click="removeCompanyRelation(index)"
 							>
 								Remove
 							</button>

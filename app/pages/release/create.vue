@@ -13,8 +13,8 @@
 					<UForm
 						:schema="releaseSchema"
 						:state="formState"
-						@submit="onSubmit"
 						class="space-y-6"
+						@submit="onSubmit"
 					>
 						<!-- Informations de base -->
 						<div class="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -136,8 +136,8 @@
 								type="button"
 								color="neutral"
 								variant="soft"
-								@click="resetForm"
 								:disabled="isSubmitting"
+								@click="resetForm"
 							>
 								Réinitialiser
 							</UButton>
@@ -189,8 +189,8 @@
 									color="error"
 									variant="ghost"
 									size="sm"
-									@click="removeMusic(music.id)"
 									:disabled="isAddingMusic"
+									@click="removeMusic(music.id)"
 								/>
 							</div>
 						</div>
@@ -217,8 +217,8 @@
 									placeholder="Rechercher une musique..."
 									icon="i-heroicons-magnifying-glass"
 									size="lg"
-									@input="searchMusics"
 									:loading="isSearchingMusic"
+									@input="searchMusics"
 								/>
 							</div>
 
@@ -232,8 +232,8 @@
 										:key="music.id"
 										type="button"
 										class="flex w-full items-center justify-between border-b border-gray-100 px-4 py-3 text-left last:border-b-0 hover:bg-gray-50"
-										@click="addMusicToReleaseHandler(music)"
 										:disabled="isAddingMusic || musics.some((m) => m.id === music.id)"
+										@click="addMusicToReleaseHandler(music)"
 									>
 										<div class="flex-1">
 											<p class="font-medium text-gray-900">{{ music.name }}</p>

@@ -8,7 +8,7 @@
 		</div>
 
 		<!-- Onglets -->
-		<UTabs :items="tabItems" v-model="activeTab" class="w-full">
+		<UTabs v-model="activeTab" :items="tabItems" class="w-full">
 			<!-- Recherche de musiques existantes -->
 			<template #search>
 				<div class="space-y-4">
@@ -79,7 +79,7 @@
 									</p>
 								</div>
 							</div>
-							<UButton @click="addExistingMusic" :loading="loading" size="sm">
+							<UButton :loading="loading" size="sm" @click="addExistingMusic">
 								Add
 							</UButton>
 						</div>
@@ -92,8 +92,8 @@
 				<UForm
 					:schema="musicSchema"
 					:state="newMusicForm"
-					@submit="createAndAddMusic"
 					class="space-y-4"
+					@submit="createAndAddMusic"
 				>
 					<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
 						<UFormField label="Music title" name="name" required>
@@ -195,8 +195,8 @@
 							type="button"
 							color="neutral"
 							variant="soft"
-							@click="resetNewMusicForm"
 							:disabled="loading"
+							@click="resetNewMusicForm"
 						>
 							Réinitialiser
 						</UButton>

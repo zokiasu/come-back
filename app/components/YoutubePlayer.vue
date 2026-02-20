@@ -471,57 +471,57 @@
 					variant="ghost"
 					class="hidden lg:block"
 					:disabled="!isPlayerReady || !playlistInfo.hasPrevious"
+					icon="i-material-symbols-skip-previous"
+					size="lg"
 					@click="
 						() => {
 							skipToPrevious()
 						}
 					"
-					icon="i-material-symbols-skip-previous"
-					size="lg"
 				/>
 				<UButton
 					variant="ghost"
 					class="hidden lg:block"
 					:disabled="!isPlayerReady"
-					@click="seek(-10)"
 					icon="i-material-symbols-replay-10"
 					size="lg"
+					@click="seek(-10)"
 				/>
 				<UButton
 					v-if="isPlaying"
 					variant="ghost"
 					:disabled="!isPlayerReady"
-					@click="togglePlayPause"
 					icon="i-material-symbols-pause"
 					size="lg"
+					@click="togglePlayPause"
 				/>
 				<UButton
 					v-else
 					variant="ghost"
 					:disabled="!isPlayerReady"
-					@click="togglePlayPause"
 					icon="i-material-symbols-play-arrow"
 					size="lg"
+					@click="togglePlayPause"
 				/>
 				<UButton
 					variant="ghost"
 					class="hidden lg:block"
 					:disabled="!isPlayerReady"
-					@click="seek(10)"
 					icon="i-material-symbols-forward-10"
 					size="lg"
+					@click="seek(10)"
 				/>
 				<UButton
 					variant="ghost"
 					class="hidden lg:block"
 					:disabled="!isPlayerReady || !playlistInfo.hasNext"
+					icon="i-material-symbols-skip-next"
+					size="lg"
 					@click="
 						() => {
 							skipToNext()
 						}
 					"
-					icon="i-material-symbols-skip-next"
-					size="lg"
 				/>
 				<div class="hidden items-center gap-1 pl-5 text-xs md:flex">
 					<p>{{ convertDuration(currentTime) }}</p>
@@ -535,9 +535,9 @@
 					variant="ghost"
 					class="sm:hidden"
 					:disabled="!playlistInfo.isActive"
-					@click="showPlaylist = !showPlaylist"
 					icon="i-material-symbols-queue-music"
 					size="sm"
+					@click="showPlaylist = !showPlaylist"
 				/>
 			</div>
 			<div v-if="!errorDetected" class="flex w-fit items-center gap-2">
@@ -553,18 +553,18 @@
 				<UButton
 					variant="ghost"
 					:disabled="!playlistInfo.isActive"
-					@click="showPlaylist = !showPlaylist"
 					icon="i-material-symbols-queue-music"
 					size="lg"
+					@click="showPlaylist = !showPlaylist"
 				/>
 				<UButton
 					variant="ghost"
 					:disabled="!isPlayerReady"
-					@click="muteVolume"
 					:icon="
 						volumeOn ? 'i-material-symbols-volume-up' : 'i-material-symbols-volume-off'
 					"
 					size="lg"
+					@click="muteVolume"
 				/>
 				<USlider
 					v-model="volume"

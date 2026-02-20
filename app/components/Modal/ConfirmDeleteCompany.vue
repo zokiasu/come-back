@@ -70,15 +70,15 @@
 		<div class="flex justify-end space-x-3">
 			<button
 				class="bg-cb-quinary-700 hover:bg-cb-quinary-600 rounded px-4 py-2 text-white transition-colors"
-				@click="handleClose"
 				:disabled="isDeleting"
+				@click="handleClose"
 			>
 				Cancel
 			</button>
 			<button
 				class="rounded bg-red-600 px-4 py-2 text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
-				@click="handleConfirm"
 				:disabled="isDeleting"
+				@click="handleConfirm"
 			>
 				<span v-if="isDeleting" class="flex items-center space-x-2">
 					<svg

@@ -122,7 +122,7 @@
 </script>
 
 <template>
-	<UForm @submit="saveChanges" class="space-y-4">
+	<UForm class="space-y-4" @submit="saveChanges">
 		<!-- Nom de la release -->
 		<UFormField label="Name" name="name" required>
 			<UInput
@@ -177,8 +177,8 @@
 				type="button"
 				color="neutral"
 				variant="soft"
-				@click="emit('close')"
 				:disabled="isLoading"
+				@click="emit('close')"
 			>
 				Cancel
 			</UButton>
