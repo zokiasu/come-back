@@ -24,7 +24,7 @@ export default defineNuxtConfig({
 	devtools: { enabled: true },
 
 	vite: {
-		plugins: [tailwindcss()],
+		plugins: [tailwindcss() as any],
 		build: {
 			chunkSizeWarningLimit: 1600,
 		},

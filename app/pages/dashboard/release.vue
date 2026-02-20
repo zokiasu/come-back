@@ -3,7 +3,6 @@
 		Release,
 		Artist,
 		ReleaseType,
-		ReleaseWithRelations,
 		ArtistMenuItem,
 	} from '~/types'
 	import { useSupabaseRelease } from '~/composables/Supabase/useSupabaseRelease'
@@ -15,21 +14,34 @@
 	const toast = useToast()
 	const userStore = useUserStore()
 
+	type DashboardRelease = {
+		id: string
+		name: string
+		type: ReleaseType | null
+		id_youtube_music: string | null
+		date: string | null
+		year: number | null
+		verified: boolean | null
+		image: string | null
+		artists: Artist[]
+		musics: Array<{ id: string }>
+	}
+
 	// Data state
-	const releasesList = ref<ReleaseWithRelations[]>([])
+	const releasesList = ref<DashboardRelease[]>([])
 	const isLoading = ref(false)
 	const totalReleases = ref(0)
 	const artistsList = ref<Artist[]>([])
 
 	// Filters state
 	const search = ref('')
-	const typeFilter = ref<string>('ALL')
+	const typeFilter = ref<ReleaseType | 'ALL'>('ALL')
 	const verifiedFilter = ref<'all' | 'verified' | 'pending'>('all')
 	const selectedArtists = ref<string[]>([])
 	const selectedArtistsWithLabel = ref<ArtistMenuItem[]>([])
 
 	// Sorting state
-	const sortColumn = ref<string>('date')
+	const sortColumn = ref<keyof Release>('date')
 	const sortDirection = ref<'asc' | 'desc'>('desc')
 
 	// Pagination state
@@ -39,7 +51,7 @@
 
 	// Edit modal state
 	const isEditModalOpen = ref(false)
-	const editingRelease = ref<ReleaseWithRelations | null>(null)
+	const editingRelease = ref<DashboardRelease | null>(null)
 
 	// Delete modal state
 	const isDeleteModalOpen = ref(false)
@@ -108,6 +120,25 @@
 		}
 	})
 
+	const normalizeReleases = (items: any[]): DashboardRelease[] => {
+		return items.map((item) => ({
+			id: item.id,
+			name: item.name,
+			type: item.type ?? null,
+			id_youtube_music: item.id_youtube_music ?? null,
+			date: item.date ?? null,
+			year: item.year ?? null,
+			verified: item.verified ?? null,
+			image: item.image ?? null,
+			artists: Array.isArray(item.artists)
+				? item.artists.filter((artist: any) => artist?.id && artist?.name)
+				: [],
+			musics: Array.isArray(item.musics)
+				? item.musics.filter((music: any) => music?.id)
+				: [],
+		}))
+	}
+
 	// Fetch releases
 	const fetchReleases = async () => {
 		isLoading.value = true
@@ -143,7 +174,7 @@
 				filters,
 			)
 
-			releasesList.value = result.releases
+			releasesList.value = normalizeReleases(result.releases)
 			totalReleases.value = result.total
 		} catch (error) {
 			console.error('Erreur lors de la récupération des releases:', error)
@@ -188,10 +219,18 @@
 	}
 
 	// Check if year mismatch with date
-	const hasYearMismatch = (release: ReleaseWithRelations) => {
+	const hasYearMismatch = (release: { date: string | null; year: number | null }) => {
 		if (!release.date || !release.year) return false
 		const dateYear = new Date(release.date).getFullYear()
 		return dateYear !== release.year
+	}
+
+	const isReleaseFlagged = (release: {
+		verified: boolean | null
+		date: string | null
+		year: number | null
+	}) => {
+		return !release.verified || hasYearMismatch(release)
 	}
 
 	// Toggle sort direction
@@ -200,7 +239,7 @@
 	}
 
 	// Edit modal
-	const openEditModal = (release: ReleaseWithRelations) => {
+	const openEditModal = (release: DashboardRelease) => {
 		editingRelease.value = release
 		isEditModalOpen.value = true
 	}
@@ -484,7 +523,7 @@
 					v-for="release in releasesList"
 					:key="release.id"
 					class="hover:bg-cb-quinary-900/30 group flex items-center gap-4 p-3 transition-colors"
-					:class="{ 'bg-red-900/10': !release.verified || hasYearMismatch(release) }"
+					:class="isReleaseFlagged(release) ? 'bg-red-900/10' : ''"
 				>
 					<!-- Image -->
 					<NuxtLink :to="`/release/${release.id}`" class="shrink-0">

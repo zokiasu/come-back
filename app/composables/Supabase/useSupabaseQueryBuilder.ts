@@ -207,11 +207,8 @@ export const useSupabaseQueryBuilder = () => {
 		id: string,
 		selectQuery: string = '*',
 	) => {
-		const { data, error } = await supabase
-			.from(tableName)
-			.select(selectQuery)
-			.eq('id', id)
-			.single()
+		const query = supabase.from(tableName).select(selectQuery) as any
+		const { data, error } = await query.eq('id', id).single()
 
 		if (error) {
 			if (error.code === 'PGRST116') {
