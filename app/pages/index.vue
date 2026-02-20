@@ -1,9 +1,9 @@
 <script setup lang="ts">
-	import type { News } from '~/types'
+	import type { Artist, Music, News, Release } from '~/types'
 
-	type ReleaseListItem = { date?: string | null }
-	type ArtistListItem = { created_at?: string | null }
-	type MusicListItem = { date?: string | null }
+	type ReleaseListItem = Release
+	type ArtistListItem = Artist
+	type MusicListItem = Music
 
 	// Timestamp pour forcer le refresh
 	const refreshTimestamp = ref(Date.now())
@@ -83,6 +83,15 @@
 			)
 		})
 	})
+
+	const artistsForCards = computed(() =>
+		(artists.value || []).map((artist) => ({
+			id: artist.id,
+			name: artist.name,
+			type: artist.type ?? undefined,
+			image: artist.image ?? undefined,
+		})),
+	)
 
 	const reloadDiscoverMusic = () => {
 		musicsTimestamp.value = Date.now()
@@ -320,7 +329,10 @@
 			</div>
 
 			<!-- Last Artist Added -->
-			<LazyArtistAdded v-if="artists.length > 0 && !artistsFetching" :artists="artists" />
+			<LazyArtistAdded
+				v-if="artists.length > 0 && !artistsFetching"
+				:artists="artistsForCards"
+			/>
 			<div
 				v-else-if="artistsFetching"
 				class="grid grid-cols-2 gap-8 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8"

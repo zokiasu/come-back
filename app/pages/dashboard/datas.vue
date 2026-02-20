@@ -127,7 +127,7 @@
 					<div class="bg-cb-quaternary-950 flex w-full flex-col rounded px-2.5 py-1">
 						<p>{{ style.name }}</p>
 						<p class="text-xs text-zinc-500">
-							{{ style.created }}
+							{{ style.created_at }}
 						</p>
 					</div>
 					<div
@@ -175,7 +175,7 @@
 					<div class="bg-cb-quaternary-950 flex w-full flex-col rounded px-2.5 py-1">
 						<p>{{ tag.name }}</p>
 						<p class="text-xs text-zinc-500">
-							{{ tag.created }}
+							{{ tag.created_at }}
 						</p>
 					</div>
 					<div

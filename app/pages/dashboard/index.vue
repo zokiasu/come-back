@@ -11,9 +11,19 @@
 
 	type DashboardOverview = {
 		stats: DashboardStats
-		recentArtists: unknown[]
-		recentReleases: unknown[]
-		recentNews: unknown[]
+		recentArtists: Array<{ id: string; name: string; type?: string | null }>
+		recentReleases: Array<{
+			id: string
+			name: string
+			image?: string | null
+			artists?: Array<{ name: string }>
+		}>
+		recentNews: Array<{
+			id: string
+			message: string
+			date?: string | null
+			artists?: Array<{ name: string }>
+		}>
 	}
 
 	definePageMeta({
@@ -31,9 +41,9 @@
 		verifiedCompanies: 0,
 	})
 
-	const recentArtists = ref<unknown[]>([])
-	const recentReleases = ref<unknown[]>([])
-	const recentNews = ref<unknown[]>([])
+	const recentArtists = ref<DashboardOverview['recentArtists']>([])
+	const recentReleases = ref<DashboardOverview['recentReleases']>([])
+	const recentNews = ref<DashboardOverview['recentNews']>([])
 
 	// SSR-compatible data fetching pour dashboard admin (client-only)
 	const { data: dashboardData, pending: loading } = await useFetch<DashboardOverview>(

@@ -1,10 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { DashboardStats, StatsFilters } from '~/types/stats'
 import type { Database } from '~/types/supabase'
 
 // Types pour les réponses Supabase
 type SupabaseResponse<T> = {
 	data: T | null
-	error: unknown
+	error: any
 }
 
 // Types pour les appels RPC basés sur le schéma Supabase
@@ -163,7 +164,7 @@ export function useSupabaseStatistics() {
 						start_date: startDate ? startDate.toISOString().split('T')[0] : null,
 						end_date: endDate ? endDate.toISOString().split('T')[0] : null,
 						limit_count: 10,
-					} as unknown) as Promise<SupabaseResponse<RPCTopArtist[]>>,
+					} as any) as unknown as Promise<SupabaseResponse<RPCTopArtist[]>>,
 
 					// Top artistes par musiques avec filtrage temporel
 					supabase.rpc('get_top_artists_by_musics', {
@@ -171,7 +172,7 @@ export function useSupabaseStatistics() {
 						start_date: startDate ? startDate.toISOString().split('T')[0] : null,
 						end_date: endDate ? endDate.toISOString().split('T')[0] : null,
 						limit_count: 10,
-					} as unknown) as Promise<SupabaseResponse<RPCTopArtist[]>>,
+					} as any) as unknown as Promise<SupabaseResponse<RPCTopArtist[]>>,
 
 					// Données pour statistiques par genre et qualité
 					supabase
@@ -567,7 +568,7 @@ export function useSupabaseStatistics() {
 					filter_year: filters.year || null,
 					start_date: startDate ? startDate.toISOString().split('T')[0] : null,
 					end_date: endDate ? endDate.toISOString().split('T')[0] : null,
-				} as unknown) as Promise<SupabaseResponse<RPCGeneralStats[]>>,
+				} as any) as unknown as Promise<SupabaseResponse<RPCGeneralStats[]>>,
 
 				// Companies simple (en attendant une fonction dédiée)
 				supabase.from('companies').select('id, name').limit(10) as unknown as Promise<
@@ -579,14 +580,14 @@ export function useSupabaseStatistics() {
 					period_type: temporalPeriodType,
 					filter_year: filters.year || null,
 					filter_month: isMonthlyView ? filters.month : null,
-				} as unknown) as Promise<SupabaseResponse<RPCTemporalData[]>>,
+				} as any) as unknown as Promise<SupabaseResponse<RPCTemporalData[]>>,
 
 				// Données temporelles des musiques
 				supabase.rpc('get_musics_temporal_stats_with_fallback', {
 					period_type: temporalPeriodType,
 					filter_year: filters.year || null,
 					filter_month: isMonthlyView ? filters.month : null,
-				} as unknown) as Promise<SupabaseResponse<RPCTemporalData[]>>,
+				} as any) as unknown as Promise<SupabaseResponse<RPCTemporalData[]>>,
 			])
 
 			// Traitement des données depuis SQL

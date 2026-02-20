@@ -34,7 +34,7 @@ export function useYouTubeUtils() {
 					allItems = allItems.concat(data.items)
 				}
 
-				pageToken = data.nextPageToken
+				pageToken = data.nextPageToken || ''
 			} while (pageToken)
 
 			return allItems

@@ -15,20 +15,23 @@
 			</div>
 		</div>
 		<div
-			v-for="(music, index) in ranking.musics.slice(0, 3)"
+			v-for="(music, index) in (ranking.musics || []).slice(0, 3)"
 			:key="music.videoId"
 			class="cursor-pointer space-y-2 p-2"
 			@click="showModal = true"
 		>
 			<p class="group relative truncate">
-				<span>#{{ Number(index) + 1 }} - {{ music.artists[0].name }} - {{ music.name }}</span>
+				<span>
+					#{{ Number(index) + 1 }} - {{ music.artists?.[0]?.name || 'Unknown' }} -
+					{{ music.name }}
+				</span>
 			</p>
 		</div>
 		<p
-			v-if="ranking.musics.length > 3"
+			v-if="(ranking.musics || []).length > 3"
 			class="text-cb-tertiary-200/50 p-2 pt-0 text-start text-xs italic"
 		>
-			And {{ ranking.musics.length - 3 }} more songs, click to see the full ranking
+			And {{ (ranking.musics || []).length - 3 }} more songs, click to see the full ranking
 		</p>
 	</div>
 	<Modal
@@ -46,13 +49,13 @@
 		<div
 			class="grid grid-rows-10 gap-2"
 			:class="
-				ranking.musics.length > 10
+				(ranking.musics || []).length > 10
 					? 'remove-scrollbar grid-flow-col overflow-x-auto pb-2'
 					: ''
 			"
 		>
 			<div
-				v-for="(song, index) in ranking.musics"
+				v-for="(song, index) in ranking.musics || []"
 				:key="song.videoId"
 				class="flex min-w-80 items-center gap-2 xl:min-w-96"
 			>
@@ -62,11 +65,11 @@
 					#{{ Number(index) + 1 }}
 				</p>
 				<MusicDisplay
-					:artist-id="song.artists[0].artistId"
-					:artist-name="song.artists[0].name"
+					:artist-id="song.artists?.[0]?.artistId || ''"
+					:artist-name="song.artists?.[0]?.name || 'Unknown'"
 					:music-id="song.videoId"
 					:music-name="song.name"
-					:music-image="song.thumbnails[2].url"
+					:music-image="song.thumbnails?.[2]?.url || song.thumbnails?.[0]?.url || ''"
 					:duration="song?.duration?.toString() || '0'"
 					class="bg-cb-quinary-900 w-full"
 				/>
@@ -76,12 +79,21 @@
 </template>
 
 <script setup lang="ts">
+	type RankingMusic = {
+		videoId: string
+		name: string
+		duration?: number | null
+		thumbnails: Array<{ url: string }>
+		artists: Array<{ artistId: string; name: string }>
+	}
+
 	defineProps<{
 		ranking: {
 			id: string
 			name?: string
 			description?: string | null
 			items?: unknown[]
+			musics?: RankingMusic[]
 			item_count?: number
 			created_at?: string | null
 		}

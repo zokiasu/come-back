@@ -13,6 +13,13 @@ export const useAuth = () => {
 	// Destructurer les actions (pas besoin de storeToRefs pour les fonctions)
 	const { syncUserProfile, resetStore } = userStore
 
+	const getErrorCode = (error: unknown): string | undefined => {
+		if (typeof error === 'object' && error !== null && 'code' in error) {
+			return (error as { code?: string }).code
+		}
+		return undefined
+	}
+
 	// Fonction pour créer ou mettre à jour un utilisateur (intégrée depuis useSupabaseUserManager)
 	const createOrUpdateUser = async (authUser: SupabaseAuthUser): Promise<User | null> => {
 		// Vérifier que l'utilisateur et son ID sont définis (Supabase v2 peut retourner un user sans id pendant l'init)
@@ -40,7 +47,7 @@ export const useAuth = () => {
 					existingUser = result.data as User
 					fetchError = result.error
 				} catch (error) {
-					fetchError = error
+					fetchError = error instanceof Error ? error : new Error('Unknown error')
 				}
 			} else {
 				// Pas de timeout en production
@@ -54,7 +61,7 @@ export const useAuth = () => {
 				fetchError = result.error
 			}
 
-			if (fetchError && fetchError.code !== 'PGRST116') {
+			if (fetchError && getErrorCode(fetchError) !== 'PGRST116') {
 				console.error("Erreur lors de la récupération de l'utilisateur:", fetchError)
 				throw fetchError
 			}

@@ -318,7 +318,7 @@ export async function fetchArtistsByPage(
 
 	type ArtistWithCompanyGroup = Artist & {
 		companies?: unknown[]
-		groups?: Array<{ group?: Artist | null }>
+		groups?: Array<{ group?: Artist | null }> | Artist[]
 	}
 
 	// Transformer les données
@@ -327,7 +327,13 @@ export async function fetchArtistsByPage(
 		social_links: artist.social_links || [],
 		platform_links: artist.platform_links || [],
 		companies: artist.companies || [],
-		groups: artist.groups?.map((g) => g.group).filter(Boolean) || [],
+		groups:
+			artist.groups?.map((g) => {
+				if (typeof g === 'object' && g !== null && 'group' in g) {
+					return (g as { group?: Artist | null }).group
+				}
+				return g as Artist
+			}).filter(Boolean) || [],
 	}))
 
 	// Filtrage côté client pour les relations

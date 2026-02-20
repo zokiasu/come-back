@@ -172,7 +172,7 @@
 							isPlaying.value = false
 						}
 					},
-					onError: (event: YT.OnErrorEvent) => {
+					onError: (event: { data?: unknown }) => {
 						console.error('❌ YouTube player error:', event.data)
 						showThumbnail.value = true
 						isPlaying.value = false

@@ -23,7 +23,7 @@
 		year: number | null
 		verified: boolean | null
 		image: string | null
-		artists: Artist[]
+		artists: Array<{ id: string; name: string }>
 		musics: Array<{ id: string }>
 	}
 	type DashboardArtistLike = { id: string; name: string }
@@ -218,7 +218,7 @@
 	}
 
 	// Format artists
-	const formatArtists = (artists: Artist[] | undefined) => {
+	const formatArtists = (artists: Array<{ name: string }> | undefined) => {
 		if (!artists || artists.length === 0) return '-'
 		return artists.map((a) => a.name).join(', ')
 	}

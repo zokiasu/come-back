@@ -1,4 +1,6 @@
 <script setup lang="ts">
+	import type { Company } from '~/types'
+
 	const props = defineProps<{
 		id: string
 		name: string
@@ -14,22 +16,7 @@
 		updatedAt: string
 	}>()
 	const emit = defineEmits<{
-		editCompany: [
-			company: {
-				id: string
-				name: string
-				description: string
-				type: string
-				website: string
-				foundedYear: number
-				country: string
-				city: string
-				logoUrl: string
-				verified: boolean
-				createdAt: string
-				updatedAt: string
-			},
-		]
+		editCompany: [company: Company]
 		deleteCompany: [id: string]
 	}>()
 
@@ -67,7 +54,20 @@
 
 	// Fonctions
 	const handleEdit = () => {
-		emit('editCompany', props)
+		emit('editCompany', {
+			id: props.id,
+			name: props.name,
+			description: props.description || null,
+			type: props.type || null,
+			website: props.website || null,
+			founded_year: props.foundedYear || null,
+			country: props.country || null,
+			city: props.city || null,
+			logo_url: props.logoUrl || null,
+			verified: props.verified,
+			created_at: props.createdAt || null,
+			updated_at: props.updatedAt || null,
+		})
 	}
 
 	const handleDelete = () => {

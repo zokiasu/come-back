@@ -180,7 +180,7 @@
 							class="relative flex cursor-pointer flex-col items-center justify-center rounded px-5 py-1 hover:bg-red-500/50"
 							@click="removeArtistFromNews(artist)"
 						>
-							<img :src="artist.picture" class="h-8 w-8 rounded-full object-cover" />
+							<img :src="artist.picture ?? undefined" class="h-8 w-8 rounded-full object-cover" />
 							<p>{{ artist.name }}</p>
 						</div>
 					</div>

@@ -3,8 +3,8 @@
 		artists: Array<{
 			id: string
 			name: string
-			type?: string | null
-			image?: string | null
+			type?: string
+			image?: string
 		}>
 	}>()
 </script>
@@ -20,8 +20,8 @@
 				is-artist
 				:artist-id="artist.id"
 				:main-title="artist.name"
-				:sub-title="artist.type"
-				:image="artist.image"
+				:sub-title="artist.type ?? undefined"
+				:image="artist.image ?? undefined"
 				:object-link="`/artist/${artist.id}`"
 				class="snap-start"
 			/>
