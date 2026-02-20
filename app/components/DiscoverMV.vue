@@ -61,15 +61,15 @@
 	// Charger l'API YouTube
 	const loadYouTubeAPI = () => {
 		return new Promise<void>((resolve, reject) => {
-			console.log('🔍 Checking if YouTube API is available...')
+			console.warn('🔍 Checking if YouTube API is available...')
 
 			if (window.YT && window.YT.Player) {
-				console.log('✅ YouTube API already loaded')
+				console.warn('✅ YouTube API already loaded')
 				resolve()
 				return
 			}
 
-			console.log('📥 Loading YouTube API...')
+			console.warn('📥 Loading YouTube API...')
 			const tag = document.createElement('script')
 			tag.src = 'https://www.youtube.com/iframe_api'
 			const firstScriptTag = document.getElementsByTagName('script')[0]
@@ -80,7 +80,7 @@
 			// Créer un callback sécurisé pour éviter la pollution globale
 			const originalCallback = window.onYouTubeIframeAPIReady
 			const callbackHandler = () => {
-				console.log('✅ YouTube API loaded successfully')
+				console.warn('✅ YouTube API loaded successfully')
 				// Restaurer le callback original s'il existait
 				if (originalCallback) {
 					window.onYouTubeIframeAPIReady = originalCallback
@@ -115,13 +115,13 @@
 	// Créer le lecteur YouTube
 	const createYouTubePlayer = async (videoId: string) => {
 		try {
-			console.log('🎬 Creating YouTube player for video:', videoId)
-			console.log('📍 Player container:', playerContainer.value)
+			console.warn('🎬 Creating YouTube player for video:', videoId)
+			console.warn('📍 Player container:', playerContainer.value)
 
 			await loadYouTubeAPI()
 
 			if (player.value) {
-				console.log('🗑️ Destroying existing player')
+				console.warn('🗑️ Destroying existing player')
 				player.value.destroy()
 				player.value = null
 			}
@@ -135,7 +135,7 @@
 			const playerId = 'youtube-player-' + Date.now()
 			playerContainer.value.id = playerId
 
-			console.log('🎥 Initializing YouTube Player with ID:', playerId)
+			console.warn('🎥 Initializing YouTube Player with ID:', playerId)
 
 			player.value = new window.YT.Player(playerId, {
 				videoId: videoId,
@@ -153,22 +153,22 @@
 				events: {
 					// @ts-expect-error - YT namespace from YouTube IFrame API
 					onReady: (_event: YT.PlayerEvent) => {
-						console.log('✅ YouTube player ready')
+						console.warn('✅ YouTube player ready')
 						isPlayerReady.value = true
 						isPlaying.value = true
 					},
 					// @ts-expect-error - YT namespace from YouTube IFrame API
 					onStateChange: (event: YT.OnStateChangeEvent) => {
-						console.log('🔄 Player state changed:', event.data)
+						console.warn('🔄 Player state changed:', event.data)
 						if (event.data === window.YT.PlayerState.ENDED) {
-							console.log('⏹️ Video ended')
+							console.warn('⏹️ Video ended')
 							showThumbnail.value = true
 							isPlaying.value = false
 						} else if (event.data === window.YT.PlayerState.PLAYING) {
-							console.log('▶️ Video playing')
+							console.warn('▶️ Video playing')
 							isPlaying.value = true
 						} else if (event.data === window.YT.PlayerState.PAUSED) {
-							console.log('⏸️ Video paused')
+							console.warn('⏸️ Video paused')
 							isPlaying.value = false
 						}
 					},
@@ -188,11 +188,11 @@
 
 	// Lancer la vidéo
 	const playCurrentMV = async () => {
-		console.log('🎯 Play button clicked')
-		console.log('📹 Current MV:', currentMV.value)
-		console.log('🎬 Video ID:', currentMV.value?.id_youtube_music)
-		console.log('📱 Is playing:', isPlaying.value)
-		console.log('🖼️ Show thumbnail:', showThumbnail.value)
+		console.warn('🎯 Play button clicked')
+		console.warn('📹 Current MV:', currentMV.value)
+		console.warn('🎬 Video ID:', currentMV.value?.id_youtube_music)
+		console.warn('📱 Is playing:', isPlaying.value)
+		console.warn('🖼️ Show thumbnail:', showThumbnail.value)
 
 		if (!currentMV.value?.id_youtube_music) {
 			console.error('❌ No video ID found')
@@ -200,7 +200,7 @@
 		}
 
 		if (isPlaying.value) {
-			console.log('⚠️ Already playing')
+			console.warn('⚠️ Already playing')
 			return
 		}
 
@@ -209,7 +209,7 @@
 
 		// Attendre que le DOM se mette à jour
 		await nextTick()
-		console.log('📍 Player container after nextTick:', playerContainer.value)
+		console.warn('📍 Player container after nextTick:', playerContainer.value)
 
 		createYouTubePlayer(currentMV.value.id_youtube_music)
 	}
@@ -410,3 +410,4 @@
 		</div>
 	</div>
 </template>
+

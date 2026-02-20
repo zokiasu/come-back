@@ -251,7 +251,7 @@ export function useSupabaseNews() {
 		// Si le tri est par artiste, on trie manuellement les résultats
 		let sortedData = transformedData as News[]
 		if (options?.orderBy === 'artist') {
-			console.log('Tri par artiste appliqué côté client')
+			console.warn('Tri par artiste appliqué côté client')
 			sortedData = sortedData.sort((a, b) => {
 				const nameA = a.artists?.[0]?.name || ''
 				const nameB = b.artists?.[0]?.name || ''
@@ -396,3 +396,4 @@ export function useSupabaseNews() {
 		getRealtimeLatestNewsAdded,
 	}
 }
+

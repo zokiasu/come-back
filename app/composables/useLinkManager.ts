@@ -93,7 +93,7 @@ export const useLinkManager = () => {
 				}
 			}
 		} catch (error) {
-			console.log('Impossible de récupérer le titre de la page:', error)
+			console.warn('Impossible de récupérer le titre de la page:', error)
 		}
 
 		// Fallback: capitaliser le nom de domaine
@@ -219,3 +219,4 @@ export const useLinkManager = () => {
 		FAVICON_SERVICES,
 	}
 }
+

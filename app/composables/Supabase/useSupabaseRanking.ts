@@ -15,10 +15,10 @@ export function useSupabaseRanking() {
 	 * Récupère tous les rankings de l'utilisateur connecté
 	 */
 	const getUserRankings = async (): Promise<UserRankingWithPreview[]> => {
-		console.log('[getUserRankings] Starting...', { userId: userStore.userDataStore?.id })
+		console.warn('[getUserRankings] Starting...', { userId: userStore.userDataStore?.id })
 
 		if (!userStore.userDataStore?.id) {
-			console.log('[getUserRankings] No user ID, returning empty array')
+			console.warn('[getUserRankings] No user ID, returning empty array')
 			return []
 		}
 
@@ -28,7 +28,7 @@ export function useSupabaseRanking() {
 			.eq('user_id', userStore.userDataStore.id)
 			.order('updated_at', { ascending: false })
 
-		console.log('[getUserRankings] Query result:', { rankings, error })
+		console.warn('[getUserRankings] Query result:', { rankings, error })
 
 		if (error) {
 			console.error('Erreur lors de la récupération des rankings:', error)
@@ -73,7 +73,7 @@ export function useSupabaseRanking() {
 	 * Récupère un ranking par son ID avec tous ses items
 	 */
 	const getRankingById = async (id: string): Promise<UserRankingWithItems | null> => {
-		console.log('[getRankingById] Starting...', { id })
+		console.warn('[getRankingById] Starting...', { id })
 
 		const { data: ranking, error: rankingError } = await supabase
 			.from('user_rankings')
@@ -81,7 +81,7 @@ export function useSupabaseRanking() {
 			.eq('id', id)
 			.single()
 
-		console.log('[getRankingById] Ranking result:', { ranking, rankingError })
+		console.warn('[getRankingById] Ranking result:', { ranking, rankingError })
 
 		if (rankingError) {
 			console.error('Erreur lors de la récupération du ranking:', rankingError)
@@ -133,13 +133,13 @@ export function useSupabaseRanking() {
 		name: string,
 		description?: string,
 	): Promise<UserRanking | null> => {
-		console.log('[createRanking] Starting...', {
+		console.warn('[createRanking] Starting...', {
 			userId: userStore.userDataStore?.id,
 			name,
 		})
 
 		if (!userStore.userDataStore?.id) {
-			console.log('[createRanking] No user ID')
+			console.warn('[createRanking] No user ID')
 			toast.add({
 				title: 'Erreur',
 				description: 'Vous devez être connecté',
@@ -159,7 +159,7 @@ export function useSupabaseRanking() {
 			.select()
 			.single()
 
-		console.log('[createRanking] Result:', { data, error })
+		console.warn('[createRanking] Result:', { data, error })
 
 		if (error) {
 			console.error('Erreur lors de la création du ranking:', error)
@@ -520,3 +520,4 @@ export function useSupabaseRanking() {
 		getPublicRankings,
 	}
 }
+

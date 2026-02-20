@@ -153,7 +153,7 @@
 				verifiedFilter.value === 'all' ? undefined : verifiedFilter.value === 'verified',
 		}
 
-		console.log('🔍 fetchReleases appelé avec:', {
+		console.warn('🔍 fetchReleases appelé avec:', {
 			page: currentPage.value,
 			pageSize: pageSizeValue.value,
 			filters,
@@ -700,3 +700,4 @@
 		</UModal>
 	</div>
 </template>
+

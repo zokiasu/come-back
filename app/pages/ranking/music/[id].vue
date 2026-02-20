@@ -856,14 +856,14 @@
 
 	// Initial load
 	onMounted(async () => {
-		console.log('[ranking/music/[id]] onMounted - rankingId:', rankingId.value)
+		console.warn('[ranking/music/[id]] onMounted - rankingId:', rankingId.value)
 		await Promise.all([
 			loadRanking(),
 			getAllArtists({ isActive: true }).then((artists) => {
 				artistsList.value = artists
 			}),
 		])
-		console.log('[ranking/music/[id]] After loadRanking - ranking:', ranking.value)
+		console.warn('[ranking/music/[id]] After loadRanking - ranking:', ranking.value)
 		await loadMusics(true)
 		// Activer l'infinite scroll après le premier chargement
 		isInitialized.value = true

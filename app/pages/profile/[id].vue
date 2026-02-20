@@ -94,7 +94,7 @@
 
 	const deleteRanking = (id: string) => {
 		// TODO: Implement ranking deletion
-		console.log('Delete ranking:', id)
+		console.warn('Delete ranking:', id)
 	}
 
 	definePageMeta({
