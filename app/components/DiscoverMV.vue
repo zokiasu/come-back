@@ -172,7 +172,7 @@
 							isPlaying.value = false
 						}
 					},
-					onError: (event: any) => {
+					onError: (event: YT.OnErrorEvent) => {
 						console.error('❌ YouTube player error:', event.data)
 						showThumbnail.value = true
 						isPlaying.value = false
@@ -224,7 +224,7 @@
 	}
 
 	// Format artist names
-	const formatArtists = (artists: any[]) => {
+	const formatArtists = (artists: Array<{ name?: string }>) => {
 		return artists?.map((artist) => artist.name).join(', ') || ''
 	}
 

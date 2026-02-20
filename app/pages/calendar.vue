@@ -11,6 +11,7 @@
 		id_youtube_music: string | null
 		artists?: Array<{ id: string; name: string }>
 	}
+	type ArtistLike = { id: string; name: string }
 
 	const { getReleasesByMonthAndYear } = useSupabaseRelease()
 
@@ -72,20 +73,31 @@
 		}
 	}
 
-	const normalizeReleases = (items: any[]): CalendarRelease[] => {
-		return items.map((item) => ({
-			id: item.id,
-			name: item.name,
-			type: item.type,
-			date: item.date ?? null,
-			image: item.image ?? null,
-			id_youtube_music: item.id_youtube_music ?? null,
-			artists: Array.isArray(item.artists)
-				? item.artists
-						.filter((artist: any) => artist?.id && artist?.name)
-						.map((artist: any) => ({ id: artist.id, name: artist.name }))
-				: undefined,
-		}))
+	const normalizeReleases = (items: unknown[]): CalendarRelease[] => {
+		return items.map((item) => {
+			const record = item as Record<string, unknown>
+			const artists = Array.isArray(record.artists)
+				? record.artists
+						.filter(
+							(artist): artist is ArtistLike =>
+								typeof artist === 'object' &&
+								artist !== null &&
+								typeof (artist as { id?: unknown }).id === 'string' &&
+								typeof (artist as { name?: unknown }).name === 'string',
+						)
+						.map((artist) => ({ id: artist.id, name: artist.name }))
+				: undefined
+
+			return {
+				id: String(record.id ?? ''),
+				name: String(record.name ?? ''),
+				type: (record.type as CalendarRelease['type']) ?? null,
+				date: (record.date as string | null) ?? null,
+				image: (record.image as string | null) ?? null,
+				id_youtube_music: (record.id_youtube_music as string | null) ?? null,
+				artists,
+			}
+		})
 	}
 
 	const getReleasesByType = (type: 'ALBUM' | 'EP' | 'SINGLE'): CalendarRelease[] => {

@@ -77,7 +77,14 @@
 
 <script setup lang="ts">
 	defineProps<{
-		ranking: any
+		ranking: {
+			id: string
+			name?: string
+			description?: string | null
+			items?: unknown[]
+			item_count?: number
+			created_at?: string | null
+		}
 		isProfile: boolean
 	}>()
 

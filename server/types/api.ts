@@ -32,7 +32,7 @@ export interface PaginatedResponse<T> {
 /**
  * Standard success response
  */
-export interface SuccessResponse<T = any> {
+export interface SuccessResponse<T = unknown> {
 	success: true
 	data: T
 	message?: string

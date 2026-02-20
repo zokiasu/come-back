@@ -307,6 +307,13 @@
 	import { useSupabaseMusic } from '~/composables/Supabase/useSupabaseMusic'
 	import { useSupabaseRelease } from '~/composables/Supabase/useSupabaseRelease'
 
+	type MusicSearchItem = {
+		id: string
+		name: string
+		duration?: number | null
+		verified?: boolean | null
+	}
+
 	// Configuration de la page
 	definePageMeta({
 		title: 'Créer une release',
@@ -362,10 +369,10 @@
 	const isSubmitting = ref(false)
 	const isAddingMusic = ref(false)
 	const createdRelease = ref<Release | null>(null)
-	const musics = ref<any[]>([])
+	const musics = ref<MusicSearchItem[]>([])
 	const selectedArtist = ref<Artist | null>(null)
 	const musicSearchQuery = ref('')
-	const musicOptions = ref<any[]>([])
+	const musicOptions = ref<MusicSearchItem[]>([])
 	const isSearchingMusic = ref(false)
 
 	// Fonctions
@@ -485,7 +492,7 @@
 		}
 	}
 
-	const addMusicToReleaseHandler = async (_music: any) => {
+	const addMusicToReleaseHandler = async (_music: MusicSearchItem) => {
 		if (!createdRelease.value) return
 
 		isAddingMusic.value = true

@@ -60,11 +60,12 @@
 			})
 			// Rediriger vers la page de la compagnie créée
 			await router.push(`/company/${newCompany.id}`)
-		} catch (error: any) {
+		} catch (error: unknown) {
+			const errorMessage = error instanceof Error ? error.message : 'Unknown error'
 			isUploadingEdit.value = false
 			toast.add({
 				title: 'Failed to create company',
-				description: error.message,
+				description: errorMessage,
 				color: 'error',
 			})
 		}

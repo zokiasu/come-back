@@ -1,6 +1,11 @@
 <script setup lang="ts">
 	const props = defineProps<{
-		artists: any
+		artists: Array<{
+			id: string
+			name: string
+			type?: string | null
+			image?: string | null
+		}>
 	}>()
 </script>
 

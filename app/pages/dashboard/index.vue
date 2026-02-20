@@ -1,10 +1,27 @@
 <script setup lang="ts">
+	type DashboardStats = {
+		totalArtists: number
+		activeArtists: number
+		totalReleases: number
+		recentReleases: number
+		totalNews: number
+		totalCompanies: number
+		verifiedCompanies: number
+	}
+
+	type DashboardOverview = {
+		stats: DashboardStats
+		recentArtists: unknown[]
+		recentReleases: unknown[]
+		recentNews: unknown[]
+	}
+
 	definePageMeta({
 		middleware: ['admin'],
 		layout: 'dashboard',
 	})
 
-	const stats = ref({
+	const stats = ref<DashboardStats>({
 		totalArtists: 0,
 		activeArtists: 0,
 		totalReleases: 0,
@@ -14,12 +31,12 @@
 		verifiedCompanies: 0,
 	})
 
-	const recentArtists = ref<any[]>([])
-	const recentReleases = ref<any[]>([])
-	const recentNews = ref<any[]>([])
+	const recentArtists = ref<unknown[]>([])
+	const recentReleases = ref<unknown[]>([])
+	const recentNews = ref<unknown[]>([])
 
 	// SSR-compatible data fetching pour dashboard admin (client-only)
-	const { data: dashboardData, pending: loading } = await useFetch(
+	const { data: dashboardData, pending: loading } = await useFetch<DashboardOverview>(
 		'/api/dashboard/overview',
 		{
 			server: false, // Dashboard admin toujours client-only

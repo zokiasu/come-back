@@ -27,7 +27,7 @@
 	type ArtistWithRelations = Artist & {
 		groups?: Artist[]
 		members?: Artist[]
-		releases?: any[]
+		releases?: unknown[]
 	}
 
 	const route = useRoute()
@@ -167,7 +167,7 @@
 	}
 
 	// --- Date update handlers ---
-	const onBirthdayUpdate = (value: any) => {
+	const onBirthdayUpdate = (value: unknown) => {
 		if (value && typeof value.toString === 'function') {
 			birthdayToDate.value = new Date(value.toString())
 		} else {
@@ -175,7 +175,7 @@
 		}
 	}
 
-	const onDebutDateUpdate = (value: any) => {
+	const onDebutDateUpdate = (value: unknown) => {
 		if (value && typeof value.toString === 'function') {
 			debutDateToDate.value = new Date(value.toString())
 		} else {
@@ -285,11 +285,12 @@
 					// Optional: reload data or navigate
 					router.push(`/artist/${route.params.id}`)
 				})
-				.catch((error: any) => {
+				.catch((error: unknown) => {
+					const errorMessage = error instanceof Error ? error.message : 'Unknown error'
 					// Error updating artist
 					toast.add({
 						title: 'Error updating artist',
-						description: error.message,
+						description: errorMessage,
 						color: 'error',
 					})
 				})
@@ -457,11 +458,12 @@
 				title.value = 'EDIT ARTIST : ' + artist.value.name
 				description.value = artist.value.description || ''
 			}
-		} catch (error: any) {
+		} catch (error: unknown) {
+			const errorMessage = error instanceof Error ? error.message : 'Unknown error'
 			console.error('Error loading artist:', error)
 			toast.add({
 				title: 'Error loading artist',
-				description: error.message,
+				description: errorMessage,
 				color: 'error',
 			})
 		}
@@ -868,7 +870,8 @@
 											item: 'rounded cursor-pointer data-highlighted:before:bg-cb-primary-900/30 hover:bg-cb-primary-900',
 										}"
 										@update:model-value="
-											(company: any) => updateCompanyInRelation(index, company)
+											(company: unknown) =>
+												updateCompanyInRelation(index, company as CompanyMenuItem)
 										"
 									/>
 								</div>

@@ -14,7 +14,22 @@
 		updatedAt: string
 	}>()
 	const emit = defineEmits<{
-		editCompany: [company: any]
+		editCompany: [
+			company: {
+				id: string
+				name: string
+				description: string
+				type: string
+				website: string
+				foundedYear: number
+				country: string
+				city: string
+				logoUrl: string
+				verified: boolean
+				createdAt: string
+				updatedAt: string
+			},
+		]
 		deleteCompany: [id: string]
 	}>()
 

@@ -26,6 +26,8 @@
 		artists: Artist[]
 		musics: Array<{ id: string }>
 	}
+	type DashboardArtistLike = { id: string; name: string }
+	type DashboardMusicLike = { id: string }
 
 	// Data state
 	const releasesList = ref<DashboardRelease[]>([])
@@ -120,23 +122,40 @@
 		}
 	})
 
-	const normalizeReleases = (items: any[]): DashboardRelease[] => {
-		return items.map((item) => ({
-			id: item.id,
-			name: item.name,
-			type: item.type ?? null,
-			id_youtube_music: item.id_youtube_music ?? null,
-			date: item.date ?? null,
-			year: item.year ?? null,
-			verified: item.verified ?? null,
-			image: item.image ?? null,
-			artists: Array.isArray(item.artists)
-				? item.artists.filter((artist: any) => artist?.id && artist?.name)
-				: [],
-			musics: Array.isArray(item.musics)
-				? item.musics.filter((music: any) => music?.id)
-				: [],
-		}))
+	const normalizeReleases = (items: unknown[]): DashboardRelease[] => {
+		return items.map((item) => {
+			const record = item as Record<string, unknown>
+			const artists = Array.isArray(record.artists)
+				? record.artists.filter(
+						(artist): artist is DashboardArtistLike =>
+							typeof artist === 'object' &&
+							artist !== null &&
+							typeof (artist as { id?: unknown }).id === 'string' &&
+							typeof (artist as { name?: unknown }).name === 'string',
+					)
+				: []
+			const musics = Array.isArray(record.musics)
+				? record.musics.filter(
+						(music): music is DashboardMusicLike =>
+							typeof music === 'object' &&
+							music !== null &&
+							typeof (music as { id?: unknown }).id === 'string',
+					)
+				: []
+
+			return {
+				id: String(record.id ?? ''),
+				name: String(record.name ?? ''),
+				type: (record.type as ReleaseType | null) ?? null,
+				id_youtube_music: (record.id_youtube_music as string | null) ?? null,
+				date: (record.date as string | null) ?? null,
+				year: (record.year as number | null) ?? null,
+				verified: (record.verified as boolean | null) ?? null,
+				image: (record.image as string | null) ?? null,
+				artists,
+				musics,
+			}
+		})
 	}
 
 	// Fetch releases

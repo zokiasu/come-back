@@ -1,5 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 import tailwindcss from '@tailwindcss/vite'
+import type { PluginOption } from 'vite'
 
 export default defineNuxtConfig({
 	compatibilityDate: '2025-05-27',
@@ -24,7 +25,7 @@ export default defineNuxtConfig({
 	devtools: { enabled: true },
 
 	vite: {
-		plugins: [tailwindcss() as any],
+		plugins: [tailwindcss() as PluginOption],
 		build: {
 			chunkSizeWarningLimit: 1600,
 		},

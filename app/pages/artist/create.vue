@@ -215,7 +215,7 @@
 			validPlatformLinks,
 			selectedGroups,
 			selectedMembers,
-			selectedCompanies as any,
+			selectedCompanies as Parameters<typeof createArtist>[5],
 		)
 			.then(() => {
 				isUploadingEdit.value = false
@@ -681,7 +681,8 @@
 											item: 'rounded cursor-pointer data-highlighted:before:bg-cb-primary-900/30 hover:bg-cb-primary-900',
 										}"
 										@update:model-value="
-											(company: any) => updateCompanyInRelation(index, company)
+											(company: unknown) =>
+												updateCompanyInRelation(index, company as CompanyMenuItem)
 										"
 									/>
 								</div>

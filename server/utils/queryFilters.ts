@@ -1,4 +1,9 @@
-type ChainableQuery = any
+type ChainableQuery = {
+	eq: (column: string, value: unknown) => ChainableQuery
+	ilike: (column: string, value: string) => ChainableQuery
+	in: (column: string, values: unknown[]) => ChainableQuery
+	not: (column: string, operator: string, value: string) => ChainableQuery
+}
 
 export const applyVerifiedArtistFilter = <T>(query: T): T => {
 	const q = query as ChainableQuery

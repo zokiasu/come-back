@@ -21,7 +21,7 @@ export const useAuth = () => {
 		try {
 			// Vérifier si l'utilisateur existe déjà
 			let existingUser: User | null = null
-			let fetchError: any = null
+			let fetchError: { code?: string } | Error | null = null
 
 			if (import.meta.dev) {
 				// Timeout uniquement en développement
@@ -159,9 +159,10 @@ export const useAuth = () => {
 				await syncUserProfile(authUser, userData)
 
 				return true
-			} catch (error: any) {
+			} catch (error: unknown) {
+				const errorMessage = error instanceof Error ? error.message : 'Erreur de synchronisation'
 				console.error('❌ Erreur lors de la synchronisation:', error)
-				syncError.value = error.message || 'Erreur de synchronisation'
+				syncError.value = errorMessage
 				await resetStore()
 				return false
 			} finally {
@@ -239,7 +240,7 @@ export const useAuth = () => {
 
 	// Watcher pour surveiller les changements d'utilisateur Supabase
 	let isInitialized = false
-	let initPromise: Promise<any> | null = null
+	let initPromise: Promise<boolean> | null = null
 
 	watch(
 		user,

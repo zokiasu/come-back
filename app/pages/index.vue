@@ -1,6 +1,10 @@
 <script setup lang="ts">
 	import type { News } from '~/types'
 
+	type ReleaseListItem = { date?: string | null }
+	type ArtistListItem = { created_at?: string | null }
+	type MusicListItem = { date?: string | null }
+
 	// Timestamp pour forcer le refresh
 	const refreshTimestamp = ref(Date.now())
 	const musicsTimestamp = ref(Date.now())
@@ -23,8 +27,8 @@
 		default: () => [],
 		server: true,
 		query: { limit: 8 },
-		transform: (data: any[]) =>
-			data.sort(
+		transform: (data: unknown[]) =>
+			(data as ReleaseListItem[]).sort(
 				(a, b) => new Date(b.date || '').getTime() - new Date(a.date || '').getTime(),
 			),
 	})
@@ -36,8 +40,8 @@
 		default: () => [],
 		server: true,
 		query: { limit: 8 },
-		transform: (data: any[]) =>
-			data.sort(
+		transform: (data: unknown[]) =>
+			(data as ArtistListItem[]).sort(
 				(a, b) =>
 					new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime(),
 			),
@@ -51,8 +55,8 @@
 			server: false,
 			query: { limit: 4 },
 			watch: [musicsTimestamp],
-			transform: (data: any[]) =>
-				data.sort(
+			transform: (data: unknown[]) =>
+				(data as MusicListItem[]).sort(
 					(a, b) => new Date(b.date || '').getTime() - new Date(a.date || '').getTime(),
 				),
 		},
