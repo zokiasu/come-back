@@ -4,7 +4,7 @@ import {
 	AUTH_RETRY_DELAY_MS,
 } from '~/constants/auth'
 
-export default defineNuxtRouteMiddleware(async (to, from) => {
+export default defineNuxtRouteMiddleware(async (_to, _from) => {
 	const user = useSupabaseUser()
 	const userStore = useUserStore()
 

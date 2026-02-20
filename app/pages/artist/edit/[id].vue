@@ -9,9 +9,6 @@
 		Artist,
 		MusicStyle,
 		GeneralTag,
-		ArtistType,
-		ArtistPlatformLink,
-		ArtistSocialLink,
 		Company,
 	} from '~/types'
 	import type { TablesInsert } from '~/types/supabase'

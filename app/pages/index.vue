@@ -1,14 +1,5 @@
 <script setup lang="ts">
-	import type { Music, Artist, Release, News } from '~/types'
-	import { useSupabaseNews } from '~/composables/Supabase/useSupabaseNews'
-	import { useSupabaseRelease } from '~/composables/Supabase/useSupabaseRelease'
-	import { useSupabaseArtist } from '~/composables/Supabase/useSupabaseArtist'
-	import { useSupabaseMusic } from '~/composables/Supabase/useSupabaseMusic'
-
-	const { getRealtimeLatestNewsAdded } = useSupabaseNews()
-	const { getRealtimeLatestReleasesAdded } = useSupabaseRelease()
-	const { getRealtimeLatestArtistsAdded } = useSupabaseArtist()
-	const { getRandomMusics, getLatestMVs } = useSupabaseMusic()
+	import type { News } from '~/types'
 
 	// Timestamp pour forcer le refresh
 	const refreshTimestamp = ref(Date.now())
@@ -18,7 +9,6 @@
 	const {
 		data: comebacks,
 		pending: newsFetching,
-		refresh: refreshNews,
 	} = await useFetch(() => `/api/news/latest?_t=${refreshTimestamp.value}`, {
 		default: () => [],
 		server: true,
@@ -29,7 +19,6 @@
 	const {
 		data: releases,
 		pending: releasesFetching,
-		refresh: refreshReleases,
 	} = await useFetch('/api/releases/latest', {
 		default: () => [],
 		server: true,
@@ -43,7 +32,6 @@
 	const {
 		data: artists,
 		pending: artistsFetching,
-		refresh: refreshArtists,
 	} = await useFetch('/api/artists/latest', {
 		default: () => [],
 		server: true,
@@ -73,7 +61,6 @@
 	const {
 		data: mvs,
 		pending: mvsFetching,
-		refresh: refreshMVs,
 	} = await useFetch('/api/musics/latest-mvs', {
 		default: () => [],
 		server: true,
@@ -144,7 +131,7 @@
 					schema: 'public',
 					table: 'releases',
 				},
-				async (payload) => {
+				async (_payload) => {
 					// Force un refresh direct avec $fetch (bypass du cache useFetch)
 					try {
 						const freshData = await $fetch('/api/releases/latest', {
@@ -171,7 +158,7 @@
 					schema: 'public',
 					table: 'artists',
 				},
-				async (payload) => {
+				async (_payload) => {
 					// Force un refresh direct avec $fetch (bypass du cache useFetch)
 					try {
 						const freshData = await $fetch('/api/artists/latest', {
@@ -199,7 +186,7 @@
 					schema: 'public',
 					table: 'musics',
 				},
-				async (payload) => {
+				async (_payload) => {
 					// Force un refresh direct avec $fetch (bypass du cache useFetch)
 					try {
 						const freshData = await $fetch('/api/musics/latest-mvs', {

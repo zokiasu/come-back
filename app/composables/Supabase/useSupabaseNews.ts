@@ -56,7 +56,7 @@ export function useSupabaseNews() {
 			}),
 		)
 
-		const { data: junctionData, error: junctionError } = await supabase
+		const { error: junctionError } = await supabase
 			.from('news_artists_junction')
 			.insert(junctionInserts)
 			.select()
@@ -349,7 +349,7 @@ export function useSupabaseNews() {
 					schema: 'public',
 					table: 'news',
 				},
-				async (payload) => {
+				async (_payload) => {
 					// Récupérer à nouveau les données après un changement
 					const { data: updatedData, error: updatedError } = await supabase
 						.from('news')

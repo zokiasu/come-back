@@ -1,5 +1,3 @@
-import type { Tables } from '#server/types/api'
-
 export default defineEventHandler(async () => {
 	const supabase = useServerSupabase()
 

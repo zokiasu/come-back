@@ -5,7 +5,6 @@ import type {
 	ReleaseType,
 	Artist,
 	ReleaseWithRelations,
-	ReleasePlatformLink,
 } from '~/types'
 import type { Database, TablesInsert, TablesUpdate } from '~/types/supabase'
 

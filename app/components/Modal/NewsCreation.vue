@@ -55,7 +55,7 @@
 		const artistIds = artistListSelected.value.map((artist) => artist.id)
 
 		createNews(news, artistIds)
-			.then((res) => {
+			.then(() => {
 				toast.add({
 					title: 'News created',
 					description: 'News created successfully',

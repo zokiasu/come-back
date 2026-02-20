@@ -152,7 +152,7 @@
 				},
 				events: {
 					// @ts-expect-error - YT namespace from YouTube IFrame API
-					onReady: (event: YT.PlayerEvent) => {
+					onReady: (_event: YT.PlayerEvent) => {
 						console.log('✅ YouTube player ready')
 						isPlayerReady.value = true
 						isPlaying.value = true

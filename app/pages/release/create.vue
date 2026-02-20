@@ -303,7 +303,7 @@
 
 <script setup lang="ts">
 	import { z } from 'zod'
-	import type { Release, Music, Artist } from '~/types'
+	import type { Release, Artist } from '~/types'
 	import { useSupabaseMusic } from '~/composables/Supabase/useSupabaseMusic'
 	import { useSupabaseRelease } from '~/composables/Supabase/useSupabaseRelease'
 
@@ -316,7 +316,7 @@
 
 	// Composables
 	const { createReleaseWithDetails } = useSupabaseRelease()
-	const { addMusicToRelease, removeMusicFromRelease } = useSupabaseMusic()
+	useSupabaseMusic()
 	const toast = useToast()
 
 	// Schema de validation
@@ -420,37 +420,6 @@
 		}
 	}
 
-	const onMusicAdded = async (music: Music) => {
-		if (!createdRelease.value) return
-
-		isAddingMusic.value = true
-
-		try {
-			// TODO: Implémenter l'ajout de musique à la release
-			musics.value.push(music)
-
-			toast.add({
-				title: 'Musique ajoutée',
-				description: `"${music.name}" a été ajoutée à la release.`,
-				color: 'success',
-			})
-		} catch (error) {
-			console.error("Erreur lors de l'ajout de la musique:", error)
-			toast.add({
-				title: 'Erreur',
-				description: "Impossible d'ajouter la musique à la release.",
-				color: 'error',
-			})
-		} finally {
-			isAddingMusic.value = false
-		}
-	}
-
-	const onMusicCreated = async (music: Music) => {
-		// Même logique que onMusicAdded
-		await onMusicAdded(music)
-	}
-
 	const removeMusic = async (musicId: string) => {
 		if (!createdRelease.value) return
 
@@ -516,7 +485,7 @@
 		}
 	}
 
-	const addMusicToReleaseHandler = async (music: any) => {
+	const addMusicToReleaseHandler = async (_music: any) => {
 		if (!createdRelease.value) return
 
 		isAddingMusic.value = true

@@ -1,4 +1,3 @@
-import type { Tables } from '#server/types/api'
 import { applyReleaseFilters, applyVerifiedArtistFilter } from '#server/utils/queryFilters'
 
 const ALLOWED_ORDER_COLUMNS = ['date', 'name', 'created_at', 'updated_at'] as const

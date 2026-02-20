@@ -11,8 +11,7 @@ export const useAuth = () => {
 		storeToRefs(userStore)
 
 	// Destructurer les actions (pas besoin de storeToRefs pour les fonctions)
-	const { syncUserProfile, setUserData, setIsLogin, setSupabaseUser, resetStore } =
-		userStore
+	const { syncUserProfile, resetStore } = userStore
 
 	// Fonction pour créer ou mettre à jour un utilisateur (intégrée depuis useSupabaseUserManager)
 	const createOrUpdateUser = async (authUser: SupabaseAuthUser): Promise<User | null> => {

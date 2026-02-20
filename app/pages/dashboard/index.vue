@@ -1,19 +1,8 @@
 <script setup lang="ts">
-	import { useSupabaseArtist } from '~/composables/Supabase/useSupabaseArtist'
-	import { useSupabaseRelease } from '~/composables/Supabase/useSupabaseRelease'
-	import { useSupabaseNews } from '~/composables/Supabase/useSupabaseNews'
-	import { useSupabaseCompanies } from '~/composables/Supabase/useSupabaseCompanies'
-
 	definePageMeta({
 		middleware: ['admin'],
 		layout: 'dashboard',
 	})
-
-	const toast = useToast()
-	const { getArtistsByPage } = useSupabaseArtist()
-	const { getReleasesByPage } = useSupabaseRelease()
-	const { getAllNews } = useSupabaseNews()
-	const { getCompaniesStats } = useSupabaseCompanies()
 
 	const stats = ref({
 		totalArtists: 0,

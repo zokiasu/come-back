@@ -269,14 +269,6 @@
 		return labels[type as keyof typeof labels] || type || 'Not specified'
 	}
 
-	// Function to format location
-	const formatLocation = (city?: string, country?: string) => {
-		if (city && country) return `${city}, ${country}`
-		if (city) return city
-		if (country) return country
-		return null
-	}
-
 	// Function to toggle filter display
 	const toggleFilters = () => {
 		filtersExpanded.value = !filtersExpanded.value

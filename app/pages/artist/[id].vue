@@ -1,7 +1,7 @@
 <script setup lang="ts">
 	import { storeToRefs } from 'pinia'
 	import { useUserStore } from '@/stores/user'
-	import type { Artist, Music, ArtistSocialLink, ArtistPlatformLink } from '~/types'
+	import type { Music } from '~/types'
 	import CreateMultipleArtists from '@/components/Modal/CreateMultipleArtists.vue'
 
 	const userStore = useUserStore()
@@ -18,7 +18,6 @@
 	const {
 		data: artistData,
 		pending: isFetchingArtist,
-		error: fetchError,
 	} = await useFetch(`/api/artists/${route.params.id}/complete`, {
 		server: true,
 		default: () => ({

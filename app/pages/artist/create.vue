@@ -10,8 +10,6 @@
 		GeneralTag,
 		ArtistGender,
 		ArtistType,
-		ArtistPlatformLink,
-		ArtistSocialLink,
 		Company,
 	} from '~/types'
 
@@ -77,7 +75,7 @@
 		}[]
 	>([])
 	const artistDescription = ref<string>('')
-	const { createLinkListManager, filterValidLinks } = useLinkManager()
+	const { createLinkListManager } = useLinkManager()
 	const platformLinkManager = createLinkListManager()
 	const socialLinkManager = createLinkListManager()
 	const artistPlatformList = platformLinkManager.links
@@ -219,7 +217,7 @@
 			selectedMembers,
 			selectedCompanies as any,
 		)
-			.then((newArtist) => {
+			.then(() => {
 				isUploadingEdit.value = false
 				resetForm()
 				toast.add({

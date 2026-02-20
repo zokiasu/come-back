@@ -84,7 +84,7 @@ export default defineEventHandler(async (event) => {
 					randomMusics = (fullMusicData || []) as Tables<'musics'>[]
 				}
 			}
-		} catch (rpcError) {
+		} catch {
 			// Fallback: récupérer les musiques de l'artiste et sélectionner aléatoirement
 			const { data: allMusics } = await supabase
 				.from('music_artists')

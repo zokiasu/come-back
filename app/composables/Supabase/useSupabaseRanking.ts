@@ -3,7 +3,6 @@ import type {
 	UserRankingItem,
 	UserRankingWithItems,
 	UserRankingWithPreview,
-	Music,
 } from '~/types'
 import type { Database } from '~/types/supabase'
 

@@ -1,5 +1,3 @@
-import type { Tables } from '#server/types/api'
-
 export default defineEventHandler(async (event) => {
 	// Cache for 1 hour, stale-while-revalidate for 5 minutes
 	setHeader(event, 'Cache-Control', 'public, max-age=3600, stale-while-revalidate=300')

@@ -1,4 +1,4 @@
-import type { QueryOptions, FilterOptions, Company, CompanyArtist, Artist } from '~/types'
+import type { QueryOptions, FilterOptions, Company, CompanyArtist } from '~/types'
 import type { Database, TablesInsert, TablesUpdate } from '~/types/supabase'
 
 interface CompaniesResponse {

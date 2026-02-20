@@ -3,7 +3,7 @@
 	import { storeToRefs } from 'pinia'
 
 	import { useUserStore } from '@/stores/user'
-	import type { Release, Music, ReleaseWithRelations, ReleaseWithArtists } from '~/types'
+	import type { Release, Music } from '~/types'
 	import { useSupabaseRelease } from '~/composables/Supabase/useSupabaseRelease'
 	import { useSupabaseMusic } from '~/composables/Supabase/useSupabaseMusic'
 
@@ -21,7 +21,6 @@
 	const {
 		data: releaseData,
 		pending: isFetchingRelease,
-		error: fetchError,
 	} = await useFetch(`/api/releases/${route.params.id}/complete`, {
 		server: true,
 		default: () => ({

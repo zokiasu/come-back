@@ -108,7 +108,6 @@ export const usePlaylist = () => {
 			return false
 		}
 
-		const removedItem = playlist.value[index]
 		playlist.value.splice(index, 1)
 
 		if (index === currentIndex.value) {

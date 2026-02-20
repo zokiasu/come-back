@@ -37,8 +37,6 @@
 		},
 	})
 
-	const emit = defineEmits(['close-modal'])
-
 	const { createGeneralTag } = useSupabaseGeneralTags()
 	const toast = useToast()
 

@@ -235,7 +235,7 @@
 </template>
 
 <script setup lang="ts">
-	import type { UserRankingWithItems, Music } from '~/types'
+	import type { Music } from '~/types'
 
 	const route = useRoute()
 	const { getPublicRankingById } = useSupabaseRanking()

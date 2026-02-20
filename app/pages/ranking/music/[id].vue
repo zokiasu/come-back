@@ -417,7 +417,7 @@
 		UserRankingWithItems,
 		UserRankingItem,
 	} from '~/types'
-	import { useInfiniteScroll, useDebounceFn } from '@vueuse/core'
+	import { useDebounceFn } from '@vueuse/core'
 	import draggable from 'vuedraggable'
 
 	type YearMenuItem = { value: number; label: string }

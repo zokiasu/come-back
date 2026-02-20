@@ -1,5 +1,3 @@
-import type { H3Event } from 'h3'
-
 /**
  * Validation constants for API inputs
  */

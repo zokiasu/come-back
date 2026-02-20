@@ -61,15 +61,6 @@
 		emit('deleteRelease', props.id)
 	}
 
-	const showUpdateVerifiedRelease = () => {
-		showModal.value = true
-	}
-
-	const onReleaseVerified = () => {
-		emit('updateRelease', props.id)
-		emit('release-verified', props.id)
-	}
-
 	const handleReleaseSaved = (updatedRelease: Release) => {
 		// Update local data if necessary
 		emit('updateRelease', props.id)

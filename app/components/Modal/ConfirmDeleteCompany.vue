@@ -9,7 +9,7 @@
 		confirm: []
 	}
 
-	const props = defineProps<Props>()
+	defineProps<Props>()
 	const emit = defineEmits<Emits>()
 
 	const isDeleting = ref(false)

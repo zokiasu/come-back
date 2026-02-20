@@ -13,7 +13,14 @@ export default withNuxt({
 		// TypeScript rules - warn on any to encourage proper typing
 		'@typescript-eslint/no-explicit-any': 'warn',
 		'@typescript-eslint/ban-ts-comment': 'off',
-		'@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+		'@typescript-eslint/no-unused-vars': [
+			'warn',
+			{
+				argsIgnorePattern: '^_',
+				caughtErrorsIgnorePattern: '^_',
+				varsIgnorePattern: '^_|^YT$',
+			},
+		],
 
 		// General rules
 		'no-console': ['warn', { allow: ['error', 'warn'] }],

@@ -378,14 +378,6 @@
 		}
 	}
 
-	const seekToTime = (newTime: number | number[]) => {
-		// Pour l'événement @input, on met juste à jour l'affichage
-		const timeValue = Array.isArray(newTime)
-			? (newTime[0] ?? currentTime.value)
-			: (newTime ?? currentTime.value)
-		currentTime.value = timeValue
-	}
-
 	const setVolume = (newVolume: number | undefined) => {
 		if (!import.meta.client || !player.value || !isPlayerReady.value) return
 		if (newVolume === undefined) return
