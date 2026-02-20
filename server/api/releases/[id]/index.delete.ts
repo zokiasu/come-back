@@ -1,3 +1,5 @@
+import { isError as isH3Error } from 'h3'
+
 export default defineEventHandler(async (event) => {
 	// Verify admin authentication
 	await requireAdmin(event)

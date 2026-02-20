@@ -1,4 +1,4 @@
-import type { Tables } from '~/server/types/api'
+import type { Tables } from '#server/types/api'
 
 export default defineEventHandler(async () => {
 	const supabase = useServerSupabase()
@@ -106,13 +106,13 @@ export default defineEventHandler(async () => {
 		// Transformer les releases pour extraire les artistes
 		const transformedReleases = (recentReleasesResult.data || []).map((release) => ({
 			...release,
-			artists: transformJunction<Tables<'artists'>>(release.artists, 'artist'),
+			artists: transformJunction(release.artists, 'artist'),
 		}))
 
 		// Transformer les news pour extraire les artistes
 		const transformedNews = (recentNewsResult.data || []).map((news) => ({
 			...news,
-			artists: transformJunction<Tables<'artists'>>(news.artists, 'artist'),
+			artists: transformJunction(news.artists, 'artist'),
 		}))
 
 		return {
@@ -133,3 +133,4 @@ export default defineEventHandler(async () => {
 		throw createInternalError('Failed to fetch dashboard overview', error)
 	}
 })
+

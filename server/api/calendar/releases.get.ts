@@ -1,4 +1,4 @@
-import type { Tables } from '~/server/types/api'
+import type { Tables } from '#server/types/api'
 
 export default defineEventHandler(async (event) => {
 	// Cache for 24 hours, stale-while-revalidate for 1 hour (calendar data is stable)
@@ -50,8 +50,9 @@ export default defineEventHandler(async (event) => {
 	// Transformer les données pour correspondre au format attendu
 	const transformedData = (data || []).map((release) => ({
 		...release,
-		artists: transformJunction<Tables<'artists'>>(release.artists, 'artist'),
+		artists: transformJunction(release.artists, 'artist'),
 	}))
 
 	return transformedData
 })
+

@@ -1,4 +1,5 @@
 import type { PostgrestError } from '@supabase/supabase-js'
+import { isError as isH3Error } from 'h3'
 
 export default defineEventHandler(async (event) => {
 	const supabase = useServerSupabase()

@@ -1,4 +1,4 @@
-import type { Tables } from '~/server/types/api'
+import type { Tables } from '#server/types/api'
 
 export default defineEventHandler(async (event) => {
 	const supabase = useServerSupabase()
@@ -73,7 +73,9 @@ export default defineEventHandler(async (event) => {
 
 			// Si la RPC retourne des IDs, récupérer les données complètes
 			if (rpcData && rpcData.length > 0) {
-				const musicIds = rpcData.map((m: { id?: string }) => m.id).filter(Boolean)
+				const musicIds = rpcData
+					.map((m: { id?: string }) => m.id)
+					.filter((id): id is string => Boolean(id))
 				if (musicIds.length > 0) {
 					const { data: fullMusicData } = await supabase
 						.from('musics')
@@ -91,11 +93,16 @@ export default defineEventHandler(async (event) => {
 				.limit(50) // Limiter pour les performances
 
 			if (allMusics && allMusics.length > 0) {
-				const musicsList = transformJunction<Tables<'musics'>>(allMusics, 'music')
+				const musicsList = transformJunction(allMusics, 'music')
 				// Mélange Fisher-Yates
 				for (let i = musicsList.length - 1; i > 0; i--) {
 					const j = Math.floor(Math.random() * (i + 1))
-					;[musicsList[i], musicsList[j]] = [musicsList[j], musicsList[i]]
+					const current = musicsList[i]
+					const random = musicsList[j]
+					if (current && random) {
+						musicsList[i] = random
+						musicsList[j] = current
+					}
 				}
 				randomMusics = musicsList.slice(0, 9)
 			}
@@ -104,9 +111,9 @@ export default defineEventHandler(async (event) => {
 		// Construire l'artiste complet comme dans le composable
 		const fullArtist = {
 			...artist,
-			groups: transformJunction<Tables<'artists'>>(groups, 'group'),
-			members: transformJunction<Tables<'artists'>>(members, 'member'),
-			releases: transformJunction<Tables<'releases'>>(releases, 'release'),
+			groups: transformJunction(groups, 'group'),
+			members: transformJunction(members, 'member'),
+			releases: transformJunction(releases, 'release'),
 			companies: companies || [],
 		}
 
@@ -128,3 +135,4 @@ export default defineEventHandler(async (event) => {
 		throw createInternalError('Failed to fetch complete artist data', error)
 	}
 })
+
