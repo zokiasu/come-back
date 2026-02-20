@@ -200,9 +200,10 @@ export async function deleteArtistSafely(
 			details: response?.details,
 			impact: response?.details?.impact_analysis,
 		}
-	} catch (error: any) {
+	} catch (error: unknown) {
+		const errorMessage = error instanceof Error ? error.message : 'Une erreur est survenue'
 		console.error("Erreur lors de la suppression de l'artiste:", error)
-		onError?.(error.message || 'Une erreur est survenue lors de la suppression')
+		onError?.(errorMessage)
 		throw error
 	}
 }
@@ -233,9 +234,10 @@ export async function deleteArtistSimply(
 			message: response?.message,
 			artist_name: response?.artist_name,
 		}
-	} catch (error: any) {
+	} catch (error: unknown) {
+		const errorMessage = error instanceof Error ? error.message : 'Une erreur est survenue'
 		console.error("Erreur lors de la suppression de l'artiste:", error)
-		onError?.(error.message || 'Une erreur est survenue lors de la suppression')
+		onError?.(errorMessage)
 		throw error
 	}
 }

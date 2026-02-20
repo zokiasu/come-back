@@ -166,11 +166,12 @@
 
 			emit('updated')
 			emit('close')
-		} catch (error: any) {
+		} catch (error: unknown) {
+			const errorMessage = error instanceof Error ? error.message : 'An error occurred'
 			console.error('Error during submission:', error)
 			toast.add({
 				title: 'Error',
-				description: error.message || 'An error occurred',
+				description: errorMessage,
 				color: 'error',
 			})
 		} finally {

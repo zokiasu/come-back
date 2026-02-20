@@ -198,11 +198,11 @@
 				)
 				results.value.push({ name: member.name, success: true })
 				emit('created')
-			} catch (e: any) {
+			} catch (e: unknown) {
 				results.value.push({
 					name: member.name,
 					success: false,
-					error: e?.message || 'Erreur inconnue',
+					error: e instanceof Error ? e.message : 'Erreur inconnue',
 				})
 			}
 		}

@@ -65,7 +65,7 @@
 		try {
 			await deleteArtistWithMode(props.artistId, deletionMode.value)
 			emit('confirm')
-		} catch (error: any) {
+		} catch (error: unknown) {
 			console.error('Error during deletion:', error)
 		} finally {
 			isDeleting.value = false

@@ -86,21 +86,21 @@ describe('batchTransform', () => {
 	})
 
 	it('should handle null input', () => {
-		const transformer = (item: any) => item
+		const transformer = (item: unknown) => item
 		const result = batchTransform(null, transformer)
 
 		expect(result).toEqual([])
 	})
 
 	it('should handle undefined input', () => {
-		const transformer = (item: any) => item
+		const transformer = (item: unknown) => item
 		const result = batchTransform(undefined, transformer)
 
 		expect(result).toEqual([])
 	})
 
 	it('should handle empty array', () => {
-		const transformer = (item: any) => item
+		const transformer = (item: unknown) => item
 		const result = batchTransform([], transformer)
 
 		expect(result).toEqual([])

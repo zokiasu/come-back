@@ -1,5 +1,7 @@
-import type { News, QueryOptions, FilterOptions } from '~/types'
+import type { Artist, News, QueryOptions, FilterOptions } from '~/types'
 import type { Database, TablesInsert, TablesUpdate } from '~/types/supabase'
+
+type NewsArtistJunction = { artists: Artist }
 
 interface NewsResponse {
 	news: News[]
@@ -244,7 +246,9 @@ export function useSupabaseNews() {
 		// Transformer les données pour avoir directement les artistes et l'utilisateur
 		const transformedData = data?.map((news) => ({
 			...news,
-			artists: news.artists?.map((artistJunction: any) => artistJunction.artists) || [],
+			artists:
+				news.artists?.map((artistJunction: NewsArtistJunction) => artistJunction.artists) ||
+				[],
 			user: news.contributions?.[0]?.user || null,
 		}))
 
@@ -296,7 +300,7 @@ export function useSupabaseNews() {
 		if (data) {
 			const transformedData = {
 				...data,
-				artists: data.artists?.map((item: any) => item.artists),
+				artists: data.artists?.map((item: NewsArtistJunction) => item.artists),
 			}
 			return transformedData as News
 		}
@@ -333,7 +337,9 @@ export function useSupabaseNews() {
 		const transformedData =
 			data?.map((news) => ({
 				...news,
-				artists: news.artists?.map((artistJunction: any) => artistJunction.artists) || [],
+				artists:
+					news.artists?.map((artistJunction: NewsArtistJunction) => artistJunction.artists) ||
+					[],
 			})) || []
 
 		// Appeler le callback avec les données transformées
@@ -370,7 +376,9 @@ export function useSupabaseNews() {
 							updatedData?.map((news) => ({
 								...news,
 								artists:
-									news.artists?.map((artistJunction: any) => artistJunction.artists) ||
+									news.artists?.map(
+										(artistJunction: NewsArtistJunction) => artistJunction.artists,
+									) ||
 									[],
 							})) || []
 

@@ -1,10 +1,19 @@
 import type {
+	Music,
 	UserRanking,
 	UserRankingItem,
 	UserRankingWithItems,
 	UserRankingWithPreview,
 } from '~/types'
 import type { Database } from '~/types/supabase'
+
+type RankingItemWithThumb = {
+	musics?: { thumbnails?: Array<{ url?: string | null }> | null } | null
+}
+
+type RankingItemWithMusic = {
+	music?: (Music & { artists?: Array<{ artist?: { name?: string } | null }> }) | null
+}
 
 export function useSupabaseRanking() {
 	const supabase = useSupabaseClient<Database>()
@@ -50,7 +59,7 @@ export function useSupabaseRanking() {
 					.order('position', { ascending: true })
 					.limit(4)
 
-				const thumbnails = (items || []).map((item: any) => {
+				const thumbnails = (items || []).map((item: RankingItemWithThumb) => {
 					const music = item.musics
 					if (music?.thumbnails && Array.isArray(music.thumbnails)) {
 						return music.thumbnails[2]?.url || music.thumbnails[0]?.url || null
@@ -111,11 +120,14 @@ export function useSupabaseRanking() {
 		}
 
 		// Transformer les données
-		const transformedItems = (items || []).map((item: any) => ({
+		const transformedItems = (items || []).map((item: RankingItemWithMusic) => ({
 			...item,
 			music: {
 				...item.music,
-				artists: item.music?.artists?.map((a: any) => a.artist).filter(Boolean) || [],
+				artists:
+					item.music?.artists
+						?.map((a: { artist?: { name?: string } | null }) => a.artist)
+						.filter(Boolean) || [],
 			},
 		}))
 
@@ -434,16 +446,19 @@ export function useSupabaseRanking() {
 		}
 
 		// Transformer les données
-		const transformedItems = (items || []).map((item: any) => ({
+		const transformedItems = (items || []).map((item: RankingItemWithMusic) => ({
 			...item,
 			music: {
 				...item.music,
-				artists: item.music?.artists?.map((a: any) => a.artist).filter(Boolean) || [],
+				artists:
+					item.music?.artists
+						?.map((a: { artist?: { name?: string } | null }) => a.artist)
+						.filter(Boolean) || [],
 			},
 		}))
 
 		return {
-			...(ranking as any),
+			...(ranking as UserRanking),
 			items: transformedItems,
 			item_count: transformedItems.length,
 		}
@@ -476,7 +491,7 @@ export function useSupabaseRanking() {
 
 		// Pour chaque ranking, récupérer le nombre d'items et les 4 premières thumbnails
 		const rankingsWithPreview: UserRankingWithPreview[] = await Promise.all(
-			(rankings || []).map(async (ranking: any) => {
+			(rankings || []).map(async (ranking: UserRanking) => {
 				const { data: items, count: itemCount } = await supabase
 					.from('user_ranking_items')
 					.select('music_id, musics(thumbnails)', { count: 'exact' })
@@ -484,7 +499,7 @@ export function useSupabaseRanking() {
 					.order('position', { ascending: true })
 					.limit(4)
 
-				const thumbnails = (items || []).map((item: any) => {
+				const thumbnails = (items || []).map((item: RankingItemWithThumb) => {
 					const music = item.musics
 					if (music?.thumbnails && Array.isArray(music.thumbnails)) {
 						return music.thumbnails[2]?.url || music.thumbnails[0]?.url || null

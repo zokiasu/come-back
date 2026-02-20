@@ -9,11 +9,14 @@
 	const { createNews } = useSupabaseNews()
 	const { searchArtistsFullText } = useSupabaseSearch()
 
+	type NewsArtist = { id: string; name: string; image?: string | null }
+	type SelectedNewsArtist = { id: string; name: string; picture?: string | null }
+
 	const sendNews = ref<boolean>(false)
 	const isOpen = ref<boolean>(false)
 	const searchArtist = ref<string>('')
-	const artistListSearched = ref<any[]>([])
-	const artistListSelected = ref<any[]>([])
+	const artistListSearched = ref<NewsArtist[]>([])
+	const artistListSelected = ref<SelectedNewsArtist[]>([])
 	const newsDate = ref<Date | null>(null)
 	const newsMessage = ref<string>('')
 
@@ -76,7 +79,7 @@
 			})
 	}
 
-	const addArtistToNews = (artist: any) => {
+	const addArtistToNews = (artist: NewsArtist) => {
 		// Avoid duplicates
 		if (!artistListSelected.value.some((a) => a.id === artist.id)) {
 			artistListSelected.value.push({
@@ -88,7 +91,7 @@
 		clearSearch()
 	}
 
-	const removeArtistFromNews = (artist: any) => {
+	const removeArtistFromNews = (artist: SelectedNewsArtist) => {
 		artistListSelected.value = artistListSelected.value.filter((a) => a.id !== artist.id)
 	}
 

@@ -666,7 +666,8 @@
 
 	const getMusicThumbnail = (music: Music): string => {
 		if (music.thumbnails && Array.isArray(music.thumbnails)) {
-			return (music.thumbnails as any)[2]?.url || (music.thumbnails as any)[0]?.url || ''
+			const thumbs = music.thumbnails as Array<{ url?: string | null }>
+			return thumbs[2]?.url || thumbs[0]?.url || ''
 		}
 		return ''
 	}
@@ -675,7 +676,8 @@
 		music: Music & { artists: { name: string }[] },
 	): string => {
 		if (music.thumbnails && Array.isArray(music.thumbnails)) {
-			return (music.thumbnails as any)[2]?.url || (music.thumbnails as any)[0]?.url || ''
+			const thumbs = music.thumbnails as Array<{ url?: string | null }>
+			return thumbs[2]?.url || thumbs[0]?.url || ''
 		}
 		return ''
 	}
