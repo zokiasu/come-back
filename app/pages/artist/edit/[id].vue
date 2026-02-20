@@ -18,6 +18,13 @@
 
 	// Creates a generic type that adds 'label' to an existing type T
 	type MenuItem<T> = T & { label: string }
+	type ArtistMenuItem = { id: string; label: string; description?: string }
+	type CompanyMenuItem = {
+		id: string
+		name: string
+		description?: string
+		label: string
+	}
 
 	// Type étendu pour l'artiste avec groupes et membres
 	type ArtistWithRelations = Artist & {
@@ -59,15 +66,15 @@
 	const artistTags = ref<MenuItem<GeneralTag>[]>([])
 	const artistCompanies = ref<
 		{
-			company: MenuItem<Company> | null
+			company: CompanyMenuItem | undefined
 			relationship_type: string
 			start_date?: string
 			end_date?: string
 			is_current: boolean
 		}[]
 	>([])
-	const artistGroups = ref<MenuItem<Omit<Artist, 'type'>>[]>([])
-	const artistMembers = ref<MenuItem<Omit<Artist, 'type'>>[]>([])
+	const artistGroups = ref<ArtistMenuItem[]>([])
+	const artistMembers = ref<ArtistMenuItem[]>([])
 
 	const validGenders = ['MALE', 'FEMALE', 'MIXTE', 'UNKNOWN'] as const
 	const artistTypes = ['SOLO', 'GROUP'] as const
@@ -117,16 +124,18 @@
 		)
 	})
 
-	const companiesForMenu = computed(() => {
+	const companiesForMenu = computed((): CompanyMenuItem[] => {
 		return companiesList.value.map(
-			(company: Company): MenuItem<Company> => ({
-				...company,
+			(company): CompanyMenuItem => ({
+				id: company.id,
+				name: company.name,
 				label: company.name,
+				description: company.description ?? undefined,
 			}),
 		)
 	})
 
-	const groupsForMenu = computed(() => {
+	const groupsForMenu = computed((): ArtistMenuItem[] => {
 		return groupList.value.map((artist) => {
 			return {
 				id: artist.id,
@@ -136,7 +145,7 @@
 		})
 	})
 
-	const membersForMenu = computed(() => {
+	const membersForMenu = computed((): ArtistMenuItem[] => {
 		return artistsList.value.map((artist) => {
 			return {
 				id: artist.id,
@@ -161,16 +170,16 @@
 	}
 
 	// --- Date update handlers ---
-	const onBirthdayUpdate = (value: CalendarDate | null) => {
-		if (value) {
+	const onBirthdayUpdate = (value: any) => {
+		if (value && typeof value.toString === 'function') {
 			birthdayToDate.value = new Date(value.toString())
 		} else {
 			birthdayToDate.value = null
 		}
 	}
 
-	const onDebutDateUpdate = (value: CalendarDate | null) => {
-		if (value) {
+	const onDebutDateUpdate = (value: any) => {
+		if (value && typeof value.toString === 'function') {
 			debutDateToDate.value = new Date(value.toString())
 		} else {
 			debutDateToDate.value = null
@@ -243,7 +252,7 @@
 			}
 
 			const selectedCompanies: TablesInsert<'artist_companies'>[] = artistCompanies.value
-				.filter((relation) => relation.company !== null)
+				.filter((relation) => Boolean(relation.company))
 				.map((relation) => ({
 					artist_id: currentArtistId,
 					company_id: relation.company!.id,
@@ -262,16 +271,12 @@
 				updates,
 				validSocialLinks,
 				validPlatformLinks,
-				// eslint-disable-next-line @typescript-eslint/no-unused-vars
-				artistGroups.value.map(({ label, ...rest }) => ({
-					...rest,
-					type: 'GROUP' as const,
-				})),
-				// eslint-disable-next-line @typescript-eslint/no-unused-vars
-				artistMembers.value.map(({ label, ...rest }) => ({
-					...rest,
-					type: 'SOLO' as const,
-				})),
+				artistGroups.value
+					.map((group) => groupList.value.find((artist) => artist.id === group.id))
+					.filter((artist): artist is Artist => Boolean(artist)),
+				artistMembers.value
+					.map((member) => artistsList.value.find((artist) => artist.id === member.id))
+					.filter((artist): artist is Artist => Boolean(artist)),
 				selectedCompanies,
 			)
 				.then(() => {
@@ -306,7 +311,7 @@
 	// Functions to manage company relations
 	const addCompanyRelation = () => {
 		artistCompanies.value.push({
-			company: null,
+			company: undefined,
 			relationship_type: 'LABEL',
 			is_current: true,
 		})
@@ -316,9 +321,12 @@
 		artistCompanies.value.splice(index, 1)
 	}
 
-	const updateCompanyInRelation = (index: number, company: MenuItem<Company>) => {
+	const updateCompanyInRelation = (
+		index: number,
+		company: CompanyMenuItem | null | undefined,
+	) => {
 		if (artistCompanies.value[index]) {
-			artistCompanies.value[index].company = company
+			artistCompanies.value[index].company = company ?? undefined
 		}
 	}
 
@@ -383,15 +391,15 @@
 				}
 				artistGroups.value =
 					artist.value.groups?.map((group) => ({
-						...group,
+						id: group.id,
 						label: group.name,
-						type: 'GROUP' as ArtistType,
+						description: group.description ?? undefined,
 					})) || []
 				artistMembers.value =
 					artist.value.members?.map((member) => ({
-						...member,
+						id: member.id,
 						label: member.name,
-						type: 'SOLO' as ArtistType,
+						description: member.description ?? undefined,
 					})) || []
 
 				artistsList.value = await getAllArtists()
@@ -420,10 +428,12 @@
 					artist.value.companies?.map((companyRelation) => ({
 						company: companyRelation.company
 							? {
-									...companyRelation.company,
+									id: companyRelation.company.id,
+									name: companyRelation.company.name,
 									label: companyRelation.company.name,
+									description: companyRelation.company.description ?? undefined,
 								}
-							: null,
+							: undefined,
 						relationship_type: companyRelation.relationship_type || 'LABEL',
 						...(companyRelation.start_date
 							? { start_date: companyRelation.start_date }
@@ -849,7 +859,7 @@
 									</label>
 									<UInputMenu
 										:key="`company-menu-${index}-${companiesMenuKey}`"
-										:model-value="relation.company"
+										:model-value="relation.company ?? undefined"
 										:items="companiesForMenu"
 										by="id"
 										placeholder="Select a company"

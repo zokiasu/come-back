@@ -146,7 +146,7 @@
 	const { getPublicRankings } = useSupabaseRanking()
 	const userStore = useUserStore()
 	const { isLoginStore, isHydrated } = storeToRefs(userStore)
-	const currentUserId = computed(() => userStore.user?.id)
+	const currentUserId = computed(() => userStore.userDataStore?.id)
 	const isUserLoggedIn = computed(() => isHydrated.value && isLoginStore.value)
 
 	// State

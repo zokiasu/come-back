@@ -24,7 +24,7 @@ type ArtistWithRelationsRaw = Tables<'artists'> & {
 interface SearchArtistsRpcParams {
 	search_query: string
 	result_limit: number
-	artist_type: ArtistType | null
+	artist_type?: ArtistType
 }
 
 export function useSupabaseSearch() {
@@ -97,7 +97,7 @@ export function useSupabaseSearch() {
 			const rpcParams: SearchArtistsRpcParams = {
 				search_query: query.trim(),
 				result_limit: limit,
-				artist_type: type || null,
+				artist_type: type || undefined,
 			}
 
 			const { data: rpcData, error: rpcError } = (await supabase.rpc(

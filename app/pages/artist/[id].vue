@@ -109,6 +109,15 @@
 		showMultipleArtistModal.value = false
 	}
 
+	const getMusicThumbnail = (music: Music): string => {
+		const thumbnails = music.thumbnails
+		if (!Array.isArray(thumbnails) || thumbnails.length === 0) return ''
+		const first = thumbnails[0]
+		if (!first || typeof first !== 'object' || !('url' in first)) return ''
+		const url = (first as { url?: unknown }).url
+		return typeof url === 'string' ? url : ''
+	}
+
 	useHead({
 		title,
 		meta: [
@@ -281,7 +290,7 @@
 							:artist-name="artist.name ?? ''"
 							:music-id="song.id_youtube_music ?? ''"
 							:music-name="song.name ?? ''"
-							:music-image="song?.thumbnails?.[0]?.url || ''"
+							:music-image="getMusicThumbnail(song)"
 							:duration="song?.duration?.toString() || '0'"
 							class="bg-cb-quinary-900 w-full"
 						/>

@@ -84,10 +84,9 @@
 						<!-- Artiste principal -->
 						<UFormField label="Artiste principal" name="artistId" required>
 							<ArtistSearchSelect
-								v-model="formState.artistId"
+								v-model="selectedArtist"
 								:disabled="isSubmitting"
 								placeholder="Rechercher un artiste..."
-								@artist-selected="onArtistSelected"
 							/>
 						</UFormField>
 
@@ -304,7 +303,7 @@
 
 <script setup lang="ts">
 	import { z } from 'zod'
-	import type { Release, Music } from '~/types'
+	import type { Release, Music, Artist } from '~/types'
 	import { useSupabaseMusic } from '~/composables/Supabase/useSupabaseMusic'
 	import { useSupabaseRelease } from '~/composables/Supabase/useSupabaseRelease'
 
@@ -364,16 +363,15 @@
 	const isAddingMusic = ref(false)
 	const createdRelease = ref<Release | null>(null)
 	const musics = ref<any[]>([])
-	const selectedArtist = ref<any>(null)
+	const selectedArtist = ref<Artist | null>(null)
 	const musicSearchQuery = ref('')
 	const musicOptions = ref<any[]>([])
 	const isSearchingMusic = ref(false)
 
 	// Fonctions
-	const onArtistSelected = (artist: any) => {
-		selectedArtist.value = artist
-		formState.artistId = artist.id
-	}
+	watch(selectedArtist, (artist) => {
+		formState.artistId = artist?.id || ''
+	})
 
 	const formatDuration = (seconds: number) => {
 		const minutes = Math.floor(seconds / 60)

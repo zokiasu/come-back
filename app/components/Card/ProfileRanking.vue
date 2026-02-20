@@ -21,7 +21,7 @@
 			@click="showModal = true"
 		>
 			<p class="group relative truncate">
-				<span>#{{ index + 1 }} - {{ music.artists[0].name }} - {{ music.name }}</span>
+				<span>#{{ Number(index) + 1 }} - {{ music.artists[0].name }} - {{ music.name }}</span>
 			</p>
 		</div>
 		<p
@@ -59,7 +59,7 @@
 				<p
 					class="bg-cb-quinary-900 flex aspect-square h-full items-center justify-center rounded"
 				>
-					#{{ index + 1 }}
+					#{{ Number(index) + 1 }}
 				</p>
 				<MusicDisplay
 					:artist-id="song.artists[0].artistId"

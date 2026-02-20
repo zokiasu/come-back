@@ -1,5 +1,5 @@
 <script setup lang="ts">
-	import type { Artist } from '~/types'
+	import type { Artist, ArtistType } from '~/types'
 	import { useSupabaseArtist } from '~/composables/Supabase/useSupabaseArtist'
 
 	const toast = useToast()
@@ -12,14 +12,14 @@
 
 	// Filters state
 	const search = ref('')
-	const typeFilter = ref<string>('ALL')
+	const typeFilter = ref<ArtistType | 'ALL'>('ALL')
 	const genderFilter = ref<string>('ALL')
 	const styleFilter = ref<string>('ALL')
 	const careerFilter = ref<string>('ALL')
 	const missingFilter = ref<string>('NONE')
 
 	// Sorting state
-	const sortColumn = ref<string>('name')
+	const sortColumn = ref<keyof Artist>('name')
 	const sortDirection = ref<'asc' | 'desc'>('asc')
 
 	// Pagination state

@@ -24,6 +24,7 @@ export type Release = Tables<'releases'> & {
 	musics?: Tables<'musics'>[]
 }
 export type Music = Tables<'musics'> & {
+	title?: string
 	artists?: Tables<'artists'>[]
 	releases?: Tables<'releases'>[]
 }
@@ -65,6 +66,7 @@ export interface UserRankingItem {
 export interface UserRankingWithItems extends UserRanking {
 	items: (UserRankingItem & { music: Music })[]
 	item_count: number
+	user?: User
 }
 
 export interface UserRankingWithPreview extends UserRanking {

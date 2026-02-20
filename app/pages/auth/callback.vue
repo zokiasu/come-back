@@ -130,7 +130,7 @@
 					await navigateTo('/authentification?error=timeout')
 					return
 				}
-				sessionUser = user.value as SupabaseUser
+				sessionUser = user.value as unknown as SupabaseUser
 			}
 
 			// At this point sessionUser is guaranteed to exist with an id

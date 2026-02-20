@@ -127,6 +127,27 @@
 		return `${day}/${month}/${year}`
 	}
 
+	const updateReleaseYear = (value: string | number | null | undefined) => {
+		if (!release.value) return
+		if (value === null || value === undefined || value === '') {
+			release.value.year = null
+			return
+		}
+		const parsed = Number(value)
+		release.value.year = Number.isNaN(parsed) ? null : parsed
+	}
+
+	const updateMusicYoutubeId = (
+		music: Music,
+		value: string | number | null | undefined,
+	) => {
+		if (value === null || value === undefined || value === '') {
+			music.id_youtube_music = null
+			return
+		}
+		music.id_youtube_music = String(value)
+	}
+
 	// Configuration des meta et images de façon réactive
 	watchEffect(() => {
 		if (release.value) {
@@ -254,7 +275,11 @@
 														<option value="SINGLE">SINGLE</option>
 													</select>
 												</div>
-												<ComebackInput v-model="release.year" label="Year" />
+													<ComebackInput
+														:model-value="release.year ?? undefined"
+														label="Year"
+														@update:model-value="updateReleaseYear"
+													/>
 											</div>
 
 											<div class="flex flex-col gap-1">
@@ -290,15 +315,13 @@
 																<input v-model="music.ismv" type="checkbox" />
 															</div>
 														</div>
-														<ComebackInput
-															v-if="music.ismv"
-															v-model="music.id_youtube_music"
-															:value="
-																music.id_youtube_music !== null
-																	? String(music.id_youtube_music)
-																	: ''
-															"
-														/>
+															<ComebackInput
+																v-if="music.ismv"
+																:model-value="music.id_youtube_music ?? undefined"
+																@update:model-value="
+																	(value) => updateMusicYoutubeId(music, value)
+																"
+															/>
 													</div>
 												</div>
 											</div>
@@ -348,8 +371,6 @@
 								:ismv="song.ismv"
 								:music-image="song.thumbnails?.[2]?.url || ''"
 								:duration="song.duration ?? 0"
-								:artists="song.artists || []"
-								:releases="song.releases || []"
 								class="bg-cb-quinary-900 w-full"
 							/>
 						</transition-group>
