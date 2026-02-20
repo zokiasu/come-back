@@ -52,6 +52,7 @@ export function useSupabaseSearch() {
 			`,
 				{ count: 'exact' },
 			)
+			.eq('verified', true)
 			.ilike('name', `%${query.trim()}%`)
 			.order('name', { ascending: true })
 			.limit(limit)

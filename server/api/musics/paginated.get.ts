@@ -61,6 +61,7 @@ export default defineEventHandler(async (event) => {
 						)
 					`,
 					)
+					.eq('artists.artist.verified', true)
 					.in('id', musicIds)
 
 				if (fullError) throw fullError
@@ -119,6 +120,7 @@ export default defineEventHandler(async (event) => {
 				)
 			`,
 		)
+		.eq('artists.artist.verified', true)
 
 		// Apply artist filter if specified
 		if (musicIdsToFilter !== undefined) {

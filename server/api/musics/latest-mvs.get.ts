@@ -17,6 +17,7 @@ export default defineEventHandler(async (event) => {
 			)
 		`)
 		.eq('ismv', true) // Seulement les clips musicaux
+		.eq('artists.artist.verified', true)
 		.order('date', { ascending: false })
 		.limit(limit)
 

@@ -32,3 +32,9 @@ service-account.json
 .well-known
 
 .claude/
+
+# MCP configuration (contains secrets)
+.mcp.json
+
+# Temporary fix scripts
+fix-*.mjs

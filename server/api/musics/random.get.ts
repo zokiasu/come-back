@@ -53,6 +53,7 @@ export default defineEventHandler(async (event) => {
 			`,
 			)
 			.not('id_youtube_music', 'is', null)
+			.eq('artists.artist.verified', true)
 			.not('name', 'ilike', '%Inst.%')
 			.not('name', 'ilike', '%Instrumental%')
 			.not('name', 'ilike', '%Sped Up%')

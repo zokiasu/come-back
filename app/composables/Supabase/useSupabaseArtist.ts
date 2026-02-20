@@ -148,6 +148,24 @@ export function useSupabaseArtist() {
 		return fetchArtistsByPage(supabase, page, limit, options)
 	}
 
+	// Approuve un artiste (met verified = true) sans toucher aux relations
+	const approveArtist = async (artistId: string) => {
+		const { error } = await supabase
+			.from('artists')
+			.update({ verified: true })
+			.eq('id', artistId)
+
+		if (error) {
+			console.error("Erreur lors de l'approbation de l'artiste:", error)
+			toast.add({
+				title: 'Erreur',
+				description: "Impossible d'approuver l'artiste",
+				color: 'error',
+			})
+			throw error
+		}
+	}
+
 	return {
 		artistExistInSupabase,
 		createArtist,
@@ -163,5 +181,6 @@ export function useSupabaseArtist() {
 		getRealtimeLatestArtistsAdded,
 		getSocialAndPlatformLinksByArtistId,
 		getArtistsByPage,
+		approveArtist,
 	}
 }

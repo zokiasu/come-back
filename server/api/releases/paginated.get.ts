@@ -38,6 +38,7 @@ export default defineEventHandler(async (event) => {
 				platform_links:release_platform_links(*)
 			`,
 		)
+		.eq('artists.artist.verified', true)
 
 		// If filtering by artists, use inner join
 		if (artistIds && artistIds.length > 0) {

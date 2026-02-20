@@ -11,6 +11,7 @@ export default defineEventHandler(async (event) => {
 	const { data, error } = await supabase
 		.from('artists')
 		.select('*')
+		.eq('verified', true)
 		.order('created_at', { ascending: false })
 		.limit(limit)
 
