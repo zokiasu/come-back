@@ -1,0 +1,77 @@
+# Dependabot configuration for automated dependency updates
+# https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+
+version: 2
+updates:
+  # Monitor npm dependencies
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Europe/Paris"
+    # Group updates to reduce PR noise
+    groups:
+      # Group all non-major updates together
+      development-dependencies:
+        patterns:
+          - "@nuxt/*"
+          - "@types/*"
+          - "eslint*"
+          - "prettier*"
+          - "typescript"
+          - "vue-tsc"
+        update-types:
+          - "minor"
+          - "patch"
+      production-dependencies:
+        patterns:
+          - "*"
+        exclude-patterns:
+          - "@nuxt/*"
+          - "@types/*"
+          - "eslint*"
+          - "prettier*"
+          - "typescript"
+          - "vue-tsc"
+        update-types:
+          - "minor"
+          - "patch"
+    # Limit number of open PRs
+    open-pull-requests-limit: 5
+    # Add labels to PRs
+    labels:
+      - "dependencies"
+      - "dependabot"
+    # Commit message prefix
+    commit-message:
+      prefix: "chore"
+      prefix-development: "chore(dev)"
+      include: "scope"
+    # Ignore specific packages if needed
+    ignore:
+      # Example: ignore major version updates for specific packages
+      # - dependency-name: "vue"
+      #   update-types: ["version-update:semver-major"]
+    # Auto-merge settings (optional - requires GitHub auto-merge enabled)
+    # Allow Dependabot to auto-merge patch updates
+    # Note: You still need to enable auto-merge in GitHub settings
+    reviewers:
+      - "zokiasu"  # Replace with your GitHub username
+    assignees:
+      - "zokiasu"  # Replace with your GitHub username
+
+  # Monitor GitHub Actions if you have workflows
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Europe/Paris"
+    labels:
+      - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "ci"
