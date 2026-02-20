@@ -2,7 +2,7 @@
 	const props = withDefaults(
 		defineProps<{
 			isArtist?: boolean
-			artistId: string
+			artistId?: string
 			mainTitle: string
 			subTitle?: string
 			image?: string
