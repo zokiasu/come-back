@@ -5,6 +5,14 @@
 	import { useSupabaseNews } from '~/composables/Supabase/useSupabaseNews'
 	import { useSupabaseSearch } from '~/composables/useSupabaseSearch'
 
+	type NewsCreationProps = {
+		showLabel?: boolean
+	}
+
+	const props = withDefaults(defineProps<NewsCreationProps>(), {
+		showLabel: false,
+	})
+
 	const toast = useToast()
 	const { createNews } = useSupabaseNews()
 	const { searchArtistsFullText } = useSupabaseSearch()
@@ -138,14 +146,17 @@
 			header: 'bg-cb-secondary-950',
 		}"
 	>
-		<UButton
-			variant="soft"
-			title="New Comeback"
-			class="bg-cb-primary-700/10 lg:bg-cb-primary-900 lg:hover:bg-cb-primary-900/90 w-full items-center justify-center rounded text-white lg:h-full lg:cursor-pointer lg:px-5"
-		>
-			<IconComeback class="mx-auto size-5 lg:hidden" />
-			<p class="hidden lg:block lg:text-nowrap">New Comeback</p>
-		</UButton>
+	<UButton
+		variant="soft"
+		title="New Comeback"
+		class="bg-cb-primary-700/10 lg:bg-cb-primary-900 lg:hover:bg-cb-primary-900/90 w-full items-center justify-center rounded text-white lg:h-full lg:cursor-pointer lg:px-5"
+	>
+		<span class="flex items-center justify-center gap-2">
+			<IconComeback class="size-5" />
+			<p v-if="props.showLabel" class="text-sm font-semibold">Nouveau comeback</p>
+			<p v-else class="hidden lg:block lg:text-nowrap">New Comeback</p>
+		</span>
+	</UButton>
 
 		<template #body>
 			<div class="bg-cb-secondary-950 space-y-3 overflow-y-auto">

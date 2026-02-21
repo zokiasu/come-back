@@ -379,7 +379,11 @@
 				<!-- Suggestions -->
 				<section v-if="suggestedReleases.length && release.artists" class="space-y-2">
 					<CardDefault :name="`Autres releases de ${release.artists[0]?.name}`">
-						<div class="flex gap-4">
+						<transition-group
+							name="list-complete"
+							tag="div"
+							class="scrollBarLight flex snap-x snap-mandatory gap-4 overflow-x-auto pb-3 xl:flex-wrap"
+						>
 							<CardObject
 								v-for="otherRelease in suggestedReleases"
 								:key="otherRelease.id"
@@ -392,7 +396,7 @@
 								:object-link="`/release/${otherRelease.id}`"
 								is-release-display
 							/>
-						</div>
+						</transition-group>
 					</CardDefault>
 				</section>
 			</section>

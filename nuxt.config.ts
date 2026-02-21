@@ -11,6 +11,7 @@ export default defineNuxtConfig({
 		'@nuxt/ui',
 		'@nuxtjs/supabase',
 		'@nuxt/eslint',
+		'@vite-pwa/nuxt',
 	],
 
 	css: ['~/assets/css/tailwind.css'],
@@ -102,6 +103,73 @@ export default defineNuxtConfig({
 
 	build: {
 		transpile: ['swiper', 'tslib'],
+	},
+
+	pwa: {
+		registerType: 'autoUpdate',
+		manifest: {
+			name: 'Comeback',
+			short_name: 'Comeback',
+			description: 'Track every next release by your favorite artists.',
+			theme_color: '#9E0102',
+			background_color: '#121212',
+			display: 'standalone',
+			start_url: '/',
+			scope: '/',
+			orientation: 'portrait',
+			icons: [
+				{ src: '/icons/icon-192x192.png', sizes: '192x192', type: 'image/png' },
+				{
+					src: '/icons/icon-512x512.png',
+					sizes: '512x512',
+					type: 'image/png',
+					purpose: 'any maskable',
+				},
+			],
+		},
+		workbox: {
+			navigateFallback: '/',
+			navigateFallbackDenylist: [/^\/api\//],
+			globPatterns: ['**/*.{js,css,html,png,svg,ico,webp,woff2}'],
+			runtimeCaching: [
+				{
+					urlPattern: /^https:\/\/lh3\.googleusercontent\.com\/.*/i,
+					handler: 'CacheFirst',
+					options: {
+						cacheName: 'google-images',
+						expiration: {
+							maxEntries: 50,
+							maxAgeSeconds: 60 * 60 * 24 * 30,
+						},
+						cacheableResponse: {
+							statuses: [0, 200],
+						},
+					},
+				},
+				{
+					urlPattern: /^https:\/\/i\.ibb\.co\/.*/i,
+					handler: 'CacheFirst',
+					options: {
+						cacheName: 'ibb-images',
+						expiration: {
+							maxEntries: 50,
+							maxAgeSeconds: 60 * 60 * 24 * 30,
+						},
+						cacheableResponse: {
+							statuses: [0, 200],
+						},
+					},
+				},
+			],
+		},
+		client: {
+			installPrompt: true,
+		},
+		devOptions: {
+			enabled: process.env.NODE_ENV === 'development',
+			suppressWarnings: true,
+			type: 'module',
+		},
 	},
 
 	app: {

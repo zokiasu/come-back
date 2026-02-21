@@ -67,6 +67,21 @@ html:focus-within {
 	scroll-behavior: smooth;
 }
 
+body {
+	overscroll-behavior-y: none;
+}
+
+.cb-safe-area {
+	padding-top: env(safe-area-inset-top);
+	padding-bottom: env(safe-area-inset-bottom);
+}
+
+.cb-no-select {
+	user-select: none;
+	-webkit-user-select: none;
+	-webkit-tap-highlight-color: transparent;
+}
+
 .cb_button {
 	@apply bg-cb-primary-900 hover:bg-cb-primary-900/70 h-full cursor-pointer items-center justify-center rounded px-5 text-white;
 }

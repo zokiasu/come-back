@@ -2,6 +2,18 @@
 	import { ref, watchEffect } from 'vue'
 	import type { Artist } from '~/types'
 
+	type SearchModalProps = {
+		showLabel?: boolean
+		label?: string
+		buttonClass?: string
+	}
+
+	const props = withDefaults(defineProps<SearchModalProps>(), {
+		showLabel: false,
+		label: 'Recherche',
+		buttonClass: '',
+	})
+
 	// Initialize reactive variables
 	const searchInput = ref('')
 	const artists = ref<Artist[]>([])
@@ -53,13 +65,22 @@
 			content: 'ring-cb-quinary-950',
 		}"
 	>
-		<UButton
-			icon="material-symbols:search"
-			variant="soft"
-			aria-label="Open search"
-			class="lg:bg-cb-quaternary-950 lg:hover:bg-cb-tertiary-200/20 w-full items-center justify-center rounded-none bg-transparent text-white lg:aspect-square lg:h-full lg:rounded lg:text-xs"
-			@click="isOpen = true"
-		/>
+	<UButton
+		variant="soft"
+		aria-label="Open search"
+		:class="[
+			'lg:bg-cb-quaternary-950 lg:hover:bg-cb-tertiary-200/20 w-full items-center justify-center rounded-none bg-transparent text-white lg:aspect-square lg:h-full lg:rounded lg:text-xs',
+			props.buttonClass,
+		]"
+		@click="isOpen = true"
+	>
+		<span class="flex flex-col items-center justify-center gap-1">
+			<UIcon name="material-symbols:search" class="h-5 w-5" />
+			<span v-if="props.showLabel" class="text-[10px] font-semibold">
+				{{ props.label }}
+			</span>
+		</span>
+	</UButton>
 
 		<template #content>
 			<div

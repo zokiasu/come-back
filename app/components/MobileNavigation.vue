@@ -2,11 +2,13 @@
 	import { storeToRefs } from 'pinia'
 
 	const isPlayingVideo = useIsPlayingVideo()
+	const isMobileNavDocked = useState<boolean>('mobileNavDocked', () => false)
 
 	const userStore = useUserStore()
 	const { isLoginStore, isAdminStore, isHydrated } = storeToRefs(userStore)
 
 	const isClient = ref(false)
+	const isMoreOpen = ref(false)
 
 	onMounted(() => {
 		isClient.value = true
@@ -17,64 +19,128 @@
 		if (!isClient.value) return false
 		return isHydrated.value && isLoginStore.value
 	})
+
+	const bottomOffsetClass = computed(() => {
+		if (isMobileNavDocked.value && isPlayingVideo.value) {
+			return 'bottom-20'
+		}
+		if (isMobileNavDocked.value) {
+			return 'bottom-0'
+		}
+		return isPlayingVideo.value ? 'bottom-20' : 'bottom-5'
+	})
 </script>
 
 <template>
 	<div
-		class="fixed w-full px-5 transition-all duration-300 ease-in-out"
-		:class="isPlayingVideo ? 'bottom-20' : 'bottom-5'"
+		class="fixed w-full transition-all duration-300 ease-in-out"
+		:class="[bottomOffsetClass, isMobileNavDocked ? 'px-0' : 'px-4']"
 	>
 		<div
-			class="bg-cb-secondary-950 flex w-full justify-between divide-x divide-zinc-700 overflow-hidden rounded-full border border-zinc-700 shadow shadow-zinc-700 drop-shadow-sm"
+			class="bg-cb-secondary-950/95 flex w-full items-center justify-between border border-zinc-700/80 shadow-lg shadow-black/30 backdrop-blur transition-all duration-300"
+			:class="
+				isMobileNavDocked
+					? 'rounded-none border-x-0 border-b-0'
+					: 'rounded-3xl'
+			"
 		>
 			<NuxtLink
 				to="/"
-				class="flex w-full items-center justify-center py-2 transition-all duration-500 ease-in-out hover:bg-zinc-500/50"
+				class="cb-no-select flex flex-1 flex-col items-center justify-center gap-1 py-3 text-cb-tertiary-200 transition-all duration-300 ease-in-out hover:text-white"
+				active-class="text-white"
 			>
-				<IconHome class="mx-auto h-5 w-5" />
+				<IconHome class="h-5 w-5" />
+				<span class="text-[10px] font-semibold">Accueil</span>
 			</NuxtLink>
 
 			<NuxtLink
 				to="/calendar"
-				class="flex w-full items-center justify-center py-2 transition-all duration-500 ease-in-out hover:bg-zinc-500/50"
+				class="cb-no-select flex flex-1 flex-col items-center justify-center gap-1 py-3 text-cb-tertiary-200 transition-all duration-300 ease-in-out hover:text-white"
+				active-class="text-white"
 			>
-				<IconCalendar class="mx-auto h-5 w-5" />
+				<IconCalendar class="h-5 w-5" />
+				<span class="text-[10px] font-semibold">Calendrier</span>
 			</NuxtLink>
 
-			<SearchModal ref="searchModal" />
+			<SearchModal
+				ref="searchModal"
+				:show-label="true"
+				label="Recherche"
+				button-class="cb-no-select flex-1 py-3 text-cb-tertiary-200 transition-all duration-300 ease-in-out hover:text-white"
+			/>
 
-			<!-- <NuxtLink
-				v-if="isLoginStore && userDataStore"
-				:to="profilePath"
-				class="flex w-full items-center justify-center py-2 transition-all duration-500 ease-in-out hover:bg-zinc-500/50"
+			<button
+				class="cb-no-select flex flex-1 flex-col items-center justify-center gap-1 py-3 text-cb-tertiary-200 transition-all duration-300 ease-in-out hover:text-white"
+				type="button"
+				aria-label="More"
+				@click="isMoreOpen = true"
 			>
-				<IconArtist class="mx-auto h-5 w-5" />
-			</NuxtLink> -->
-
-			<NuxtLink
-				to="/ranking/explore"
-				class="flex w-full items-center justify-center py-2 transition-all duration-500 ease-in-out hover:bg-zinc-500/50"
-			>
-				<UIcon name="i-heroicons-musical-note" class="mx-auto h-5 w-5" />
-			</NuxtLink>
-
-			<NuxtLink
-				v-if="isAdminStore && isClient"
-				to="/dashboard/artist"
-				class="flex w-full items-center justify-center py-2 transition-all duration-500 ease-in-out hover:bg-zinc-500/50"
-			>
-				<IconEdit class="mx-auto h-5 w-5" />
-			</NuxtLink>
-
-			<NuxtLink
-				v-if="!isUserLoggedIn && isClient"
-				to="/authentification"
-				class="flex w-full items-center justify-center py-2 transition-all duration-500 ease-in-out hover:bg-zinc-500/50"
-			>
-				<IconAccount class="mx-auto h-5 w-5" />
-			</NuxtLink>
-
-			<ModalNewsCreation v-if="isUserLoggedIn" />
+				<UIcon name="i-heroicons-ellipsis-horizontal" class="h-5 w-5" />
+				<span class="text-[10px] font-semibold">Plus</span>
+			</button>
 		</div>
+
+		<UModal
+			v-model:open="isMoreOpen"
+			:ui="{
+				overlay: 'bg-cb-quinary-950/75',
+				content: 'ring-cb-quinary-950',
+				body: 'bg-cb-secondary-950',
+				wrapper: 'bg-cb-secondary-950',
+				header: 'bg-cb-secondary-950',
+			}"
+		>
+			<template #content>
+				<div class="bg-cb-secondary-950 space-y-3 p-4">
+					<div class="flex flex-col gap-2">
+						<NuxtLink
+							to="/ranking/explore"
+							class="cb-no-select flex items-center gap-3 rounded-xl border border-cb-quinary-900 bg-cb-quinary-950/70 px-4 py-3 text-sm font-semibold text-white transition hover:bg-cb-quinary-900"
+							@click="isMoreOpen = false"
+						>
+							<UIcon name="i-heroicons-musical-note" class="h-5 w-5" />
+							Explorer le classement
+						</NuxtLink>
+
+						<NuxtLink
+							to="/settings"
+							class="cb-no-select flex items-center gap-3 rounded-xl border border-cb-quinary-900 bg-cb-quinary-950/70 px-4 py-3 text-sm font-semibold text-white transition hover:bg-cb-quinary-900"
+							@click="isMoreOpen = false"
+						>
+							<UIcon name="i-heroicons-cog-6-tooth" class="h-5 w-5" />
+							Parametres
+						</NuxtLink>
+
+						<NuxtLink
+							v-if="!isUserLoggedIn && isClient"
+							to="/authentification"
+							class="cb-no-select flex items-center gap-3 rounded-xl border border-cb-quinary-900 bg-cb-quinary-950/70 px-4 py-3 text-sm font-semibold text-white transition hover:bg-cb-quinary-900"
+							@click="isMoreOpen = false"
+						>
+							<IconAccount class="h-5 w-5" />
+							Connexion
+						</NuxtLink>
+
+						<NuxtLink
+							v-if="isAdminStore && isClient"
+							to="/dashboard/artist"
+							class="cb-no-select flex items-center gap-3 rounded-xl border border-cb-quinary-900 bg-cb-quinary-950/70 px-4 py-3 text-sm font-semibold text-white transition hover:bg-cb-quinary-900"
+							@click="isMoreOpen = false"
+						>
+							<IconEdit class="h-5 w-5" />
+							Dashboard admin
+						</NuxtLink>
+
+						<div
+							v-if="isUserLoggedIn"
+							class="rounded-xl border border-cb-quinary-900 bg-cb-quinary-950/70 px-4 py-3"
+							@click="isMoreOpen = false"
+						>
+							<ModalNewsCreation :show-label="true" />
+						</div>
+					</div>
+				</div>
+			</template>
+		</UModal>
 	</div>
 </template>
