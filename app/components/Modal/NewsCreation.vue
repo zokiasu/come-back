@@ -155,7 +155,7 @@
 		:size="props.buttonSize"
 		title="New Comeback"
 		:class="[
-			'bg-cb-primary-700/10 lg:bg-cb-primary-900 lg:hover:bg-cb-primary-900/90 w-full items-center justify-center rounded text-white lg:h-full lg:cursor-pointer lg:px-5',
+			'bg-cb-primary-700/10 lg:bg-cb-primary-900/50 lg:hover:bg-cb-primary-900/70 items-center justify-center rounded text-white lg:h-full lg:cursor-pointer lg:px-5',
 			props.buttonClass,
 		]"
 	>

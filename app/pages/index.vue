@@ -268,48 +268,16 @@
 
 <template>
 	<div class="flex-1">
+			<!-- <HomeSlider :news-today="comebacksToday" /> -->
 		<section class="mx-auto w-full max-w-[100rem] space-y-10 px-4 pb-12 pt-4 lg:px-8">
 			<div
 				class="rounded-3xl border border-cb-quinary-900/60 bg-gradient-to-br from-cb-quaternary-950 via-cb-secondary-950 to-cb-quinary-900/70 p-6 lg:p-8"
 			>
 				<div class="grid gap-6 lg:grid-cols-[1.1fr,0.9fr]">
 					<div class="space-y-5">
-						<p class="text-cb-tertiary-500 text-xs uppercase tracking-wide">
+						<p class="text-3xl font-semibold lg:text-4xl xl:text-5xl">
 							Welcome back
 						</p>
-						<h1 class="text-3xl font-semibold lg:text-4xl xl:text-5xl">
-							Your music radar
-						</h1>
-						<p class="text-cb-tertiary-300 max-w-2xl text-sm lg:text-base">
-							Everything happening today, plus fresh releases and artists you might
-							want to follow.
-						</p>
-						<div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-							<UButton
-								to="/calendar"
-								variant="soft"
-								color="neutral"
-								icon="i-heroicons-calendar-days"
-								class="bg-cb-quinary-900/70 hover:bg-cb-quinary-900 h-full justify-start"
-								label="Open calendar"
-							/>
-							<UButton
-								to="/ranking/explore"
-								variant="soft"
-								color="neutral"
-								icon="i-heroicons-trophy"
-								class="bg-cb-quinary-900/70 hover:bg-cb-quinary-900 h-full justify-start"
-								label="Explore rankings"
-							/>
-							<UButton
-								to="/artist"
-								variant="soft"
-								color="neutral"
-								icon="i-heroicons-user-group"
-								class="bg-cb-quinary-900/70 hover:bg-cb-quinary-900 h-full justify-start"
-								label="Browse artists"
-							/>
-						</div>
 					</div>
 					<div class="overflow-hidden rounded-2xl border border-cb-quinary-900/60">
 						<HomeSlider :news-today="comebacksToday" />
@@ -319,21 +287,7 @@
 
 			<div class="space-y-12">
 				<div class="space-y-4">
-					<div class="flex flex-wrap items-center justify-between gap-3">
-						<div>
-							<p class="text-cb-tertiary-500 text-xs uppercase">Comebacks</p>
-							<h2 class="text-xl font-semibold">Latest reported</h2>
-						</div>
-						<UButton
-							to="/calendar"
-							variant="ghost"
-							color="neutral"
-							class="text-cb-tertiary-300 hover:text-white"
-							size="sm"
-							icon="i-heroicons-calendar-days"
-							label="Calendar"
-						/>
-					</div>
+					<h2 class="text-xl font-semibold">Comebacks Reported</h2>
 					<LazyComebackReported
 						v-if="comebacks.length > 0 && !newsFetching"
 						:comeback-list="comebacks"
@@ -352,10 +306,7 @@
 				<ClientOnly>
 					<div class="space-y-4">
 						<div class="flex flex-wrap items-center justify-between gap-3">
-							<div>
-								<p class="text-cb-tertiary-500 text-xs uppercase">Discover</p>
-								<h2 class="text-xl font-semibold">Discover Music</h2>
-							</div>
+							<h2 class="text-xl font-semibold">Discover Music</h2>
 							<UButton
 								label="Reload"
 								variant="ghost"
@@ -436,10 +387,7 @@
 
 				<div class="space-y-4">
 					<div class="flex flex-wrap items-center justify-between gap-3">
-						<div>
-							<p class="text-cb-tertiary-500 text-xs uppercase">Video</p>
-							<h2 class="text-xl font-semibold">Latest MV</h2>
-						</div>
+						<h2 class="text-xl font-semibold">Latest MV</h2>
 					</div>
 					<div v-if="mvs.length > 0 && !mvsFetching" class="space-y-8">
 						<LazyDiscoverMV :mvs="mvs" />
@@ -458,10 +406,16 @@
 
 				<div class="space-y-4">
 					<div class="flex flex-wrap items-center justify-between gap-3">
-						<div>
-							<p class="text-cb-tertiary-500 text-xs uppercase">Releases</p>
-							<h2 class="text-xl font-semibold">Recent Releases</h2>
-						</div>
+						<h2 class="text-xl font-semibold">Recent Releases</h2>
+						<UButton
+							to="/calendar"
+							variant="ghost"
+							color="neutral"
+							class="text-cb-tertiary-300 hover:text-white"
+							size="sm"
+							icon="i-heroicons-calendar-days"
+							label="Calendar"
+						/>
 					</div>
 					<LazyRecentReleases
 						v-if="releases.length > 0 && !releasesFetching"
@@ -485,10 +439,7 @@
 
 				<div class="space-y-4">
 					<div class="flex flex-wrap items-center justify-between gap-3">
-						<div>
-							<p class="text-cb-tertiary-500 text-xs uppercase">Artists</p>
-							<h2 class="text-xl font-semibold">Latest artists</h2>
-						</div>
+						<h2 class="text-xl font-semibold">Latest artists</h2>
 						<UButton
 							to="/artist"
 							variant="ghost"
