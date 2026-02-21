@@ -182,7 +182,7 @@
 <template>
 	<div
 		id="calendarPage"
-		class="container mx-auto h-fit min-h-screen w-full space-y-3 p-3 md:p-5"
+		class="container mx-auto w-full space-y-3 p-3 md:p-5"
 	>
 		<!-- Period Selector -->
 		<div>
@@ -287,11 +287,11 @@
 			tag="div"
 			leave-active-class="animate__bounceOut"
 			enter-active-class="animate__bounceIn"
-			class="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 md:gap-3.5 lg:grid-cols-6 xl:grid-cols-8"
+			class="grid w-full h-fit grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 md:gap-3.5 lg:grid-cols-6 xl:grid-cols-8"
 		>
 			<CardObject
-						v-for="release in getDisplayedReleases()"
-				:key="release.id_youtube_music ?? ''"
+				v-for="release in getDisplayedReleases()"
+				:key="release.id"
 				:artist-id="release.artists?.[0]?.id ?? ''"
 				:main-title="release.name"
 				:sub-title="release.artists?.[0]?.name"
