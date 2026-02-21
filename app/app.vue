@@ -3,6 +3,7 @@ r
 	<UApp>
 		<OfflineBanner />
 		<InstallPwaPrompt />
+		<AuthModal />
 		<NuxtLayout>
 			<NuxtLoadingIndicator color="#9E0102" />
 			<NuxtPage />

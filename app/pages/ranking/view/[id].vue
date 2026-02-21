@@ -215,6 +215,7 @@
 									item.music.id_youtube_music,
 									item.music.name || item.music.title || '',
 									getArtistNames(item.music),
+									getMusicThumbnail(item.music),
 								)
 							"
 						>
@@ -322,6 +323,7 @@
 					item.music.id_youtube_music,
 					item.music.name || item.music.title || '',
 					getArtistNames(item.music),
+					getMusicThumbnail(item.music),
 				)
 			}
 		})

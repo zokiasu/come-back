@@ -1,16 +1,23 @@
 <script setup lang="ts">
-	const props = defineProps<{
-		artists: Array<{
-			id: string
-			name: string
-			type?: string
-			image?: string
-		}>
-	}>()
+	const props = withDefaults(
+		defineProps<{
+			artists: Array<{
+				id: string
+				name: string
+				type?: string
+				image?: string
+			}>
+			showTitle?: boolean
+		}>(),
+		{
+			showTitle: true,
+		},
+	)
 </script>
 
 <template>
-	<CardDefault name="Artist added">
+	<div class="space-y-2">
+		<p v-if="props.showTitle" class="text-sm font-semibold uppercase">Artist added</p>
 		<div
 			class="scrollBarLight relative flex w-full snap-x snap-mandatory justify-between gap-5 overflow-x-auto pb-5"
 		>
@@ -26,5 +33,5 @@
 				class="snap-start"
 			/>
 		</div>
-	</CardDefault>
+	</div>
 </template>

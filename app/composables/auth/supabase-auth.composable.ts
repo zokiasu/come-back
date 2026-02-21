@@ -10,7 +10,7 @@ export const useSupabaseAuth = () => {
 			// Utiliser le client Supabase global
 			const supabase = useSupabaseClient()
 
-			const { error: authError } = await supabase.auth.signInWithOAuth({
+			const { data, error: authError } = await supabase.auth.signInWithOAuth({
 				provider: 'google',
 				options: {
 					redirectTo: `${useRequestURL().origin}/auth/callback`,
@@ -19,12 +19,26 @@ export const useSupabaseAuth = () => {
 						access_type: 'offline',
 						prompt: 'consent',
 					},
+					skipBrowserRedirect: true,
 				},
 			})
 
 			if (authError) {
 				console.error('❌ Erreur OAuth:', authError)
 				throw authError
+			}
+
+			if (data?.url) {
+				const popup = window.open(
+					data.url,
+					'comeback-auth',
+					'width=480,height=640,noopener,noreferrer',
+				)
+				if (!popup) {
+					window.location.href = data.url
+				}
+			} else {
+				throw new Error('OAuth URL not provided')
 			}
 		} catch (err: unknown) {
 			console.error('❌ Erreur lors de la connexion Google:', err)

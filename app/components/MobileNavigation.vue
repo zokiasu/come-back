@@ -1,7 +1,7 @@
 <script setup lang="ts">
 	import { storeToRefs } from 'pinia'
+	import { useAuthModal } from '@/composables/useAuthModal'
 
-	const isPlayingVideo = useIsPlayingVideo()
 	const isMobileNavDocked = useState<boolean>('mobileNavDocked', () => false)
 
 	const userStore = useUserStore()
@@ -9,6 +9,12 @@
 
 	const isClient = ref(false)
 	const isMoreOpen = ref(false)
+	const { open: openAuthModal } = useAuthModal()
+
+	const handleOpenAuth = () => {
+		isMoreOpen.value = false
+		openAuthModal()
+	}
 
 	onMounted(() => {
 		isClient.value = true
@@ -21,13 +27,10 @@
 	})
 
 	const bottomOffsetClass = computed(() => {
-		if (isMobileNavDocked.value && isPlayingVideo.value) {
-			return 'bottom-20'
-		}
 		if (isMobileNavDocked.value) {
 			return 'bottom-0'
 		}
-		return isPlayingVideo.value ? 'bottom-20' : 'bottom-5'
+		return 'bottom-5'
 	})
 </script>
 
@@ -111,15 +114,15 @@
 							Parametres
 						</NuxtLink>
 
-						<NuxtLink
+						<button
 							v-if="!isUserLoggedIn && isClient"
-							to="/authentification"
+							type="button"
 							class="cb-no-select flex items-center gap-3 rounded-xl border border-cb-quinary-900 bg-cb-quinary-950/70 px-4 py-3 text-sm font-semibold text-white transition hover:bg-cb-quinary-900"
-							@click="isMoreOpen = false"
+							@click="handleOpenAuth"
 						>
 							<IconAccount class="h-5 w-5" />
 							Connexion
-						</NuxtLink>
+						</button>
 
 						<NuxtLink
 							v-if="isAdminStore && isClient"

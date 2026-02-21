@@ -7,10 +7,14 @@
 
 	type NewsCreationProps = {
 		showLabel?: boolean
+		buttonClass?: string
+		buttonSize?: 'xs' | 'sm' | 'md' | 'lg'
 	}
 
 	const props = withDefaults(defineProps<NewsCreationProps>(), {
 		showLabel: false,
+		buttonClass: '',
+		buttonSize: 'sm',
 	})
 
 	const toast = useToast()
@@ -148,8 +152,12 @@
 	>
 	<UButton
 		variant="soft"
+		:size="props.buttonSize"
 		title="New Comeback"
-		class="bg-cb-primary-700/10 lg:bg-cb-primary-900 lg:hover:bg-cb-primary-900/90 w-full items-center justify-center rounded text-white lg:h-full lg:cursor-pointer lg:px-5"
+		:class="[
+			'bg-cb-primary-700/10 lg:bg-cb-primary-900 lg:hover:bg-cb-primary-900/90 w-full items-center justify-center rounded text-white lg:h-full lg:cursor-pointer lg:px-5',
+			props.buttonClass,
+		]"
 	>
 		<span class="flex items-center justify-center gap-2">
 			<IconComeback class="size-5" />

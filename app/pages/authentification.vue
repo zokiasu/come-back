@@ -1,4 +1,6 @@
 <script setup lang="ts">
+	import { useAuthModal } from '@/composables/useAuthModal'
+
 	definePageMeta({
 		middleware: [],
 	})
@@ -16,8 +18,10 @@
 	// Callback error handling
 	const route = useRoute()
 	const errorMessage = ref('')
+	const { open } = useAuthModal()
 
 	onMounted(() => {
+		open()
 		const error = route.query.error
 		if (error) {
 			switch (error) {
@@ -38,20 +42,14 @@
 </script>
 
 <template>
-	<div class="flex items-center justify-center sm:min-h-[calc(100vh-160px)]">
-		<div class="w-full md:w-1/2 lg:w-1/3">
-			<!-- Error message -->
-			<div
-				v-if="errorMessage"
-				class="mb-4 rounded-lg border border-red-200 bg-red-50 p-4"
-			>
+	<div class="flex min-h-[40vh] items-start justify-center px-4 py-8">
+		<div v-if="errorMessage" class="w-full max-w-md">
+			<div class="rounded-lg border border-red-200 bg-red-50 p-4">
 				<div class="flex items-center">
 					<div class="mr-3 text-red-500">⚠️</div>
 					<p class="text-sm text-red-700">{{ errorMessage }}</p>
 				</div>
 			</div>
-
-			<GoogleSignInButton />
 		</div>
 	</div>
 </template>

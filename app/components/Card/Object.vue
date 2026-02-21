@@ -43,7 +43,7 @@
 	>
 		<div class="relative">
 			<div
-				:class="`bg-cb-primary-900 absolute inset-0 aspect-square w-full object-cover transition-all duration-500 ease-in-out ${
+				:class="`bg-cb-quinary-900 absolute inset-0 aspect-square w-full object-cover transition-all duration-500 ease-in-out ${
 					props.isArtist ? 'rounded-full' : 'rounded'
 				} ${imageLoaded ? 'opacity-0' : 'opacity-100'}`"
 			></div>

@@ -6,12 +6,18 @@
 		showLabel?: boolean
 		label?: string
 		buttonClass?: string
+		layout?: 'column' | 'row'
+		buttonSize?: 'xs' | 'sm' | 'md' | 'lg'
+		dense?: boolean
 	}
 
 	const props = withDefaults(defineProps<SearchModalProps>(), {
 		showLabel: false,
 		label: 'Recherche',
 		buttonClass: '',
+		layout: 'column',
+		buttonSize: 'sm',
+		dense: false,
 	})
 
 	// Initialize reactive variables
@@ -67,16 +73,27 @@
 	>
 	<UButton
 		variant="soft"
+		:size="props.buttonSize"
 		aria-label="Open search"
 		:class="[
-			'lg:bg-cb-quaternary-950 lg:hover:bg-cb-tertiary-200/20 w-full items-center justify-center rounded-none bg-transparent text-white lg:aspect-square lg:h-full lg:rounded lg:text-xs',
+			props.dense
+				? 'bg-cb-quinary-900/60 hover:bg-cb-quinary-900 w-auto items-center justify-center rounded-full text-white'
+				: 'lg:bg-cb-quaternary-950 lg:hover:bg-cb-tertiary-200/20 w-full items-center justify-center rounded-none bg-transparent text-white lg:aspect-square lg:h-full lg:rounded lg:text-xs',
 			props.buttonClass,
 		]"
 		@click="isOpen = true"
 	>
-		<span class="flex flex-col items-center justify-center gap-1">
+		<span
+			:class="[
+				'flex items-center justify-center gap-1',
+				props.layout === 'row' ? 'flex-row' : 'flex-col',
+			]"
+		>
 			<UIcon name="material-symbols:search" class="h-5 w-5" />
-			<span v-if="props.showLabel" class="text-[10px] font-semibold">
+			<span
+				v-if="props.showLabel"
+				:class="props.layout === 'row' ? 'text-xs font-semibold' : 'text-[10px] font-semibold'"
+			>
 				{{ props.label }}
 			</span>
 		</span>
