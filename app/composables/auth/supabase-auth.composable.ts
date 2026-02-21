@@ -9,11 +9,14 @@ export const useSupabaseAuth = () => {
 		try {
 			// Utiliser le client Supabase global
 			const supabase = useSupabaseClient()
+			const origin = import.meta.client ? window.location.origin : useRequestURL().origin
+			const { ensureUserProfile } = useAuth()
+			const { close: closeAuthModal } = useAuthModal()
 
 			const { data, error: authError } = await supabase.auth.signInWithOAuth({
 				provider: 'google',
 				options: {
-					redirectTo: `${useRequestURL().origin}/auth/callback`,
+					redirectTo: `${origin}/auth/callback`,
 					scopes: 'openid email profile',
 					queryParams: {
 						access_type: 'offline',
@@ -29,14 +32,116 @@ export const useSupabaseAuth = () => {
 			}
 
 			if (data?.url) {
-				const popup = window.open(
-					data.url,
-					'comeback-auth',
-					'width=480,height=640,noopener,noreferrer',
-				)
+				const popup = window.open(data.url, 'comeback-auth', 'width=480,height=640')
 				if (!popup) {
-					window.location.href = data.url
+					const toast = useToast()
+					toast.add({
+						title: 'Popup bloquée',
+						description:
+							"Autorise les popups pour te connecter avec Google.",
+						color: 'warning',
+						duration: 4000,
+					})
+					return
 				}
+
+				let didHandleAuthSuccess = false
+				let interval: ReturnType<typeof setInterval> | null = null
+
+				const cleanupListeners = () => {
+					window.removeEventListener('message', messageHandler)
+					window.removeEventListener('storage', storageHandler)
+					window.removeEventListener('focus', focusHandler)
+					document.removeEventListener('visibilitychange', visibilityHandler)
+					if (interval) {
+						clearInterval(interval)
+						interval = null
+					}
+				}
+
+				const handleAuthSuccess = async () => {
+					if (didHandleAuthSuccess) return
+					didHandleAuthSuccess = true
+					cleanupListeners()
+					await ensureUserProfile()
+					closeAuthModal()
+					window.location.reload()
+				}
+
+				const checkSessionAndSync = async () => {
+					const { data: sessionData } = await supabase.auth.getSession()
+					if (sessionData?.session?.user?.id) {
+						await handleAuthSuccess()
+						return true
+					}
+					return false
+				}
+
+				const messageHandler = async (event: MessageEvent) => {
+					if (event.origin !== origin) return
+					if (!event.data || event.data.type !== 'comeback-auth') return
+
+					if (event.data.status === 'success') {
+						await handleAuthSuccess()
+					}
+
+					cleanupListeners()
+				}
+
+				window.addEventListener('message', messageHandler)
+
+				const storageHandler = async (event: StorageEvent) => {
+					if (event.key !== 'comeback-auth' || !event.newValue) return
+					try {
+						const payload = JSON.parse(event.newValue) as {
+							status?: string
+							reason?: string
+						}
+						if (payload.status === 'success') {
+							await handleAuthSuccess()
+						}
+					} catch {
+						// ignore malformed payloads
+					} finally {
+						cleanupListeners()
+						localStorage.removeItem('comeback-auth')
+					}
+				}
+
+				window.addEventListener('storage', storageHandler)
+
+				const focusHandler = async () => {
+					await checkSessionAndSync()
+				}
+
+				const visibilityHandler = async () => {
+					if (document.visibilityState === 'visible') {
+						await checkSessionAndSync()
+					}
+				}
+
+				window.addEventListener('focus', focusHandler)
+				document.addEventListener('visibilitychange', visibilityHandler)
+
+				// Fallback: poll session in case postMessage can't be delivered (COOP/COEP)
+				const maxWaitMs = 60_000
+				const startedAt = Date.now()
+				interval = setInterval(async () => {
+					if (popup.closed) {
+						cleanupListeners()
+						await checkSessionAndSync()
+						return
+					}
+
+					if (Date.now() - startedAt > maxWaitMs) {
+						cleanupListeners()
+						return
+					}
+
+					if (await checkSessionAndSync()) {
+						cleanupListeners()
+					}
+				}, 800)
 			} else {
 				throw new Error('OAuth URL not provided')
 			}
