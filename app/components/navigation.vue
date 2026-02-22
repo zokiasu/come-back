@@ -115,10 +115,10 @@
 					</ClientOnly>
 				</div>
 
-				<div class="flex items-center justify-center gap-3">
+				<div class="flex items-center justify-center gap-3 w-full max-w-lg">
 					<SearchInline
 						placeholder="Search artists, releases, musics..."
-						container-class="w-full max-w-xl"
+						container-class="w-full"
 					/>
 					<!-- Éléments utilisateur rendus côté client uniquement -->
 					<ClientOnly>
