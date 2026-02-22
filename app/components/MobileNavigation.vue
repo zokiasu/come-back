@@ -1,5 +1,6 @@
 <script setup lang="ts">
 	import { storeToRefs } from 'pinia'
+	import { useAuthModal } from '@/composables/useAuthModal'
 
 	const isMobileNavDocked = useState<boolean>('mobileNavDocked', () => false)
 
@@ -9,6 +10,7 @@
 	const isClient = ref(false)
 	const isMoreOpen = ref(false)
 	const isSearchOpen = ref(false)
+	const { open: openAuthModal } = useAuthModal()
 
 	onMounted(() => {
 		isClient.value = true
@@ -132,15 +134,17 @@
 							Parametres
 						</NuxtLink>
 
-						<NuxtLink
+						<button
 							v-if="!isUserLoggedIn && isClient"
-							to="/authentification"
 							class="cb-no-select flex items-center gap-3 rounded-xl border border-cb-quinary-900 bg-cb-quinary-950/70 px-4 py-3 text-sm font-semibold text-white transition hover:bg-cb-quinary-900"
-							@click="isMoreOpen = false"
+							@click="
+								isMoreOpen = false
+								openAuthModal()
+							"
 						>
 							<IconAccount class="h-5 w-5" />
 							Connexion
-						</NuxtLink>
+						</button>
 
 						<NuxtLink
 							v-if="isAdminStore && isClient"
