@@ -1,6 +1,7 @@
 export const useSupabaseAuth = () => {
 	const isLoading = ref(false)
 	const error = ref<string | null>(null)
+	const toast = useToast()
 
 	const loginWithGoogle = async () => {
 		isLoading.value = true
@@ -34,7 +35,6 @@ export const useSupabaseAuth = () => {
 			if (data?.url) {
 				const popup = window.open(data.url, 'comeback-auth', 'width=480,height=640')
 				if (!popup) {
-					const toast = useToast()
 					toast.add({
 						title: 'Popup bloquée',
 						description:
@@ -77,7 +77,6 @@ export const useSupabaseAuth = () => {
 					cleanupListeners()
 					const ready = await waitForUserReady()
 					if (!ready) {
-						const toast = useToast()
 						toast.add({
 							title: 'Authentication error',
 							description: 'Session not ready yet. Please try again.',
@@ -92,7 +91,6 @@ export const useSupabaseAuth = () => {
 					}
 					const syncedRetry = await ensureUserProfile()
 					if (!syncedRetry) {
-						const toast = useToast()
 						toast.add({
 							title: 'Authentication error',
 							description: 'Unable to sync profile. Please try again.',
@@ -164,12 +162,6 @@ export const useSupabaseAuth = () => {
 				const maxWaitMs = 60_000
 				const startedAt = Date.now()
 				interval = setInterval(async () => {
-					if (popup.closed) {
-						cleanupListeners()
-						await checkSessionAndSync()
-						return
-					}
-
 					if (Date.now() - startedAt > maxWaitMs) {
 						cleanupListeners()
 						return

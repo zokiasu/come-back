@@ -11,6 +11,10 @@
 	const isMoreOpen = ref(false)
 	const isSearchOpen = ref(false)
 	const { open: openAuthModal } = useAuthModal()
+	const handleLoginClick = () => {
+		isMoreOpen.value = false
+		openAuthModal()
+	}
 
 	onMounted(() => {
 		isClient.value = true
@@ -137,10 +141,7 @@
 						<button
 							v-if="!isUserLoggedIn && isClient"
 							class="cb-no-select flex items-center gap-3 rounded-xl border border-cb-quinary-900 bg-cb-quinary-950/70 px-4 py-3 text-sm font-semibold text-white transition hover:bg-cb-quinary-900"
-							@click="
-								isMoreOpen = false
-								openAuthModal()
-							"
+							@click="handleLoginClick"
 						>
 							<IconAccount class="h-5 w-5" />
 							Connexion

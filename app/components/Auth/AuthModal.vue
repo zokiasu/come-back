@@ -42,6 +42,8 @@
 <template>
 	<UModal
 		v-model:open="isOpen"
+		title="Sign in to Comeback"
+		description="Choose a provider to continue."
 		:ui="{
 			overlay: 'bg-black/60 backdrop-blur-sm',
 			wrapper: 'items-start',

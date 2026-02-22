@@ -73,7 +73,6 @@ export default defineNuxtConfig({
 		'/calendar': { prerender: true },
 
 		// Pages d'authentification : SPA
-		'/authentification': { ssr: false },
 		'/auth/callback': { ssr: false },
 
 		// Dashboard admin : SPA (données sensibles + interactif)
@@ -129,6 +128,7 @@ export default defineNuxtConfig({
 		},
 		workbox: {
 			navigateFallback: '/',
+			navigateFallbackAllowlist: [/^\/$/, /^\/auth\/callback/],
 			navigateFallbackDenylist: [/^\/api\//],
 			globPatterns: ['**/*.{js,css,html,png,svg,ico,webp,woff2}'],
 			runtimeCaching: [
