@@ -261,7 +261,6 @@
 <template>
 	<div class="flex-1">
 		<HomeSlider :news-today="comebacksToday" />
-			<!-- <HomeSlider :news-today="comebacksToday" /> -->
 		<section class="mx-auto w-full max-w-[100rem] space-y-10 px-4 pb-12 pt-4 lg:px-8">
 			<div class="space-y-12">
 				<div class="space-y-4">
