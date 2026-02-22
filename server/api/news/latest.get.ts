@@ -1,5 +1,3 @@
-import type { Tables } from '~/server/types/api'
-
 export default defineEventHandler(async (event) => {
 	// Cache for 30 minutes, stale-while-revalidate for 5 minutes
 	setHeader(event, 'Cache-Control', 'public, max-age=1800, stale-while-revalidate=300')
@@ -32,8 +30,9 @@ export default defineEventHandler(async (event) => {
 	// Transform the data to match expected format
 	const transformedData = (data || []).map((news) => ({
 		...news,
-		artists: transformJunction<Tables<'artists'>>(news.artists, 'artist'),
+		artists: transformJunction(news.artists, 'artist'),
 	}))
 
 	return transformedData
 })
+

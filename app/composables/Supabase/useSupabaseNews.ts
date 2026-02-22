@@ -1,5 +1,7 @@
-import type { News, QueryOptions, FilterOptions } from '~/types'
+import type { Artist, News, QueryOptions, FilterOptions } from '~/types'
 import type { Database, TablesInsert, TablesUpdate } from '~/types/supabase'
+
+type NewsArtistJunction = { artists: Artist }
 
 interface NewsResponse {
 	news: News[]
@@ -56,7 +58,7 @@ export function useSupabaseNews() {
 			}),
 		)
 
-		const { data: junctionData, error: junctionError } = await supabase
+		const { error: junctionError } = await supabase
 			.from('news_artists_junction')
 			.insert(junctionInserts)
 			.select()
@@ -244,14 +246,16 @@ export function useSupabaseNews() {
 		// Transformer les données pour avoir directement les artistes et l'utilisateur
 		const transformedData = data?.map((news) => ({
 			...news,
-			artists: news.artists?.map((artistJunction: any) => artistJunction.artists) || [],
+			artists:
+				news.artists?.map((artistJunction: NewsArtistJunction) => artistJunction.artists) ||
+				[],
 			user: news.contributions?.[0]?.user || null,
 		}))
 
 		// Si le tri est par artiste, on trie manuellement les résultats
 		let sortedData = transformedData as News[]
 		if (options?.orderBy === 'artist') {
-			console.log('Tri par artiste appliqué côté client')
+			console.warn('Tri par artiste appliqué côté client')
 			sortedData = sortedData.sort((a, b) => {
 				const nameA = a.artists?.[0]?.name || ''
 				const nameB = b.artists?.[0]?.name || ''
@@ -296,7 +300,7 @@ export function useSupabaseNews() {
 		if (data) {
 			const transformedData = {
 				...data,
-				artists: data.artists?.map((item: any) => item.artists),
+				artists: data.artists?.map((item: NewsArtistJunction) => item.artists),
 			}
 			return transformedData as News
 		}
@@ -333,7 +337,9 @@ export function useSupabaseNews() {
 		const transformedData =
 			data?.map((news) => ({
 				...news,
-				artists: news.artists?.map((artistJunction: any) => artistJunction.artists) || [],
+				artists:
+					news.artists?.map((artistJunction: NewsArtistJunction) => artistJunction.artists) ||
+					[],
 			})) || []
 
 		// Appeler le callback avec les données transformées
@@ -349,7 +355,7 @@ export function useSupabaseNews() {
 					schema: 'public',
 					table: 'news',
 				},
-				async (payload) => {
+				async (_payload) => {
 					// Récupérer à nouveau les données après un changement
 					const { data: updatedData, error: updatedError } = await supabase
 						.from('news')
@@ -370,7 +376,9 @@ export function useSupabaseNews() {
 							updatedData?.map((news) => ({
 								...news,
 								artists:
-									news.artists?.map((artistJunction: any) => artistJunction.artists) ||
+									news.artists?.map(
+										(artistJunction: NewsArtistJunction) => artistJunction.artists,
+									) ||
 									[],
 							})) || []
 
@@ -396,3 +404,4 @@ export function useSupabaseNews() {
 		getRealtimeLatestNewsAdded,
 	}
 }
+

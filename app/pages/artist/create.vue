@@ -10,8 +10,6 @@
 		GeneralTag,
 		ArtistGender,
 		ArtistType,
-		ArtistPlatformLink,
-		ArtistSocialLink,
 		Company,
 	} from '~/types'
 
@@ -26,6 +24,13 @@
 
 	// Creates a generic type that adds 'label' to an existing type T
 	type MenuItem<T> = T & { label: string }
+	type ArtistMenuItem = { id: string; label: string; description?: string }
+	type CompanyMenuItem = {
+		id: string
+		name: string
+		description?: string
+		label: string
+	}
 
 	const toast = useToast()
 	const userStore = useUserStore()
@@ -52,8 +57,8 @@
 	const birthdayToDate = ref<Date | null>(null)
 	const debutDateToDate = ref<Date | null>(null)
 
-	const artistGroups = ref<MenuItem<Artist>[]>([])
-	const artistMembers = ref<MenuItem<Artist>[]>([])
+	const artistGroups = ref<ArtistMenuItem[]>([])
+	const artistMembers = ref<ArtistMenuItem[]>([])
 	const artistGender = ref<ArtistGender>('UNKNOWN')
 	const artistType = ref<ArtistType>('SOLO')
 	const artistActiveCareer = ref<boolean>(true)
@@ -62,7 +67,7 @@
 	const artistTags = ref<MenuItem<GeneralTag>[]>([])
 	const artistCompanies = ref<
 		{
-			company: Company | null
+			company: CompanyMenuItem | undefined
 			relationship_type: string
 			start_date?: string
 			end_date?: string
@@ -70,7 +75,7 @@
 		}[]
 	>([])
 	const artistDescription = ref<string>('')
-	const { createLinkListManager, filterValidLinks } = useLinkManager()
+	const { createLinkListManager } = useLinkManager()
 	const platformLinkManager = createLinkListManager()
 	const socialLinkManager = createLinkListManager()
 	const artistPlatformList = platformLinkManager.links
@@ -97,16 +102,18 @@
 		)
 	})
 
-	const companiesForMenu = computed(() => {
+	const companiesForMenu = computed((): CompanyMenuItem[] => {
 		return companiesList.value.map(
-			(company: Company): MenuItem<Company> => ({
-				...company,
+			(company): CompanyMenuItem => ({
+				id: company.id,
+				name: company.name,
 				label: company.name,
+				description: company.description ?? undefined,
 			}),
 		)
 	})
 
-	const groupsForMenu = computed(() => {
+	const groupsForMenu = computed((): ArtistMenuItem[] => {
 		return groupList.value.map((artist) => {
 			return {
 				id: artist.id,
@@ -116,7 +123,7 @@
 		})
 	})
 
-	const membersForMenu = computed(() => {
+	const membersForMenu = computed((): ArtistMenuItem[] => {
 		return artistsList.value.map((artist) => {
 			return {
 				id: artist.id,
@@ -156,12 +163,14 @@
 			return
 		}
 
-		const selectedGroups = artistGroups.value.map(({ label, ...rest }) => rest as Artist)
-		const selectedMembers = artistMembers.value.map(
-			({ label, ...rest }) => rest as Artist,
-		)
+		const selectedGroups = artistGroups.value
+			.map((group) => groupList.value.find((artist) => artist.id === group.id))
+			.filter((artist): artist is Artist => Boolean(artist))
+		const selectedMembers = artistMembers.value
+			.map((member) => artistsList.value.find((artist) => artist.id === member.id))
+			.filter((artist): artist is Artist => Boolean(artist))
 		const selectedCompanies = artistCompanies.value
-			.filter((relation) => relation.company !== null)
+			.filter((relation) => Boolean(relation.company))
 			.map((relation) => ({
 				company_id: relation.company!.id,
 				relationship_type: relation.relationship_type,
@@ -206,9 +215,9 @@
 			validPlatformLinks,
 			selectedGroups,
 			selectedMembers,
-			selectedCompanies as any,
+			selectedCompanies as Parameters<typeof createArtist>[5],
 		)
-			.then((newArtist) => {
+			.then(() => {
 				isUploadingEdit.value = false
 				resetForm()
 				toast.add({
@@ -275,7 +284,7 @@
 	// Functions to manage company relations
 	const addCompanyRelation = () => {
 		artistCompanies.value.push({
-			company: null,
+			company: undefined,
 			relationship_type: 'LABEL',
 			is_current: true,
 		})
@@ -285,9 +294,12 @@
 		artistCompanies.value.splice(index, 1)
 	}
 
-	const updateCompanyInRelation = (index: number, company: Company) => {
+	const updateCompanyInRelation = (
+		index: number,
+		company: CompanyMenuItem | null | undefined,
+	) => {
 		if (artistCompanies.value[index]) {
-			artistCompanies.value[index].company = company
+			artistCompanies.value[index].company = company ?? undefined
 		}
 	}
 
@@ -657,7 +669,7 @@
 									</label>
 									<UInputMenu
 										:key="`company-menu-${index}-${companiesMenuKey}`"
-										v-model="relation.company"
+										:model-value="relation.company ?? undefined"
 										:items="companiesForMenu"
 										by="id"
 										placeholder="Select a company"
@@ -669,7 +681,8 @@
 											item: 'rounded cursor-pointer data-highlighted:before:bg-cb-primary-900/30 hover:bg-cb-primary-900',
 										}"
 										@update:model-value="
-											(company: any) => updateCompanyInRelation(index, company)
+											(company: unknown) =>
+												updateCompanyInRelation(index, company as CompanyMenuItem)
 										"
 									/>
 								</div>
@@ -705,8 +718,8 @@
 
 							<!-- Bouton de suppression -->
 							<button
-								@click="removeCompanyRelation(index)"
 								class="ml-3 rounded bg-red-600 p-2 text-xs text-white hover:bg-red-700"
+								@click="removeCompanyRelation(index)"
 							>
 								Remove
 							</button>

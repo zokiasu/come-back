@@ -25,7 +25,7 @@
 
 	const log = (message: string) => {
 		const timestamp = new Date().toLocaleTimeString()
-		console.log(`[Callback] [${timestamp}] ${message}`)
+		console.warn(`[Callback] [${timestamp}] ${message}`)
 	}
 
 	const handleAuthCallback = async () => {
@@ -130,7 +130,7 @@
 					await navigateTo('/authentification?error=timeout')
 					return
 				}
-				sessionUser = user.value as SupabaseUser
+				sessionUser = user.value as unknown as SupabaseUser
 			}
 
 			// At this point sessionUser is guaranteed to exist with an id
@@ -238,3 +238,4 @@
 		await handleAuthCallback()
 	})
 </script>
+

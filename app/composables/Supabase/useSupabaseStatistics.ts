@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { DashboardStats, StatsFilters } from '~/types/stats'
 import type { Database } from '~/types/supabase'
 

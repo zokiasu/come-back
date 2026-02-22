@@ -1,5 +1,6 @@
-import type { Tables } from '~/server/types/api'
+import type { Tables } from '#server/types/api'
 import type { PostgrestError } from '@supabase/supabase-js'
+import { isError as isH3Error } from 'h3'
 
 export default defineEventHandler(async (event) => {
 	const supabase = useServerSupabase()
@@ -29,41 +30,22 @@ export default defineEventHandler(async (event) => {
 		}
 
 		// 2. Récupérer les artistes associés
-		const { data: releaseArtists, error: artistsError } = await supabase
-			.from('release_artists')
+		const { data: finalReleaseArtists, error: artistsError } = await supabase
+			.from('artist_releases')
 			.select('artist:artists(*)')
 			.eq('release_id', releaseId)
 			.eq('artist.verified', true)
-
-		// Si release_artists ne fonctionne pas, essayer artist_releases
-		let finalReleaseArtists = releaseArtists
-		if (artistsError || !releaseArtists?.length) {
-			const { data: altArtists } = await supabase
-				.from('artist_releases')
-				.select('artist:artists(*)')
-				.eq('release_id', releaseId)
-				.eq('artist.verified', true)
-			finalReleaseArtists = altArtists
-		}
+		if (artistsError) throw artistsError
 
 		// 3. Récupérer les musiques associées
-		const { data: releaseMusics, error: musicsError } = await supabase
-			.from('release_musics')
+		const { data: finalReleaseMusics, error: musicsError } = await supabase
+			.from('music_releases')
 			.select('music:musics(*)')
 			.eq('release_id', releaseId)
-
-		// Si release_musics ne fonctionne pas, essayer music_releases
-		let finalReleaseMusics = releaseMusics
-		if (musicsError || !releaseMusics?.length) {
-			const { data: altMusics } = await supabase
-				.from('music_releases')
-				.select('music:musics(*)')
-				.eq('release_id', releaseId)
-			finalReleaseMusics = altMusics
-		}
+		if (musicsError) throw musicsError
 
 		// Récupérer des releases suggérées (même artiste, excluant le release actuel)
-		const artistIds = transformJunction<Tables<'artists'>>(
+		const artistIds = transformJunction(
 			finalReleaseArtists,
 			'artist',
 		).map((artist) => artist.id)
@@ -119,8 +101,8 @@ export default defineEventHandler(async (event) => {
 		// Transformer les données pour correspondre au format attendu
 		const transformedRelease = {
 			...release,
-			artists: transformJunction<Tables<'artists'>>(finalReleaseArtists, 'artist'),
-			musics: transformJunction<Tables<'musics'>>(finalReleaseMusics, 'music'),
+			artists: transformJunction(finalReleaseArtists, 'artist'),
+			musics: transformJunction(finalReleaseMusics, 'music'),
 		}
 
 		return {
@@ -136,3 +118,4 @@ export default defineEventHandler(async (event) => {
 		throw handleSupabaseError(error as PostgrestError, 'releases.complete')
 	}
 })
+

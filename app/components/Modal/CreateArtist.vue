@@ -130,10 +130,11 @@
 			toast.add({ title: 'Artist created successfully', color: 'success' })
 			isUploadingEdit.value = false
 			emit('closeModal')
-		} catch (error: any) {
+		} catch (error: unknown) {
+			const errorMessage = error instanceof Error ? error.message : 'Unknown error'
 			toast.add({
 				title: 'Error creating artist',
-				description: error.message,
+				description: errorMessage,
 				color: 'error',
 			})
 			isUploadingEdit.value = false

@@ -14,10 +14,10 @@
 				{{ error.message }}
 			</p>
 			<div class="mt-8 flex justify-center gap-4">
-				<UButton @click="handleError" color="primary" size="lg">
+				<UButton color="primary" size="lg" @click="handleError">
 					Retour à l'accueil
 				</UButton>
-				<UButton @click="clearAndRetry" variant="outline" size="lg">Réessayer</UButton>
+				<UButton variant="outline" size="lg" @click="clearAndRetry">Réessayer</UButton>
 			</div>
 		</div>
 	</div>

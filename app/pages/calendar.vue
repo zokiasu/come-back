@@ -1,7 +1,17 @@
 <script setup lang="ts">
-	import type { Release } from '~/types'
 	import { useWindowScroll } from '@vueuse/core'
 	import { useSupabaseRelease } from '~/composables/Supabase/useSupabaseRelease'
+
+	type CalendarRelease = {
+		id: string
+		name: string
+		type: 'SINGLE' | 'EP' | 'ALBUM' | 'MIXTAPE' | 'COMPILATION' | null
+		date: string | null
+		image: string | null
+		id_youtube_music: string | null
+		artists?: Array<{ id: string; name: string }>
+	}
+	type ArtistLike = { id: string; name: string }
 
 	const { getReleasesByMonthAndYear } = useSupabaseRelease()
 
@@ -26,7 +36,7 @@
 	const onlyAlbums = ref<boolean>(false)
 	const onlyEps = ref<boolean>(false)
 	const onlySingles = ref<boolean>(false)
-	const releases = ref<Release[]>([])
+	const releases = ref<CalendarRelease[]>([])
 	const loading = ref<boolean>(true)
 
 	// Utiliser le composable Nuxt pour le scroll
@@ -63,17 +73,64 @@
 		}
 	}
 
-	const releasesDisplayed = computed(() => {
+	const normalizeReleases = (items: unknown[]): CalendarRelease[] => {
+		return items.map((item) => {
+			const record = item as Record<string, unknown>
+			const artists = Array.isArray(record.artists)
+				? record.artists
+						.filter(
+							(artist): artist is ArtistLike =>
+								typeof artist === 'object' &&
+								artist !== null &&
+								typeof (artist as { id?: unknown }).id === 'string' &&
+								typeof (artist as { name?: unknown }).name === 'string',
+						)
+						.map((artist) => ({ id: artist.id, name: artist.name }))
+				: undefined
+
+			return {
+				id: String(record.id ?? ''),
+				name: String(record.name ?? ''),
+				type: (record.type as CalendarRelease['type']) ?? null,
+				date: (record.date as string | null) ?? null,
+				image: (record.image as string | null) ?? null,
+				id_youtube_music: (record.id_youtube_music as string | null) ?? null,
+				artists,
+			}
+		})
+	}
+
+	const getReleasesByType = (type: 'ALBUM' | 'EP' | 'SINGLE'): CalendarRelease[] => {
+		const filtered: CalendarRelease[] = []
+		for (const release of releases.value) {
+			if (release.type === type) {
+				filtered.push(release)
+			}
+		}
+		return filtered
+	}
+
+	const countReleasesByType = (type: 'ALBUM' | 'EP' | 'SINGLE'): number => {
+		let count = 0
+		for (const release of releases.value) {
+			if (release.type === type) {
+				count += 1
+			}
+		}
+		return count
+	}
+
+	const getDisplayedReleases = (): CalendarRelease[] => {
 		if (onlyAlbums.value) {
-			return releases.value.filter((release) => release.type === 'ALBUM')
+			return getReleasesByType('ALBUM')
 		} else if (onlyEps.value) {
-			return releases.value.filter((release) => release.type === 'EP')
+			return getReleasesByType('EP')
 		} else if (onlySingles.value) {
-			return releases.value.filter((release) => release.type === 'SINGLE')
+			return getReleasesByType('SINGLE')
 		} else {
 			return releases.value
 		}
-	})
+	}
 
 	// function backtotop to id calendarPage
 	const backToTop = () => {
@@ -91,7 +148,7 @@
 
 		await getReleasesByMonthAndYear(currentMonth.value, currentYear.value).then((res) => {
 			loading.value = false
-			releases.value = res.sort((a, b) => {
+			releases.value = normalizeReleases(res).sort((a, b) => {
 				return new Date(b.date || '').getTime() - new Date(a.date || '').getTime()
 			})
 		})
@@ -99,9 +156,8 @@
 
 	// Watcher pour les changements de mois/année
 	watch([currentYear, currentMonth], async () => {
-		releases.value = await getReleasesByMonthAndYear(
-			currentMonth.value,
-			currentYear.value,
+		releases.value = normalizeReleases(
+			await getReleasesByMonthAndYear(currentMonth.value, currentYear.value),
 		)
 
 		releases.value = releases.value.sort((a, b) => {
@@ -192,7 +248,7 @@
 				>
 					Total albums
 					<span class="text-base font-bold">
-						{{ releases.filter((release) => release.type === 'ALBUM').length }}
+						{{ countReleasesByType('ALBUM') }}
 					</span>
 				</button>
 				<button
@@ -206,7 +262,7 @@
 				>
 					Total EPs
 					<span class="text-base font-bold">
-						{{ releases.filter((release) => release.type === 'EP').length }}
+						{{ countReleasesByType('EP') }}
 					</span>
 				</button>
 				<button
@@ -220,7 +276,7 @@
 				>
 					Total singles
 					<span class="text-base font-bold">
-						{{ releases.filter((release) => release.type === 'SINGLE').length }}
+						{{ countReleasesByType('SINGLE') }}
 					</span>
 				</button>
 			</div>
@@ -234,7 +290,7 @@
 			class="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 md:gap-3.5 lg:grid-cols-6 xl:grid-cols-8"
 		>
 			<CardObject
-				v-for="release in releasesDisplayed"
+						v-for="release in getDisplayedReleases()"
 				:key="release.id_youtube_music ?? ''"
 				:artist-id="release.artists?.[0]?.id ?? ''"
 				:main-title="release.name"

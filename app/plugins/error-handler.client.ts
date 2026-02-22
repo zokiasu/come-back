@@ -19,7 +19,7 @@ export default defineNuxtPlugin(() => {
 			let contextStr = 'unknown'
 			try {
 				contextStr = typeof context === 'string' ? context : JSON.stringify(context)
-			} catch (e) {
+			} catch (_e) {
 				contextStr = typeof context === 'object' ? 'object' : String(context)
 			}
 			logError(error, `vue-error-${contextStr}`)

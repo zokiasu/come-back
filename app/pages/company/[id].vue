@@ -1,8 +1,6 @@
 <script setup lang="ts">
 	import { storeToRefs } from 'pinia'
 	import { useUserStore } from '@/stores/user'
-	import type { Company, CompanyArtist } from '~/types'
-
 	const userStore = useUserStore()
 	const { isLoginStore, isAdminStore } = storeToRefs(userStore)
 
@@ -14,7 +12,6 @@
 	const {
 		data: companyData,
 		pending: isFetchingCompany,
-		error: fetchError,
 	} = await useFetch(`/api/companies/${route.params.id}/complete`, {
 		server: true,
 		default: () => ({

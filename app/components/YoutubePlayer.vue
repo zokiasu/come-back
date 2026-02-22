@@ -29,7 +29,7 @@
 	const createPlayer = () => {
 		if (!import.meta.client) return
 
-		console.log('🎵 Création du lecteur YouTube avec vidéo:', idYoutubeVideo.value)
+		console.warn('🎵 Création du lecteur YouTube avec vidéo:', idYoutubeVideo.value)
 
 		try {
 			if (import.meta.client && window.YT) {
@@ -71,7 +71,7 @@
 
 	// @ts-expect-error - YT namespace from YouTube IFrame API
 	const onPlayerReady = async (event: YT.PlayerEvent) => {
-		console.log('✅ Lecteur YouTube prêt')
+		console.warn('✅ Lecteur YouTube prêt')
 		isPlayerReady.value = true
 		duration.value = event.target.getDuration()
 		setVolume(volume.value)
@@ -92,13 +92,13 @@
 
 		// Gestion de la fin de vidéo pour la playlist
 		if (event.data === window.YT.PlayerState.ENDED) {
-			console.log('🎵 Fin de vidéo - tentative de lecture suivante')
+			console.warn('🎵 Fin de vidéo - tentative de lecture suivante')
 			const { playNext } = usePlaylist()
 
 			setTimeout(() => {
 				const hasPlayedNext = playNext()
 				if (!hasPlayedNext) {
-					console.log('🎵 Aucune musique suivante - fin de playlist')
+					console.warn('🎵 Aucune musique suivante - fin de playlist')
 				}
 			}, 500)
 		}
@@ -112,7 +112,7 @@
 			[3]: 'mise en mémoire tampon',
 			[5]: "vidéo mise en file d'attente",
 		}
-		console.log('🎵 État du lecteur:', states[event.data] || event.data)
+		console.warn('🎵 État du lecteur:', states[event.data] || event.data)
 	}
 
 	// @ts-expect-error - YT namespace from YouTube IFrame API
@@ -152,7 +152,7 @@
 				event.error.message.includes('postMessage') &&
 				event.error.message.includes('youtube.com')
 			) {
-				console.log('🎵 Info: Communication YouTube iframe (normal en développement)')
+				console.warn('🎵 Info: Communication YouTube iframe (normal en développement)')
 				event.preventDefault()
 				return
 			}
@@ -165,7 +165,7 @@
 			const message = args.join(' ')
 			// Filtrer les erreurs postMessage YouTube connues (non critiques)
 			if (message.includes('postMessage') && message.includes('youtube.com')) {
-				console.log('🎵 Info: Communication YouTube iframe (normal en localhost)')
+				console.warn('🎵 Info: Communication YouTube iframe (normal en localhost)')
 				return
 			}
 			if (originalConsoleError) {
@@ -194,7 +194,7 @@
 	const initYTPlayer = () => {
 		if (!import.meta.client) return
 
-		console.log('🎵 Initialisation du lecteur YouTube...')
+		console.warn('🎵 Initialisation du lecteur YouTube...')
 
 		// Détecter les bloqueurs de publicités de manière plus robuste
 		const detectAdBlocker = () => {
@@ -225,24 +225,24 @@
 		}
 
 		if (window.YT && window.YT.Player) {
-			console.log('✅ API YouTube déjà chargée')
+			console.warn('✅ API YouTube déjà chargée')
 			createPlayer()
 		} else {
-			console.log("📥 Chargement de l'API YouTube...")
+			console.warn("📥 Chargement de l'API YouTube...")
 
 			// Vérifier si le script est déjà présent
 			const existingScript = document.querySelector(
 				'script[src*="youtube.com/iframe_api"]',
 			)
 			if (existingScript) {
-				console.log('⏳ Script YouTube déjà en cours de chargement...')
+				console.warn('⏳ Script YouTube déjà en cours de chargement...')
 				return
 			}
 
 			const tag = document.createElement('script')
 			tag.src = 'https://www.youtube.com/iframe_api'
 			tag.onload = () => {
-				console.log('✅ Script YouTube chargé')
+				console.warn('✅ Script YouTube chargé')
 			}
 			tag.onerror = (error) => {
 				console.error("❌ Erreur lors du chargement de l'API YouTube:", error)
@@ -260,7 +260,7 @@
 
 			// Callback global pour l'API YouTube avec timeout
 			window.onYouTubeIframeAPIReady = () => {
-				console.log('✅ API YouTube prête')
+				console.warn('✅ API YouTube prête')
 				createPlayer()
 			}
 
@@ -292,7 +292,7 @@
 		idYoutubeVideo,
 		(newId) => {
 			if (player.value && isPlayerReady.value && newId) {
-				console.log('🔄 Changement de vidéo:', newId)
+				console.warn('🔄 Changement de vidéo:', newId)
 				try {
 					player.value?.loadVideoById(newId)
 					if (isPlaying.value) {
@@ -309,14 +309,14 @@
 	)
 
 	onMounted(() => {
-		console.log('🎵 Montage du composant YoutubePlayer')
+		console.warn('🎵 Montage du composant YoutubePlayer')
 		setupYouTubeErrorFiltering()
 		initYTPlayer()
 		intervalId = setInterval(updateCurrentTime, 1000)
 	})
 
 	onBeforeUnmount(() => {
-		console.log('🎵 Démontage du composant YoutubePlayer')
+		console.warn('🎵 Démontage du composant YoutubePlayer')
 
 		if (intervalId) {
 			clearInterval(intervalId)
@@ -378,14 +378,6 @@
 		}
 	}
 
-	const seekToTime = (newTime: number | number[]) => {
-		// Pour l'événement @input, on met juste à jour l'affichage
-		const timeValue = Array.isArray(newTime)
-			? (newTime[0] ?? currentTime.value)
-			: (newTime ?? currentTime.value)
-		currentTime.value = timeValue
-	}
-
 	const setVolume = (newVolume: number | undefined) => {
 		if (!import.meta.client || !player.value || !isPlayerReady.value) return
 		if (newVolume === undefined) return
@@ -416,7 +408,7 @@
 	}
 
 	const closeYTPlayer = () => {
-		console.log('🎵 Fermeture du lecteur YouTube')
+		console.warn('🎵 Fermeture du lecteur YouTube')
 		isPlayingVideo.value = false
 		idYoutubeVideo.value = ''
 
@@ -471,57 +463,57 @@
 					variant="ghost"
 					class="hidden lg:block"
 					:disabled="!isPlayerReady || !playlistInfo.hasPrevious"
+					icon="i-material-symbols-skip-previous"
+					size="lg"
 					@click="
 						() => {
 							skipToPrevious()
 						}
 					"
-					icon="i-material-symbols-skip-previous"
-					size="lg"
 				/>
 				<UButton
 					variant="ghost"
 					class="hidden lg:block"
 					:disabled="!isPlayerReady"
-					@click="seek(-10)"
 					icon="i-material-symbols-replay-10"
 					size="lg"
+					@click="seek(-10)"
 				/>
 				<UButton
 					v-if="isPlaying"
 					variant="ghost"
 					:disabled="!isPlayerReady"
-					@click="togglePlayPause"
 					icon="i-material-symbols-pause"
 					size="lg"
+					@click="togglePlayPause"
 				/>
 				<UButton
 					v-else
 					variant="ghost"
 					:disabled="!isPlayerReady"
-					@click="togglePlayPause"
 					icon="i-material-symbols-play-arrow"
 					size="lg"
+					@click="togglePlayPause"
 				/>
 				<UButton
 					variant="ghost"
 					class="hidden lg:block"
 					:disabled="!isPlayerReady"
-					@click="seek(10)"
 					icon="i-material-symbols-forward-10"
 					size="lg"
+					@click="seek(10)"
 				/>
 				<UButton
 					variant="ghost"
 					class="hidden lg:block"
 					:disabled="!isPlayerReady || !playlistInfo.hasNext"
+					icon="i-material-symbols-skip-next"
+					size="lg"
 					@click="
 						() => {
 							skipToNext()
 						}
 					"
-					icon="i-material-symbols-skip-next"
-					size="lg"
 				/>
 				<div class="hidden items-center gap-1 pl-5 text-xs md:flex">
 					<p>{{ convertDuration(currentTime) }}</p>
@@ -535,9 +527,9 @@
 					variant="ghost"
 					class="sm:hidden"
 					:disabled="!playlistInfo.isActive"
-					@click="showPlaylist = !showPlaylist"
 					icon="i-material-symbols-queue-music"
 					size="sm"
+					@click="showPlaylist = !showPlaylist"
 				/>
 			</div>
 			<div v-if="!errorDetected" class="flex w-fit items-center gap-2">
@@ -553,18 +545,18 @@
 				<UButton
 					variant="ghost"
 					:disabled="!playlistInfo.isActive"
-					@click="showPlaylist = !showPlaylist"
 					icon="i-material-symbols-queue-music"
 					size="lg"
+					@click="showPlaylist = !showPlaylist"
 				/>
 				<UButton
 					variant="ghost"
 					:disabled="!isPlayerReady"
-					@click="muteVolume"
 					:icon="
 						volumeOn ? 'i-material-symbols-volume-up' : 'i-material-symbols-volume-off'
 					"
 					size="lg"
+					@click="muteVolume"
 				/>
 				<USlider
 					v-model="volume"
@@ -607,3 +599,4 @@
 		</div>
 	</div>
 </template>
+

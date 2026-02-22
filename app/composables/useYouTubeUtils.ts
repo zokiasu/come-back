@@ -1,4 +1,9 @@
 export function useYouTubeUtils() {
+	type YoutubeApiResponse = {
+		items?: unknown[]
+		nextPageToken?: string
+	}
+
 	// Fetches details of a YouTube video using the YouTube Data API.
 	const getVideoFullDetails = async (videoId: string, apiKey: string) => {
 		const url = `https://www.googleapis.com/youtube/v3/videos?id=${videoId}&part=snippet,contentDetails,status&key=${apiKey}`
@@ -16,20 +21,20 @@ export function useYouTubeUtils() {
 	// Fetches all videos from a YouTube playlist
 	const getAllVideosFromPlaylist = async (playlistId: string, apiKey: string) => {
 		const baseUrl = `https://youtube.googleapis.com/youtube/v3/playlistItems`
-		let allItems: any[] = []
+		let allItems: unknown[] = []
 		let pageToken = ''
 
 		try {
 			do {
 				const url = `${baseUrl}?part=snippet,contentDetails,id,status&playlistId=${playlistId}&key=${apiKey}&maxResults=50&pageToken=${pageToken}`
 				const response = await fetch(url)
-				const data = await response.json()
+				const data = (await response.json()) as YoutubeApiResponse
 
 				if (data.items) {
 					allItems = allItems.concat(data.items)
 				}
 
-				pageToken = data.nextPageToken
+				pageToken = data.nextPageToken || ''
 			} while (pageToken)
 
 			return allItems

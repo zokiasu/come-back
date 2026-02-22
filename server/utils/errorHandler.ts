@@ -1,4 +1,4 @@
-import type { H3Error, H3Event } from 'h3'
+import type { H3Event } from 'h3'
 import type { PostgrestError } from '@supabase/supabase-js'
 
 /**
@@ -52,7 +52,7 @@ export const isPostgrestError = (error: unknown): error is PostgrestError => {
  * if (error) throw handleSupabaseError(error, 'artists.select')
  * ```
  */
-export const handleSupabaseError = (error: PostgrestError, context?: string): H3Error => {
+export const handleSupabaseError = (error: PostgrestError, context?: string) => {
 	console.error(`[Supabase Error${context ? ` - ${context}` : ''}]:`, {
 		code: error.code,
 		message: error.message,
@@ -94,7 +94,7 @@ export const handleSupabaseError = (error: PostgrestError, context?: string): H3
  * if (!artist) throw createNotFoundError('Artist', artistId)
  * ```
  */
-export const createNotFoundError = (resource: string, id?: string): H3Error => {
+export const createNotFoundError = (resource: string, id?: string) => {
 	return createError({
 		statusCode: 404,
 		statusMessage: `${resource} not found`,
@@ -114,7 +114,7 @@ export const createNotFoundError = (resource: string, id?: string): H3Error => {
  * if (!artistId) throw createBadRequestError('Artist ID is required')
  * ```
  */
-export const createBadRequestError = (message: string, details?: unknown): H3Error => {
+export const createBadRequestError = (message: string, details?: unknown) => {
 	return createError({
 		statusCode: 400,
 		statusMessage: 'Bad Request',
@@ -139,7 +139,7 @@ export const createBadRequestError = (message: string, details?: unknown): H3Err
  * }
  * ```
  */
-export const createInternalError = (message: string, error?: unknown): H3Error => {
+export const createInternalError = (message: string, error?: unknown) => {
 	if (error) {
 		console.error('[Internal Error]:', error)
 	}

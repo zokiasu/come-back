@@ -1,14 +1,9 @@
 <script setup lang="ts">
-	import type { Music, Artist, Release, News } from '~/types'
-	import { useSupabaseNews } from '~/composables/Supabase/useSupabaseNews'
-	import { useSupabaseRelease } from '~/composables/Supabase/useSupabaseRelease'
-	import { useSupabaseArtist } from '~/composables/Supabase/useSupabaseArtist'
-	import { useSupabaseMusic } from '~/composables/Supabase/useSupabaseMusic'
+	import type { Artist, Music, News, Release } from '~/types'
 
-	const { getRealtimeLatestNewsAdded } = useSupabaseNews()
-	const { getRealtimeLatestReleasesAdded } = useSupabaseRelease()
-	const { getRealtimeLatestArtistsAdded } = useSupabaseArtist()
-	const { getRandomMusics, getLatestMVs } = useSupabaseMusic()
+	type ReleaseListItem = Release
+	type ArtistListItem = Artist
+	type MusicListItem = Music
 
 	// Timestamp pour forcer le refresh
 	const refreshTimestamp = ref(Date.now())
@@ -18,7 +13,6 @@
 	const {
 		data: comebacks,
 		pending: newsFetching,
-		refresh: refreshNews,
 	} = await useFetch(() => `/api/news/latest?_t=${refreshTimestamp.value}`, {
 		default: () => [],
 		server: true,
@@ -29,13 +23,12 @@
 	const {
 		data: releases,
 		pending: releasesFetching,
-		refresh: refreshReleases,
 	} = await useFetch('/api/releases/latest', {
 		default: () => [],
 		server: true,
 		query: { limit: 8 },
-		transform: (data: any[]) =>
-			data.sort(
+		transform: (data: unknown[]) =>
+			(data as ReleaseListItem[]).sort(
 				(a, b) => new Date(b.date || '').getTime() - new Date(a.date || '').getTime(),
 			),
 	})
@@ -43,13 +36,12 @@
 	const {
 		data: artists,
 		pending: artistsFetching,
-		refresh: refreshArtists,
 	} = await useFetch('/api/artists/latest', {
 		default: () => [],
 		server: true,
 		query: { limit: 8 },
-		transform: (data: any[]) =>
-			data.sort(
+		transform: (data: unknown[]) =>
+			(data as ArtistListItem[]).sort(
 				(a, b) =>
 					new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime(),
 			),
@@ -63,8 +55,8 @@
 			server: false,
 			query: { limit: 4 },
 			watch: [musicsTimestamp],
-			transform: (data: any[]) =>
-				data.sort(
+			transform: (data: unknown[]) =>
+				(data as MusicListItem[]).sort(
 					(a, b) => new Date(b.date || '').getTime() - new Date(a.date || '').getTime(),
 				),
 		},
@@ -73,7 +65,6 @@
 	const {
 		data: mvs,
 		pending: mvsFetching,
-		refresh: refreshMVs,
 	} = await useFetch('/api/musics/latest-mvs', {
 		default: () => [],
 		server: true,
@@ -92,6 +83,15 @@
 			)
 		})
 	})
+
+	const artistsForCards = computed(() =>
+		(artists.value || []).map((artist) => ({
+			id: artist.id,
+			name: artist.name,
+			type: artist.type ?? undefined,
+			image: artist.image ?? undefined,
+		})),
+	)
 
 	const reloadDiscoverMusic = () => {
 		musicsTimestamp.value = Date.now()
@@ -144,7 +144,7 @@
 					schema: 'public',
 					table: 'releases',
 				},
-				async (payload) => {
+				async (_payload) => {
 					// Force un refresh direct avec $fetch (bypass du cache useFetch)
 					try {
 						const freshData = await $fetch('/api/releases/latest', {
@@ -171,7 +171,7 @@
 					schema: 'public',
 					table: 'artists',
 				},
-				async (payload) => {
+				async (_payload) => {
 					// Force un refresh direct avec $fetch (bypass du cache useFetch)
 					try {
 						const freshData = await $fetch('/api/artists/latest', {
@@ -199,7 +199,7 @@
 					schema: 'public',
 					table: 'musics',
 				},
-				async (payload) => {
+				async (_payload) => {
 					// Force un refresh direct avec $fetch (bypass du cache useFetch)
 					try {
 						const freshData = await $fetch('/api/musics/latest-mvs', {
@@ -329,7 +329,10 @@
 			</div>
 
 			<!-- Last Artist Added -->
-			<LazyArtistAdded v-if="artists.length > 0 && !artistsFetching" :artists="artists" />
+			<LazyArtistAdded
+				v-if="artists.length > 0 && !artistsFetching"
+				:artists="artistsForCards"
+			/>
 			<div
 				v-else-if="artistsFetching"
 				class="grid grid-cols-2 gap-8 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8"

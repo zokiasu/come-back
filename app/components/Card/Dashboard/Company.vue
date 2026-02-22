@@ -1,4 +1,6 @@
 <script setup lang="ts">
+	import type { Company } from '~/types'
+
 	const props = defineProps<{
 		id: string
 		name: string
@@ -14,7 +16,7 @@
 		updatedAt: string
 	}>()
 	const emit = defineEmits<{
-		editCompany: [company: any]
+		editCompany: [company: Company]
 		deleteCompany: [id: string]
 	}>()
 
@@ -52,7 +54,20 @@
 
 	// Fonctions
 	const handleEdit = () => {
-		emit('editCompany', props)
+		emit('editCompany', {
+			id: props.id,
+			name: props.name,
+			description: props.description || null,
+			type: props.type || null,
+			website: props.website || null,
+			founded_year: props.foundedYear || null,
+			country: props.country || null,
+			city: props.city || null,
+			logo_url: props.logoUrl || null,
+			verified: props.verified,
+			created_at: props.createdAt || null,
+			updated_at: props.updatedAt || null,
+		})
 	}
 
 	const handleDelete = () => {
@@ -150,15 +165,15 @@
 				<div class="flex space-x-2">
 					<button
 						class="bg-cb-primary-900 hover:bg-cb-primary-800 rounded px-2 py-1 text-xs text-white transition-colors"
-						@click="handleEdit"
 						title="Edit company"
+						@click="handleEdit"
 					>
 						✏️
 					</button>
 					<button
 						class="rounded bg-red-600 px-2 py-1 text-xs text-white transition-colors hover:bg-red-700"
-						@click="handleDelete"
 						title="Delete company"
+						@click="handleDelete"
 					>
 						🗑️
 					</button>

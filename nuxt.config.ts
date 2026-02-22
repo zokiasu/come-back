@@ -24,7 +24,8 @@ export default defineNuxtConfig({
 	devtools: { enabled: true },
 
 	vite: {
-		plugins: [tailwindcss()],
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		plugins: [tailwindcss() as any],
 		build: {
 			chunkSizeWarningLimit: 1600,
 		},

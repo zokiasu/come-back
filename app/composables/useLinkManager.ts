@@ -93,7 +93,7 @@ export const useLinkManager = () => {
 				}
 			}
 		} catch (error) {
-			console.log('Impossible de récupérer le titre de la page:', error)
+			console.warn('Impossible de récupérer le titre de la page:', error)
 		}
 
 		// Fallback: capitaliser le nom de domaine
@@ -137,7 +137,8 @@ export const useLinkManager = () => {
 		const remove = (index: number) => {
 			links.value.splice(index, 1)
 			// Nettoyer l'état de chargement en recréant l'objet sans la clé
-			const { [index]: _removed, ...rest } = loadingStates.value
+			const { [index]: removed, ...rest } = loadingStates.value
+			void removed
 			loadingStates.value = rest
 		}
 
@@ -218,3 +219,4 @@ export const useLinkManager = () => {
 		FAVICON_SERVICES,
 	}
 }
+

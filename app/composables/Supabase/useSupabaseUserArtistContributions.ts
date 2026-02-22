@@ -1,5 +1,5 @@
-import type { QueryOptions, FilterOptions, ContributionType } from '~/types'
-import type { Database, TablesInsert, TablesUpdate, Tables } from '~/types/supabase'
+import type { QueryOptions, FilterOptions } from '~/types'
+import type { Database, Tables } from '~/types/supabase'
 
 type UserArtistContribution = Tables<'user_artist_contributions'> & {
 	user?: Tables<'users'>
@@ -175,7 +175,7 @@ export function useSupabaseUserArtistContributions() {
 		}
 
 		return {
-			contributions: (data || []) as any,
+			contributions: (data || []) as UserArtistContribution[],
 			total: count || 0,
 			page: options?.offset ? Math.floor(options.offset / (options.limit || 10)) + 1 : 1,
 			limit: options?.limit || 10,

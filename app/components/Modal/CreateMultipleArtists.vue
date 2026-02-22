@@ -37,12 +37,12 @@
 							<UInput v-model="member.debut_date" type="date" class="w-full" />
 						</UFormField>
 						<UButton
+							v-if="members.length > 1"
 							label="Remove"
 							icon="i-heroicons-minus"
 							color="error"
 							variant="subtle"
 							@click.prevent="removeMember(idx)"
-							v-if="members.length > 1"
 						/>
 					</div>
 					<UButton
@@ -198,11 +198,11 @@
 				)
 				results.value.push({ name: member.name, success: true })
 				emit('created')
-			} catch (e: any) {
+			} catch (e: unknown) {
 				results.value.push({
 					name: member.name,
 					success: false,
-					error: e?.message || 'Erreur inconnue',
+					error: e instanceof Error ? e.message : 'Erreur inconnue',
 				})
 			}
 		}

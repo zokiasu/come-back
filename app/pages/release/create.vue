@@ -13,8 +13,8 @@
 					<UForm
 						:schema="releaseSchema"
 						:state="formState"
-						@submit="onSubmit"
 						class="space-y-6"
+						@submit="onSubmit"
 					>
 						<!-- Informations de base -->
 						<div class="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -84,10 +84,9 @@
 						<!-- Artiste principal -->
 						<UFormField label="Artiste principal" name="artistId" required>
 							<ArtistSearchSelect
-								v-model="formState.artistId"
+								v-model="selectedArtist"
 								:disabled="isSubmitting"
 								placeholder="Rechercher un artiste..."
-								@artist-selected="onArtistSelected"
 							/>
 						</UFormField>
 
@@ -137,8 +136,8 @@
 								type="button"
 								color="neutral"
 								variant="soft"
-								@click="resetForm"
 								:disabled="isSubmitting"
+								@click="resetForm"
 							>
 								Réinitialiser
 							</UButton>
@@ -190,8 +189,8 @@
 									color="error"
 									variant="ghost"
 									size="sm"
-									@click="removeMusic(music.id)"
 									:disabled="isAddingMusic"
+									@click="removeMusic(music.id)"
 								/>
 							</div>
 						</div>
@@ -218,8 +217,8 @@
 									placeholder="Rechercher une musique..."
 									icon="i-heroicons-magnifying-glass"
 									size="lg"
-									@input="searchMusics"
 									:loading="isSearchingMusic"
+									@input="searchMusics"
 								/>
 							</div>
 
@@ -233,8 +232,8 @@
 										:key="music.id"
 										type="button"
 										class="flex w-full items-center justify-between border-b border-gray-100 px-4 py-3 text-left last:border-b-0 hover:bg-gray-50"
-										@click="addMusicToReleaseHandler(music)"
 										:disabled="isAddingMusic || musics.some((m) => m.id === music.id)"
+										@click="addMusicToReleaseHandler(music)"
 									>
 										<div class="flex-1">
 											<p class="font-medium text-gray-900">{{ music.name }}</p>
@@ -304,9 +303,16 @@
 
 <script setup lang="ts">
 	import { z } from 'zod'
-	import type { Release, Music } from '~/types'
+	import type { Release, Artist } from '~/types'
 	import { useSupabaseMusic } from '~/composables/Supabase/useSupabaseMusic'
 	import { useSupabaseRelease } from '~/composables/Supabase/useSupabaseRelease'
+
+	type MusicSearchItem = {
+		id: string
+		name: string
+		duration?: number | null
+		verified?: boolean | null
+	}
 
 	// Configuration de la page
 	definePageMeta({
@@ -317,7 +323,7 @@
 
 	// Composables
 	const { createReleaseWithDetails } = useSupabaseRelease()
-	const { addMusicToRelease, removeMusicFromRelease } = useSupabaseMusic()
+	useSupabaseMusic()
 	const toast = useToast()
 
 	// Schema de validation
@@ -363,17 +369,16 @@
 	const isSubmitting = ref(false)
 	const isAddingMusic = ref(false)
 	const createdRelease = ref<Release | null>(null)
-	const musics = ref<any[]>([])
-	const selectedArtist = ref<any>(null)
+	const musics = ref<MusicSearchItem[]>([])
+	const selectedArtist = ref<Artist | null>(null)
 	const musicSearchQuery = ref('')
-	const musicOptions = ref<any[]>([])
+	const musicOptions = ref<MusicSearchItem[]>([])
 	const isSearchingMusic = ref(false)
 
 	// Fonctions
-	const onArtistSelected = (artist: any) => {
-		selectedArtist.value = artist
-		formState.artistId = artist.id
-	}
+	watch(selectedArtist, (artist) => {
+		formState.artistId = artist?.id || ''
+	})
 
 	const formatDuration = (seconds: number) => {
 		const minutes = Math.floor(seconds / 60)
@@ -420,37 +425,6 @@
 		} finally {
 			isSubmitting.value = false
 		}
-	}
-
-	const onMusicAdded = async (music: Music) => {
-		if (!createdRelease.value) return
-
-		isAddingMusic.value = true
-
-		try {
-			// TODO: Implémenter l'ajout de musique à la release
-			musics.value.push(music)
-
-			toast.add({
-				title: 'Musique ajoutée',
-				description: `"${music.name}" a été ajoutée à la release.`,
-				color: 'success',
-			})
-		} catch (error) {
-			console.error("Erreur lors de l'ajout de la musique:", error)
-			toast.add({
-				title: 'Erreur',
-				description: "Impossible d'ajouter la musique à la release.",
-				color: 'error',
-			})
-		} finally {
-			isAddingMusic.value = false
-		}
-	}
-
-	const onMusicCreated = async (music: Music) => {
-		// Même logique que onMusicAdded
-		await onMusicAdded(music)
 	}
 
 	const removeMusic = async (musicId: string) => {
@@ -518,7 +492,7 @@
 		}
 	}
 
-	const addMusicToReleaseHandler = async (music: any) => {
+	const addMusicToReleaseHandler = async (_music: MusicSearchItem) => {
 		if (!createdRelease.value) return
 
 		isAddingMusic.value = true

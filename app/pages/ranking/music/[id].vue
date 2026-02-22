@@ -417,7 +417,7 @@
 		UserRankingWithItems,
 		UserRankingItem,
 	} from '~/types'
-	import { useInfiniteScroll, useDebounceFn } from '@vueuse/core'
+	import { useDebounceFn } from '@vueuse/core'
 	import draggable from 'vuedraggable'
 
 	type YearMenuItem = { value: number; label: string }
@@ -666,7 +666,8 @@
 
 	const getMusicThumbnail = (music: Music): string => {
 		if (music.thumbnails && Array.isArray(music.thumbnails)) {
-			return (music.thumbnails as any)[2]?.url || (music.thumbnails as any)[0]?.url || ''
+			const thumbs = music.thumbnails as Array<{ url?: string | null }>
+			return thumbs[2]?.url || thumbs[0]?.url || ''
 		}
 		return ''
 	}
@@ -675,7 +676,8 @@
 		music: Music & { artists: { name: string }[] },
 	): string => {
 		if (music.thumbnails && Array.isArray(music.thumbnails)) {
-			return (music.thumbnails as any)[2]?.url || (music.thumbnails as any)[0]?.url || ''
+			const thumbs = music.thumbnails as Array<{ url?: string | null }>
+			return thumbs[2]?.url || thumbs[0]?.url || ''
 		}
 		return ''
 	}
@@ -856,14 +858,14 @@
 
 	// Initial load
 	onMounted(async () => {
-		console.log('[ranking/music/[id]] onMounted - rankingId:', rankingId.value)
+		console.warn('[ranking/music/[id]] onMounted - rankingId:', rankingId.value)
 		await Promise.all([
 			loadRanking(),
 			getAllArtists({ isActive: true }).then((artists) => {
 				artistsList.value = artists
 			}),
 		])
-		console.log('[ranking/music/[id]] After loadRanking - ranking:', ranking.value)
+		console.warn('[ranking/music/[id]] After loadRanking - ranking:', ranking.value)
 		await loadMusics(true)
 		// Activer l'infinite scroll après le premier chargement
 		isInitialized.value = true

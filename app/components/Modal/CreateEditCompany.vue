@@ -166,11 +166,12 @@
 
 			emit('updated')
 			emit('close')
-		} catch (error: any) {
+		} catch (error: unknown) {
+			const errorMessage = error instanceof Error ? error.message : 'An error occurred'
 			console.error('Error during submission:', error)
 			toast.add({
 				title: 'Error',
-				description: error.message || 'An error occurred',
+				description: errorMessage,
 				color: 'error',
 			})
 		} finally {
@@ -215,7 +216,7 @@
 		</template>
 
 		<!-- Formulaire -->
-		<form @submit.prevent="handleSubmit" class="space-y-6">
+		<form class="space-y-6" @submit.prevent="handleSubmit">
 			<!-- Nom (requis) -->
 			<div>
 				<label class="text-cb-tertiary-200 mb-2 block text-sm font-medium">

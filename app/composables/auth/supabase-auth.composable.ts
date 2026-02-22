@@ -1,6 +1,3 @@
-import { useUserStore } from '@/stores/user'
-import type { Database } from '~/types/supabase'
-
 export const useSupabaseAuth = () => {
 	const isLoading = ref(false)
 	const error = ref<string | null>(null)
@@ -13,7 +10,7 @@ export const useSupabaseAuth = () => {
 			// Utiliser le client Supabase global
 			const supabase = useSupabaseClient()
 
-			const { data, error: authError } = await supabase.auth.signInWithOAuth({
+			const { error: authError } = await supabase.auth.signInWithOAuth({
 				provider: 'google',
 				options: {
 					redirectTo: `${useRequestURL().origin}/auth/callback`,

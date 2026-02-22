@@ -3,29 +3,8 @@
 
 	const isPlayingVideo = useIsPlayingVideo()
 
-	// Accès sécurisé aux stores
-	let userDataStore: Ref<any> = ref(null)
-	let isLoginStore: Ref<boolean> = ref(false)
-	let isAdminStore: Ref<boolean> = ref(false)
-	let isHydrated: Ref<boolean> = ref(false)
-
-	try {
-		const userStore = useUserStore()
-		const storeRefs = storeToRefs(userStore)
-		userDataStore.value = storeRefs.userDataStore
-		isLoginStore.value = storeRefs.isLoginStore
-		isAdminStore.value = storeRefs.isAdminStore
-		isHydrated.value = storeRefs.isHydrated
-	} catch (error) {
-		console.warn('Store not available in mobile navigation:', error)
-	}
-
-	const profilePath = computed(() => {
-		if (!userDataStore.value || !userDataStore.value.id) {
-			return '/settings/profile'
-		}
-		return `/profile/${userDataStore.value.id}`
-	})
+	const userStore = useUserStore()
+	const { isLoginStore, isAdminStore, isHydrated } = storeToRefs(userStore)
 
 	const isClient = ref(false)
 

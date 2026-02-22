@@ -1,21 +1,37 @@
 <script setup lang="ts">
-	import { useSupabaseArtist } from '~/composables/Supabase/useSupabaseArtist'
-	import { useSupabaseRelease } from '~/composables/Supabase/useSupabaseRelease'
-	import { useSupabaseNews } from '~/composables/Supabase/useSupabaseNews'
-	import { useSupabaseCompanies } from '~/composables/Supabase/useSupabaseCompanies'
+	type DashboardStats = {
+		totalArtists: number
+		activeArtists: number
+		totalReleases: number
+		recentReleases: number
+		totalNews: number
+		totalCompanies: number
+		verifiedCompanies: number
+	}
+
+	type DashboardOverview = {
+		stats: DashboardStats
+		recentArtists: Array<{ id: string; name: string; type?: string | null }>
+		recentReleases: Array<{
+			id: string
+			name: string
+			image?: string | null
+			artists?: Array<{ name: string }>
+		}>
+		recentNews: Array<{
+			id: string
+			message: string
+			date?: string | null
+			artists?: Array<{ name: string }>
+		}>
+	}
 
 	definePageMeta({
 		middleware: ['admin'],
 		layout: 'dashboard',
 	})
 
-	const toast = useToast()
-	const { getArtistsByPage } = useSupabaseArtist()
-	const { getReleasesByPage } = useSupabaseRelease()
-	const { getAllNews } = useSupabaseNews()
-	const { getCompaniesStats } = useSupabaseCompanies()
-
-	const stats = ref({
+	const stats = ref<DashboardStats>({
 		totalArtists: 0,
 		activeArtists: 0,
 		totalReleases: 0,
@@ -25,12 +41,12 @@
 		verifiedCompanies: 0,
 	})
 
-	const recentArtists = ref<any[]>([])
-	const recentReleases = ref<any[]>([])
-	const recentNews = ref<any[]>([])
+	const recentArtists = ref<DashboardOverview['recentArtists']>([])
+	const recentReleases = ref<DashboardOverview['recentReleases']>([])
+	const recentNews = ref<DashboardOverview['recentNews']>([])
 
 	// SSR-compatible data fetching pour dashboard admin (client-only)
-	const { data: dashboardData, pending: loading } = await useFetch(
+	const { data: dashboardData, pending: loading } = await useFetch<DashboardOverview>(
 		'/api/dashboard/overview',
 		{
 			server: false, // Dashboard admin toujours client-only

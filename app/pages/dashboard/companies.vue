@@ -51,7 +51,6 @@
 
 	// Computed
 	const observerTarget = useTemplateRef('observerTarget')
-	const hasMore = computed(() => currentPage.value <= totalPages.value)
 
 	// État pour le modal de confirmation
 	const deleteModal = reactive({

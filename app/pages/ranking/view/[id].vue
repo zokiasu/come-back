@@ -235,7 +235,7 @@
 </template>
 
 <script setup lang="ts">
-	import type { UserRankingWithItems, Music } from '~/types'
+	import type { Music } from '~/types'
 
 	const route = useRoute()
 	const { getPublicRankingById } = useSupabaseRanking()
@@ -282,7 +282,10 @@
 	// Get artist names
 	const getArtistNames = (music: Music): string => {
 		if (music.artists && Array.isArray(music.artists)) {
-			return music.artists.map((a: any) => a.name).join(', ') || 'Artiste inconnu'
+			return (
+				(music.artists as Array<{ name?: string }>).map((a) => a.name).join(', ') ||
+				'Artiste inconnu'
+			)
 		}
 		return 'Artiste inconnu'
 	}

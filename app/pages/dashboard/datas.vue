@@ -1,6 +1,7 @@
 <script setup lang="ts">
 	import { useSupabaseMusicStyles } from '~/composables/Supabase/useSupabaseMusicStyles'
 	import { useSupabaseGeneralTags } from '~/composables/Supabase/useSupabaseGeneralTags'
+	import type { GeneralTag, MusicStyle } from '~/types'
 
 	const toast = useToast()
 	const { createMusicStyle, getAllMusicStyles, deleteMusicStyle } =
@@ -8,10 +9,10 @@
 	const { createGeneralTag, getAllGeneralTags, deleteGeneralTag } =
 		useSupabaseGeneralTags()
 
-	const styleFetch = ref<any[]>([])
+	const styleFetch = ref<MusicStyle[]>([])
 	const newStyle = ref('')
 
-	const generalTagFetch = ref<any[]>([])
+	const generalTagFetch = ref<GeneralTag[]>([])
 	const newGeneralTag = ref('')
 
 	onMounted(async () => {
@@ -126,7 +127,7 @@
 					<div class="bg-cb-quaternary-950 flex w-full flex-col rounded px-2.5 py-1">
 						<p>{{ style.name }}</p>
 						<p class="text-xs text-zinc-500">
-							{{ style.created }}
+							{{ style.created_at }}
 						</p>
 					</div>
 					<div
@@ -174,7 +175,7 @@
 					<div class="bg-cb-quaternary-950 flex w-full flex-col rounded px-2.5 py-1">
 						<p>{{ tag.name }}</p>
 						<p class="text-xs text-zinc-500">
-							{{ tag.created }}
+							{{ tag.created_at }}
 						</p>
 					</div>
 					<div

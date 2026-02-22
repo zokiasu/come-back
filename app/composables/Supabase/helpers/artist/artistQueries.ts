@@ -316,13 +316,24 @@ export async function fetchArtistsByPage(
 		throw new Error('Erreur lors de la récupération des artistes')
 	}
 
+	type ArtistWithCompanyGroup = Artist & {
+		companies?: unknown[]
+		groups?: Array<{ group?: Artist | null }> | Artist[]
+	}
+
 	// Transformer les données
-	let transformedData = data.map((artist: any) => ({
+	let transformedData = (data as ArtistWithCompanyGroup[]).map((artist) => ({
 		...artist,
 		social_links: artist.social_links || [],
 		platform_links: artist.platform_links || [],
 		companies: artist.companies || [],
-		groups: artist.groups?.map((g: any) => g.group).filter(Boolean) || [],
+		groups:
+			artist.groups?.map((g) => {
+				if (typeof g === 'object' && g !== null && 'group' in g) {
+					return (g as { group?: Artist | null }).group
+				}
+				return g as Artist
+			}).filter(Boolean) || [],
 	}))
 
 	// Filtrage côté client pour les relations

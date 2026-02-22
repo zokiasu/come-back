@@ -1,4 +1,4 @@
-import type { Tables } from '~/server/types/api'
+import { applyReleaseFilters, applyVerifiedArtistFilter } from '#server/utils/queryFilters'
 
 const ALLOWED_ORDER_COLUMNS = ['date', 'name', 'created_at', 'updated_at'] as const
 
@@ -47,7 +47,8 @@ export default defineEventHandler(async (event) => {
 				platform_links:release_platform_links(*)
 			`,
 			)
-			.eq('artists.artist.verified', true)
+		dataQuery = applyVerifiedArtistFilter(dataQuery)
+		countQuery = applyVerifiedArtistFilter(countQuery)
 
 		// If filtering by artists, use inner join
 		if (artistIds && artistIds.length > 0) {
@@ -78,20 +79,8 @@ export default defineEventHandler(async (event) => {
 		}
 
 		// Apply filters to both queries
-		if (search) {
-			countQuery = countQuery.ilike('name', `%${search}%`)
-			dataQuery = dataQuery.ilike('name', `%${search}%`)
-		}
-
-		if (type) {
-			countQuery = countQuery.eq('type', type)
-			dataQuery = dataQuery.eq('type', type)
-		}
-
-		if (verified !== undefined) {
-			countQuery = countQuery.eq('verified', verified)
-			dataQuery = dataQuery.eq('verified', verified)
-		}
+		countQuery = applyReleaseFilters(countQuery, { search, type, verified })
+		dataQuery = applyReleaseFilters(dataQuery, { search, type, verified })
 
 		// Apply sorting only to data query
 		dataQuery = dataQuery.order(orderBy, { ascending: orderDirection === 'asc' })
@@ -109,8 +98,8 @@ export default defineEventHandler(async (event) => {
 		// Transform data to extract junction relations
 		const transformedData = (dataResult.data || []).map((release) => ({
 			...release,
-			artists: transformJunction<Tables<'artists'>>(release.artists, 'artist'),
-			musics: transformJunction<Tables<'musics'>>(release.musics, 'music'),
+			artists: transformJunction(release.artists, 'artist'),
+			musics: transformJunction(release.musics, 'music'),
 			platform_links: release.platform_links || [],
 		}))
 
@@ -136,3 +125,4 @@ export default defineEventHandler(async (event) => {
 		throw createInternalError('Failed to fetch paginated releases', error)
 	}
 })
+

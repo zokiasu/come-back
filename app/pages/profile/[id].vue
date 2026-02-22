@@ -66,12 +66,14 @@
 	import { useSupabaseFunction } from '~/composables/useSupabaseFunction'
 	import type { User } from '~/types'
 
+	type UserRankingPreview = { id: string; [key: string]: unknown }
+
 	const route = useRoute()
 	const { userDataStore } = storeToRefs(useUserStore())
 	const { getUserData } = useSupabaseFunction()
 
 	const createdAt = ref<string | null>(null)
-	const rankings = ref<any[] | null>(null)
+	const rankings = ref<UserRankingPreview[] | null>(null)
 	const profileData = ref<User | null>(null)
 
 	const isProfile = computed(() => {
@@ -94,7 +96,7 @@
 
 	const deleteRanking = (id: string) => {
 		// TODO: Implement ranking deletion
-		console.log('Delete ranking:', id)
+		console.warn('Delete ranking:', id)
 	}
 
 	definePageMeta({

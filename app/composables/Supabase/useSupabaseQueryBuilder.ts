@@ -1,5 +1,10 @@
 import type { Database } from '~/types/supabase'
 
+type DynamicQuery = {
+	eq: (column: string, value: unknown) => DynamicQuery
+	single: () => Promise<{ data: unknown; error: { code?: string } | null }>
+}
+
 /**
  * Interface pour les options de pagination
  */
@@ -150,7 +155,7 @@ export const useSupabaseQueryBuilder = () => {
 		const { error: deleteError } = await supabase
 			.from(tableName)
 			.delete()
-			.eq(parentColumn as any, parentId)
+			.eq(parentColumn as never, parentId)
 
 		if (deleteError) {
 			handleError(deleteError, `la suppression des relations ${String(tableName)}`)
@@ -166,7 +171,7 @@ export const useSupabaseQueryBuilder = () => {
 
 			const { error: insertError } = await supabase
 				.from(tableName)
-				.insert(insertData as any)
+				.insert(insertData as never)
 
 			if (insertError) {
 				handleError(insertError, `l'insertion des relations ${String(tableName)}`)
@@ -190,7 +195,7 @@ export const useSupabaseQueryBuilder = () => {
 			[parentColumn]: parentId,
 		}))
 
-		const { error } = await supabase.from(tableName).insert(itemsWithParentId as any)
+		const { error } = await supabase.from(tableName).insert(itemsWithParentId as never)
 
 		if (error) {
 			handleError(error, `l'insertion des éléments ${String(tableName)}`, {
@@ -207,11 +212,8 @@ export const useSupabaseQueryBuilder = () => {
 		id: string,
 		selectQuery: string = '*',
 	) => {
-		const { data, error } = await supabase
-			.from(tableName)
-			.select(selectQuery)
-			.eq('id', id)
-			.single()
+		const query = supabase.from(tableName).select(selectQuery) as unknown as DynamicQuery
+		const { data, error } = await query.eq('id', id).single()
 
 		if (error) {
 			if (error.code === 'PGRST116') {
@@ -234,7 +236,7 @@ export const useSupabaseQueryBuilder = () => {
 		const { data, error } = await supabase
 			.from(tableName)
 			.select('id')
-			.eq(column as any, value)
+			.eq(column as never, value)
 			.maybeSingle()
 
 		if (error) {
@@ -255,7 +257,7 @@ export const useSupabaseQueryBuilder = () => {
 		const { error } = await supabase
 			.from(tableName)
 			.delete()
-			.eq(column as any, parentId)
+			.eq(column as never, parentId)
 
 		if (error) {
 			handleError(error, `la suppression des éléments liés ${String(tableName)}`, {

@@ -3,7 +3,7 @@ import type {
 	ReleaseWithRelations,
 	MusicWithRelations,
 	Tables,
-} from '~/server/types/api'
+} from '#server/types/api'
 
 /**
  * Type for junction table row with a nested entity
@@ -92,21 +92,30 @@ export const transformArtistWithRelations = (
 		includePlatformLinks?: boolean
 	},
 ): ArtistWithRelations => {
-	const artist: ArtistWithRelations = { ...rawArtist }
+	const {
+		groups: _groups,
+		members: _members,
+		releases: _releases,
+		companies: _companies,
+		social_links: _socialLinks,
+		platform_links: _platformLinks,
+		...artistBase
+	} = rawArtist
+	const artist = { ...artistBase } as ArtistWithRelations
 
 	// Transform groups (artist is a member of these groups)
 	if (options?.includeGroups && rawArtist.groups) {
-		artist.groups = transformJunction<Tables<'artists'>>(rawArtist.groups, 'group')
+		artist.groups = transformJunction(rawArtist.groups, 'group')
 	}
 
 	// Transform members (artist is a group, these are its members)
 	if (options?.includeMembers && rawArtist.members) {
-		artist.members = transformJunction<Tables<'artists'>>(rawArtist.members, 'member')
+		artist.members = transformJunction(rawArtist.members, 'member')
 	}
 
 	// Transform releases
 	if (options?.includeReleases && rawArtist.releases) {
-		artist.releases = transformJunction<Tables<'releases'>>(rawArtist.releases, 'release')
+		artist.releases = transformJunction(rawArtist.releases, 'release')
 	}
 
 	// Transform companies (already has company nested, just clean up)
@@ -156,16 +165,22 @@ export const transformReleaseWithRelations = (
 		includePlatformLinks?: boolean
 	},
 ): ReleaseWithRelations => {
-	const release: ReleaseWithRelations = { ...rawRelease }
+	const {
+		artists: _artists,
+		musics: _musics,
+		platform_links: _platformLinks,
+		...releaseBase
+	} = rawRelease
+	const release = { ...releaseBase } as ReleaseWithRelations
 
 	// Transform artists
 	if (options?.includeArtists && rawRelease.artists) {
-		release.artists = transformJunction<Tables<'artists'>>(rawRelease.artists, 'artist')
+		release.artists = transformJunction(rawRelease.artists, 'artist')
 	}
 
 	// Transform musics
 	if (options?.includeMusics && rawRelease.musics) {
-		release.musics = transformJunction<Tables<'musics'>>(rawRelease.musics, 'music')
+		release.musics = transformJunction(rawRelease.musics, 'music')
 	}
 
 	// Platform links are direct
@@ -203,16 +218,21 @@ export const transformMusicWithRelations = (
 		includeReleases?: boolean
 	},
 ): MusicWithRelations => {
-	const music: MusicWithRelations = { ...rawMusic }
+	const {
+		artists: _artists,
+		releases: _releases,
+		...musicBase
+	} = rawMusic
+	const music = { ...musicBase } as MusicWithRelations
 
 	// Transform artists
 	if (options?.includeArtists && rawMusic.artists) {
-		music.artists = transformJunction<Tables<'artists'>>(rawMusic.artists, 'artist')
+		music.artists = transformJunction(rawMusic.artists, 'artist')
 	}
 
 	// Transform releases
 	if (options?.includeReleases && rawMusic.releases) {
-		music.releases = transformJunction<Tables<'releases'>>(rawMusic.releases, 'release')
+		music.releases = transformJunction(rawMusic.releases, 'release')
 	}
 
 	return music
@@ -239,3 +259,4 @@ export const batchTransform = <T, R>(
 	if (!items || items.length === 0) return []
 	return items.map(transformer)
 }
+

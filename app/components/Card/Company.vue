@@ -8,7 +8,7 @@
 		showVerified?: boolean
 	}
 
-	const props = withDefaults(defineProps<Props>(), {
+	withDefaults(defineProps<Props>(), {
 		relationshipType: undefined,
 		isPast: false,
 		showVerified: true,

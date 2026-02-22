@@ -13,7 +13,7 @@ export default defineNuxtPlugin(async () => {
 		try {
 			// Initialiser l'authentification
 			const { initializeAuth } = useAuth()
-			const { logError, logInfo } = useErrorLogger()
+			const { logInfo } = useErrorLogger()
 
 			logInfo('Starting authentication initialization')
 

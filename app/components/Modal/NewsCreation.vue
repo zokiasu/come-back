@@ -9,11 +9,14 @@
 	const { createNews } = useSupabaseNews()
 	const { searchArtistsFullText } = useSupabaseSearch()
 
+	type NewsArtist = { id: string; name: string; image?: string | null }
+	type SelectedNewsArtist = { id: string; name: string; picture?: string | null }
+
 	const sendNews = ref<boolean>(false)
 	const isOpen = ref<boolean>(false)
 	const searchArtist = ref<string>('')
-	const artistListSearched = ref<any[]>([])
-	const artistListSelected = ref<any[]>([])
+	const artistListSearched = ref<NewsArtist[]>([])
+	const artistListSelected = ref<SelectedNewsArtist[]>([])
 	const newsDate = ref<Date | null>(null)
 	const newsMessage = ref<string>('')
 
@@ -55,7 +58,7 @@
 		const artistIds = artistListSelected.value.map((artist) => artist.id)
 
 		createNews(news, artistIds)
-			.then((res) => {
+			.then(() => {
 				toast.add({
 					title: 'News created',
 					description: 'News created successfully',
@@ -76,7 +79,7 @@
 			})
 	}
 
-	const addArtistToNews = (artist: any) => {
+	const addArtistToNews = (artist: NewsArtist) => {
 		// Avoid duplicates
 		if (!artistListSelected.value.some((a) => a.id === artist.id)) {
 			artistListSelected.value.push({
@@ -88,7 +91,7 @@
 		clearSearch()
 	}
 
-	const removeArtistFromNews = (artist: any) => {
+	const removeArtistFromNews = (artist: SelectedNewsArtist) => {
 		artistListSelected.value = artistListSelected.value.filter((a) => a.id !== artist.id)
 	}
 
@@ -177,7 +180,7 @@
 							class="relative flex cursor-pointer flex-col items-center justify-center rounded px-5 py-1 hover:bg-red-500/50"
 							@click="removeArtistFromNews(artist)"
 						>
-							<img :src="artist.picture" class="h-8 w-8 rounded-full object-cover" />
+							<img :src="artist.picture ?? undefined" class="h-8 w-8 rounded-full object-cover" />
 							<p>{{ artist.name }}</p>
 						</div>
 					</div>

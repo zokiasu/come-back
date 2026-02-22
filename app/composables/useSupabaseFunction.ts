@@ -3,7 +3,6 @@ import type { User } from '~/types'
 export function useSupabaseFunction() {
 	const supabase = useSupabaseClient()
 	const userStore = useUserStore()
-	const toast = useToast()
 
 	// Updates user data in the 'users' table in Supabase.
 	const updateUserData = async (user: User) => {

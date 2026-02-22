@@ -82,15 +82,6 @@
 		isModalOpen.value = false
 	}
 
-	// Computed pour le total d'éléments impactés
-	const totalImpact = computed(() => {
-		if (!impact.value) return 0
-		return (
-			impact.value.exclusiveReleases.length +
-			impact.value.exclusiveMusics.length +
-			impact.value.exclusiveNews.length
-		)
-	})
 </script>
 
 <template>
