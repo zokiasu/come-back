@@ -51,6 +51,9 @@
 			v-model:open="sidebarOpen"
 			collapsible
 			resizable
+			:ui="{
+				body: '!p-0'
+			}"
 			class="hidden md:flex border-r border-cb-quinary-900/70"
 		>
 			<template #default>
