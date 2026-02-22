@@ -100,9 +100,9 @@
 	const getMusicThumbnail = (music: Music): string => {
 		const thumbnails = music.thumbnails
 		if (!Array.isArray(thumbnails) || thumbnails.length === 0) return ''
-		const first = thumbnails[0]
-		if (!first || typeof first !== 'object' || !('url' in first)) return ''
-		const url = (first as { url?: unknown }).url
+		const last = thumbnails[thumbnails.length-1]
+		if (!last || typeof last !== 'object' || !('url' in last)) return ''
+		const url = (last as { url?: unknown }).url
 		return typeof url === 'string' ? url : ''
 	}
 
@@ -260,23 +260,9 @@
 
 <template>
 	<div class="flex-1">
+		<HomeSlider :news-today="comebacksToday" />
 			<!-- <HomeSlider :news-today="comebacksToday" /> -->
 		<section class="mx-auto w-full max-w-[100rem] space-y-10 px-4 pb-12 pt-4 lg:px-8">
-			<div
-				class="rounded-3xl border border-cb-quinary-900/60 bg-gradient-to-br from-cb-quaternary-950 via-cb-secondary-950 to-cb-quinary-900/70 p-6 lg:p-8"
-			>
-				<div class="grid gap-6 lg:grid-cols-[1.1fr,0.9fr]">
-					<div class="space-y-5">
-						<p class="text-3xl font-semibold lg:text-4xl xl:text-5xl">
-							Welcome back
-						</p>
-					</div>
-					<div class="overflow-hidden rounded-2xl border border-cb-quinary-900/60">
-						<HomeSlider :news-today="comebacksToday" />
-					</div>
-				</div>
-			</div>
-
 			<div class="space-y-12">
 				<div class="space-y-4">
 					<h2 class="text-xl font-semibold">Comebacks Reported</h2>
