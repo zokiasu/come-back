@@ -24,7 +24,7 @@ export const useAuth = () => {
 			let existingUser: User | null = null
 			let fetchError: any = null
 
-			if (process.dev) {
+			if (import.meta.dev) {
 				// Timeout uniquement en développement
 				const timeoutPromise = new Promise<never>((_, reject) => {
 					setTimeout(() => reject(new Error('Dev database timeout')), 2000)
@@ -100,7 +100,8 @@ export const useAuth = () => {
 					photo_url:
 						authUser.user_metadata?.avatar_url ||
 						authUser.user_metadata?.picture ||
-						existingUser.photo_url || '',
+						existingUser.photo_url ||
+						'',
 					role: existingUser.role,
 					updated_at: new Date().toISOString(),
 				}
@@ -204,7 +205,11 @@ export const useAuth = () => {
 	// Fonction d'initialisation au chargement de l'app
 	const initializeAuth = async () => {
 		// Si on a un utilisateur Supabase complet (avec id) et des données dans le store
-		if (user.value?.id && userDataStore.value && userDataStore.value.id === user.value.id) {
+		if (
+			user.value?.id &&
+			userDataStore.value &&
+			userDataStore.value.id === user.value.id
+		) {
 			// S'assurer que isAdmin est synchronisé avec le rôle dans userDataStore
 			const shouldBeAdmin = userDataStore.value.role === 'ADMIN'
 			if (isAdminStore.value !== shouldBeAdmin) {

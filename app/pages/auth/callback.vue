@@ -44,7 +44,9 @@
 			const errorParam = route.query.error as string | undefined
 			const errorDescription = route.query.error_description as string | undefined
 
-			log(`OAuth params - code: ${!!code}, access_token: ${!!accessToken}, error: ${errorParam || 'none'}`)
+			log(
+				`OAuth params - code: ${!!code}, access_token: ${!!accessToken}, error: ${errorParam || 'none'}`,
+			)
 
 			// Check for OAuth error
 			if (errorParam) {
@@ -57,7 +59,9 @@
 			// Check current session first
 			log('Checking existing session...')
 			const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
-			log(`Current session: ${sessionData?.session ? 'exists' : 'none'}, error: ${sessionError?.message || 'none'}`)
+			log(
+				`Current session: ${sessionData?.session ? 'exists' : 'none'}, error: ${sessionError?.message || 'none'}`,
+			)
 
 			let sessionUser: SupabaseUser | undefined = sessionData?.session?.user
 
@@ -115,7 +119,9 @@
 				while ((!user.value || !user.value.id) && attempts < maxAttempts) {
 					await new Promise((resolve) => setTimeout(resolve, 1000))
 					attempts++
-					log(`Fallback attempt ${attempts}/${maxAttempts} - user: ${!!user.value}, id: ${user.value?.id || 'undefined'}`)
+					log(
+						`Fallback attempt ${attempts}/${maxAttempts} - user: ${!!user.value}, id: ${user.value?.id || 'undefined'}`,
+					)
 				}
 
 				if (!user.value?.id) {
@@ -210,7 +216,8 @@
 				await new Promise((resolve) => setTimeout(resolve, 500))
 				await navigateTo('/')
 			} catch (syncError: unknown) {
-				const errorMsg = syncError instanceof Error ? syncError.message : 'Unknown sync error'
+				const errorMsg =
+					syncError instanceof Error ? syncError.message : 'Unknown sync error'
 				log(`Profile sync failed: ${errorMsg}`)
 				statusMessage.value = 'Synchronization error'
 				await navigateTo('/authentification?error=sync')

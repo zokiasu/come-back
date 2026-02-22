@@ -53,6 +53,7 @@ export default defineEventHandler(async (event) => {
 			`,
 			)
 			.not('id_youtube_music', 'is', null)
+			.eq('artists.artist.verified', true)
 			.not('name', 'ilike', '%Inst.%')
 			.not('name', 'ilike', '%Instrumental%')
 			.not('name', 'ilike', '%Sped Up%')
@@ -74,12 +75,17 @@ export default defineEventHandler(async (event) => {
 		// 4. Transformer les données
 		const transformedData = data.map((music) => ({
 			...music,
-			artists: music.artists
-				?.map((a: { artist: { id: string; name: string; image: string | null } | null }) => a.artist)
-				.filter(Boolean) || [],
-			releases: music.releases
-				?.map((r: { release: { id: string; name: string } | null }) => r.release)
-				.filter(Boolean) || [],
+			artists:
+				music.artists
+					?.map(
+						(a: { artist: { id: string; name: string; image: string | null } | null }) =>
+							a.artist,
+					)
+					.filter(Boolean) || [],
+			releases:
+				music.releases
+					?.map((r: { release: { id: string; name: string } | null }) => r.release)
+					.filter(Boolean) || [],
 		}))
 
 		// 5. Mélanger et diversifier par artiste

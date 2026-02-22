@@ -18,7 +18,7 @@ export default defineNuxtPlugin(async () => {
 			logInfo('Starting authentication initialization')
 
 			// Timeout uniquement en développement pour éviter les blocages locaux
-			if (process.dev) {
+			if (import.meta.dev) {
 				const timeoutPromise = new Promise((_, reject) => {
 					setTimeout(
 						() => reject(new Error('Development timeout - continuing without auth')),
@@ -36,7 +36,7 @@ export default defineNuxtPlugin(async () => {
 			const { logError } = useErrorLogger()
 			logError(error, 'auth-init-plugin')
 
-			if (process.dev) {
+			if (import.meta.dev) {
 				console.warn('⚠️ Erreur dev - continuant sans auth:', error)
 			} else {
 				console.error("❌ Erreur lors de l'initialisation de l'authentification:", error)

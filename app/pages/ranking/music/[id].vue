@@ -21,7 +21,11 @@
 			<!-- Filters -->
 			<div class="mb-4 space-y-2">
 				<div class="grid grid-cols-2 gap-2 lg:grid-cols-4">
-					<UInput v-model="search" placeholder="Rechercher une musique..." class="w-full" />
+					<UInput
+						v-model="search"
+						placeholder="Rechercher une musique..."
+						class="w-full"
+					/>
 					<UInputMenu
 						v-model="selectedArtistsWithLabel"
 						:items="artistsForMenu"
@@ -67,12 +71,7 @@
 				</div>
 
 				<div class="flex flex-wrap items-center gap-2">
-					<UButton
-						color="secondary"
-						variant="outline"
-						size="xs"
-						@click="resetFilters"
-					>
+					<UButton color="secondary" variant="outline" size="xs" @click="resetFilters">
 						Reset
 					</UButton>
 					<UButton
@@ -107,11 +106,19 @@
 					<button
 						v-if="music.id_youtube_music"
 						class="flex size-10 shrink-0 items-center justify-center rounded-full transition-colors"
-						:class="isCurrentlyPlaying(music.id_youtube_music) ? 'bg-cb-primary-900' : 'bg-cb-quaternary-950 hover:bg-cb-primary-900'"
+						:class="
+							isCurrentlyPlaying(music.id_youtube_music)
+								? 'bg-cb-primary-900'
+								: 'bg-cb-quaternary-950 hover:bg-cb-primary-900'
+						"
 						@click.stop="handlePlayMusic(music)"
 					>
 						<UIcon
-							:name="isCurrentlyPlaying(music.id_youtube_music) ? 'i-heroicons-pause-solid' : 'i-heroicons-play-solid'"
+							:name="
+								isCurrentlyPlaying(music.id_youtube_music)
+									? 'i-heroicons-pause-solid'
+									: 'i-heroicons-play-solid'
+							"
 							class="size-5 text-white"
 						/>
 					</button>
@@ -183,18 +190,10 @@
 				v-if="!loading && musicsList.length > 0 && musicsList.length < totalMusics"
 				class="flex justify-center gap-2 py-4"
 			>
-				<UButton
-					color="primary"
-					variant="outline"
-					@click="loadMusics(false)"
-				>
+				<UButton color="primary" variant="outline" @click="loadMusics(false)">
 					Charger plus
 				</UButton>
-				<UButton
-					color="neutral"
-					variant="ghost"
-					@click="loadAllMusics"
-				>
+				<UButton color="neutral" variant="ghost" @click="loadAllMusics">
 					Charger tout ({{ totalMusics - musicsList.length }} restants)
 				</UButton>
 			</div>
@@ -238,7 +237,9 @@
 					</div>
 					<div class="ml-2 flex items-center gap-1">
 						<UButton
-							:icon="ranking?.is_public ? 'i-heroicons-globe-alt' : 'i-heroicons-lock-closed'"
+							:icon="
+								ranking?.is_public ? 'i-heroicons-globe-alt' : 'i-heroicons-lock-closed'
+							"
 							size="xs"
 							color="neutral"
 							variant="ghost"
@@ -286,9 +287,7 @@
 					@end="onDragEnd"
 				>
 					<template #item="{ element: item, index }">
-						<div
-							class="bg-cb-quinary-900 group flex items-center gap-2 rounded p-2"
-						>
+						<div class="bg-cb-quinary-900 group flex items-center gap-2 rounded p-2">
 							<!-- Position -->
 							<span
 								class="text-cb-tertiary-500 w-6 shrink-0 text-center text-xs font-medium"
@@ -306,11 +305,19 @@
 							<button
 								v-if="item.music.id_youtube_music"
 								class="flex size-8 shrink-0 items-center justify-center rounded-full transition-colors"
-								:class="isCurrentlyPlaying(item.music.id_youtube_music) ? 'bg-cb-primary-900' : 'bg-cb-quaternary-950 hover:bg-cb-primary-900'"
+								:class="
+									isCurrentlyPlaying(item.music.id_youtube_music)
+										? 'bg-cb-primary-900'
+										: 'bg-cb-quaternary-950 hover:bg-cb-primary-900'
+								"
 								@click.stop="handlePlayMusic(item.music)"
 							>
 								<UIcon
-									:name="isCurrentlyPlaying(item.music.id_youtube_music) ? 'i-heroicons-pause-solid' : 'i-heroicons-play-solid'"
+									:name="
+										isCurrentlyPlaying(item.music.id_youtube_music)
+											? 'i-heroicons-pause-solid'
+											: 'i-heroicons-play-solid'
+									"
 									class="size-4 text-white"
 								/>
 							</button>
@@ -337,7 +344,7 @@
 
 							<!-- Remove button -->
 							<button
-								class="text-cb-tertiary-500 hover:text-red-500 shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
+								class="text-cb-tertiary-500 shrink-0 opacity-0 transition-opacity group-hover:opacity-100 hover:text-red-500"
 								@click="removeFromRanking(item.music_id)"
 							>
 								<UIcon name="i-heroicons-x-mark" class="size-4" />
@@ -478,9 +485,13 @@
 	const isSavingSettings = ref(false)
 
 	// Drag and drop - synchroniser localRankingItems avec rankingItems
-	watch(rankingItems, (items) => {
-		localRankingItems.value = [...items]
-	}, { immediate: true })
+	watch(
+		rankingItems,
+		(items) => {
+			localRankingItems.value = [...items]
+		},
+		{ immediate: true },
+	)
 
 	// Computed
 	const hasMore = computed(() => currentPage.value <= totalPages.value)
@@ -646,7 +657,11 @@
 	const formatDate = (dateString: string | null | undefined): string => {
 		if (!dateString) return ''
 		const date = new Date(dateString)
-		return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
+		return date.toLocaleDateString('fr-FR', {
+			day: 'numeric',
+			month: 'short',
+			year: 'numeric',
+		})
 	}
 
 	const getMusicThumbnail = (music: Music): string => {
@@ -656,7 +671,9 @@
 		return ''
 	}
 
-	const getMusicThumbnailFromList = (music: Music & { artists: { name: string }[] }): string => {
+	const getMusicThumbnailFromList = (
+		music: Music & { artists: { name: string }[] },
+	): string => {
 		if (music.thumbnails && Array.isArray(music.thumbnails)) {
 			return (music.thumbnails as any)[2]?.url || (music.thumbnails as any)[0]?.url || ''
 		}
@@ -677,7 +694,9 @@
 		if (isInRanking) {
 			// Retirer de la liste locale immédiatement
 			if (ranking.value) {
-				ranking.value.items = ranking.value.items.filter((item) => item.music_id !== music.id)
+				ranking.value.items = ranking.value.items.filter(
+					(item) => item.music_id !== music.id,
+				)
 				localRankingItems.value = [...ranking.value.items]
 			}
 			// Supprimer en arrière-plan
@@ -704,7 +723,9 @@
 	const removeFromRanking = async (musicId: string) => {
 		// Retirer de la liste locale immédiatement
 		if (ranking.value) {
-			ranking.value.items = ranking.value.items.filter((item) => item.music_id !== musicId)
+			ranking.value.items = ranking.value.items.filter(
+				(item) => item.music_id !== musicId,
+			)
 			localRankingItems.value = [...ranking.value.items]
 		}
 		// Supprimer en arrière-plan
@@ -714,7 +735,11 @@
 	// Play music
 	const handlePlayMusic = (music: Music) => {
 		if (!music.id_youtube_music) return
-		addToPlaylist(music.id_youtube_music, music.title || music.name || '', formatArtists(music.artists || []))
+		addToPlaylist(
+			music.id_youtube_music,
+			music.title || music.name || '',
+			formatArtists(music.artists || []),
+		)
 	}
 
 	const isCurrentlyPlaying = (videoId: string | null | undefined): boolean => {

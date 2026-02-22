@@ -33,6 +33,7 @@ export default defineEventHandler(async (event) => {
 			.from('release_artists')
 			.select('artist:artists(*)')
 			.eq('release_id', releaseId)
+			.eq('artist.verified', true)
 
 		// Si release_artists ne fonctionne pas, essayer artist_releases
 		let finalReleaseArtists = releaseArtists
@@ -41,6 +42,7 @@ export default defineEventHandler(async (event) => {
 				.from('artist_releases')
 				.select('artist:artists(*)')
 				.eq('release_id', releaseId)
+				.eq('artist.verified', true)
 			finalReleaseArtists = altArtists
 		}
 
@@ -91,7 +93,8 @@ export default defineEventHandler(async (event) => {
 					supabase
 						.from('artist_releases')
 						.select('release_id, artist:artists(*)')
-						.in('release_id', releaseIds),
+						.in('release_id', releaseIds)
+						.eq('artist.verified', true),
 				])
 
 				// Créer un Map pour grouper les artistes par release_id

@@ -18,12 +18,16 @@
 	const description = ref<string>('Release')
 
 	// SSR-compatible data fetching avec API complète
-	const { data: releaseData, pending: isFetchingRelease, error: fetchError } = await useFetch(`/api/releases/${route.params.id}/complete`, {
+	const {
+		data: releaseData,
+		pending: isFetchingRelease,
+		error: fetchError,
+	} = await useFetch(`/api/releases/${route.params.id}/complete`, {
 		server: true,
 		default: () => ({
 			release: null,
-			suggested_releases: []
-		})
+			suggested_releases: [],
+		}),
 	})
 
 	// Réactivité des données
@@ -126,16 +130,20 @@
 	// Configuration des meta et images de façon réactive
 	watchEffect(() => {
 		if (release.value) {
-			title.value = release.value.name + ' par ' + (release.value.artists?.[0]?.name || 'Artiste inconnu')
+			title.value =
+				release.value.name +
+				' par ' +
+				(release.value.artists?.[0]?.name || 'Artiste inconnu')
 			description.value = release.value.description || ''
 
 			// Copie profonde des musiques pour conserver l'état initial
-			musicList.value = release.value.musics?.map((music) => ({
-				id: music.id,
-				name: music.name,
-				ismv: music.ismv,
-				id_youtube_music: music.id_youtube_music,
-			})) || []
+			musicList.value =
+				release.value.musics?.map((music) => ({
+					id: music.id,
+					name: music.name,
+					ismv: music.ismv,
+					id_youtube_music: music.id_youtube_music,
+				})) || []
 		}
 	})
 

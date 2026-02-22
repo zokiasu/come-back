@@ -316,6 +316,34 @@ export function useSupabaseUserArtistContributions() {
 		return data || []
 	}
 
+	// Récupérer les créateurs pour une liste d'artistes (batch)
+	const getCreatorsForArtists = async (artistIds: string[]) => {
+		if (!artistIds.length) return []
+
+		const { data, error } = await supabase
+			.from('user_artist_contributions')
+			.select(
+				`
+				*,
+				user:users!user_artist_contributions_user_id_fkey(
+					id,
+					name,
+					email,
+					photo_url
+				)
+			`,
+			)
+			.in('artist_id', artistIds)
+			.eq('contribution_type', 'CREATOR')
+
+		if (error) {
+			console.error('Erreur lors de la récupération des créateurs:', error)
+			return []
+		}
+
+		return data || []
+	}
+
 	return {
 		addUserArtistContribution,
 		removeUserArtistContribution,
@@ -324,5 +352,6 @@ export function useSupabaseUserArtistContributions() {
 		getArtistContributors,
 		getUserContributionStats,
 		getTopContributors,
+		getCreatorsForArtists,
 	}
 }

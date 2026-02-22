@@ -15,19 +15,54 @@
 	const musicsTimestamp = ref(Date.now())
 
 	// SSR-compatible data fetching avec useFetch + refresh pour temps réel
-	const { data: comebacks, pending: newsFetching, refresh: refreshNews } = await useFetch(() => `/api/news/latest?_t=${refreshTimestamp.value}`, {
+	const {
+		data: comebacks,
+		pending: newsFetching,
+		refresh: refreshNews,
+	} = await useFetch(() => `/api/news/latest?_t=${refreshTimestamp.value}`, {
 		default: () => [],
 		server: true,
 		key: 'news-latest',
 		// Pas besoin de transform car l'API retourne déjà triées par date croissante
 	})
 
-	const { data: releases, pending: releasesFetching, refresh: refreshReleases } = await useFetch(
-		'/api/releases/latest',
+	const {
+		data: releases,
+		pending: releasesFetching,
+		refresh: refreshReleases,
+	} = await useFetch('/api/releases/latest', {
+		default: () => [],
+		server: true,
+		query: { limit: 8 },
+		transform: (data: any[]) =>
+			data.sort(
+				(a, b) => new Date(b.date || '').getTime() - new Date(a.date || '').getTime(),
+			),
+	})
+
+	const {
+		data: artists,
+		pending: artistsFetching,
+		refresh: refreshArtists,
+	} = await useFetch('/api/artists/latest', {
+		default: () => [],
+		server: true,
+		query: { limit: 8 },
+		transform: (data: any[]) =>
+			data.sort(
+				(a, b) =>
+					new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime(),
+			),
+	})
+
+	// Musiques aléatoires - client-only car changent à chaque visite
+	const { data: musics, pending: musicsFetching } = await useFetch(
+		() => `/api/musics/random?_t=${musicsTimestamp.value}`,
 		{
 			default: () => [],
-			server: true,
-			query: { limit: 8 },
+			server: false,
+			query: { limit: 4 },
+			watch: [musicsTimestamp],
 			transform: (data: any[]) =>
 				data.sort(
 					(a, b) => new Date(b.date || '').getTime() - new Date(a.date || '').getTime(),
@@ -35,37 +70,11 @@
 		},
 	)
 
-	const { data: artists, pending: artistsFetching, refresh: refreshArtists } = await useFetch(
-		'/api/artists/latest',
-		{
-			default: () => [],
-			server: true,
-			query: { limit: 8 },
-			transform: (data: any[]) =>
-				data.sort(
-					(a, b) =>
-						new Date(b.created_at || '').getTime() -
-						new Date(a.created_at || '').getTime(),
-				),
-		},
-	)
-
-	// Musiques aléatoires - client-only car changent à chaque visite
 	const {
-		data: musics,
-		pending: musicsFetching,
-	} = await useFetch(() => `/api/musics/random?_t=${musicsTimestamp.value}`, {
-		default: () => [],
-		server: false,
-		query: { limit: 4 },
-		watch: [musicsTimestamp],
-		transform: (data: any[]) =>
-			data.sort(
-				(a, b) => new Date(b.date || '').getTime() - new Date(a.date || '').getTime(),
-			),
-	})
-
-	const { data: mvs, pending: mvsFetching, refresh: refreshMVs } = await useFetch('/api/musics/latest-mvs', {
+		data: mvs,
+		pending: mvsFetching,
+		refresh: refreshMVs,
+	} = await useFetch('/api/musics/latest-mvs', {
 		default: () => [],
 		server: true,
 		query: { limit: 14 },
@@ -105,63 +114,68 @@
 		// Channel pour les news/comebacks (écoute aussi la table de jonction pour les artistes)
 		const newsChannel = supabase
 			.channel('news-realtime')
-			.on('postgres_changes',
+			.on(
+				'postgres_changes',
 				{
 					event: '*',
 					schema: 'public',
-					table: 'news'
+					table: 'news',
 				},
-				refreshNewsData
+				refreshNewsData,
 			)
-			.on('postgres_changes',
+			.on(
+				'postgres_changes',
 				{
 					event: 'INSERT',
 					schema: 'public',
-					table: 'news_artists_junction'
+					table: 'news_artists_junction',
 				},
-				refreshNewsData
+				refreshNewsData,
 			)
 			.subscribe()
 
 		// Channel pour les releases
 		const releasesChannel = supabase
 			.channel('releases-realtime')
-			.on('postgres_changes',
+			.on(
+				'postgres_changes',
 				{
 					event: '*',
 					schema: 'public',
-					table: 'releases'
+					table: 'releases',
 				},
 				async (payload) => {
 					// Force un refresh direct avec $fetch (bypass du cache useFetch)
 					try {
 						const freshData = await $fetch('/api/releases/latest', {
-							query: { limit: 8 }
+							query: { limit: 8 },
 						})
 						releases.value = freshData.sort(
-							(a, b) => new Date(b.date || '').getTime() - new Date(a.date || '').getTime(),
+							(a, b) =>
+								new Date(b.date || '').getTime() - new Date(a.date || '').getTime(),
 						)
 					} catch (error) {
 						console.error('Error refreshing releases:', error)
 					}
-				}
+				},
 			)
 			.subscribe()
 
 		// Channel pour les artists
 		const artistsChannel = supabase
 			.channel('artists-realtime')
-			.on('postgres_changes',
+			.on(
+				'postgres_changes',
 				{
 					event: '*',
 					schema: 'public',
-					table: 'artists'
+					table: 'artists',
 				},
 				async (payload) => {
 					// Force un refresh direct avec $fetch (bypass du cache useFetch)
 					try {
 						const freshData = await $fetch('/api/artists/latest', {
-							query: { limit: 8 }
+							query: { limit: 8 },
 						})
 						artists.value = freshData.sort(
 							(a, b) =>
@@ -171,24 +185,25 @@
 					} catch (error) {
 						console.error('Error refreshing artists:', error)
 					}
-				}
+				},
 			)
 			.subscribe()
 
 		// Channel pour les musics (MVs et musiques random)
 		const musicsChannel = supabase
 			.channel('musics-realtime')
-			.on('postgres_changes',
+			.on(
+				'postgres_changes',
 				{
 					event: '*',
 					schema: 'public',
-					table: 'musics'
+					table: 'musics',
 				},
 				async (payload) => {
 					// Force un refresh direct avec $fetch (bypass du cache useFetch)
 					try {
 						const freshData = await $fetch('/api/musics/latest-mvs', {
-							query: { limit: 14 }
+							query: { limit: 14 },
 						})
 						mvs.value = freshData
 					} catch (error) {
@@ -196,7 +211,7 @@
 					}
 
 					// Note: les musiques random ne se refresh pas auto pour garder l'aspect "découverte"
-				}
+				},
 			)
 			.subscribe()
 
@@ -245,10 +260,7 @@
 
 			<!-- Discover Music -->
 			<ClientOnly>
-				<div
-					v-if="musics.length > 0"
-					class="space-y-8 text-center xl:space-y-10"
-				>
+				<div v-if="musics.length > 0" class="space-y-8 text-center xl:space-y-10">
 					<p class="text-xl font-bold lg:text-4xl">Discover Music</p>
 					<div class="space-y-5">
 						<div class="grid grid-cols-2 gap-5 xl:grid-cols-4">

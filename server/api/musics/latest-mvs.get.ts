@@ -10,13 +10,16 @@ export default defineEventHandler(async (event) => {
 
 	const { data, error } = await supabase
 		.from('musics')
-		.select(`
+		.select(
+			`
 			*,
 			artists:music_artists(
 				artist:artists(*)
 			)
-		`)
+		`,
+		)
 		.eq('ismv', true) // Seulement les clips musicaux
+		.eq('artists.artist.verified', true)
 		.order('date', { ascending: false })
 		.limit(limit)
 

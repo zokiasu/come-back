@@ -5,7 +5,7 @@ export default defineEventHandler((event) => {
 	const url = event.node.req.url || ''
 
 	// Only apply in development
-	if (process.dev) {
+	if (import.meta.dev) {
 		const ignorePathList = ['/dev-sw.js', '/__vite', '/@vite', '/@id', '/__nuxt']
 
 		if (ignorePathList.some((path) => url.startsWith(path))) {

@@ -51,7 +51,10 @@ export async function createArtistRecord(
 	const { data, socialLinks, platformLinks, groups, members, companies } = params
 
 	// Vérifier si l'artiste existe déjà
-	if (data.id_youtube_music && (await checkArtistExists(supabase, data.id_youtube_music))) {
+	if (
+		data.id_youtube_music &&
+		(await checkArtistExists(supabase, data.id_youtube_music))
+	) {
 		const message = 'Cet artiste existe déjà dans la base de données.'
 		onError?.(message)
 		throw new Error(message)
@@ -96,7 +99,8 @@ export async function updateArtistRecord(
 	supabase: SupabaseClientType,
 	params: UpdateArtistParams,
 ): Promise<Artist> {
-	const { artistId, updates, socialLinks, platformLinks, groups, members, companies } = params
+	const { artistId, updates, socialLinks, platformLinks, groups, members, companies } =
+		params
 
 	// Mettre à jour l'artiste
 	const { data: artist, error } = await supabase
@@ -148,7 +152,10 @@ export async function updateArtistRecord(
 /**
  * Analyse les impacts de la suppression d'un artiste
  */
-export async function analyzeArtistDeletionImpact(supabase: SupabaseClientType, id: string) {
+export async function analyzeArtistDeletionImpact(
+	supabase: SupabaseClientType,
+	id: string,
+) {
 	const { data, error } = await supabase.rpc('analyze_artist_deletion_impact', {
 		artist_id_param: id,
 	})

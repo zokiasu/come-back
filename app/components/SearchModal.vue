@@ -77,16 +77,22 @@
 				<div v-if="isLoading" class="flex items-center justify-center py-4">
 					<div class="text-cb-tertiary-200 text-sm">Searching...</div>
 				</div>
-				<ul v-else-if="artists.length" class="flex flex-col gap-2" role="listbox" aria-label="Search results">
-					<li
-						v-for="artist in artists"
-						:key="artist.id"
-						role="option"
-					>
+				<ul
+					v-else-if="artists.length"
+					class="flex flex-col gap-2"
+					role="listbox"
+					aria-label="Search results"
+				>
+					<li v-for="artist in artists" :key="artist.id" role="option">
 						<button
 							type="button"
-							class="bg-cb-primary-900 w-full rounded p-2 text-left text-xs hover:bg-cb-primary-800 transition-colors cursor-pointer"
-							@click="() => { $router.push(`/artist/${artist.id}`); closeModal(); }"
+							class="bg-cb-primary-900 hover:bg-cb-primary-800 w-full cursor-pointer rounded p-2 text-left text-xs transition-colors"
+							@click="
+								() => {
+									$router.push(`/artist/${artist.id}`)
+									closeModal()
+								}
+							"
 						>
 							{{ artist.name }}
 						</button>

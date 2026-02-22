@@ -5,12 +5,16 @@ Ce dossier contient les tests unitaires pour les utilitaires serveur du projet.
 ## 🎯 Tests Coverage
 
 ### transformers.test.ts
+
 Tests pour les fonctions de transformation de données :
+
 - `transformJunction()` - Extraction d'entités depuis les tables de jonction
 - `batchTransform()` - Transformation en masse d'éléments
 
 ### errorHandler.test.ts
+
 Tests pour les utilitaires de gestion d'erreurs :
+
 - `isPostgrestError()` - Type guard pour erreurs PostgreSQL
 - `createNotFoundError()` - Création d'erreurs 404
 - `createBadRequestError()` - Création d'erreurs 400
@@ -33,25 +37,21 @@ import { defineConfig } from 'vitest/config'
 import path from 'path'
 
 export default defineConfig({
-  test: {
-    environment: 'node',
-    globals: true,
-    coverage: {
-      provider: 'v8',
-      reporter: ['text', 'html'],
-      exclude: [
-        'node_modules/',
-        '.nuxt/',
-        '.output/',
-      ],
-    },
-  },
-  resolve: {
-    alias: {
-      '~': path.resolve(__dirname, './'),
-      '@': path.resolve(__dirname, './'),
-    },
-  },
+	test: {
+		environment: 'node',
+		globals: true,
+		coverage: {
+			provider: 'v8',
+			reporter: ['text', 'html'],
+			exclude: ['node_modules/', '.nuxt/', '.output/'],
+		},
+	},
+	resolve: {
+		alias: {
+			'~': path.resolve(__dirname, './'),
+			'@': path.resolve(__dirname, './'),
+		},
+	},
 })
 ```
 
@@ -59,11 +59,11 @@ export default defineConfig({
 
 ```json
 {
-  "scripts": {
-    "test": "vitest",
-    "test:ui": "vitest --ui",
-    "test:coverage": "vitest --coverage"
-  }
+	"scripts": {
+		"test": "vitest",
+		"test:ui": "vitest --ui",
+		"test:coverage": "vitest --coverage"
+	}
 }
 ```
 
@@ -102,11 +102,13 @@ Les tests suivants devraient être ajoutés progressivement :
 ## 🔍 Pourquoi ces Tests ?
 
 Suite à la code review, plusieurs problèmes ont été identifiés :
+
 1. Bug de table de jonction détecté uniquement en manuel (`calendar/releases`)
 2. Absence de filet de sécurité pour les refactorings futurs
 3. Difficulté à valider les edge cases
 
 Ces tests assurent que :
+
 - Les transformations de données fonctionnent correctement
 - La gestion d'erreurs est robuste
 - Les régressions sont détectées automatiquement

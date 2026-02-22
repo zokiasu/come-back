@@ -17,7 +17,7 @@ interface AuthenticatedUser {
  * @returns The authenticated user or null if not authenticated
  */
 export const getAuthenticatedUser = async (
-	event: H3Event
+	event: H3Event,
 ): Promise<AuthenticatedUser | null> => {
 	const supabase = useServerSupabase()
 
@@ -111,9 +111,7 @@ export const requireAdmin = async (event: H3Event): Promise<AuthenticatedUser> =
  * @throws H3Error with status 401 if not authenticated
  * @throws H3Error with status 403 if insufficient role
  */
-export const requireContributor = async (
-	event: H3Event
-): Promise<AuthenticatedUser> => {
+export const requireContributor = async (event: H3Event): Promise<AuthenticatedUser> => {
 	const user = await requireAuth(event)
 
 	if (user.role !== 'ADMIN' && user.role !== 'CONTRIBUTOR') {

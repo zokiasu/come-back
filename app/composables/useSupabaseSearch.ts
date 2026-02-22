@@ -52,6 +52,7 @@ export function useSupabaseSearch() {
 			`,
 				{ count: 'exact' },
 			)
+			.eq('verified', true)
 			.ilike('name', `%${query.trim()}%`)
 			.order('name', { ascending: true })
 			.limit(limit)
@@ -99,10 +100,10 @@ export function useSupabaseSearch() {
 				artist_type: type || null,
 			}
 
-			const { data: rpcData, error: rpcError } = await supabase.rpc(
+			const { data: rpcData, error: rpcError } = (await supabase.rpc(
 				'search_artists_fulltext',
 				rpcParams,
-			) as { data: ArtistWithRelationsRaw[] | null; error: PostgrestError | null }
+			)) as { data: ArtistWithRelationsRaw[] | null; error: PostgrestError | null }
 
 			if (rpcError) {
 				console.error('RPC search error, falling back to ILIKE:', rpcError)

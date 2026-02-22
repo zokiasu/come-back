@@ -322,7 +322,6 @@
 		}
 	}
 
-
 	// Fonction pour gérer la mise à jour après création de company
 	const handleCompanyUpdated = async () => {
 		try {

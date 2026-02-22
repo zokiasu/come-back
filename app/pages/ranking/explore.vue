@@ -20,8 +20,14 @@
 		</div>
 
 		<!-- Loading state -->
-		<div v-if="isLoading && rankings.length === 0" class="flex items-center justify-center py-20">
-			<UIcon name="line-md:loading-twotone-loop" class="text-cb-primary-900 size-8 animate-spin" />
+		<div
+			v-if="isLoading && rankings.length === 0"
+			class="flex items-center justify-center py-20"
+		>
+			<UIcon
+				name="line-md:loading-twotone-loop"
+				class="text-cb-primary-900 size-8 animate-spin"
+			/>
 		</div>
 
 		<!-- Empty state -->
@@ -37,7 +43,10 @@
 		</div>
 
 		<!-- Rankings grid -->
-		<div v-else class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+		<div
+			v-else
+			class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+		>
 			<NuxtLink
 				v-for="ranking in rankings"
 				:key="ranking.id"
@@ -93,7 +102,10 @@
 								class="size-5 shrink-0 rounded-full object-cover"
 								format="webp"
 							/>
-							<div v-else class="bg-cb-quinary-900 flex size-5 shrink-0 items-center justify-center rounded-full">
+							<div
+								v-else
+								class="bg-cb-quinary-900 flex size-5 shrink-0 items-center justify-center rounded-full"
+							>
 								<UIcon name="i-heroicons-user" class="text-cb-tertiary-500 size-3" />
 							</div>
 							<span class="text-cb-tertiary-500 truncate text-xs">
@@ -174,5 +186,4 @@
 	onMounted(() => {
 		loadRankings()
 	})
-
 </script>

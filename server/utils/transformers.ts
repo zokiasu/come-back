@@ -53,7 +53,7 @@ export type RawMusicData = Tables<'musics'> & {
  */
 export const transformJunction = <T, K extends string>(
 	junctionData: JunctionRow<K, T>[] | null | undefined,
-	key: K
+	key: K,
 ): T[] => {
 	if (!junctionData || junctionData.length === 0) return []
 	return junctionData.map((item) => item[key]).filter((item): item is T => item !== null)
@@ -90,7 +90,7 @@ export const transformArtistWithRelations = (
 		includeCompanies?: boolean
 		includeSocialLinks?: boolean
 		includePlatformLinks?: boolean
-	}
+	},
 ): ArtistWithRelations => {
 	const artist: ArtistWithRelations = { ...rawArtist }
 
@@ -106,10 +106,7 @@ export const transformArtistWithRelations = (
 
 	// Transform releases
 	if (options?.includeReleases && rawArtist.releases) {
-		artist.releases = transformJunction<Tables<'releases'>>(
-			rawArtist.releases,
-			'release'
-		)
+		artist.releases = transformJunction<Tables<'releases'>>(rawArtist.releases, 'release')
 	}
 
 	// Transform companies (already has company nested, just clean up)
@@ -157,16 +154,13 @@ export const transformReleaseWithRelations = (
 		includeArtists?: boolean
 		includeMusics?: boolean
 		includePlatformLinks?: boolean
-	}
+	},
 ): ReleaseWithRelations => {
 	const release: ReleaseWithRelations = { ...rawRelease }
 
 	// Transform artists
 	if (options?.includeArtists && rawRelease.artists) {
-		release.artists = transformJunction<Tables<'artists'>>(
-			rawRelease.artists,
-			'artist'
-		)
+		release.artists = transformJunction<Tables<'artists'>>(rawRelease.artists, 'artist')
 	}
 
 	// Transform musics
@@ -207,7 +201,7 @@ export const transformMusicWithRelations = (
 	options?: {
 		includeArtists?: boolean
 		includeReleases?: boolean
-	}
+	},
 ): MusicWithRelations => {
 	const music: MusicWithRelations = { ...rawMusic }
 
@@ -218,10 +212,7 @@ export const transformMusicWithRelations = (
 
 	// Transform releases
 	if (options?.includeReleases && rawMusic.releases) {
-		music.releases = transformJunction<Tables<'releases'>>(
-			rawMusic.releases,
-			'release'
-		)
+		music.releases = transformJunction<Tables<'releases'>>(rawMusic.releases, 'release')
 	}
 
 	return music
@@ -243,7 +234,7 @@ export const transformMusicWithRelations = (
  */
 export const batchTransform = <T, R>(
 	items: T[] | null | undefined,
-	transformer: (item: T) => R
+	transformer: (item: T) => R,
 ): R[] => {
 	if (!items || items.length === 0) return []
 	return items.map(transformer)

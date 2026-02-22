@@ -967,7 +967,7 @@ export type Database = {
 							isOneToOne: true
 							isSetofReturn: false
 						}
-					}
+				  }
 				| {
 						Args: { content: string; content_type: string; uri: string }
 						Returns: Database['public']['CompositeTypes']['http_response']
@@ -977,7 +977,7 @@ export type Database = {
 							isOneToOne: true
 							isSetofReturn: false
 						}
-					}
+				  }
 			http_get:
 				| {
 						Args: { uri: string }
@@ -988,7 +988,7 @@ export type Database = {
 							isOneToOne: true
 							isSetofReturn: false
 						}
-					}
+				  }
 				| {
 						Args: { data: Json; uri: string }
 						Returns: Database['public']['CompositeTypes']['http_response']
@@ -998,7 +998,7 @@ export type Database = {
 							isOneToOne: true
 							isSetofReturn: false
 						}
-					}
+				  }
 			http_head: {
 				Args: { uri: string }
 				Returns: Database['public']['CompositeTypes']['http_response']
@@ -1046,7 +1046,7 @@ export type Database = {
 							isOneToOne: true
 							isSetofReturn: false
 						}
-					}
+				  }
 				| {
 						Args: { data: Json; uri: string }
 						Returns: Database['public']['CompositeTypes']['http_response']
@@ -1056,7 +1056,7 @@ export type Database = {
 							isOneToOne: true
 							isSetofReturn: false
 						}
-					}
+				  }
 			http_put: {
 				Args: { content: string; content_type: string; uri: string }
 				Returns: Database['public']['CompositeTypes']['http_response']
@@ -1116,13 +1116,13 @@ export type Database = {
 						Returns: {
 							error: true
 						} & 'Could not choose the best candidate function between: public.urlencode(string => bytea), public.urlencode(string => varchar). Try renaming the parameters or the function itself in the database so function overloading can be resolved'
-					}
+				  }
 				| {
 						Args: { string: string }
 						Returns: {
 							error: true
 						} & 'Could not choose the best candidate function between: public.urlencode(string => bytea), public.urlencode(string => varchar). Try renaming the parameters or the function itself in the database so function overloading can be resolved'
-					}
+				  }
 		}
 		Enums: {
 			artist_type: 'SOLO' | 'GROUP'
@@ -1178,8 +1178,10 @@ export type Tables<
 		}
 		? R
 		: never
-	: DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
-		? (DefaultSchema['Tables'] & DefaultSchema['Views'])[DefaultSchemaTableNameOrOptions] extends {
+	: DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema['Tables'] &
+				DefaultSchema['Views'])
+		? (DefaultSchema['Tables'] &
+				DefaultSchema['Views'])[DefaultSchemaTableNameOrOptions] extends {
 				Row: infer R
 			}
 			? R

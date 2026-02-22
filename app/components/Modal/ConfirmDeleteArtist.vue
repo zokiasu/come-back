@@ -107,8 +107,13 @@
 				<!-- Header -->
 				<div class="flex items-center justify-between border-b border-zinc-700 p-4">
 					<div class="flex items-center gap-3">
-						<div class="bg-cb-primary-900/20 flex h-10 w-10 items-center justify-center rounded-full">
-							<UIcon name="i-heroicons-exclamation-triangle" class="text-cb-primary-900 h-5 w-5" />
+						<div
+							class="bg-cb-primary-900/20 flex h-10 w-10 items-center justify-center rounded-full"
+						>
+							<UIcon
+								name="i-heroicons-exclamation-triangle"
+								class="text-cb-primary-900 h-5 w-5"
+							/>
 						</div>
 						<h3 class="text-lg font-semibold text-white">Confirmer la suppression</h3>
 					</div>
@@ -124,14 +129,21 @@
 				<!-- Content -->
 				<div class="space-y-4 p-4">
 					<!-- Artist name card -->
-					<div class="bg-cb-primary-900/10 border-cb-primary-900/30 rounded-lg border p-4">
-						<p class="text-sm text-zinc-400">Vous êtes sur le point de supprimer l'artiste :</p>
+					<div
+						class="bg-cb-primary-900/10 border-cb-primary-900/30 rounded-lg border p-4"
+					>
+						<p class="text-sm text-zinc-400">
+							Vous êtes sur le point de supprimer l'artiste :
+						</p>
 						<p class="mt-1 text-xl font-bold text-white">{{ artistName }}</p>
 					</div>
 
 					<!-- Loading state -->
 					<div v-if="isLoading" class="flex items-center justify-center gap-3 py-8">
-						<UIcon name="i-heroicons-arrow-path" class="text-cb-primary-900 h-5 w-5 animate-spin" />
+						<UIcon
+							name="i-heroicons-arrow-path"
+							class="text-cb-primary-900 h-5 w-5 animate-spin"
+						/>
 						<span class="text-sm text-zinc-400">Analyse des conséquences...</span>
 					</div>
 
@@ -148,7 +160,10 @@
 								<!-- Releases -->
 								<div class="flex items-center justify-between">
 									<div class="flex items-center gap-2">
-										<UIcon name="i-heroicons-musical-note" class="h-4 w-4 text-zinc-500" />
+										<UIcon
+											name="i-heroicons-musical-note"
+											class="h-4 w-4 text-zinc-500"
+										/>
 										<span class="text-sm text-zinc-300">Releases supprimées</span>
 									</div>
 									<span
@@ -171,7 +186,10 @@
 									>
 										• {{ release.name }}
 									</p>
-									<p v-if="impact.exclusiveReleases.length > 3" class="text-xs text-zinc-500">
+									<p
+										v-if="impact.exclusiveReleases.length > 3"
+										class="text-xs text-zinc-500"
+									>
 										... et {{ impact.exclusiveReleases.length - 3 }} autres
 									</p>
 								</div>
@@ -202,7 +220,10 @@
 									>
 										• {{ music.name }}
 									</p>
-									<p v-if="impact.exclusiveMusics.length > 3" class="text-xs text-zinc-500">
+									<p
+										v-if="impact.exclusiveMusics.length > 3"
+										class="text-xs text-zinc-500"
+									>
 										... et {{ impact.exclusiveMusics.length - 3 }} autres
 									</p>
 								</div>
@@ -243,7 +264,9 @@
 						<!-- Preserved content info -->
 						<div class="bg-cb-quaternary-950 rounded-lg p-4">
 							<div class="flex items-start gap-3">
-								<div class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-500/20">
+								<div
+									class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-500/20"
+								>
 									<UIcon name="i-heroicons-check" class="h-4 w-4 text-emerald-500" />
 								</div>
 								<div>

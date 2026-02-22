@@ -18,6 +18,8 @@ export interface ArtistPageOptions {
 	onlyWithoutSocials?: boolean
 	onlyWithoutPlatforms?: boolean
 	onlyWithoutStyles?: boolean
+	verified?: boolean | null
+	skipYoutubeMusicFilter?: boolean
 }
 
 export interface ArtistPageResult {
@@ -105,7 +107,9 @@ export async function fetchAllArtists(
 /**
  * Récupère tous les artistes (version légère)
  */
-export async function fetchAllArtistsLight(supabase: SupabaseClientType): Promise<Artist[]> {
+export async function fetchAllArtistsLight(
+	supabase: SupabaseClientType,
+): Promise<Artist[]> {
 	const { data, error } = await supabase.from('artists').select('*')
 
 	if (error) {
@@ -279,8 +283,19 @@ export async function fetchArtistsByPage(
 		query = query.or('styles.is.null,styles.eq.{}')
 	}
 
+	// Filtre verified
+	if (options?.verified !== undefined) {
+		if (options.verified === null) {
+			query = query.or('verified.is.null,verified.eq.false')
+		} else {
+			query = query.eq('verified', options.verified)
+		}
+	}
+
 	// Filtre pour n'avoir que les artistes avec un id_youtube_music
-	query = query.not('id_youtube_music', 'is', null)
+	if (!options?.skipYoutubeMusicFilter) {
+		query = query.not('id_youtube_music', 'is', null)
+	}
 
 	// Tri
 	if (options?.orderBy) {
@@ -342,6 +357,7 @@ export async function fetchLatestArtists(
 	const { data, error } = await supabase
 		.from('artists')
 		.select('*')
+		.eq('verified', true)
 		.order('created_at', { ascending: false })
 		.limit(limit)
 

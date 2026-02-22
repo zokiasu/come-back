@@ -10,8 +10,6 @@ import {
 	fetchArtistsByPage,
 	fetchLatestArtists,
 	type ArtistPageOptions,
-} from './helpers/artist'
-import {
 	createArtistRecord,
 	updateArtistRecord,
 	analyzeArtistDeletionImpact,
@@ -86,8 +84,14 @@ export function useSupabaseArtist() {
 		return deleteArtistSafely(
 			supabase,
 			id,
-			(message) => toast.add({ title: 'Artiste supprimé', description: message, color: 'success' }),
-			(message) => toast.add({ title: 'Erreur de suppression', description: message, color: 'error' }),
+			(message) =>
+				toast.add({ title: 'Artiste supprimé', description: message, color: 'success' }),
+			(message) =>
+				toast.add({
+					title: 'Erreur de suppression',
+					description: message,
+					color: 'error',
+				}),
 		)
 	}
 
@@ -96,8 +100,14 @@ export function useSupabaseArtist() {
 		return deleteArtistSimply(
 			supabase,
 			id,
-			(message) => toast.add({ title: 'Artiste supprimé', description: message, color: 'success' }),
-			(message) => toast.add({ title: 'Erreur de suppression', description: message, color: 'error' }),
+			(message) =>
+				toast.add({ title: 'Artiste supprimé', description: message, color: 'success' }),
+			(message) =>
+				toast.add({
+					title: 'Erreur de suppression',
+					description: message,
+					color: 'error',
+				}),
 		)
 	}
 
@@ -148,6 +158,24 @@ export function useSupabaseArtist() {
 		return fetchArtistsByPage(supabase, page, limit, options)
 	}
 
+	// Approuve un artiste (met verified = true) sans toucher aux relations
+	const approveArtist = async (artistId: string) => {
+		const { error } = await supabase
+			.from('artists')
+			.update({ verified: true })
+			.eq('id', artistId)
+
+		if (error) {
+			console.error("Erreur lors de l'approbation de l'artiste:", error)
+			toast.add({
+				title: 'Erreur',
+				description: "Impossible d'approuver l'artiste",
+				color: 'error',
+			})
+			throw error
+		}
+	}
+
 	return {
 		artistExistInSupabase,
 		createArtist,
@@ -163,5 +191,6 @@ export function useSupabaseArtist() {
 		getRealtimeLatestArtistsAdded,
 		getSocialAndPlatformLinksByArtistId,
 		getArtistsByPage,
+		approveArtist,
 	}
 }

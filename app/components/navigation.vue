@@ -29,9 +29,7 @@
 		(route.name as string)?.startsWith('dashboard-'),
 	)
 
-	const routeIsRanking = computed(() =>
-		(route.name as string)?.startsWith('ranking'),
-	)
+	const routeIsRanking = computed(() => (route.name as string)?.startsWith('ranking'))
 
 	// Utiliser le composable Nuxt pour le scroll
 	const { y: scrollY } = useWindowScroll()

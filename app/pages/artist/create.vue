@@ -4,8 +4,10 @@
 
 	// Internal Types
 	import { storeToRefs } from 'pinia'
-	import type { Artist, MusicStyle, GeneralTag } from '~/types'
 	import type {
+		Artist,
+		MusicStyle,
+		GeneralTag,
 		ArtistGender,
 		ArtistType,
 		ArtistPlatformLink,
@@ -288,7 +290,6 @@
 			artistCompanies.value[index].company = company
 		}
 	}
-
 
 	onMounted(async () => {
 		artistsList.value = await getAllArtists()

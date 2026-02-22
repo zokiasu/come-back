@@ -120,7 +120,9 @@
 								'bg-cb-quaternary-900 hover:bg-cb-primary-900 group-hover:text-white':
 									index !== currentIndex,
 							}"
-							:aria-label="index === currentIndex ? `Pause ${item.title}` : `Play ${item.title}`"
+							:aria-label="
+								index === currentIndex ? `Pause ${item.title}` : `Play ${item.title}`
+							"
 							@click="handlePlayItem(index)"
 						>
 							<IconPause v-if="index === currentIndex" class="h-4 w-4" />

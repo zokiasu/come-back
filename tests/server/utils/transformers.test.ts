@@ -42,10 +42,7 @@ describe('transformJunction', () => {
 	})
 
 	it('should filter out undefined values', () => {
-		const input = [
-			{ artist: undefined },
-			{ artist: { id: '1', name: 'Artist 1' } },
-		]
+		const input = [{ artist: undefined }, { artist: { id: '1', name: 'Artist 1' } }]
 		const result = transformJunction(input, 'artist')
 
 		expect(result).toHaveLength(1)
@@ -64,10 +61,7 @@ describe('transformJunction', () => {
 	})
 
 	it('should handle missing keys gracefully', () => {
-		const input = [
-			{ someOtherKey: { id: '1' } },
-			{ artist: { id: '2' } },
-		]
+		const input = [{ someOtherKey: { id: '1' } }, { artist: { id: '2' } }]
 		const result = transformJunction(input, 'artist')
 
 		expect(result).toHaveLength(1)
@@ -77,11 +71,7 @@ describe('transformJunction', () => {
 
 describe('batchTransform', () => {
 	it('should transform multiple items', () => {
-		const input = [
-			{ name: 'item1' },
-			{ name: 'item2' },
-			{ name: 'item3' },
-		]
+		const input = [{ name: 'item1' }, { name: 'item2' }, { name: 'item3' }]
 		const transformer = (item: { name: string }) => ({
 			...item,
 			transformed: true,

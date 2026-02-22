@@ -137,7 +137,8 @@
 				type: typeFilter.value === 'ALL' ? undefined : typeFilter.value,
 				gender: genderFilter.value === 'ALL' ? undefined : genderFilter.value,
 				styles: styleFilter.value === 'ALL' ? undefined : [styleFilter.value],
-				isActive: careerFilter.value === 'ALL' ? undefined : careerFilter.value === 'ACTIVE',
+				isActive:
+					careerFilter.value === 'ALL' ? undefined : careerFilter.value === 'ACTIVE',
 				onlyWithoutDesc: missingFilter.value === 'NO_DESC',
 				onlyWithoutSocials: missingFilter.value === 'NO_SOCIALS',
 				onlyWithoutPlatforms: missingFilter.value === 'NO_PLATFORMS',
@@ -194,7 +195,8 @@
 		const missing = []
 		if (!artist.description) missing.push('desc')
 		if (!artist.social_links || artist.social_links.length === 0) missing.push('socials')
-		if (!artist.platform_links || artist.platform_links.length === 0) missing.push('platforms')
+		if (!artist.platform_links || artist.platform_links.length === 0)
+			missing.push('platforms')
 		if (!artist.styles || artist.styles.length === 0) missing.push('styles')
 		return missing
 	}
@@ -232,11 +234,23 @@
 		debouncedFetch()
 	})
 
-	watch([typeFilter, genderFilter, styleFilter, careerFilter, missingFilter, sortColumn, sortDirection, pageSizeValue], () => {
-		isFilterChange.value = true
-		currentPage.value = 1
-		fetchArtists()
-	})
+	watch(
+		[
+			typeFilter,
+			genderFilter,
+			styleFilter,
+			careerFilter,
+			missingFilter,
+			sortColumn,
+			sortDirection,
+			pageSizeValue,
+		],
+		() => {
+			isFilterChange.value = true
+			currentPage.value = 1
+			fetchArtists()
+		},
+	)
 
 	// Watch page changes from pagination
 	watch(currentPage, () => {
@@ -292,7 +306,10 @@
 					<p class="text-lg font-bold text-gray-400">{{ stats.inactive }}</p>
 					<p class="text-xs text-gray-400/70">Inactifs</p>
 				</div>
-				<div v-if="stats.incomplete > 0" class="rounded-lg bg-amber-900/30 px-3 py-1.5 text-center">
+				<div
+					v-if="stats.incomplete > 0"
+					class="rounded-lg bg-amber-900/30 px-3 py-1.5 text-center"
+				>
 					<p class="text-lg font-bold text-amber-400">{{ stats.incomplete }}</p>
 					<p class="text-xs text-amber-400/70">Incomplets</p>
 				</div>
@@ -363,7 +380,11 @@
 						:ui="{ base: 'bg-cb-quinary-900' }"
 					/>
 					<UButton
-						:icon="sortDirection === 'asc' ? 'i-heroicons-bars-arrow-up' : 'i-heroicons-bars-arrow-down'"
+						:icon="
+							sortDirection === 'asc'
+								? 'i-heroicons-bars-arrow-up'
+								: 'i-heroicons-bars-arrow-down'
+						"
 						color="neutral"
 						variant="ghost"
 						@click="toggleSortDirection"
@@ -397,7 +418,10 @@
 
 			<!-- Empty state -->
 			<div v-else-if="!isLoading && artistsList.length === 0" class="py-16 text-center">
-				<UIcon name="i-heroicons-user-group" class="text-cb-tertiary-500 mx-auto size-16 opacity-50" />
+				<UIcon
+					name="i-heroicons-user-group"
+					class="text-cb-tertiary-500 mx-auto size-16 opacity-50"
+				/>
 				<p class="text-cb-tertiary-500 mt-4">Aucun artiste trouvé</p>
 			</div>
 
@@ -418,7 +442,10 @@
 							format="webp"
 							class="size-12 rounded-full object-cover"
 						/>
-						<div v-else class="bg-cb-quinary-900 flex size-12 items-center justify-center rounded-full">
+						<div
+							v-else
+							class="bg-cb-quinary-900 flex size-12 items-center justify-center rounded-full"
+						>
 							<UIcon name="i-heroicons-user" class="text-cb-tertiary-500 size-6" />
 						</div>
 					</NuxtLink>
@@ -435,10 +462,19 @@
 							<UBadge :color="getTypeBadgeColor(artist.type)" variant="subtle" size="xs">
 								{{ artist.type || 'N/A' }}
 							</UBadge>
-							<UBadge :color="getGenderBadgeColor(artist.gender)" variant="subtle" size="xs">
+							<UBadge
+								:color="getGenderBadgeColor(artist.gender)"
+								variant="subtle"
+								size="xs"
+							>
 								{{ artist.gender || 'N/A' }}
 							</UBadge>
-							<UBadge v-if="!artist.active_career" color="neutral" variant="subtle" size="xs">
+							<UBadge
+								v-if="!artist.active_career"
+								color="neutral"
+								variant="subtle"
+								size="xs"
+							>
 								Inactif
 							</UBadge>
 						</div>
@@ -453,7 +489,10 @@
 						</p>
 
 						<!-- Styles -->
-						<div v-if="artist.styles && artist.styles.length" class="mt-1 flex flex-wrap gap-1">
+						<div
+							v-if="artist.styles && artist.styles.length"
+							class="mt-1 flex flex-wrap gap-1"
+						>
 							<span
 								v-for="style in artist.styles.slice(0, 3)"
 								:key="style"
@@ -467,7 +506,10 @@
 						</div>
 
 						<!-- Groups -->
-						<div v-if="artist.groups && artist.groups.length" class="mt-1 flex flex-wrap items-center gap-1">
+						<div
+							v-if="artist.groups && artist.groups.length"
+							class="mt-1 flex flex-wrap items-center gap-1"
+						>
 							<span class="text-cb-tertiary-500 text-xs">Groupes:</span>
 							<NuxtLink
 								v-for="group in artist.groups"
@@ -487,7 +529,8 @@
 								class="text-xs text-amber-500"
 								title="Sans description"
 							>
-								<UIcon name="i-heroicons-document-text" class="size-3.5" /> desc
+								<UIcon name="i-heroicons-document-text" class="size-3.5" />
+								desc
 							</span>
 							<!-- Missing styles -->
 							<span
@@ -495,7 +538,8 @@
 								class="text-xs text-amber-500"
 								title="Sans styles"
 							>
-								<UIcon name="i-heroicons-tag" class="size-3.5" /> styles
+								<UIcon name="i-heroicons-tag" class="size-3.5" />
+								styles
 							</span>
 							<!-- Socials count or missing -->
 							<span
@@ -503,14 +547,12 @@
 								class="text-xs text-green-500"
 								title="Réseaux sociaux"
 							>
-								<UIcon name="i-heroicons-share" class="size-3.5" /> {{ artist.social_links.length }} socials
+								<UIcon name="i-heroicons-share" class="size-3.5" />
+								{{ artist.social_links.length }} socials
 							</span>
-							<span
-								v-else
-								class="text-xs text-amber-500"
-								title="Sans réseaux sociaux"
-							>
-								<UIcon name="i-heroicons-share" class="size-3.5" /> socials
+							<span v-else class="text-xs text-amber-500" title="Sans réseaux sociaux">
+								<UIcon name="i-heroicons-share" class="size-3.5" />
+								socials
 							</span>
 							<!-- Platforms count or missing -->
 							<span
@@ -518,14 +560,12 @@
 								class="text-xs text-green-500"
 								title="Plateformes"
 							>
-								<UIcon name="i-heroicons-musical-note" class="size-3.5" /> {{ artist.platform_links.length }} platforms
+								<UIcon name="i-heroicons-musical-note" class="size-3.5" />
+								{{ artist.platform_links.length }} platforms
 							</span>
-							<span
-								v-else
-								class="text-xs text-amber-500"
-								title="Sans plateformes"
-							>
-								<UIcon name="i-heroicons-musical-note" class="size-3.5" /> platforms
+							<span v-else class="text-xs text-amber-500" title="Sans plateformes">
+								<UIcon name="i-heroicons-musical-note" class="size-3.5" />
+								platforms
 							</span>
 						</div>
 					</div>
@@ -537,7 +577,9 @@
 					</div>
 
 					<!-- Actions -->
-					<div class="flex shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+					<div
+						class="flex shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100"
+					>
 						<UButton
 							:to="`/artist/edit/${artist.id}`"
 							icon="i-heroicons-pencil-square"

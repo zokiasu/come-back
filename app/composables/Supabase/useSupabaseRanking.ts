@@ -64,7 +64,7 @@ export function useSupabaseRanking() {
 					item_count: count || 0,
 					preview_thumbnails: thumbnails,
 				}
-			})
+			}),
 		)
 
 		return rankingsWithPreview
@@ -92,7 +92,8 @@ export function useSupabaseRanking() {
 		// Récupérer les items avec les infos des musiques
 		const { data: items, error: itemsError } = await supabase
 			.from('user_ranking_items')
-			.select(`
+			.select(
+				`
 				*,
 				music:musics(
 					*,
@@ -100,7 +101,8 @@ export function useSupabaseRanking() {
 						artist:artists(id, name, image)
 					)
 				)
-			`)
+			`,
+			)
 			.eq('ranking_id', id)
 			.order('position', { ascending: true })
 
@@ -130,9 +132,12 @@ export function useSupabaseRanking() {
 	 */
 	const createRanking = async (
 		name: string,
-		description?: string
+		description?: string,
 	): Promise<UserRanking | null> => {
-		console.log('[createRanking] Starting...', { userId: userStore.userDataStore?.id, name })
+		console.log('[createRanking] Starting...', {
+			userId: userStore.userDataStore?.id,
+			name,
+		})
 
 		if (!userStore.userDataStore?.id) {
 			console.log('[createRanking] No user ID')
@@ -181,7 +186,7 @@ export function useSupabaseRanking() {
 	 */
 	const updateRanking = async (
 		id: string,
-		updates: Partial<Pick<UserRanking, 'name' | 'description' | 'is_public'>>
+		updates: Partial<Pick<UserRanking, 'name' | 'description' | 'is_public'>>,
 	): Promise<UserRanking | null> => {
 		const { data, error } = await supabase
 			.from('user_rankings')
@@ -233,7 +238,7 @@ export function useSupabaseRanking() {
 	 */
 	const addMusicToRanking = async (
 		rankingId: string,
-		musicId: string
+		musicId: string,
 	): Promise<UserRankingItem | null> => {
 		// Récupérer la position maximale actuelle
 		const { data: maxPositionData } = await supabase
@@ -298,7 +303,7 @@ export function useSupabaseRanking() {
 	 */
 	const removeMusicFromRanking = async (
 		rankingId: string,
-		musicId: string
+		musicId: string,
 	): Promise<boolean> => {
 		// Récupérer la position de l'item à supprimer
 		const { data: itemToDelete } = await supabase
@@ -347,7 +352,7 @@ export function useSupabaseRanking() {
 	 */
 	const reorderRankingItems = async (
 		rankingId: string,
-		items: { id: string; position: number }[]
+		items: { id: string; position: number }[],
 	): Promise<boolean> => {
 		try {
 			// Utiliser la fonction RPC atomique pour éviter les conflits 409
@@ -377,7 +382,7 @@ export function useSupabaseRanking() {
 	 */
 	const isMusicInRanking = async (
 		rankingId: string,
-		musicId: string
+		musicId: string,
 	): Promise<boolean> => {
 		const { data } = await supabase
 			.from('user_ranking_items')
@@ -392,7 +397,9 @@ export function useSupabaseRanking() {
 	/**
 	 * Récupère un ranking public par son ID (pour la page view)
 	 */
-	const getPublicRankingById = async (id: string): Promise<UserRankingWithItems | null> => {
+	const getPublicRankingById = async (
+		id: string,
+	): Promise<UserRankingWithItems | null> => {
 		const { data: ranking, error: rankingError } = await supabase
 			.from('user_rankings')
 			.select('*, user:users(id, name, photo_url)')
@@ -408,7 +415,8 @@ export function useSupabaseRanking() {
 		// Récupérer les items avec les infos des musiques
 		const { data: items, error: itemsError } = await supabase
 			.from('user_ranking_items')
-			.select(`
+			.select(
+				`
 				*,
 				music:musics(
 					*,
@@ -416,7 +424,8 @@ export function useSupabaseRanking() {
 						artist:artists(id, name, image)
 					)
 				)
-			`)
+			`,
+			)
 			.eq('ranking_id', id)
 			.order('position', { ascending: true })
 
@@ -446,11 +455,15 @@ export function useSupabaseRanking() {
 	 */
 	const getPublicRankings = async (
 		page: number = 1,
-		limit: number = 20
+		limit: number = 20,
 	): Promise<{ rankings: UserRankingWithPreview[]; total: number }> => {
 		const offset = (page - 1) * limit
 
-		const { data: rankings, error, count } = await supabase
+		const {
+			data: rankings,
+			error,
+			count,
+		} = await supabase
 			.from('user_rankings')
 			.select('*, user:users(id, name, photo_url)', { count: 'exact' })
 			.eq('is_public', true)
@@ -485,7 +498,7 @@ export function useSupabaseRanking() {
 					item_count: itemCount || 0,
 					preview_thumbnails: thumbnails,
 				}
-			})
+			}),
 		)
 
 		return {

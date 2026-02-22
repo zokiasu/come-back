@@ -13,6 +13,11 @@
 			to: '/dashboard/artist',
 		},
 		{
+			label: 'Validation',
+			icon: 'i-heroicons-check-badge',
+			to: '/dashboard/validation',
+		},
+		{
 			label: 'Releases',
 			icon: 'i-heroicons-musical-note',
 			to: '/dashboard/release',

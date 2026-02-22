@@ -136,8 +136,9 @@ export const useLinkManager = () => {
 
 		const remove = (index: number) => {
 			links.value.splice(index, 1)
-			// Nettoyer l'état de chargement
-			delete loadingStates.value[index]
+			// Nettoyer l'état de chargement en recréant l'objet sans la clé
+			const { [index]: _removed, ...rest } = loadingStates.value
+			loadingStates.value = rest
 		}
 
 		const updateName = (index: number, name: string) => {

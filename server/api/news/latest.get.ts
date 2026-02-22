@@ -21,6 +21,7 @@ export default defineEventHandler(async (event) => {
 			)
 		`,
 		)
+		.eq('artists.artist.verified', true)
 		.gte('date', today) // Seulement les news avec date >= aujourd'hui UTC
 		.order('date', { ascending: true }) // Ordre croissant pour les futures dates
 
