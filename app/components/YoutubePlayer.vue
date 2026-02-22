@@ -494,8 +494,8 @@
 			v-if="!isMinimized"
 			class="bg-cb-secondary-950/95 border border-cb-quinary-900/70 shadow-black/40 relative w-full overflow-hidden rounded-3xl shadow-lg"
 		>
-			<div class="grid grid-cols-1 items-center gap-4 px-4 py-3 lg:grid-cols-3">
-				<div class="flex min-w-0 items-center gap-3 lg:col-start-1 lg:row-start-1">
+			<div class="flex items-center gap-3 px-4 py-2 md:grid md:grid-cols-3 md:gap-4 md:py-3">
+				<div class="flex min-w-0 flex-1 items-center gap-3 md:col-start-1 md:row-start-1 md:flex-none">
 					<div
 						class="bg-cb-quinary-900/70 text-cb-tertiary-200 flex h-10 w-10 items-center justify-center rounded-xl"
 					>
@@ -539,7 +539,7 @@
 					</div>
 				</div>
 
-				<div class="flex items-center justify-center gap-1 md:gap-2 lg:col-start-2 lg:row-start-1">
+				<div class="flex items-center justify-center gap-1 md:gap-2 md:col-start-2 md:row-start-1">
 					<UButton
 						variant="ghost"
 						class="hidden lg:block"
@@ -606,7 +606,7 @@
 					/>
 				</div>
 
-				<div class="flex items-center justify-end gap-2 lg:col-start-3 lg:row-start-1">
+				<div class="ml-auto flex items-center gap-2 md:ml-0 md:justify-end md:gap-2 md:col-start-3 md:row-start-1">
 					<UButton
 						variant="ghost"
 						:disabled="!playlistInfo.isActive"

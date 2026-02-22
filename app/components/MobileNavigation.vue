@@ -1,7 +1,6 @@
 <script setup lang="ts">
 	import { storeToRefs } from 'pinia'
 
-	const isPlayingVideo = useIsPlayingVideo()
 	const isMobileNavDocked = useState<boolean>('mobileNavDocked', () => false)
 
 	const userStore = useUserStore()
@@ -22,13 +21,10 @@
 	})
 
 	const bottomOffsetClass = computed(() => {
-		if (isMobileNavDocked.value && isPlayingVideo.value) {
-			return 'bottom-20'
-		}
 		if (isMobileNavDocked.value) {
 			return 'bottom-0'
 		}
-		return isPlayingVideo.value ? 'bottom-20' : 'bottom-5'
+		return 'bottom-5'
 	})
 </script>
 
