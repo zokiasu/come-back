@@ -55,7 +55,7 @@ All notable changes to Comeback are documented here. Versions and dates are infe
 ### Fixed
 - API validation, SSRF protections, and XSS guardrails.
 
-## 1.2.0 - 2023-11-16
+## 1.0.0 - 2023-11-16
 ### Added
 - YouTube player improvements and external link handling.
 - Realtime artist updates and news creation upgrades.
@@ -66,12 +66,12 @@ All notable changes to Comeback are documented here. Versions and dates are infe
 ### Fixed
 - Multiple UI and data consistency issues across home and artist pages.
 
-## 1.1.0 - 2023-10-24
+## 0.2.0 - 2023-10-24
 ### Added
 - Homepage rework with discover music components.
 - Initial backend/infra scaffolding.
 
-## 1.0.0 - 2023-07-04
+## 0.1.0 - 2023-07-04
 ### Added
 - Initial project setup with navigation and core pages.
 - First authentication and data layer integration.

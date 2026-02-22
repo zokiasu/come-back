@@ -78,7 +78,7 @@ export const changelog: ChangelogEntry[] = [
 		],
 	},
 	{
-		version: '1.2.0',
+		version: '1.0.0',
 		date: '2023-11-16',
 		title: 'Firebase Infra Optimization',
 		added: [
@@ -93,7 +93,7 @@ export const changelog: ChangelogEntry[] = [
 		],
 	},
 	{
-		version: '1.1.0',
+		version: '0.2.0',
 		date: '2023-10-24',
 		title: 'Home Rework + Backend Integrations',
 		added: [
@@ -102,7 +102,7 @@ export const changelog: ChangelogEntry[] = [
 		],
 	},
 	{
-		version: '1.0.0',
+		version: '0.1.0',
 		date: '2023-07-04',
 		title: 'Initial MVP',
 		added: [
