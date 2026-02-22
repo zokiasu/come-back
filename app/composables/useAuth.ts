@@ -90,7 +90,13 @@ export const useAuth = () => {
 
 				if (createError) {
 					console.error("Erreur lors de la création de l'utilisateur:", createError)
-					throw createError
+					const details = JSON.stringify({
+						message: (createError as { message?: string }).message,
+						code: (createError as { code?: string }).code,
+						details: (createError as { details?: string }).details,
+						hint: (createError as { hint?: string }).hint,
+					})
+					throw new Error(`create-user-failed: ${details}`)
 				}
 
 				return newUser as User
@@ -121,7 +127,13 @@ export const useAuth = () => {
 
 				if (updateError) {
 					console.error("Erreur lors de la mise à jour de l'utilisateur:", updateError)
-					throw updateError
+					const details = JSON.stringify({
+						message: (updateError as { message?: string }).message,
+						code: (updateError as { code?: string }).code,
+						details: (updateError as { details?: string }).details,
+						hint: (updateError as { hint?: string }).hint,
+					})
+					throw new Error(`update-user-failed: ${details}`)
 				}
 
 				return updatedUser as User
@@ -183,6 +195,25 @@ export const useAuth = () => {
 		}
 
 		return false
+	}
+
+	const syncUserProfileFromAuthUser = async (authUser: SupabaseAuthUser) => {
+		if (!authUser?.id) return false
+		try {
+			isSyncing.value = true
+			syncError.value = null
+			const userData = await createOrUpdateUser(authUser)
+			await syncUserProfile(authUser, userData)
+			return true
+		} catch (error: unknown) {
+			const errorMessage = error instanceof Error ? error.message : 'Erreur de synchronisation'
+			console.error('❌ Erreur lors de la synchronisation (auth user):', error)
+			syncError.value = errorMessage
+			await resetStore()
+			return false
+		} finally {
+			isSyncing.value = false
+		}
 	}
 
 	// Flag pour indiquer une déconnexion volontaire
@@ -313,6 +344,7 @@ export const useAuth = () => {
 
 		// Actions
 		ensureUserProfile,
+		syncUserProfileFromAuthUser,
 		initializeAuth,
 		ensureAuthInitialized,
 		logout,

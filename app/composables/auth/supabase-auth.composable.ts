@@ -11,7 +11,7 @@ export const useSupabaseAuth = () => {
 			// Utiliser le client Supabase global
 			const supabase = useSupabaseClient()
 			const origin = import.meta.client ? window.location.origin : useRequestURL().origin
-			const { ensureUserProfile } = useAuth()
+			const { ensureUserProfile, syncUserProfileFromAuthUser, syncError } = useAuth()
 			const { close: closeAuthModal } = useAuthModal()
 
 			const { data, error: authError } = await supabase.auth.signInWithOAuth({
@@ -85,22 +85,43 @@ export const useSupabaseAuth = () => {
 						})
 						return
 					}
-					const synced = await ensureUserProfile()
+					const { data: userData } = await supabase.auth.getUser()
+					const authUser = userData?.user
+						? {
+								id: userData.user.id,
+								email: userData.user.email,
+								user_metadata: userData.user.user_metadata,
+							}
+						: null
+
+					let synced = false
+					if (authUser?.id) {
+						synced = await syncUserProfileFromAuthUser(authUser)
+					}
+
 					if (!synced) {
 						await new Promise((resolve) => setTimeout(resolve, 500))
+						synced = await ensureUserProfile()
 					}
-					const syncedRetry = await ensureUserProfile()
-					if (!syncedRetry) {
+
+					if (!synced) {
 						toast.add({
 							title: 'Authentication error',
-							description: 'Unable to sync profile. Please try again.',
+							description:
+								syncError.value ||
+								'Unable to sync profile. Check your database policies and try again.',
 							color: 'error',
 							duration: 5000,
 						})
 						return
 					}
 					closeAuthModal()
-					window.location.reload()
+					await nextTick()
+					try {
+						refreshNuxtData()
+					} catch {
+						// no-op if unavailable
+					}
 				}
 
 				const checkSessionAndSync = async () => {

@@ -166,7 +166,7 @@ export default defineNuxtConfig({
 			installPrompt: true,
 		},
 		devOptions: {
-			enabled: process.env.NODE_ENV === 'development',
+			enabled: false,
 			suppressWarnings: true,
 			type: 'module',
 		},
