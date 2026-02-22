@@ -1,5 +1,6 @@
 <template>
-	<div class="container mx-auto space-y-6 py-10">
+	<div class="container mx-auto space-y-6 p-5">
+		<p class="text-center text-2xl font-bold">Artists List</p>
 		<!-- Search bar -->
 		<div class="flex items-center gap-2">
 			<UInput
@@ -185,6 +186,7 @@
 				class="!min-w-full"
 			/>
 		</transition-group>
+		<div ref="loadMoreSentinel" class="h-px w-full" />
 
 		<LoadingIndicator
 			:show="isLoading && firstLoad"
@@ -205,7 +207,7 @@
 	import { useSupabaseArtist } from '@/composables/Supabase/useSupabaseArtist'
 	import { useSupabaseGeneralTags } from '@/composables/Supabase/useSupabaseGeneralTags'
 	import { useSupabaseMusicStyles } from '@/composables/Supabase/useSupabaseMusicStyles'
-	import { useInfiniteScroll } from '@vueuse/core'
+	import { useEventListener, useIntersectionObserver } from '@vueuse/core'
 	import type { Artist, ArtistType, ArtistGender, GeneralTag, MusicStyle } from '~/types'
 
 	const { getArtistsByPage } = useSupabaseArtist()
@@ -218,12 +220,15 @@
 
 	const artists = ref<Artist[]>([])
 	const search = ref('')
-	const page = ref(0)
+	const page = ref(1)
 	const limit = ref(48)
+	const totalPages = ref(1)
 	const isLoading = ref(false)
 	const hasMore = ref(true)
 	const isInitialized = ref(false)
 	const firstLoad = ref(true)
+	const hasUserInteractedForPagination = ref(false)
+	const loadMoreSentinel = useTemplateRef<HTMLElement>('loadMoreSentinel')
 
 	const tagsList = ref<GeneralTag[]>([])
 	const selectedTags = ref<string[]>([])
@@ -258,6 +263,7 @@
 		})
 
 		const artistsArray = Array.isArray(result.artists) ? result.artists : []
+		totalPages.value = Math.max(result.totalPages || 1, 1)
 
 		if (reset) {
 			artists.value = artistsArray
@@ -265,8 +271,7 @@
 			artists.value = [...artists.value, ...artistsArray]
 		}
 
-		// Il n'y a plus d'éléments si on a reçu exactement le nombre demandé
-		hasMore.value = artistsArray.length === limit.value
+		hasMore.value = page.value < totalPages.value
 		isLoading.value = false
 	}
 
@@ -286,6 +291,7 @@
 			}
 
 			page.value = 1
+			totalPages.value = 1
 			hasMore.value = true
 			fetchArtists(true)
 		},
@@ -305,9 +311,20 @@
 		isInitialized.value = true
 	})
 
-	useInfiniteScroll(() => (import.meta.client ? window : null), loadMore, {
-		distance: 200,
-		canLoadMore: () => hasMore.value && !isLoading.value,
+	useIntersectionObserver(loadMoreSentinel, ([entry]) => {
+		if (!entry?.isIntersecting) return
+		if (!isInitialized.value || isLoading.value || !hasMore.value) return
+		if (!hasUserInteractedForPagination.value) return
+
+		loadMore()
+	})
+
+	useEventListener(window, 'wheel', () => {
+		hasUserInteractedForPagination.value = true
+	})
+
+	useEventListener(window, 'touchmove', () => {
+		hasUserInteractedForPagination.value = true
 	})
 
 	const toggleTag = (tagName: string) => {
