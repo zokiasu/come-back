@@ -47,6 +47,7 @@ export const useSupabaseAuth = () => {
 
 				let didHandleAuthSuccess = false
 				let interval: ReturnType<typeof setInterval> | null = null
+				const supabaseUser = useSupabaseUser()
 
 				const cleanupListeners = () => {
 					window.removeEventListener('message', messageHandler)
@@ -59,11 +60,47 @@ export const useSupabaseAuth = () => {
 					}
 				}
 
+				const waitForUserReady = async (maxWaitMs = 8000) => {
+					const startedAt = Date.now()
+					while (Date.now() - startedAt < maxWaitMs) {
+						if (supabaseUser.value?.id) return true
+						const { data: sessionData } = await supabase.auth.getSession()
+						if (sessionData?.session?.user?.id) return true
+						await new Promise((resolve) => setTimeout(resolve, 400))
+					}
+					return false
+				}
+
 				const handleAuthSuccess = async () => {
 					if (didHandleAuthSuccess) return
 					didHandleAuthSuccess = true
 					cleanupListeners()
-					await ensureUserProfile()
+					const ready = await waitForUserReady()
+					if (!ready) {
+						const toast = useToast()
+						toast.add({
+							title: 'Authentication error',
+							description: 'Session not ready yet. Please try again.',
+							color: 'error',
+							duration: 5000,
+						})
+						return
+					}
+					const synced = await ensureUserProfile()
+					if (!synced) {
+						await new Promise((resolve) => setTimeout(resolve, 500))
+					}
+					const syncedRetry = await ensureUserProfile()
+					if (!syncedRetry) {
+						const toast = useToast()
+						toast.add({
+							title: 'Authentication error',
+							description: 'Unable to sync profile. Please try again.',
+							color: 'error',
+							duration: 5000,
+						})
+						return
+					}
 					closeAuthModal()
 					window.location.reload()
 				}
