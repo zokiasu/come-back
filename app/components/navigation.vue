@@ -114,7 +114,10 @@
 				</div>
 
 				<div class="flex items-center justify-center gap-3">
-					<SearchModal ref="searchModal" />
+					<SearchInline
+						placeholder="Search artists, releases, musics..."
+						container-class="w-full max-w-xl"
+					/>
 					<!-- Éléments utilisateur rendus côté client uniquement -->
 					<ClientOnly>
 						<ModalNewsCreation v-if="isUserLoggedIn" />

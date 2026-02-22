@@ -49,7 +49,8 @@
 	const openArtists = ref(true)
 	const openReleases = ref(true)
 	const openMusics = ref(true)
-	const previewTimeout = ref<number | null>(null)
+	const hoverDelayTimeout = ref<number | null>(null)
+	const previewStopTimeout = ref<number | null>(null)
 	const previewingId = ref<string | null>(null)
 
 	const { searchArtistsFullText, searchReleases, searchMusics } = useSupabaseSearch()
@@ -227,10 +228,10 @@
 	const startPreview = (id: string, name: string, artist: string) => {
 		if (!isDesktop.value) return
 		if (!id) return
-		if (previewTimeout.value) {
-			window.clearTimeout(previewTimeout.value)
+		if (hoverDelayTimeout.value) {
+			window.clearTimeout(hoverDelayTimeout.value)
 		}
-		previewTimeout.value = window.setTimeout(() => {
+		hoverDelayTimeout.value = window.setTimeout(() => {
 			previewingId.value = id
 			playMusic(id, name, artist)
 		}, 200)
@@ -238,15 +239,49 @@
 
 	const stopPreview = (id?: string) => {
 		if (!isDesktop.value) return
-		if (previewTimeout.value) {
-			window.clearTimeout(previewTimeout.value)
-			previewTimeout.value = null
+		if (hoverDelayTimeout.value) {
+			window.clearTimeout(hoverDelayTimeout.value)
+			hoverDelayTimeout.value = null
 		}
 		if (id && previewingId.value !== id) return
 		if (previewingId.value && isCurrentlyPlaying(previewingId.value)) {
 			stopMusic()
 		}
 		previewingId.value = null
+	}
+
+	const isPreviewing = (id?: string | null) => {
+		if (!id) return false
+		return previewingId.value === id && isCurrentlyPlaying(id)
+	}
+
+	const startTimedPreview = (id: string, name: string, artist: string) => {
+		if (!id) return
+		if (isPreviewing(id)) {
+			stopMusic()
+			previewingId.value = null
+			if (previewStopTimeout.value) {
+				window.clearTimeout(previewStopTimeout.value)
+				previewStopTimeout.value = null
+			}
+			return
+		}
+
+		previewingId.value = id
+		playMusic(id, name, artist)
+
+		if (previewStopTimeout.value) {
+			window.clearTimeout(previewStopTimeout.value)
+		}
+
+		const previewDuration = isDesktop.value ? 12000 : 30000
+		previewStopTimeout.value = window.setTimeout(() => {
+			if (isCurrentlyPlaying(id)) {
+				stopMusic()
+			}
+			previewingId.value = null
+			previewStopTimeout.value = null
+		}, previewDuration)
 	}
 </script>
 
@@ -291,13 +326,16 @@
 					/>
 				</div>
 				<div v-if="openArtists">
-				<button
+				<div
 					v-for="(artist, index) in artists"
 					:key="artist.id"
 					type="button"
-					class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-white hover:bg-cb-quinary-900/80"
+					role="button"
+					tabindex="0"
+					class="flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-white hover:bg-cb-quinary-900/80"
 					:class="activeIndex === index ? 'bg-cb-quinary-900/80' : ''"
 					@click="handleSelect(artist.id)"
+					@keydown.enter.prevent="handleSelect(artist.id)"
 				>
 					<div class="h-8 w-8 overflow-hidden rounded-full bg-cb-quinary-900">
 						<NuxtImg
@@ -309,7 +347,7 @@
 						/>
 					</div>
 					<span class="truncate">{{ artist.name }}</span>
-				</button>
+				</div>
 				</div>
 			</div>
 
@@ -326,15 +364,18 @@
 					/>
 				</div>
 				<div v-if="openReleases">
-				<button
+				<div
 					v-for="(release, index) in releases"
 					:key="release.id"
 					type="button"
-					class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-white hover:bg-cb-quinary-900/80"
+					role="button"
+					tabindex="0"
+					class="flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-white hover:bg-cb-quinary-900/80"
 					:class="
 						activeIndex === index + releaseOffset ? 'bg-cb-quinary-900/80' : ''
 					"
 					@click="handleSelectRelease(release.id)"
+					@keydown.enter.prevent="handleSelectRelease(release.id)"
 					@mouseenter="
 						() => {
 							const preview = getReleasePreview(release)
@@ -363,13 +404,32 @@
 							{{ release.artists?.map((a) => a.name).join(', ') || 'Unknown artist' }}
 						</p>
 					</div>
+					<UButton
+						v-if="getReleasePreview(release).id"
+						variant="ghost"
+						color="neutral"
+						size="xs"
+						class="ml-auto text-cb-tertiary-300"
+						:icon="
+							isPreviewing(getReleasePreview(release).id)
+								? 'i-heroicons-stop-circle'
+								: 'i-heroicons-play-circle'
+						"
+						@click.stop="
+							() => {
+								const preview = getReleasePreview(release)
+								if (preview.id)
+									startTimedPreview(preview.id, preview.name, preview.artist)
+							}
+						"
+					/>
 					<span
 						v-if="previewingId && getReleasePreview(release).id === previewingId"
-						class="ml-auto text-[11px] text-cb-tertiary-400"
+						class="text-[11px] text-cb-tertiary-400"
 					>
 						Previewing
 					</span>
-				</button>
+				</div>
 				</div>
 			</div>
 
@@ -386,17 +446,20 @@
 					/>
 				</div>
 				<div v-if="openMusics">
-				<button
+				<div
 					v-for="(music, index) in musics"
 					:key="music.id"
 					type="button"
-					class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-white hover:bg-cb-quinary-900/80"
+					role="button"
+					tabindex="0"
+					class="flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-white hover:bg-cb-quinary-900/80"
 					:class="
 						activeIndex === index + musicOffset
 							? 'bg-cb-quinary-900/80'
 							: ''
 					"
 					@click="handleSelectMusic(music)"
+					@keydown.enter.prevent="handleSelectMusic(music)"
 					@mouseenter="
 						() => {
 							if (music.id_youtube_music) {
@@ -429,13 +492,32 @@
 							{{ music.artists?.[0]?.name || 'Unknown artist' }}
 						</p>
 					</div>
+					<UButton
+						v-if="music.id_youtube_music"
+						variant="ghost"
+						color="neutral"
+						size="xs"
+						class="ml-auto text-cb-tertiary-300"
+						:icon="
+							isPreviewing(music.id_youtube_music)
+								? 'i-heroicons-stop-circle'
+								: 'i-heroicons-play-circle'
+						"
+						@click.stop="
+							startTimedPreview(
+								music.id_youtube_music,
+								music.name,
+								music.artists?.[0]?.name || 'Unknown artist',
+							)
+						"
+					/>
 					<span
 						v-if="previewingId === music.id_youtube_music"
-						class="ml-auto text-[11px] text-cb-tertiary-400"
+						class="text-[11px] text-cb-tertiary-400"
 					>
 						Previewing
 					</span>
-				</button>
+				</div>
 				</div>
 			</div>
 
