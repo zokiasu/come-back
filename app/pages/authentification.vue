@@ -38,6 +38,10 @@
 					errorMessage.value = 'An error occurred. Please try again.'
 			}
 		}
+		if (!error) {
+			const redirect = (route.query.redirect as string) || '/'
+			navigateTo(redirect)
+		}
 	})
 </script>
 
