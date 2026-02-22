@@ -201,6 +201,17 @@
 		return missing
 	}
 
+	const getMissingLabels = (artist: Artist) => {
+		const missing = getMissingData(artist)
+		const labelMap: Record<string, string> = {
+			desc: 'description',
+			socials: 'réseaux',
+			platforms: 'plateformes',
+			styles: 'styles',
+		}
+		return missing.map((key) => labelMap[key]).filter(Boolean)
+	}
+
 	// Toggle sort direction
 	const toggleSortDirection = () => {
 		sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc'
@@ -431,7 +442,7 @@
 					v-for="artist in artistsList"
 					:key="artist.id"
 					class="hover:bg-cb-quinary-900/30 group flex items-center gap-4 p-3 transition-colors"
-					:class="{ 'bg-amber-900/10': getMissingData(artist).length > 0 }"
+					:class="{ 'bg-gray-900/20': getMissingData(artist).length > 0 }"
 				>
 					<!-- Image -->
 					<NuxtLink :to="`/artist/${artist.id}`" class="shrink-0">
@@ -526,7 +537,7 @@
 							<!-- Missing description -->
 							<span
 								v-if="getMissingData(artist).includes('desc')"
-								class="text-xs text-amber-500"
+								class="text-xs text-gray-400"
 								title="Sans description"
 							>
 								<UIcon name="i-heroicons-document-text" class="size-3.5" />
@@ -535,7 +546,7 @@
 							<!-- Missing styles -->
 							<span
 								v-if="getMissingData(artist).includes('styles')"
-								class="text-xs text-amber-500"
+								class="text-xs text-gray-400"
 								title="Sans styles"
 							>
 								<UIcon name="i-heroicons-tag" class="size-3.5" />
@@ -550,7 +561,7 @@
 								<UIcon name="i-heroicons-share" class="size-3.5" />
 								{{ artist.social_links.length }} socials
 							</span>
-							<span v-else class="text-xs text-amber-500" title="Sans réseaux sociaux">
+							<span v-else class="text-xs text-gray-400" title="Sans réseaux sociaux">
 								<UIcon name="i-heroicons-share" class="size-3.5" />
 								socials
 							</span>
@@ -563,11 +574,18 @@
 								<UIcon name="i-heroicons-musical-note" class="size-3.5" />
 								{{ artist.platform_links.length }} platforms
 							</span>
-							<span v-else class="text-xs text-amber-500" title="Sans plateformes">
+							<span v-else class="text-xs text-gray-400" title="Sans plateformes">
 								<UIcon name="i-heroicons-musical-note" class="size-3.5" />
 								platforms
 							</span>
 						</div>
+						<span
+							v-if="getMissingData(artist).length > 0"
+							class="mt-1 inline-flex rounded bg-gray-500/10 px-1.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-gray-300"
+							:title="`Champs manquants: ${getMissingLabels(artist).join(', ')}`"
+						>
+							Incomplet
+						</span>
 					</div>
 
 					<!-- Dates -->

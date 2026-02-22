@@ -1,6 +1,8 @@
 r
 <template>
 	<UApp>
+		<OfflineBanner />
+		<InstallPwaPrompt />
 		<NuxtLayout>
 			<NuxtLoadingIndicator color="#9E0102" />
 			<NuxtPage />
