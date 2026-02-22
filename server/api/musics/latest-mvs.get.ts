@@ -11,14 +11,15 @@ export default defineEventHandler(async (event) => {
 		.select(
 			`
 			*,
-			artists:music_artists(
-				artist:artists(*)
+			artists:music_artists!inner(
+				artist:artists!inner(*)
 			)
 		`,
 		)
 		.eq('ismv', true) // Seulement les clips musicaux
 		.eq('artists.artist.verified', true)
 		.order('date', { ascending: false })
+		.order('id', { ascending: false })
 		.limit(limit)
 
 	if (error) {

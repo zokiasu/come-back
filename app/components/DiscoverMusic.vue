@@ -16,13 +16,16 @@
 	const { addToPlaylist } = useYouTube()
 
 	const thumbnailUrl = computed(() => {
-		if (
-			Array.isArray(props.music.thumbnails) &&
-			props.music.thumbnails[2] &&
-			typeof props.music.thumbnails[2] === 'object' &&
-			'url' in props.music.thumbnails[2]
-		) {
-			return (props.music.thumbnails[2] as { url: string }).url
+		if (!Array.isArray(props.music.thumbnails) || props.music.thumbnails.length === 0) {
+			return ''
+		}
+		const lastThumb = props.music.thumbnails[props.music.thumbnails.length - 1]
+		if (lastThumb && typeof lastThumb === 'object' && 'url' in lastThumb) {
+			return (lastThumb as { url: string }).url
+		}
+		const fallback = props.music.thumbnails[0]
+		if (fallback && typeof fallback === 'object' && 'url' in fallback) {
+			return (fallback as { url: string }).url
 		}
 		return ''
 	})
@@ -35,6 +38,7 @@
 			thumbnailUrl.value,
 		)
 	}
+
 </script>
 
 <template>

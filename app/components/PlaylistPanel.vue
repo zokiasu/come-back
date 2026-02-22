@@ -1,6 +1,7 @@
 <script setup lang="ts">
 	import draggable from 'vuedraggable'
-	import { usePlaylist } from '~/composables/usePlaylist'
+import { usePlaylist } from '~/composables/usePlaylist'
+import type { PlaylistItem } from '~/composables/usePlaylist'
 
 	const {
 		playlist,
@@ -29,10 +30,10 @@
 		})
 	})
 
-	const sortablePlaylist = computed({
-		get: () => playlist.value,
-		set: (next) => reorderPlaylist(next),
-	})
+const sortablePlaylist = computed<PlaylistItem[]>({
+	get: () => [...playlist.value],
+	set: (next) => reorderPlaylist([...next]),
+})
 
 	const getItemIndex = (item: { uid: string }) =>
 		playlist.value.findIndex((entry) => entry.uid === item.uid)
@@ -239,8 +240,8 @@
 					</draggable>
 
 					<div
-						v-else
 						v-for="item in filteredPlaylist"
+						v-else
 						:key="item.uid"
 						class="group flex items-center gap-3 border-b border-cb-quinary-900/60 px-4 py-3 transition-colors duration-200 hover:bg-cb-quinary-900/60"
 					>

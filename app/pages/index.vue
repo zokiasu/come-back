@@ -106,14 +106,6 @@
 		return typeof url === 'string' ? url : ''
 	}
 
-	const getMusicLink = (music: Music): string => {
-		const releases = (music as Music & { releases?: Array<{ id: string }> }).releases
-		const artists = (music as Music & { artists?: Array<{ id: string }> }).artists
-		if (releases?.[0]?.id) return `/release/${releases[0].id}`
-		if (artists?.[0]?.id) return `/artist/${artists[0].id}`
-		return '/'
-	}
-
 	const { addToPlaylist, isCurrentlyPlaying } = useYouTube()
 
 	const playDiscoverMusic = (music: Music) => {
@@ -383,6 +375,28 @@
 							<SkeletonDefault class="h-16 w-full rounded-lg" />
 						</div>
 					</div>
+					<template #fallback>
+						<div class="space-y-4">
+							<div class="flex flex-wrap items-center justify-between gap-3">
+								<h2 class="text-xl font-semibold">Discover Music</h2>
+								<UButton
+									label="Reload"
+									variant="ghost"
+									color="neutral"
+									class="text-cb-tertiary-300 hover:text-white"
+									icon="i-material-symbols-refresh"
+									disabled
+								/>
+							</div>
+							<div class="grid grid-cols-3 gap-2 md:grid-cols-3 lg:grid-cols-3">
+								<SkeletonDefault
+									v-for="i in 9"
+									:key="`discover-skeleton-${i}`"
+									class="aspect-square w-full rounded-lg"
+								/>
+							</div>
+						</div>
+					</template>
 				</ClientOnly>
 
 				<div class="space-y-4">
