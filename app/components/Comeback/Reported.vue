@@ -1,13 +1,15 @@
 <script setup lang="ts">
-	import type { PropType } from 'vue'
 	import type { News } from '~/types'
 
-	const props = defineProps({
-		comebackList: {
-			type: Array as PropType<News[]>,
-			required: true,
+	const props = withDefaults(
+		defineProps<{
+			comebackList: News[]
+			showTitle?: boolean
+		}>(),
+		{
+			showTitle: true,
 		},
-	})
+	)
 
 	const displayAll = ref(false)
 	const maxDisplay = ref(9)
@@ -24,7 +26,8 @@
 </script>
 
 <template>
-	<CardDefault name="Comeback reported">
+	<div class="space-y-2">
+		<p v-if="props.showTitle" class="text-sm font-semibold uppercase">Comeback reported</p>
 		<div
 			v-if="props.comebackList.length"
 			class="mb-5 grid grid-cols-1 gap-2 md:grid-cols-2 2xl:grid-cols-3"
@@ -54,5 +57,5 @@
 				<IconMinus v-else class="mx-auto h-3 w-3" />
 			</button>
 		</div>
-	</CardDefault>
+	</div>
 </template>

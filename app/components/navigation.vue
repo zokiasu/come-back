@@ -2,6 +2,7 @@
 	import { storeToRefs } from 'pinia'
 	import { useUserStore } from '@/stores/user'
 	import { useWindowScroll } from '@vueuse/core'
+	import { useAuthModal } from '@/composables/useAuthModal'
 
 	const userStore = useUserStore()
 	const { isAdminStore, isLoginStore, isHydrated } = storeToRefs(userStore)
@@ -30,6 +31,7 @@
 	)
 
 	const routeIsRanking = computed(() => (route.name as string)?.startsWith('ranking'))
+	const { open: openAuthModal } = useAuthModal()
 
 	// Utiliser le composable Nuxt pour le scroll
 	const { y: scrollY } = useWindowScroll()
@@ -113,8 +115,11 @@
 					</ClientOnly>
 				</div>
 
-				<div class="flex items-center justify-center gap-3">
-					<SearchModal ref="searchModal" />
+				<div class="flex items-center justify-center gap-3 w-full max-w-lg">
+					<SearchInline
+						placeholder="Search artists, releases, musics..."
+						container-class="w-full"
+					/>
 					<!-- Éléments utilisateur rendus côté client uniquement -->
 					<ClientOnly>
 						<ModalNewsCreation v-if="isUserLoggedIn" />
@@ -127,17 +132,17 @@
 						/>
 						<UButton
 							v-else
-							to="/authentification"
 							variant="soft"
 							label="Login"
 							class="bg-cb-quaternary-950 hover:bg-cb-tertiary-200/20 h-full items-center justify-center text-xs text-white"
+							@click="openAuthModal"
 						/>
 						<template #fallback>
 							<UButton
-								to="/authentification"
 								variant="soft"
 								label="Login"
 								class="bg-cb-quaternary-950 hover:bg-cb-tertiary-200/20 h-full items-center justify-center text-xs text-white"
+								@click="openAuthModal"
 							/>
 						</template>
 					</ClientOnly>

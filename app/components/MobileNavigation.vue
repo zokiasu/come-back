@@ -1,7 +1,7 @@
 <script setup lang="ts">
 	import { storeToRefs } from 'pinia'
+	import { useAuthModal } from '@/composables/useAuthModal'
 
-	const isPlayingVideo = useIsPlayingVideo()
 	const isMobileNavDocked = useState<boolean>('mobileNavDocked', () => false)
 
 	const userStore = useUserStore()
@@ -9,6 +9,12 @@
 
 	const isClient = ref(false)
 	const isMoreOpen = ref(false)
+	const isSearchOpen = ref(false)
+	const { open: openAuthModal } = useAuthModal()
+	const handleLoginClick = () => {
+		isMoreOpen.value = false
+		openAuthModal()
+	}
 
 	onMounted(() => {
 		isClient.value = true
@@ -21,13 +27,10 @@
 	})
 
 	const bottomOffsetClass = computed(() => {
-		if (isMobileNavDocked.value && isPlayingVideo.value) {
-			return 'bottom-20'
-		}
 		if (isMobileNavDocked.value) {
 			return 'bottom-0'
 		}
-		return isPlayingVideo.value ? 'bottom-20' : 'bottom-5'
+		return 'bottom-5'
 	})
 </script>
 
@@ -62,12 +65,15 @@
 				<span class="text-[10px] font-semibold">Calendrier</span>
 			</NuxtLink>
 
-			<SearchModal
-				ref="searchModal"
-				:show-label="true"
-				label="Recherche"
-				button-class="cb-no-select flex-1 py-3 text-cb-tertiary-200 transition-all duration-300 ease-in-out hover:text-white"
-			/>
+			<button
+				class="cb-no-select flex flex-1 flex-col items-center justify-center gap-1 py-3 text-cb-tertiary-200 transition-all duration-300 ease-in-out hover:text-white"
+				type="button"
+				aria-label="Recherche"
+				@click="isSearchOpen = true"
+			>
+				<UIcon name="i-heroicons-magnifying-glass" class="h-5 w-5" />
+				<span class="text-[10px] font-semibold">Recherche</span>
+			</button>
 
 			<button
 				class="cb-no-select flex flex-1 flex-col items-center justify-center gap-1 py-3 text-cb-tertiary-200 transition-all duration-300 ease-in-out hover:text-white"
@@ -79,6 +85,27 @@
 				<span class="text-[10px] font-semibold">Plus</span>
 			</button>
 		</div>
+
+		<UModal
+			v-model:open="isSearchOpen"
+			:ui="{
+				overlay: 'bg-cb-quinary-950/75',
+				content: 'ring-cb-quinary-950',
+				body: 'bg-cb-secondary-950',
+				wrapper: 'bg-cb-secondary-950',
+				header: 'bg-cb-secondary-950',
+			}"
+		>
+			<template #content>
+				<div class="bg-cb-secondary-950 p-4">
+					<SearchInline
+						placeholder="Search artists, releases, musics..."
+						container-class="w-full"
+						dropdown-class="!static !mt-3 !max-h-[60vh]"
+					/>
+				</div>
+			</template>
+		</UModal>
 
 		<UModal
 			v-model:open="isMoreOpen"
@@ -111,15 +138,14 @@
 							Parametres
 						</NuxtLink>
 
-						<NuxtLink
+						<button
 							v-if="!isUserLoggedIn && isClient"
-							to="/authentification"
 							class="cb-no-select flex items-center gap-3 rounded-xl border border-cb-quinary-900 bg-cb-quinary-950/70 px-4 py-3 text-sm font-semibold text-white transition hover:bg-cb-quinary-900"
-							@click="isMoreOpen = false"
+							@click="handleLoginClick"
 						>
 							<IconAccount class="h-5 w-5" />
 							Connexion
-						</NuxtLink>
+						</button>
 
 						<NuxtLink
 							v-if="isAdminStore && isClient"

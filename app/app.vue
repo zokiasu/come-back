@@ -1,8 +1,9 @@
-r
 <template>
 	<UApp>
 		<OfflineBanner />
 		<InstallPwaPrompt />
+		<AuthModal />
+		<AuthErrorToast />
 		<NuxtLayout>
 			<NuxtLoadingIndicator color="#9E0102" />
 			<NuxtPage />

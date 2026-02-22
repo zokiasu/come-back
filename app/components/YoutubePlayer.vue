@@ -1,4 +1,5 @@
 <script setup lang="ts">
+	import { useMediaQuery, useWindowScroll } from '@vueuse/core'
 	const idYoutubeVideo = useIdYoutubeVideo()
 	const isPlayingVideo = useIsPlayingVideo()
 	const musicNamePlaying = useMusicNamePlaying()
@@ -7,6 +8,7 @@
 	const { skipToNext, skipToPrevious, getPlaylistInfo } = usePlaylist()
 	const playlistInfo = computed(() => getPlaylistInfo())
 	const showPlaylist = ref(false)
+	const isMinimized = ref(false)
 
 	const isPlaying = ref(false)
 	const currentTime = ref(0)
@@ -20,6 +22,9 @@
 	const errorMessage = ref('')
 	const isPlayerReady = ref(false)
 	const isSeeking = ref(false)
+	const isMobile = useMediaQuery('(max-width: 767px)')
+	const { y: scrollY } = useWindowScroll()
+	const lastScrollY = ref(0)
 
 	let intervalId: ReturnType<typeof setInterval> | null = null
 	let originalConsoleError: typeof console.error | null = null
@@ -315,6 +320,21 @@
 		intervalId = setInterval(updateCurrentTime, 1000)
 	})
 
+	watch(
+		[scrollY, isPlayingVideo, isMobile],
+		([y, playing, mobile]) => {
+			if (!mobile || !playing) return
+			const delta = y - lastScrollY.value
+			if (delta > 20) {
+				isMinimized.value = true
+			} else if (y < 100) {
+				isMinimized.value = false
+			}
+			lastScrollY.value = y
+		},
+		{ immediate: true },
+	)
+
 	onBeforeUnmount(() => {
 		console.warn('🎵 Démontage du composant YoutubePlayer')
 
@@ -431,6 +451,7 @@
 		isPlaying.value = false
 		currentTime.value = 0
 		duration.value = 0
+		isMinimized.value = false
 	}
 
 	const convertDuration = (duration: number): string => {
@@ -441,11 +462,25 @@
 
 		return `${minutes}:${seconds}`
 	}
+
+	const toggleMinimize = () => {
+		isMinimized.value = !isMinimized.value
+	}
+
+	const playerWrapperClass = computed(() => {
+		if (isMobile.value) {
+			return isMinimized.value
+				? 'bottom-24 right-4 w-16'
+				: 'bottom-24 inset-x-0 px-4'
+		}
+		return isMinimized.value ? 'bottom-6 right-6 w-16' : 'bottom-6 inset-x-0 px-6'
+	})
 </script>
 
 <template>
 	<div
-		class="fixed bottom-0 z-[1100] flex w-full flex-col items-center justify-center space-y-3 sm:items-end sm:justify-end"
+		class="fixed z-[1100] flex w-full flex-col items-center justify-center space-y-3 sm:items-end sm:justify-end"
+		:class="playerWrapperClass"
 	>
 		<PlaylistPanel v-model:is-open="showPlaylist" class="min-w-80 lg:mr-3" />
 
@@ -456,145 +491,192 @@
 		></div>
 
 		<div
-			class="bg-cb-secondary-950 relative flex w-full flex-row-reverse items-center justify-between px-5 py-3 lg:flex-row"
+			v-if="!isMinimized"
+			class="bg-cb-secondary-950/95 border border-cb-quinary-900/70 shadow-black/40 relative w-full overflow-hidden rounded-3xl shadow-lg"
 		>
-			<div class="flex w-fit items-center space-x-2">
-				<UButton
-					variant="ghost"
-					class="hidden lg:block"
-					:disabled="!isPlayerReady || !playlistInfo.hasPrevious"
-					icon="i-material-symbols-skip-previous"
-					size="lg"
-					@click="
-						() => {
-							skipToPrevious()
-						}
-					"
-				/>
-				<UButton
-					variant="ghost"
-					class="hidden lg:block"
+			<div class="flex items-center gap-3 px-4 py-2 md:grid md:grid-cols-3 md:gap-4 md:py-3">
+				<div class="flex min-w-0 flex-1 items-center gap-3 md:col-start-1 md:row-start-1 md:flex-none">
+					<div
+						class="bg-cb-quinary-900/70 text-cb-tertiary-200 hidden h-10 w-10 items-center justify-center rounded-xl md:flex"
+					>
+						<UIcon name="i-material-symbols-music-note" class="h-5 w-5" />
+					</div>
+					<div v-if="!errorDetected" class="min-w-0">
+						<p class="truncate font-semibold">{{ musicNamePlaying }}</p>
+						<p class="text-cb-tertiary-400 truncate text-xs">
+							{{ authorNamePlaying }}
+						</p>
+					</div>
+					<div v-else class="min-w-0">
+						<p class="text-cb-primary-900 font-bold">{{ errorMessage }}</p>
+					</div>
+					<div class="hidden items-center gap-2 md:flex">
+						<UButton
+							variant="ghost"
+							:disabled="!isPlayerReady"
+							:icon="
+								volumeOn
+									? 'i-material-symbols-volume-up'
+									: 'i-material-symbols-volume-off'
+							"
+							size="sm"
+							@click="muteVolume"
+						/>
+						<USlider
+							v-model="volume"
+							:min="0"
+							:max="100"
+							:disabled="!isPlayerReady"
+							class="w-20"
+							:ui="{
+								track: 'h-1 rounded-full',
+								thumb: 'h-3 w-3 rounded-full focus:outline-none',
+								// @ts-expect-error - USlider ui accepts progress but types don't include it
+								progress: 'h-1 rounded-full',
+							}"
+							@update:model-value="setVolume"
+						/>
+					</div>
+				</div>
+
+				<div class="flex items-center justify-center gap-1 md:gap-2 md:col-start-2 md:row-start-1">
+					<UButton
+						variant="ghost"
+						class="hidden lg:block"
+						:disabled="!isPlayerReady || !playlistInfo.hasPrevious"
+						icon="i-material-symbols-skip-previous"
+						size="sm"
+						@click="skipToPrevious()"
+					/>
+					<UButton
+						variant="ghost"
+						class="hidden lg:block"
+						:disabled="!isPlayerReady"
+						icon="i-material-symbols-replay-10"
+						size="sm"
+						@click="seek(-10)"
+					/>
+					<UButton
+						variant="ghost"
+						class="md:hidden"
+						:disabled="!isPlayerReady"
+						icon="i-material-symbols-replay-10"
+						size="sm"
+						@click="seek(-10)"
+					/>
+					<UButton
+						v-if="isPlaying"
+						variant="ghost"
+						:disabled="!isPlayerReady"
+						icon="i-material-symbols-pause"
+						size="lg"
+						@click="togglePlayPause"
+					/>
+					<UButton
+						v-else
+						variant="ghost"
+						:disabled="!isPlayerReady"
+						icon="i-material-symbols-play-arrow"
+						size="lg"
+						@click="togglePlayPause"
+					/>
+					<UButton
+						variant="ghost"
+						class="md:hidden"
+						:disabled="!isPlayerReady"
+						icon="i-material-symbols-forward-10"
+						size="sm"
+						@click="seek(10)"
+					/>
+					<UButton
+						variant="ghost"
+						class="hidden lg:block"
+						:disabled="!isPlayerReady"
+						icon="i-material-symbols-forward-10"
+						size="sm"
+						@click="seek(10)"
+					/>
+					<UButton
+						variant="ghost"
+						class="hidden lg:block"
+						:disabled="!isPlayerReady || !playlistInfo.hasNext"
+						icon="i-material-symbols-skip-next"
+						size="sm"
+						@click="skipToNext()"
+					/>
+				</div>
+
+				<div class="ml-auto flex items-center gap-2 md:ml-0 md:justify-end md:gap-2 md:col-start-3 md:row-start-1">
+					<UButton
+						variant="ghost"
+						:disabled="!playlistInfo.isActive"
+						icon="i-material-symbols-queue-music"
+						size="sm"
+						@click="showPlaylist = !showPlaylist"
+					/>
+					<UButton
+						variant="ghost"
+						size="sm"
+						icon="i-material-symbols-minimize"
+						@click="toggleMinimize"
+					/>
+					<UButton
+						variant="ghost"
+						size="sm"
+						icon="i-material-symbols-close"
+						@click="closeYTPlayer"
+					/>
+				</div>
+			</div>
+
+			<div class="px-4 pb-3">
+				<USlider
+					v-model="currentTime"
+					:min="0"
+					:max="duration"
 					:disabled="!isPlayerReady"
-					icon="i-material-symbols-replay-10"
-					size="lg"
-					@click="seek(-10)"
+					class="w-full"
+					:ui="{
+						track: 'h-1.5 rounded-full cursor-pointer',
+						thumb: 'h-3 w-3 rounded-full cursor-pointer focus:outline-none',
+						// @ts-expect-error - USlider ui accepts progress but types don't include it
+						progress: 'h-1.5 rounded-full',
+					}"
+					@update:model-value="onSeekEnd"
+					@mousedown="onSeekStart"
+					@touchstart="onSeekStart"
 				/>
-				<UButton
-					v-if="isPlaying"
-					variant="ghost"
-					:disabled="!isPlayerReady"
-					icon="i-material-symbols-pause"
-					size="lg"
-					@click="togglePlayPause"
-				/>
-				<UButton
-					v-else
-					variant="ghost"
-					:disabled="!isPlayerReady"
-					icon="i-material-symbols-play-arrow"
-					size="lg"
-					@click="togglePlayPause"
-				/>
-				<UButton
-					variant="ghost"
-					class="hidden lg:block"
-					:disabled="!isPlayerReady"
-					icon="i-material-symbols-forward-10"
-					size="lg"
-					@click="seek(10)"
-				/>
-				<UButton
-					variant="ghost"
-					class="hidden lg:block"
-					:disabled="!isPlayerReady || !playlistInfo.hasNext"
-					icon="i-material-symbols-skip-next"
-					size="lg"
-					@click="
-						() => {
-							skipToNext()
-						}
-					"
-				/>
-				<div class="hidden items-center gap-1 pl-5 text-xs md:flex">
-					<p>{{ convertDuration(currentTime) }}</p>
-					<p>/</p>
-					<p>{{ convertDuration(duration) }}</p>
-					<div v-if="playlistInfo.isActive" class="ml-3 text-xs opacity-75">
+				<div class="text-cb-tertiary-400 mt-1 flex items-center justify-between text-[11px]">
+					<div class="flex items-center gap-1">
+						<span>{{ convertDuration(currentTime) }}</span>
+						<span>/</span>
+						<span>{{ convertDuration(duration) }}</span>
+					</div>
+					<div v-if="playlistInfo.isActive" class="text-[11px] opacity-75">
 						{{ playlistInfo.current }}/{{ playlistInfo.total }}
 					</div>
 				</div>
-				<UButton
-					variant="ghost"
-					class="sm:hidden"
-					:disabled="!playlistInfo.isActive"
-					icon="i-material-symbols-queue-music"
-					size="sm"
-					@click="showPlaylist = !showPlaylist"
-				/>
 			</div>
-			<div v-if="!errorDetected" class="flex w-fit items-center gap-2">
-				<div class="flex w-fit flex-col items-start lg:items-center">
-					<p class="font-semibold text-nowrap">{{ authorNamePlaying }}</p>
-					<p class="text-xs text-nowrap">{{ musicNamePlaying }}</p>
-				</div>
-			</div>
-			<div v-else class="w-full sm:w-fit">
-				<p class="text-cb-primary-900 font-bold">{{ errorMessage }}</p>
-			</div>
-			<div class="hidden items-center gap-2 sm:flex">
-				<UButton
-					variant="ghost"
-					:disabled="!playlistInfo.isActive"
-					icon="i-material-symbols-queue-music"
-					size="lg"
-					@click="showPlaylist = !showPlaylist"
-				/>
-				<UButton
-					variant="ghost"
-					:disabled="!isPlayerReady"
-					:icon="
-						volumeOn ? 'i-material-symbols-volume-up' : 'i-material-symbols-volume-off'
-					"
-					size="lg"
-					@click="muteVolume"
-				/>
-				<USlider
-					v-model="volume"
-					:min="0"
-					:max="100"
-					:disabled="!isPlayerReady"
-					class="w-20"
-					:ui="{
-						track: 'h-1 rounded-full',
-						thumb: 'h-3 w-3 rounded-full focus:outline-none',
-						// @ts-expect-error - USlider ui accepts progress but types don't include it
-						progress: 'h-1 rounded-full',
-					}"
-					@update:model-value="setVolume"
-				/>
-			</div>
+		</div>
 
-			<USlider
-				v-model="currentTime"
-				:min="0"
-				:max="duration"
-				:disabled="!isPlayerReady"
-				class="absolute -top-1 left-0 w-full"
-				:ui="{
-					track: 'h-1 rounded-full cursor-pointer',
-					thumb: 'h-3 w-3 rounded-full cursor-pointer focus:outline-none',
-					// @ts-expect-error - USlider ui accepts progress but types don't include it
-					progress: 'h-1 rounded-full',
-				}"
-				@update:model-value="onSeekEnd"
-				@mousedown="onSeekStart"
-				@touchstart="onSeekStart"
-			/>
+		<div
+			v-else
+			role="button"
+			tabindex="0"
+			class="bg-cb-secondary-950/95 border border-cb-quinary-900/70 relative flex h-16 w-16 cursor-pointer items-center justify-center overflow-hidden rounded-2xl shadow-lg"
+			@click="toggleMinimize"
+			@keydown.enter="toggleMinimize"
+		>
+			<UIcon name="i-material-symbols-music-note" class="h-6 w-6 text-white" />
 			<button
-				class="bg-cb-primary-900 absolute -top-6 left-2 cursor-pointer rounded-t-lg px-3 py-0.5 text-xs font-semibold uppercase"
-				@click="closeYTPlayer"
+				type="button"
+				class="absolute right-1 top-1 rounded-full bg-black/60 p-1"
+				@click.stop="togglePlayPause"
 			>
-				Close
+				<UIcon
+					:name="isPlaying ? 'i-material-symbols-pause' : 'i-material-symbols-play-arrow'"
+					class="h-3 w-3 text-white"
+				/>
 			</button>
 		</div>
 	</div>

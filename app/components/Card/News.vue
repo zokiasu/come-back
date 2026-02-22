@@ -96,7 +96,7 @@
 						/>
 					</div>
 					<h2
-						class="group-hover:text-cb-primary-900 truncate text-xs font-semibold transition-all duration-300 ease-in-out lg:text-sm"
+						class="group-hover:text-cb-tertiary-100 truncate text-xs font-semibold transition-all duration-300 ease-in-out lg:text-sm"
 					>
 						{{ artistObject.name }}
 						<span
@@ -123,14 +123,14 @@
 			</p>
 			<p
 				v-if="isSameDate(new Date(props.date))"
-				class="text-cb-primary-900 my-auto font-medium whitespace-nowrap select-none"
+				class="text-cb-tertiary-100 my-auto font-medium whitespace-nowrap select-none"
 				:title="formatDateForTooltip(props.date)"
 			>
 				Today
 			</p>
 			<p
 				v-if="!isSameDate(new Date(props.date)) && isDatePassed(new Date(props.date))"
-				class="text-cb-primary-900 my-auto font-medium whitespace-nowrap select-none"
+				class="text-cb-tertiary-100 my-auto font-medium whitespace-nowrap select-none"
 				:title="formatDateForTooltip(props.date)"
 			>
 				Outed

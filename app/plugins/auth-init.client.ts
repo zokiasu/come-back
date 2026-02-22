@@ -11,25 +11,30 @@ export default defineNuxtPlugin(async () => {
 		await nextTick()
 
 		try {
+			const supabase = useSupabaseClient()
 			// Initialiser l'authentification
 			const { initializeAuth } = useAuth()
 			const { logInfo } = useErrorLogger()
 
 			logInfo('Starting authentication initialization')
 
-			// Timeout uniquement en développement pour éviter les blocages locaux
-			if (import.meta.dev) {
-				const timeoutPromise = new Promise((_, reject) => {
-					setTimeout(
-						() => reject(new Error('Development timeout - continuing without auth')),
-						3000,
-					)
-				})
+			// Initialisation complète pour éviter les états transitoires (connecté/déconnecté)
+			await initializeAuth()
 
-				await Promise.race([initializeAuth(), timeoutPromise])
-			} else {
-				await initializeAuth()
-			}
+			// Écouter les changements d'auth (popup OAuth ou autres onglets)
+			supabase.auth.onAuthStateChange(async (event) => {
+				logInfo(`Auth state changed: ${event}`)
+				const { ensureUserProfile } = useAuth()
+				const userStore = useUserStore()
+
+				if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+					await ensureUserProfile()
+				}
+
+				if (event === 'SIGNED_OUT') {
+					await userStore.resetStore()
+				}
+			})
 
 			logInfo('Authentication initialized successfully')
 		} catch (error) {

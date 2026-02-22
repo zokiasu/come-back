@@ -1,7 +1,9 @@
 export interface PlaylistItem {
+	uid: string
 	videoId: string
 	title: string
 	artist: string
+	image?: string
 	addedAt: Date
 }
 
@@ -12,16 +14,23 @@ export const usePlaylist = () => {
 
 	const { playMusic, stopMusic } = useYouTube()
 
-	const addToPlaylist = (videoId: string, title: string, artist: string) => {
+	const addToPlaylist = (
+		videoId: string,
+		title: string,
+		artist: string,
+		image?: string,
+	) => {
 		if (!videoId) {
 			console.error("❌ ID vidéo manquant pour l'ajout à la playlist")
 			return false
 		}
 
 		const newItem: PlaylistItem = {
+			uid: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
 			videoId,
 			title: title || 'Titre inconnu',
 			artist: artist || 'Artiste inconnu',
+			image,
 			addedAt: new Date(),
 		}
 
@@ -130,6 +139,23 @@ export const usePlaylist = () => {
 		isPlaylistActive.value = false
 	}
 
+	const reorderPlaylist = (nextPlaylist: PlaylistItem[]) => {
+		const currentItem = playlist.value[currentIndex.value]
+
+		playlist.value = nextPlaylist
+
+		if (playlist.value.length === 0) {
+			currentIndex.value = -1
+			isPlaylistActive.value = false
+			return
+		}
+
+		if (currentItem) {
+			const nextIndex = playlist.value.findIndex((item) => item.uid === currentItem.uid)
+			currentIndex.value = nextIndex >= 0 ? nextIndex : 0
+		}
+	}
+
 	const skipToNext = () => {
 		return playNext()
 	}
@@ -176,6 +202,7 @@ export const usePlaylist = () => {
 		playAtIndex,
 		removeFromPlaylist,
 		clearPlaylist,
+		reorderPlaylist,
 
 		// Actions de navigation
 		skipToNext,

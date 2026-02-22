@@ -69,8 +69,8 @@ export default defineEventHandler(async (event) => {
 					.select(
 						`
 						*,
-						artists:music_artists(
-							artist:artists(*)
+						artists:music_artists!inner(
+							artist:artists!inner(*)
 						),
 						releases:music_releases(
 							release:releases(*)
@@ -130,8 +130,8 @@ export default defineEventHandler(async (event) => {
 			.select(
 				`
 				*,
-				artists:music_artists(
-					artist:artists(*)
+				artists:music_artists!inner(
+					artist:artists!inner(*)
 				),
 				releases:music_releases(
 					release:releases(*)

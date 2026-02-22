@@ -15,21 +15,30 @@
 
 	const { addToPlaylist } = useYouTube()
 
-	const playVideo = (videoId: string) => {
-		addToPlaylist(videoId, props.music.name, props.music?.artists?.[0]?.name || '')
-	}
-
 	const thumbnailUrl = computed(() => {
-		if (
-			Array.isArray(props.music.thumbnails) &&
-			props.music.thumbnails[2] &&
-			typeof props.music.thumbnails[2] === 'object' &&
-			'url' in props.music.thumbnails[2]
-		) {
-			return (props.music.thumbnails[2] as { url: string }).url
+		if (!Array.isArray(props.music.thumbnails) || props.music.thumbnails.length === 0) {
+			return ''
+		}
+		const lastThumb = props.music.thumbnails[props.music.thumbnails.length - 1]
+		if (lastThumb && typeof lastThumb === 'object' && 'url' in lastThumb) {
+			return (lastThumb as { url: string }).url
+		}
+		const fallback = props.music.thumbnails[0]
+		if (fallback && typeof fallback === 'object' && 'url' in fallback) {
+			return (fallback as { url: string }).url
 		}
 		return ''
 	})
+
+	const playVideo = (videoId: string) => {
+		addToPlaylist(
+			videoId,
+			props.music.name,
+			props.music?.artists?.[0]?.name || '',
+			thumbnailUrl.value,
+		)
+	}
+
 </script>
 
 <template>
@@ -60,7 +69,7 @@
 				<div class="space-y-1 text-left">
 					<p
 						v-if="music.name"
-						class="group-hover:text-cb-primary-900 font-semibold lg:text-xl"
+						class="group-hover:text-cb-tertiary-100 font-semibold lg:text-xl"
 					>
 						{{ music.name }}
 					</p>

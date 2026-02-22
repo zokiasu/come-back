@@ -741,6 +741,7 @@
 			music.id_youtube_music,
 			music.title || music.name || '',
 			formatArtists(music.artists || []),
+			getMusicThumbnail(music),
 		)
 	}
 

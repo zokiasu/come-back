@@ -3,6 +3,7 @@
 	import { useUserStore } from '@/stores/user'
 	import type { Music } from '~/types'
 	import CreateMultipleArtists from '@/components/Modal/CreateMultipleArtists.vue'
+	import { useAuthModal } from '@/composables/useAuthModal'
 
 	const userStore = useUserStore()
 	const { isLoginStore, isAdminStore } = storeToRefs(userStore)
@@ -13,6 +14,7 @@
 	const imageBackground = ref<string | null>(null)
 	const imageBackLoaded = ref<boolean>(false)
 	const showMultipleArtistModal = ref(false)
+	const { open: openAuthModal } = useAuthModal()
 
 	// SSR-compatible data fetching avec API complète
 	const {
@@ -93,12 +95,10 @@
 		)
 	})
 
-	const editLink = computed(() => {
-		if (!isLoginStore || !isAdminStore) {
-			return '/authentification'
-		}
-		return '/artist/edit/' + route.params.id
-	})
+	const canEdit = computed(() => isLoginStore.value && isAdminStore.value)
+	const editLink = computed(() =>
+		canEdit.value ? '/artist/edit/' + route.params.id : undefined,
+	)
 
 	function openMultipleArtistModal() {
 		showMultipleArtistModal.value = true
@@ -207,11 +207,20 @@
 					</div>
 					<div v-if="!isFetchingArtist" class="flex flex-wrap gap-2">
 						<NuxtLink
+							v-if="canEdit"
 							:to="editLink"
 							class="bg-cb-secondary-950 px-2 py-1 text-xs font-semibold uppercase"
 						>
 							Edit Artist
 						</NuxtLink>
+						<button
+							v-else
+							type="button"
+							class="bg-cb-secondary-950 px-2 py-1 text-xs font-semibold uppercase"
+							@click="openAuthModal"
+						>
+							Edit Artist
+						</button>
 					</div>
 				</div>
 			</div>
@@ -311,11 +320,20 @@
 						</p>
 						<div v-if="isAdminStore" class="pt-2">
 							<NuxtLink
+								v-if="canEdit"
 								:to="editLink"
 								class="bg-cb-quaternary-950 mt-5 px-2 py-1 text-xs font-semibold uppercase"
 							>
 								Add a description
 							</NuxtLink>
+							<button
+								v-else
+								type="button"
+								class="bg-cb-quaternary-950 mt-5 px-2 py-1 text-xs font-semibold uppercase"
+								@click="openAuthModal"
+							>
+								Add a description
+							</button>
 						</div>
 					</div>
 				</CardDefault>

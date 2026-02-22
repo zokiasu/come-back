@@ -44,8 +44,8 @@ export default defineEventHandler(async (event) => {
 				thumbnails,
 				type,
 				date,
-				artists:music_artists(
-					artist:artists(id, name, image)
+				artists:music_artists!inner(
+					artist:artists!inner(id, name, image)
 				),
 				releases:music_releases(
 					release:releases(id, name)

@@ -215,6 +215,7 @@
 									item.music.id_youtube_music,
 									item.music.name || item.music.title || '',
 									getArtistNames(item.music),
+									getMusicThumbnail(item.music),
 								)
 							"
 						>
@@ -262,7 +263,7 @@
 		for (let i = 0; i < 4; i++) {
 			const item = ranking.value.items[i]
 			if (item?.music) {
-				result.push(getMusicThumbnail(item.music))
+				result.push(getMusicThumbnail(item.music) ?? null)
 			} else {
 				result.push(null)
 			}
@@ -271,12 +272,12 @@
 	}
 
 	// Get music thumbnail
-	const getMusicThumbnail = (music: Music): string | null => {
+	const getMusicThumbnail = (music: Music): string | undefined => {
 		if (music.thumbnails && Array.isArray(music.thumbnails)) {
 			const thumbs = music.thumbnails as { url: string }[]
-			return thumbs[2]?.url || thumbs[0]?.url || null
+			return thumbs[2]?.url || thumbs[0]?.url
 		}
-		return null
+		return undefined
 	}
 
 	// Get artist names
@@ -322,6 +323,7 @@
 					item.music.id_youtube_music,
 					item.music.name || item.music.title || '',
 					getArtistNames(item.music),
+					getMusicThumbnail(item.music),
 				)
 			}
 		})
@@ -336,13 +338,13 @@
 	// Generate YouTube playlist URL (opens YouTube's "Watch Later" or queue approach)
 	// YouTube doesn't have a direct API to create playlists without auth, so we use the video_ids parameter
 	const youtubePlaylistUrl = computed(() => {
-		if (!ranking.value || ranking.value.items.length === 0) return null
+		if (!ranking.value || ranking.value.items.length === 0) return undefined
 
 		const videoIds = ranking.value.items
 			.map((item) => item.music.id_youtube_music)
 			.filter(Boolean)
 
-		if (videoIds.length === 0) return null
+		if (videoIds.length === 0) return undefined
 
 		const allVideoIds = videoIds.join(',')
 		return `https://www.youtube.com/watch_videos?video_ids=${allVideoIds}`
@@ -373,14 +375,14 @@
 		return `${teaserList}${suffix}`
 	})
 	const coverImage = computed(() => {
-		if (!ranking.value || ranking.value.items.length === 0) return null
+		if (!ranking.value || ranking.value.items.length === 0) return undefined
 		// Use the first music's thumbnail as the cover image
 		const firstMusic = ranking.value.items[0]?.music
 		if (firstMusic?.thumbnails && Array.isArray(firstMusic.thumbnails)) {
 			const thumbs = firstMusic.thumbnails as { url: string }[]
-			return thumbs[2]?.url || thumbs[0]?.url || null
+			return thumbs[2]?.url || thumbs[0]?.url
 		}
-		return null
+		return undefined
 	})
 
 	useHead({
