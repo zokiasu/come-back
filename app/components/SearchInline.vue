@@ -274,7 +274,8 @@
 			window.clearTimeout(previewStopTimeout.value)
 		}
 
-		const previewDuration = isDesktop.value ? 12000 : 45000
+		const previewDuration = isDesktop.value ? null : 45000
+		if (previewDuration === null) return
 		previewStopTimeout.value = window.setTimeout(() => {
 			if (isCurrentlyPlaying(id)) {
 				stopMusic()
