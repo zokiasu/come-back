@@ -1,5 +1,5 @@
 <template>
-	<div class="container mx-auto space-y-6 py-10">
+	<div class="container mx-auto space-y-6 p-5">
 		<!-- Search bar -->
 		<div class="flex items-center gap-2">
 			<UInput
