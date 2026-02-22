@@ -56,6 +56,19 @@
 				<span class="text-cb-primary-900 px-2 text-[10px] font-bold">Coming Soon</span>
 			</NuxtLink>
 
+			<NuxtLink
+				to="/settings/changelog"
+				class="flex items-center gap-2 rounded px-3 py-1.5 transition-all duration-300 ease-in-out"
+				:class="{
+					'bg-cb-quinary-900 font-semibold text-white':
+						routeN.name === 'settings-changelog',
+					'hover:bg-cb-quinary-900 text-zinc-500':
+						routeN.name !== 'settings-changelog',
+				}"
+			>
+				<p>Changelog</p>
+			</NuxtLink>
+
 			<div class="border-cb-quinary-900 border-b"></div>
 
 			<NuxtLink

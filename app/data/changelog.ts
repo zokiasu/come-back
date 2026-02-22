@@ -1,0 +1,113 @@
+export type ChangelogEntry = {
+	version: string
+	date: string
+	title: string
+	added?: string[]
+	changed?: string[]
+	fixed?: string[]
+}
+
+export const changelog: ChangelogEntry[] = [
+	{
+		version: '0.7.0',
+		date: '2026-02-22',
+		title: 'PWA + Home/Player/Search refresh',
+		added: [
+			'PWA setup with mobile navigation enhancements.',
+			'Global SearchInline across artists, releases, and musics.',
+			'Reworked YouTube player and playlist panel (queue UI, drag and drop, search, thumbnails).',
+			'Auth modal with Google popup flow and error handling.',
+			'Home redesign with MV, releases, artists, and discover music sections.',
+		],
+		changed: [
+			'Authentication flow refreshes UI without full page reload.',
+			'Search preview timing optimized for mobile.',
+		],
+		fixed: [
+			'Artist infinite scroll stability.',
+			'Company layout content sizing.',
+			'Lint/typecheck regressions and MV ordering.',
+			'Filtering of unverified artists in public lists and search.',
+		],
+	},
+	{
+		version: '0.6.0',
+		date: '2026-02-22',
+		title: 'Artist Verification + Type Stabilization',
+		added: [
+			'Artist verification workflow and admin management.',
+		],
+		changed: [
+			'TypeScript and lint hardening across app and server.',
+		],
+		fixed: [
+			'Server API typings and pagination consistency.',
+		],
+	},
+	{
+		version: '0.5.0',
+		date: '2025-10-15',
+		title: 'Dashboard + SSR Optimizations',
+		added: [
+			'Dashboard layout, admin pages, and overview stats.',
+			'SSR refactors for artist/company/release pages.',
+			'Ranking and music management workflows.',
+		],
+		changed: [
+			'Authentication and admin features expanded.',
+			'Date handling and UI components refined.',
+		],
+		fixed: [
+			'Performance and security improvements across API endpoints.',
+			'Type safety across composables and components.',
+		],
+	},
+	{
+		version: '0.4.0',
+		date: '2025-03-31',
+		title: 'Supabase Migration + Core Features',
+		added: [
+			'Supabase migration and server infrastructure.',
+			'Artist management, releases, calendar, and rankings foundation.',
+		],
+		changed: [
+			'Authentication middleware and session handling.',
+		],
+		fixed: [
+			'API validation, SSRF protections, and XSS guardrails.',
+		],
+	},
+	{
+		version: '0.3.0',
+		date: '2023-11-16',
+		title: 'Firebase Infra Optimization',
+		added: [
+			'YouTube player improvements and external link handling.',
+			'Realtime artist updates and news creation upgrades.',
+		],
+		changed: [
+			'Component layouts and music player refinements.',
+		],
+		fixed: [
+			'Multiple UI and data consistency issues across home and artist pages.',
+		],
+	},
+	{
+		version: '0.2.0',
+		date: '2023-10-24',
+		title: 'Home Rework + Backend Integrations',
+		added: [
+			'Homepage rework with discover music components.',
+			'Initial backend/infra scaffolding.',
+		],
+	},
+	{
+		version: '0.1.0',
+		date: '2023-07-04',
+		title: 'Initial MVP',
+		added: [
+			'Initial project setup with navigation and core pages.',
+			'First authentication and data layer integration.',
+		],
+	},
+]
