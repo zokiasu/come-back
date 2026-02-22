@@ -497,7 +497,7 @@
 			<div class="flex items-center gap-3 px-4 py-2 md:grid md:grid-cols-3 md:gap-4 md:py-3">
 				<div class="flex min-w-0 flex-1 items-center gap-3 md:col-start-1 md:row-start-1 md:flex-none">
 					<div
-						class="bg-cb-quinary-900/70 text-cb-tertiary-200 flex h-10 w-10 items-center justify-center rounded-xl"
+						class="bg-cb-quinary-900/70 text-cb-tertiary-200 hidden h-10 w-10 items-center justify-center rounded-xl md:flex"
 					>
 						<UIcon name="i-material-symbols-music-note" class="h-5 w-5" />
 					</div>

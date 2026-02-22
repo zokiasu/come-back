@@ -61,9 +61,9 @@
 </script>
 
 <template>
-	<div v-if="isOpen" @click="isOpen = false">
+	<div v-if="isOpen" class="w-full" @click="isOpen = false">
 		<div
-			class="bg-cb-secondary-950/95 border border-cb-quinary-900/70 shadow-black/40 flex h-full w-full max-w-md flex-col overflow-hidden rounded-3xl shadow-xl backdrop-blur sm:h-3/4 sm:max-h-[600px]"
+			class="bg-cb-secondary-950/95 border border-cb-quinary-900/70 shadow-black/40 mx-auto flex h-full w-full flex-col overflow-hidden rounded-3xl shadow-xl backdrop-blur sm:h-3/4 sm:max-h-[600px] sm:max-w-md"
 			@click.stop
 		>
 			<!-- Header -->
