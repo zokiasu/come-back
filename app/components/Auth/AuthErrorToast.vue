@@ -5,6 +5,8 @@
 
 	const getMessage = (code: string) => {
 		switch (code) {
+			case 'auth_required':
+				return 'You must be logged in to access this page.'
 			case 'timeout':
 				return 'Connection timeout. Please try again.'
 			case 'sync':

@@ -233,7 +233,7 @@ export const useAuth = () => {
 			// Réinitialiser le store
 			await resetStore()
 
-			await navigateTo('/authentification')
+			await navigateTo('/')
 		} catch (err: unknown) {
 			console.error('Erreur lors de la déconnexion:', err)
 			isLoggingOutFlag = false

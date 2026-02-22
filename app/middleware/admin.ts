@@ -46,7 +46,7 @@ export default defineNuxtRouteMiddleware(async (_to, _from) => {
 		!!user.value?.id || (!!userStore.userDataStore && userStore.isLoginStore)
 
 	if (!isAuthenticated) {
-		return navigateTo('/authentification')
+		return navigateTo('/?authError=auth_required')
 	}
 
 	// Vérifier les permissions admin
