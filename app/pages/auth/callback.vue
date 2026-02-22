@@ -65,7 +65,7 @@
 					JSON.stringify({ status: 'error', reason: errorParam, ts: Date.now() }),
 				)
 				window.close()
-				await navigateTo(`/authentification?error=${errorParam}`)
+				await navigateTo(`/?authError=${errorParam}`)
 				return
 			}
 
@@ -153,7 +153,7 @@
 						JSON.stringify({ status: 'error', reason: 'timeout', ts: Date.now() }),
 					)
 					window.close()
-					await navigateTo('/authentification?error=timeout')
+					await navigateTo('/?authError=timeout')
 					return
 				}
 				sessionUser = user.value as unknown as SupabaseUser
@@ -175,7 +175,7 @@
 					JSON.stringify({ status: 'error', reason: 'no_user', ts: Date.now() }),
 				)
 				window.close()
-				await navigateTo('/authentification?error=no_user')
+				await navigateTo('/?authError=no_user')
 				return
 			}
 
@@ -285,7 +285,7 @@
 					JSON.stringify({ status: 'error', reason: 'sync', ts: Date.now() }),
 				)
 				window.close()
-				await navigateTo('/authentification?error=sync')
+				await navigateTo('/?authError=sync')
 			}
 		} catch (err: unknown) {
 			const errorMessage = err instanceof Error ? err.message : 'Unknown error'
@@ -305,7 +305,7 @@
 				JSON.stringify({ status: 'error', reason: 'callback', ts: Date.now() }),
 			)
 			window.close()
-			await navigateTo('/authentification?error=callback')
+			await navigateTo('/?authError=callback')
 		}
 	}
 

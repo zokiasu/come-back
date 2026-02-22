@@ -1,12 +1,14 @@
 <script setup lang="ts">
 	import { storeToRefs } from 'pinia'
 	import { useUserStore } from '@/stores/user'
+	import { useAuthModal } from '@/composables/useAuthModal'
 	const userStore = useUserStore()
 	const { isLoginStore, isAdminStore } = storeToRefs(userStore)
 
 	const title = ref<string>('Company Page')
 	const description = ref<string>('Company')
 	const route = useRoute()
+	const { open: openAuthModal } = useAuthModal()
 
 	// SSR-compatible data fetching avec API complète
 	const {
@@ -67,12 +69,8 @@
 		return null
 	}
 
-	const editLink = computed(() => {
-		if (!isLoginStore || !isAdminStore) {
-			return '/authentification'
-		}
-		return `/dashboard/companies` // Nous pouvons ajuster cela plus tard
-	})
+	const canEdit = computed(() => isLoginStore.value && isAdminStore.value)
+	const editLink = computed(() => (canEdit.value ? `/dashboard/companies` : undefined))
 
 	useHead({
 		title,
@@ -162,12 +160,20 @@
 					</div>
 					<div v-if="!isFetchingCompany" class="flex flex-wrap gap-2">
 						<NuxtLink
-							v-if="isAdminStore"
+							v-if="canEdit"
 							:to="editLink"
 							class="bg-cb-secondary-950 px-2 py-1 text-xs font-semibold uppercase"
 						>
 							Edit company
 						</NuxtLink>
+						<button
+							v-else
+							type="button"
+							class="bg-cb-secondary-950 px-2 py-1 text-xs font-semibold uppercase"
+							@click="openAuthModal"
+						>
+							Edit company
+						</button>
 					</div>
 				</div>
 			</div>
@@ -209,11 +215,20 @@
 						</p>
 						<div v-if="isAdminStore" class="pt-2">
 							<NuxtLink
+								v-if="canEdit"
 								:to="editLink"
 								class="bg-cb-quaternary-950 mt-5 px-2 py-1 text-xs font-semibold uppercase"
 							>
 								Add description
 							</NuxtLink>
+							<button
+								v-else
+								type="button"
+								class="bg-cb-quaternary-950 mt-5 px-2 py-1 text-xs font-semibold uppercase"
+								@click="openAuthModal"
+							>
+								Add description
+							</button>
 						</div>
 					</div>
 				</CardDefault>
