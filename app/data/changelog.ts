@@ -9,7 +9,7 @@ export type ChangelogEntry = {
 
 export const changelog: ChangelogEntry[] = [
 	{
-		version: '0.7.0',
+		version: '2.3.0',
 		date: '2026-02-22',
 		title: 'PWA + Home/Player/Search refresh',
 		added: [
@@ -31,7 +31,7 @@ export const changelog: ChangelogEntry[] = [
 		],
 	},
 	{
-		version: '0.6.0',
+		version: '2.2.0',
 		date: '2026-02-22',
 		title: 'Artist Verification + Type Stabilization',
 		added: [
@@ -45,7 +45,7 @@ export const changelog: ChangelogEntry[] = [
 		],
 	},
 	{
-		version: '0.5.0',
+		version: '2.1.0',
 		date: '2025-10-15',
 		title: 'Dashboard + SSR Optimizations',
 		added: [
@@ -63,7 +63,7 @@ export const changelog: ChangelogEntry[] = [
 		],
 	},
 	{
-		version: '0.4.0',
+		version: '2.0.0',
 		date: '2025-03-31',
 		title: 'Supabase Migration + Core Features',
 		added: [
@@ -78,7 +78,7 @@ export const changelog: ChangelogEntry[] = [
 		],
 	},
 	{
-		version: '0.3.0',
+		version: '1.2.0',
 		date: '2023-11-16',
 		title: 'Firebase Infra Optimization',
 		added: [
@@ -93,7 +93,7 @@ export const changelog: ChangelogEntry[] = [
 		],
 	},
 	{
-		version: '0.2.0',
+		version: '1.1.0',
 		date: '2023-10-24',
 		title: 'Home Rework + Backend Integrations',
 		added: [
@@ -102,7 +102,7 @@ export const changelog: ChangelogEntry[] = [
 		],
 	},
 	{
-		version: '0.1.0',
+		version: '1.0.0',
 		date: '2023-07-04',
 		title: 'Initial MVP',
 		added: [
