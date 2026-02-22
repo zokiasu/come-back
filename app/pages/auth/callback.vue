@@ -52,6 +52,19 @@
 			if (errorParam) {
 				log(`OAuth error: ${errorParam} - ${errorDescription}`)
 				statusMessage.value = 'Authentication error'
+				if (window.opener) {
+					window.opener.postMessage(
+						{ type: 'comeback-auth', status: 'error', reason: errorParam },
+						window.location.origin,
+					)
+					window.close()
+					return
+				}
+				localStorage.setItem(
+					'comeback-auth',
+					JSON.stringify({ status: 'error', reason: errorParam, ts: Date.now() }),
+				)
+				window.close()
 				await navigateTo(`/authentification?error=${errorParam}`)
 				return
 			}
@@ -127,6 +140,19 @@
 				if (!user.value?.id) {
 					log('TIMEOUT: No complete user found after waiting')
 					statusMessage.value = 'Connection error'
+					if (window.opener) {
+						window.opener.postMessage(
+							{ type: 'comeback-auth', status: 'error', reason: 'timeout' },
+							window.location.origin,
+						)
+						window.close()
+						return
+					}
+					localStorage.setItem(
+						'comeback-auth',
+						JSON.stringify({ status: 'error', reason: 'timeout', ts: Date.now() }),
+					)
+					window.close()
 					await navigateTo('/authentification?error=timeout')
 					return
 				}
@@ -136,6 +162,19 @@
 			// At this point sessionUser is guaranteed to exist with an id
 			if (!sessionUser) {
 				log('CRITICAL: sessionUser is undefined after all checks')
+				if (window.opener) {
+					window.opener.postMessage(
+						{ type: 'comeback-auth', status: 'error', reason: 'no_user' },
+						window.location.origin,
+					)
+					window.close()
+					return
+				}
+				localStorage.setItem(
+					'comeback-auth',
+					JSON.stringify({ status: 'error', reason: 'no_user', ts: Date.now() }),
+				)
+				window.close()
 				await navigateTo('/authentification?error=no_user')
 				return
 			}
@@ -214,12 +253,38 @@
 				log('Profile synced successfully! Redirecting to home...')
 				statusMessage.value = 'Redirecting...'
 				await new Promise((resolve) => setTimeout(resolve, 500))
+				if (window.opener) {
+					window.opener.postMessage(
+						{ type: 'comeback-auth', status: 'success' },
+						window.location.origin,
+					)
+					window.close()
+					return
+				}
+				localStorage.setItem(
+					'comeback-auth',
+					JSON.stringify({ status: 'success', ts: Date.now() }),
+				)
+				window.close()
 				await navigateTo('/')
 			} catch (syncError: unknown) {
 				const errorMsg =
 					syncError instanceof Error ? syncError.message : 'Unknown sync error'
 				log(`Profile sync failed: ${errorMsg}`)
 				statusMessage.value = 'Synchronization error'
+				if (window.opener) {
+					window.opener.postMessage(
+						{ type: 'comeback-auth', status: 'error', reason: 'sync' },
+						window.location.origin,
+					)
+					window.close()
+					return
+				}
+				localStorage.setItem(
+					'comeback-auth',
+					JSON.stringify({ status: 'error', reason: 'sync', ts: Date.now() }),
+				)
+				window.close()
 				await navigateTo('/authentification?error=sync')
 			}
 		} catch (err: unknown) {
@@ -227,6 +292,19 @@
 			log(`EXCEPTION: ${errorMessage}`)
 			console.error('❌ Error during callback:', err)
 			statusMessage.value = 'Connection error'
+			if (window.opener) {
+				window.opener.postMessage(
+					{ type: 'comeback-auth', status: 'error', reason: 'callback' },
+					window.location.origin,
+				)
+				window.close()
+				return
+			}
+			localStorage.setItem(
+				'comeback-auth',
+				JSON.stringify({ status: 'error', reason: 'callback', ts: Date.now() }),
+			)
+			window.close()
 			await navigateTo('/authentification?error=callback')
 		}
 	}
