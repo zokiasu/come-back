@@ -38,7 +38,7 @@
 			<section v-if="newsToday.length > 0" class="absolute inset-0">
 				<div class="absolute top-10 z-10">
 					<p
-						class="w-fit bg-red-700 py-1 pr-5 pl-8 text-xs font-semibold uppercase drop-shadow-lg lg:text-xl xl:text-2xl"
+						class="w-fit bg-cb-quinary-900/90 py-1 pr-5 pl-8 text-xs font-semibold uppercase drop-shadow-lg lg:text-xl xl:text-2xl"
 					>
 						Comeback Today
 					</p>
@@ -91,7 +91,7 @@
 					<p class="text-center text-[3vw] xl:text-3xl">
 						Track every next release by your favorite artists
 					</p>
-					<p class="text-cb-primary-900 text-center">No Comeback Reported Today</p>
+					<p class="text-cb-tertiary-200 text-center">No Comeback Reported Today</p>
 				</div>
 			</div>
 		</transition>

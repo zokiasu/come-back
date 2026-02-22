@@ -15,10 +15,6 @@
 
 	const { addToPlaylist } = useYouTube()
 
-	const playVideo = (videoId: string) => {
-		addToPlaylist(videoId, props.music.name, props.music?.artists?.[0]?.name || '')
-	}
-
 	const thumbnailUrl = computed(() => {
 		if (
 			Array.isArray(props.music.thumbnails) &&
@@ -30,6 +26,15 @@
 		}
 		return ''
 	})
+
+	const playVideo = (videoId: string) => {
+		addToPlaylist(
+			videoId,
+			props.music.name,
+			props.music?.artists?.[0]?.name || '',
+			thumbnailUrl.value,
+		)
+	}
 </script>
 
 <template>
@@ -60,7 +65,7 @@
 				<div class="space-y-1 text-left">
 					<p
 						v-if="music.name"
-						class="group-hover:text-cb-primary-900 font-semibold lg:text-xl"
+						class="group-hover:text-cb-tertiary-100 font-semibold lg:text-xl"
 					>
 						{{ music.name }}
 					</p>

@@ -278,11 +278,11 @@
 <template>
 	<div v-if="mvs.length > 0" class="space-y-4">
 		<!-- Main Video Player -->
-		<div class="relative">
+		<div class="relative mx-auto w-full max-w-6xl">
 			<!-- Thumbnail (affiché quand pas en lecture) -->
 			<UButton
 				v-if="currentMV && showThumbnail"
-				class="bg-cb-quinary-900 text-cb-tertiary-200 hover:text-cb-primary-900 relative aspect-video w-full overflow-hidden rounded-lg !p-0 drop-shadow-lg"
+				class="bg-cb-quinary-900 text-cb-tertiary-200 hover:text-cb-tertiary-100 relative aspect-video w-full overflow-hidden rounded-lg !p-0 drop-shadow-lg"
 				@click="playCurrentMV"
 			>
 				<div v-if="currentMV.id_youtube_music" class="relative h-full w-full">
@@ -303,7 +303,7 @@
 					<div class="space-y-2 text-left">
 						<h3
 							v-if="currentMV.name"
-							class="hover:text-cb-primary-900 text-xl font-bold lg:text-2xl"
+							class="hover:text-cb-tertiary-100 text-xl font-bold lg:text-2xl"
 						>
 							{{ currentMV.name }}
 						</h3>
@@ -337,15 +337,15 @@
 		</div>
 
 		<!-- Thumbnails Navigation -->
-		<div class="flex space-x-3 overflow-x-auto p-1 pb-2">
+		<div class="flex justify-start space-x-3 overflow-x-auto p-1 pb-2 md:justify-center">
 			<button
 				v-for="(mv, index) in mvs"
 				:key="mv.id"
 				class="relative flex-shrink-0 cursor-pointer overflow-hidden rounded-lg transition-all duration-200 hover:scale-105"
 				:class="[
 					index === currentMVIndex
-						? 'ring-cb-primary-500 ring-2'
-						: 'hover:ring-cb-primary-300 hover:ring-2',
+						? 'ring-cb-tertiary-400 ring-2'
+						: 'hover:ring-cb-tertiary-300 hover:ring-2',
 				]"
 				@click="selectMV(index)"
 				@mouseenter="onThumbnailHover(index)"
@@ -376,17 +376,22 @@
 		</div>
 
 		<!-- MV Info -->
-		<div v-if="displayedMV" class="space-y-1 text-center transition-all duration-200">
-			<p class="text-cb-tertiary-400 text-sm">
+		<div
+			v-if="displayedMV"
+			class="space-y-1 text-center transition-all duration-200 min-h-[5.5rem]"
+		>
+			<p class="text-cb-tertiary-400 text-sm min-h-[1.25rem]">
 				{{ formatArtists(displayedMV.artists || []) }}
 			</p>
-			<h4 class="text-lg font-semibold">{{ displayedMV.name }}</h4>
-			<p v-if="displayedMV.date" class="text-cb-tertiary-500 text-xs">
+			<h4 class="text-lg font-semibold min-h-[1.75rem]">
+				{{ displayedMV.name }}
+			</h4>
+			<p v-if="displayedMV.date" class="text-cb-tertiary-500 text-xs min-h-[1rem]">
 				Released: {{ new Date(displayedMV.date).toLocaleDateString('fr-FR') }}
 			</p>
 			<!-- Indicateur de survol -->
 			<div
-				class="text-cb-primary-400 text-xs italic"
+				class="text-cb-tertiary-400 text-xs italic"
 				:class="
 					hoveredMVIndex !== null && hoveredMVIndex !== currentMVIndex
 						? 'opacity-100'
