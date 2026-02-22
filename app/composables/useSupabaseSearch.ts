@@ -166,8 +166,8 @@ export function useSupabaseSearch() {
 				name,
 				image,
 				date,
-				artists:artist_releases(
-					artist:artists(id, name, image, verified)
+				artists:artist_releases!inner(
+					artist:artists!inner(id, name, image, verified)
 				),
 				musics:music_releases(
 					music:musics(id, name, id_youtube_music)
@@ -189,7 +189,7 @@ export function useSupabaseSearch() {
 			...release,
 			artists:
 				release.artists
-					?.map((a: { artist: Artist | null }) => a.artist)
+					?.map((a: { artist: Pick<Artist, 'id' | 'name' | 'image' | 'verified'> }) => a.artist)
 					.filter(Boolean) || [],
 			musics:
 				release.musics
@@ -223,8 +223,8 @@ export function useSupabaseSearch() {
 				duration,
 				thumbnails,
 				date,
-				artists:music_artists(
-					artist:artists(id, name, image, verified)
+				artists:music_artists!inner(
+					artist:artists!inner(id, name, image, verified)
 				),
 				releases:music_releases(
 					release:releases(id, name, image)
@@ -253,11 +253,11 @@ export function useSupabaseSearch() {
 			...music,
 			artists:
 				music.artists
-					?.map((a: { artist: Artist | null }) => a.artist)
+					?.map((a: { artist: Pick<Artist, 'id' | 'name' | 'image' | 'verified'> }) => a.artist)
 					.filter(Boolean) || [],
 			releases:
 				music.releases
-					?.map((r: { release: Release | null }) => r.release)
+					?.map((r: { release: Pick<Release, 'id' | 'name' | 'image'> }) => r.release)
 					.filter(Boolean) || [],
 		}))
 
