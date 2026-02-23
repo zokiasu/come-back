@@ -138,6 +138,7 @@
 		try {
 			const result = await getArtistsByPage(currentPage.value, pageSizeValue.value, {
 				search: search.value || undefined,
+				verified: true,
 				type: typeFilter.value === 'ALL' ? undefined : typeFilter.value,
 				gender: genderFilter.value === 'ALL' ? undefined : genderFilter.value,
 				styles: styleFilter.value === 'ALL' ? undefined : [styleFilter.value],
