@@ -152,6 +152,11 @@
 		return Array.from(merged.values())
 	}
 
+	const buildArtistRefs = (items: ArtistMenuItem[]): Artist[] => {
+		const uniqueIds = new Set(items.map((item) => item.id))
+		return Array.from(uniqueIds).map((id) => ({ id } as Artist))
+	}
+
 	const groupsForMenu = computed((): ArtistMenuItem[] => {
 		const base =
 			groupSearchTerm.value.length >= 2 ? groupSearchResults.value : groupList.value
@@ -335,12 +340,8 @@
 				updates,
 				validSocialLinks,
 				validPlatformLinks,
-				artistGroups.value
-					.map((group) => groupList.value.find((artist) => artist.id === group.id))
-					.filter((artist): artist is Artist => Boolean(artist)),
-				artistMembers.value
-					.map((member) => artistsList.value.find((artist) => artist.id === member.id))
-					.filter((artist): artist is Artist => Boolean(artist)),
+				buildArtistRefs(artistGroups.value),
+				buildArtistRefs(artistMembers.value),
 				selectedCompanies,
 			)
 				.then(() => {
