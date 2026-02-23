@@ -250,7 +250,10 @@ export async function fetchArtistsByPage(
 
 	// Appliquer les filtres
 	if (options?.search) {
-		query = query.ilike('name', `%${options.search}%`)
+		const searchValue = options.search.trim()
+		query = query.or(
+			`name.ilike.%${searchValue}%,description.ilike.%${searchValue}%`,
+		)
 	}
 
 	if (options?.type) {
