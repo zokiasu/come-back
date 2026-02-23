@@ -300,6 +300,7 @@
 						"
 						color="neutral"
 						variant="ghost"
+						class="cursor-pointer"
 						@click="toggleSortDirection"
 					/>
 				</div>
@@ -316,6 +317,7 @@
 					icon="i-heroicons-arrow-path"
 					color="neutral"
 					variant="ghost"
+					class="cursor-pointer"
 					:loading="isLoading"
 					@click="fetchArtists"
 				/>
@@ -493,6 +495,7 @@
 							color="success"
 							variant="soft"
 							size="sm"
+							class="cursor-pointer"
 							:loading="approvingId === artist.id"
 							:disabled="approvingId !== null && approvingId !== artist.id"
 							aria-label="Approuver"
@@ -504,6 +507,7 @@
 							color="warning"
 							variant="soft"
 							size="sm"
+							class="cursor-pointer"
 							:disabled="approvingId !== null"
 							aria-label="Bannir"
 							@click="openBanModal(artist)"
@@ -513,6 +517,7 @@
 							color="error"
 							variant="soft"
 							size="sm"
+							class="cursor-pointer"
 							:disabled="approvingId !== null"
 							aria-label="Rejeter"
 							@click="openRejectModal(artist)"
@@ -530,6 +535,7 @@
 							variant="ghost"
 							size="sm"
 							target="_blank"
+							class="cursor-pointer"
 							aria-label="Éditer"
 						/>
 						<UButton
@@ -539,6 +545,7 @@
 							variant="ghost"
 							size="sm"
 							target="_blank"
+							class="cursor-pointer"
 							aria-label="Voir"
 						/>
 					</div>

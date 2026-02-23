@@ -1,7 +1,6 @@
 <script setup lang="ts">
 	import draggable from 'vuedraggable'
-import { usePlaylist } from '~/composables/usePlaylist'
-import type { PlaylistItem } from '~/composables/usePlaylist'
+	import { usePlaylist, type PlaylistItem } from '~/composables/usePlaylist'
 
 	const {
 		playlist,
@@ -30,10 +29,10 @@ import type { PlaylistItem } from '~/composables/usePlaylist'
 		})
 	})
 
-const sortablePlaylist = computed<PlaylistItem[]>({
-	get: () => [...playlist.value],
-	set: (next) => reorderPlaylist([...next]),
-})
+	const sortablePlaylist = computed<PlaylistItem[]>({
+		get: () => [...playlist.value],
+		set: (next) => reorderPlaylist([...next]),
+	})
 
 	const getItemIndex = (item: { uid: string }) =>
 		playlist.value.findIndex((entry) => entry.uid === item.uid)
