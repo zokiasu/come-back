@@ -437,6 +437,21 @@
 			</div>
 		</div>
 
+		<!-- Top Pagination -->
+		<div
+			v-if="totalPages > 1"
+			class="border-cb-quinary-900 bg-cb-quaternary-950 flex items-center justify-between rounded-lg border px-4 py-3"
+		>
+			<p class="text-cb-tertiary-500 text-sm">
+				Page {{ currentPage }} sur {{ totalPages }}
+			</p>
+			<UPagination
+				v-model:page="currentPage"
+				:total="totalArtists"
+				:items-per-page="pageSizeValue"
+			/>
+		</div>
+
 		<!-- Artists List -->
 		<div class="bg-cb-quaternary-950 overflow-hidden rounded-lg">
 			<!-- Loading state -->
