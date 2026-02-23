@@ -673,6 +673,16 @@
 						/>
 						<UButton
 							v-if="artist.id_youtube_music"
+							:to="`https://music.youtube.com/channel/${artist.id_youtube_music}`"
+							icon="i-heroicons-musical-note"
+							color="neutral"
+							variant="ghost"
+							size="sm"
+							target="_blank"
+							aria-label="YouTube Music"
+						/>
+						<UButton
+							v-if="artist.id_youtube_music"
 							icon="i-heroicons-no-symbol"
 							color="warning"
 							variant="ghost"
