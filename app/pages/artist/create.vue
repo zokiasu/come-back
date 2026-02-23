@@ -18,6 +18,7 @@
 	import { useSupabaseMusicStyles } from '~/composables/Supabase/useSupabaseMusicStyles'
 	import { useSupabaseGeneralTags } from '~/composables/Supabase/useSupabaseGeneralTags'
 	import { useSupabaseCompanies } from '~/composables/Supabase/useSupabaseCompanies'
+	import { useYoutubeMusicIdCheck } from '~/composables/useYoutubeMusicIdCheck'
 
 	// Internal Stores
 	import { useUserStore } from '~/stores/user'
@@ -39,6 +40,29 @@
 	const { getAllMusicStyles } = useSupabaseMusicStyles()
 	const { getAllGeneralTags } = useSupabaseGeneralTags()
 	const { getAllCompanies, relationshipTypes } = useSupabaseCompanies()
+	const {
+		status: ytmIdStatus,
+		message: ytmIdMessage,
+		isBlocked: ytmIdBlocked,
+		checkId: checkYtmId,
+		reset: resetYtmCheck,
+	} = useYoutubeMusicIdCheck()
+
+	const ytmInputStatus = computed(() => {
+		switch (ytmIdStatus.value) {
+			case 'checking':
+				return 'checking' as const
+			case 'available':
+				return 'success' as const
+			case 'exists':
+				return 'warning' as const
+			case 'blacklisted':
+			case 'error':
+				return 'error' as const
+			default:
+				return 'idle' as const
+		}
+	})
 
 	const title = ref<string>('Create Artist Page')
 	const description = ref<string>('Create Artist Page')
@@ -163,6 +187,16 @@
 			return
 		}
 
+		if (ytmIdBlocked.value) {
+			toast.add({
+				title: 'YouTube Music ID is not valid',
+				description: ytmIdMessage.value || 'This ID cannot be used',
+				color: 'error',
+			})
+			isUploadingEdit.value = false
+			return
+		}
+
 		const selectedGroups = artistGroups.value
 			.map((group) => groupList.value.find((artist) => artist.id === group.id))
 			.filter((artist): artist is Artist => Boolean(artist))
@@ -253,6 +287,7 @@
 		artistDescription.value = ''
 		platformLinkManager.reset()
 		socialLinkManager.reset()
+		resetYtmCheck()
 	}
 
 	const closeModalCreateArtist = async () => {
@@ -303,6 +338,14 @@
 		}
 	}
 
+	watch(artistIdYoutubeMusic, (newValue) => {
+		if (!newValue || newValue.trim().length < 6) {
+			resetYtmCheck()
+			return
+		}
+		checkYtmId(newValue)
+	})
+
 	onMounted(async () => {
 		artistsList.value = await getAllArtists()
 		groupList.value = artistsList.value.filter((artist) => artist.type == 'GROUP')
@@ -336,7 +379,7 @@
 			<p>Artist Creation</p>
 			<div>
 				<button
-					:disabled="isUploadingEdit"
+					:disabled="isUploadingEdit || ytmIdBlocked"
 					class="bg-cb-primary-900 w-full rounded px-5 py-3 text-xs font-semibold uppercase transition-all duration-300 ease-in-out hover:scale-105 hover:bg-red-900"
 					@click="creationArtist"
 				>
@@ -370,6 +413,8 @@
 					v-model="artistIdYoutubeMusic"
 					label="Id Youtube Music *"
 					placeholder="ID Youtube Music"
+					:status="ytmInputStatus"
+					:hint="ytmIdMessage ?? undefined"
 				/>
 				<div
 					class="grid gap-5"
@@ -858,7 +903,7 @@
 
 		<div class="border-t border-zinc-700 pt-3">
 			<button
-				:disabled="isUploadingEdit"
+				:disabled="isUploadingEdit || ytmIdBlocked"
 				class="bg-cb-primary-900 w-full rounded py-3 text-xl font-semibold uppercase transition-all duration-300 ease-in-out hover:scale-105 hover:bg-red-900"
 				@click="creationArtist"
 			>

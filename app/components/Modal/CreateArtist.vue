@@ -10,9 +10,33 @@
 	} from '~/types'
 
 	import { useSupabaseArtist } from '~/composables/Supabase/useSupabaseArtist'
+	import { useYoutubeMusicIdCheck } from '~/composables/useYoutubeMusicIdCheck'
 
 	const toast = useToast()
 	const { createArtist } = useSupabaseArtist()
+	const {
+		status: ytmIdStatus,
+		message: ytmIdMessage,
+		isBlocked: ytmIdBlocked,
+		checkId: checkYtmId,
+		reset: resetYtmCheck,
+	} = useYoutubeMusicIdCheck()
+
+	const ytmInputStatus = computed(() => {
+		switch (ytmIdStatus.value) {
+			case 'checking':
+				return 'checking' as const
+			case 'available':
+				return 'success' as const
+			case 'exists':
+				return 'warning' as const
+			case 'blacklisted':
+			case 'error':
+				return 'error' as const
+			default:
+				return 'idle' as const
+		}
+	})
 
 	interface Props {
 		stylesList: MusicStyle[]
@@ -102,6 +126,16 @@
 			return
 		}
 
+		if (ytmIdBlocked.value) {
+			toast.add({
+				title: 'YouTube Music ID is not valid',
+				description: ytmIdMessage.value || 'This ID cannot be used',
+				color: 'error',
+			})
+			isUploadingEdit.value = false
+			return
+		}
+
 		try {
 			// Transformer les groupes et membres sélectionnés en objets Artist partiels
 			const groups = selectedGroups.value.map((g) => ({
@@ -142,6 +176,17 @@
 	}
 
 	const { adjustTextarea } = useTextareaAutoResize()
+
+	watch(
+		() => artist.value.id_youtube_music,
+		(newValue) => {
+			if (!newValue || newValue.trim().length < 6) {
+				resetYtmCheck()
+				return
+			}
+			checkYtmId(newValue)
+		},
+	)
 </script>
 
 <template>
@@ -162,6 +207,8 @@
 				v-model="artist.id_youtube_music as string | undefined"
 				label="Id Youtube Music"
 				placeholder="ID Youtube Music"
+				:status="ytmInputStatus"
+				:hint="ytmIdMessage ?? undefined"
 			/>
 		</div>
 		<!-- Type & Active Career-->
@@ -352,7 +399,7 @@
 
 		<div class="border-t border-zinc-700 pt-3">
 			<button
-				:disabled="isUploadingEdit"
+				:disabled="isUploadingEdit || ytmIdBlocked"
 				class="bg-cb-primary-900 w-full rounded py-3 text-xl font-semibold uppercase transition-all duration-300 ease-in-out hover:scale-105 hover:bg-red-900"
 				@click="sendCreateArtist"
 			>
