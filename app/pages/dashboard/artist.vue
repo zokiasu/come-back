@@ -289,9 +289,42 @@
 		fetchArtists()
 	})
 
+	const isTypingTarget = (target: EventTarget | null) => {
+		if (!(target instanceof HTMLElement)) return false
+		const tagName = target.tagName.toLowerCase()
+		return (
+			tagName === 'input' ||
+			tagName === 'textarea' ||
+			tagName === 'select' ||
+			target.isContentEditable
+		)
+	}
+
+	const onPageNavigationKeydown = (event: KeyboardEvent) => {
+		if (isTypingTarget(event.target)) return
+		if (event.key === 'ArrowLeft' && currentPage.value > 1) {
+			event.preventDefault()
+			currentPage.value -= 1
+			return
+		}
+		if (event.key === 'ArrowRight' && currentPage.value < totalPages.value) {
+			event.preventDefault()
+			currentPage.value += 1
+		}
+	}
+
 	// Initial load
 	onMounted(() => {
 		fetchArtists()
+		if (import.meta.client) {
+			window.addEventListener('keydown', onPageNavigationKeydown)
+		}
+	})
+
+	onBeforeUnmount(() => {
+		if (import.meta.client) {
+			window.removeEventListener('keydown', onPageNavigationKeydown)
+		}
 	})
 
 	definePageMeta({
