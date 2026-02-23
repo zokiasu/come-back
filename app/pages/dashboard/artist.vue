@@ -31,6 +31,10 @@
 	const isDeleteModalOpen = ref(false)
 	const deletingArtist = ref<Artist | null>(null)
 
+	// Ban modal state
+	const isBanModalOpen = ref(false)
+	const banningArtist = ref<Artist | null>(null)
+
 	// Select menu options
 	const typeOptions: { label: string; id: string }[] = [
 		{ label: 'Tous les types', id: 'ALL' },
@@ -228,6 +232,18 @@
 		// On ferme juste le modal et on refresh
 		isDeleteModalOpen.value = false
 		deletingArtist.value = null
+		fetchArtists()
+	}
+
+	// Ban modal
+	const openBanModal = (artist: Artist) => {
+		banningArtist.value = artist
+		isBanModalOpen.value = true
+	}
+
+	const confirmBan = () => {
+		isBanModalOpen.value = false
+		banningArtist.value = null
 		fetchArtists()
 	}
 
@@ -607,6 +623,15 @@
 							target="_blank"
 						/>
 						<UButton
+							v-if="artist.id_youtube_music"
+							icon="i-heroicons-no-symbol"
+							color="warning"
+							variant="ghost"
+							size="sm"
+							aria-label="Bannir"
+							@click="openBanModal(artist)"
+						/>
+						<UButton
 							icon="i-heroicons-trash"
 							color="error"
 							variant="ghost"
@@ -648,6 +673,16 @@
 			:artist-name="deletingArtist?.name || ''"
 			@close="isDeleteModalOpen = false"
 			@confirm="confirmDelete"
+		/>
+
+		<!-- Ban Confirmation Modal -->
+		<ModalBanArtist
+			:is-open="isBanModalOpen"
+			:artist-id="banningArtist?.id || ''"
+			:artist-name="banningArtist?.name || ''"
+			:artist-ytm-id="banningArtist?.id_youtube_music || ''"
+			@close="isBanModalOpen = false"
+			@confirm="confirmBan"
 		/>
 	</div>
 </template>
