@@ -251,8 +251,9 @@ export async function fetchArtistsByPage(
 	// Appliquer les filtres
 	if (options?.search) {
 		const searchValue = options.search.trim()
+		const normalizedSearch = searchValue.replaceAll('*', '')
 		query = query.or(
-			`name.ilike.%${searchValue}%,description.ilike.%${searchValue}%`,
+			`name.ilike.*${normalizedSearch}*,description.ilike.*${normalizedSearch}*`,
 		)
 	}
 
