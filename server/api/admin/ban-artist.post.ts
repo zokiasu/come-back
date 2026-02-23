@@ -36,12 +36,15 @@ export default defineEventHandler(async (event) => {
 		from: (table: string) => ReturnType<typeof supabase.from>
 	}
 
-	const { error: insertError } = await supabaseUntyped
+	const { error: upsertError } = await supabaseUntyped
 		.from('ignored_artists')
-		.insert({ id_youtube_music: artist.id_youtube_music, reason })
+		.upsert(
+			{ id_youtube_music: artist.id_youtube_music, reason },
+			{ onConflict: 'id_youtube_music' },
+		)
 
-	if (insertError) {
-		throw handleSupabaseError(insertError, 'ban-artist.insert-ignored')
+	if (upsertError) {
+		throw handleSupabaseError(upsertError, 'ban-artist.upsert-ignored')
 	}
 
 	// Delete the artist and all connected elements via RPC
