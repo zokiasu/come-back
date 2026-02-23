@@ -48,12 +48,23 @@ export default defineEventHandler(async (event) => {
 	}
 
 	// Delete the artist and all connected elements via RPC
-	const { error: deleteError } = await supabase.rpc('delete_artist_safely', {
+	const { data: deleteResult, error: deleteError } = await supabase.rpc('delete_artist_safely', {
 		artist_id_param: artistId,
 	})
 
 	if (deleteError) {
 		throw handleSupabaseError(deleteError, 'ban-artist.delete')
+	}
+
+	const deletePayload = deleteResult as { success?: boolean; message?: string } | null
+	if (!deletePayload?.success) {
+		throw createError({
+			statusCode: 409,
+			statusMessage: 'Ban failed',
+			message:
+				deletePayload?.message ||
+				'Artist was added to ignored list but could not be deleted safely',
+		})
 	}
 
 	return {
