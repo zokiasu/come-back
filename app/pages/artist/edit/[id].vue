@@ -45,6 +45,7 @@
 	const { getAllMusicStyles } = useSupabaseMusicStyles()
 	const { getAllGeneralTags } = useSupabaseGeneralTags()
 	const { getAllCompanies, relationshipTypes } = useSupabaseCompanies()
+	const { searchArtistsFullText } = useSupabaseSearch()
 
 	const title = ref('Edit Artist Page')
 	const description = ref('Edit Artist Page')
@@ -72,6 +73,12 @@
 	>([])
 	const artistGroups = ref<ArtistMenuItem[]>([])
 	const artistMembers = ref<ArtistMenuItem[]>([])
+	const groupSearchTerm = ref('')
+	const memberSearchTerm = ref('')
+	const groupSearchResults = ref<Artist[]>([])
+	const memberSearchResults = ref<Artist[]>([])
+	const isSearchingGroups = ref(false)
+	const isSearchingMembers = ref(false)
 
 	const validGenders = ['MALE', 'FEMALE', 'MIXTE', 'UNKNOWN'] as const
 	const artistTypes = ['SOLO', 'GROUP'] as const
@@ -132,24 +139,29 @@
 		)
 	})
 
+	const mapArtistToMenuItem = (artist: Artist): ArtistMenuItem => ({
+		id: artist.id,
+		label: artist.name,
+		description: artist.description ?? undefined,
+	})
+
+	const mergeMenuItems = (base: ArtistMenuItem[], selected: ArtistMenuItem[]) => {
+		const merged = new Map<string, ArtistMenuItem>()
+		for (const item of base) merged.set(item.id, item)
+		for (const item of selected) merged.set(item.id, item)
+		return Array.from(merged.values())
+	}
+
 	const groupsForMenu = computed((): ArtistMenuItem[] => {
-		return groupList.value.map((artist) => {
-			return {
-				id: artist.id,
-				label: artist.name,
-				description: artist.description ?? undefined,
-			}
-		})
+		const base =
+			groupSearchTerm.value.length >= 2 ? groupSearchResults.value : groupList.value
+		return mergeMenuItems(base.map(mapArtistToMenuItem), artistGroups.value)
 	})
 
 	const membersForMenu = computed((): ArtistMenuItem[] => {
-		return artistsList.value.map((artist) => {
-			return {
-				id: artist.id,
-				label: artist.name,
-				description: artist.description ?? undefined,
-			}
-		})
+		const base =
+			memberSearchTerm.value.length >= 2 ? memberSearchResults.value : artistsList.value
+		return mergeMenuItems(base.map(mapArtistToMenuItem), artistMembers.value)
 	})
 
 	// --- Helper to parse date string ---
@@ -181,6 +193,61 @@
 		} else {
 			debutDateToDate.value = null
 		}
+	}
+
+	const debouncedGroupSearch = useDebounce(async (query: string) => {
+		if (!query || query.length < 2) {
+			groupSearchResults.value = []
+			isSearchingGroups.value = false
+			return
+		}
+
+		isSearchingGroups.value = true
+		try {
+			const result = await searchArtistsFullText({
+				query,
+				limit: 15,
+				type: 'GROUP',
+			})
+			groupSearchResults.value = result.artists
+		} catch (error) {
+			console.error('Group search error:', error)
+			groupSearchResults.value = []
+		} finally {
+			isSearchingGroups.value = false
+		}
+	}, 300)
+
+	const debouncedMemberSearch = useDebounce(async (query: string) => {
+		if (!query || query.length < 2) {
+			memberSearchResults.value = []
+			isSearchingMembers.value = false
+			return
+		}
+
+		isSearchingMembers.value = true
+		try {
+			const result = await searchArtistsFullText({
+				query,
+				limit: 15,
+			})
+			memberSearchResults.value = result.artists
+		} catch (error) {
+			console.error('Member search error:', error)
+			memberSearchResults.value = []
+		} finally {
+			isSearchingMembers.value = false
+		}
+	}, 300)
+
+	const onGroupSearchTermChange = (query: string) => {
+		groupSearchTerm.value = query
+		debouncedGroupSearch(query)
+	}
+
+	const onMemberSearchTermChange = (query: string) => {
+		memberSearchTerm.value = query
+		debouncedMemberSearch(query)
 	}
 
 	function onFileChange(e: Event) {
@@ -962,17 +1029,20 @@
 				</div>
 				<UInputMenu
 					v-model="artistGroups"
+					:search-term="groupSearchTerm"
 					:items="groupsForMenu"
 					by="id"
 					multiple
 					placeholder="Search a group"
 					searchable
 					searchable-placeholder="Search a group..."
+					:loading="isSearchingGroups"
 					class="bg-cb-quaternary-950 text-tertiary w-full cursor-pointer ring-transparent"
 					:ui="{
 						content: 'bg-cb-quaternary-950',
 						item: 'rounded cursor-pointer data-highlighted:before:bg-cb-primary-900/30 hover:bg-cb-primary-900',
 					}"
+					@update:search-term="onGroupSearchTermChange"
 				/>
 			</div>
 
@@ -1008,17 +1078,20 @@
 				</div>
 				<UInputMenu
 					v-model="artistMembers"
+					:search-term="memberSearchTerm"
 					:items="membersForMenu"
 					by="id"
 					multiple
 					placeholder="Search a member"
 					searchable
 					searchable-placeholder="Search a member..."
+					:loading="isSearchingMembers"
 					class="bg-cb-quaternary-950 text-tertiary w-full cursor-pointer ring-transparent"
 					:ui="{
 						content: 'bg-cb-quaternary-950',
 						item: 'rounded cursor-pointer data-highlighted:before:bg-cb-primary-900/30 hover:bg-cb-primary-900',
 					}"
+					@update:search-term="onMemberSearchTermChange"
 				/>
 			</div>
 
