@@ -38,8 +38,8 @@
 
 <template>
 	<div class="cb-safe-area bg-cb-secondary-950 text-cb-tertiary-200 flex min-h-screen w-full flex-col">
-		<Navigation class="hidden md:block" />
-		<div class="inset-x-0 z-50 py-3 md:hidden">
+		<Navigation class="hidden lg:block" />
+		<div class="inset-x-0 z-50 py-3 lg:hidden">
 			<img
 				src="~/assets/image/logo.png"
 				alt="Comeback"
@@ -51,10 +51,10 @@
 		<main class="flex flex-1 flex-col">
 			<slot />
 		</main>
-		<LazyFooter v-if="displayingFooter" class="hidden md:block" />
-		<div v-if="displayingFooter" class="md:hidden h-24" />
-		<div v-if="displayingFooter" ref="mobileNavSentinel" class="md:hidden h-px w-full" />
-		<LazyMobileNavigation class="md:hidden" />
+		<LazyFooter v-if="displayingFooter" class="hidden lg:block" />
+		<div v-if="displayingFooter" class="lg:hidden h-24" />
+		<div v-if="displayingFooter" ref="mobileNavSentinel" class="lg:hidden h-px w-full" />
+		<LazyMobileNavigation class="lg:hidden" />
 		<LazyYoutubePlayer
 			v-if="isPlayingVideo"
 			ref="YTPlayer"
