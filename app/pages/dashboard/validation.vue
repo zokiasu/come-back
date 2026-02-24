@@ -158,6 +158,15 @@
 		})
 	}
 
+	const formatProfileDate = (dateString: string | null) => {
+		if (!dateString) return '-'
+		return new Date(dateString).toLocaleDateString('fr-FR', {
+			day: '2-digit',
+			month: '2-digit',
+			year: 'numeric',
+		})
+	}
+
 	// Get type badge color
 	const getTypeBadgeColor = (type: string | null) => {
 		return type === 'SOLO' ? 'primary' : 'info'
@@ -458,6 +467,48 @@
 							</span>
 							<span v-if="artist.styles.length > 3" class="text-cb-tertiary-500 text-xs">
 								+{{ artist.styles.length - 3 }}
+							</span>
+						</div>
+
+						<!-- General tags -->
+						<div
+							v-if="artist.general_tags && artist.general_tags.length"
+							class="mt-1 flex flex-wrap gap-1"
+						>
+							<span
+								v-for="tag in artist.general_tags.slice(0, 3)"
+								:key="tag"
+								class="rounded bg-sky-900/30 px-1.5 py-0.5 text-xs text-sky-300"
+							>
+								{{ tag }}
+							</span>
+							<span
+								v-if="artist.general_tags.length > 3"
+								class="text-cb-tertiary-500 text-xs"
+							>
+								+{{ artist.general_tags.length - 3 }}
+							</span>
+						</div>
+
+						<!-- Birth & Debut dates -->
+						<div class="mt-1 flex flex-wrap items-center gap-3 text-xs">
+							<span
+								class="flex items-center gap-1"
+								:class="
+									artist.birth_date ? 'text-cb-tertiary-300' : 'text-cb-tertiary-500'
+								"
+							>
+								<UIcon name="i-heroicons-cake" class="size-3.5" />
+								Naissance: {{ formatProfileDate(artist.birth_date) }}
+							</span>
+							<span
+								class="flex items-center gap-1"
+								:class="
+									artist.debut_date ? 'text-cb-tertiary-300' : 'text-cb-tertiary-500'
+								"
+							>
+								<UIcon name="i-heroicons-calendar-days" class="size-3.5" />
+								Début: {{ formatProfileDate(artist.debut_date) }}
 							</span>
 						</div>
 
