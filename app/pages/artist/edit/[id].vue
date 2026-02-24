@@ -1,6 +1,6 @@
 <script setup lang="ts">
 	// External Packages
-	import { CalendarDate, DateFormatter } from '@internationalized/date'
+	import { CalendarDate } from '@internationalized/date'
 	import { storeToRefs } from 'pinia'
 	import { useUserStore } from '~/stores/user'
 
@@ -104,11 +104,6 @@
 	const isDragging = ref(false)
 	const fileInput = ref<HTMLInputElement | null>(null)
 
-	// --- Date Formatter ---
-	const df = new DateFormatter('en-US', {
-		dateStyle: 'medium',
-	})
-
 	// --- Computed Properties for UInputMenu Items ---
 	const stylesForMenu = computed((): MenuItem<MusicStyle>[] => {
 		return stylesList.value.map(
@@ -170,8 +165,8 @@
 	})
 
 	// --- Helper to parse date string ---
-	const parseToCalendarDate = (date: Date | null | undefined): CalendarDate | null => {
-		if (!date) return null
+	const toCalendarDate = (date: Date | null | undefined): CalendarDate | undefined => {
+		if (!date) return undefined
 		try {
 			const year = date.getUTCFullYear()
 			const month = date.getUTCMonth() + 1
@@ -179,26 +174,26 @@
 			return new CalendarDate(year, month, day)
 		} catch (e) {
 			console.error('Failed to parse date:', date, e)
-			return null
+			return undefined
 		}
 	}
 
-	// --- Date update handlers ---
-	const onBirthdayUpdate = (value: unknown) => {
-		if (value && typeof value.toString === 'function') {
-			birthdayToDate.value = new Date(value.toString())
-		} else {
-			birthdayToDate.value = null
-		}
-	}
+	const birthdayInputValue = computed<CalendarDate | undefined>({
+		get: () => toCalendarDate(birthdayToDate.value),
+		set: (value) => {
+			birthdayToDate.value = value ? new Date(value.toString()) : null
+		},
+	})
 
-	const onDebutDateUpdate = (value: unknown) => {
-		if (value && typeof value.toString === 'function') {
-			debutDateToDate.value = new Date(value.toString())
-		} else {
-			debutDateToDate.value = null
-		}
-	}
+	const debutDateInputValue = computed<CalendarDate | undefined>({
+		get: () => toCalendarDate(debutDateToDate.value),
+		set: (value) => {
+			debutDateToDate.value = value ? new Date(value.toString()) : null
+		},
+	})
+
+	const birthdayInputDate = useTemplateRef('birthdayInputDate')
+	const debutInputDate = useTemplateRef('debutInputDate')
 
 	const debouncedGroupSearch = useDebounce(async (query: string) => {
 		if (!query || query.length < 2) {
@@ -652,46 +647,80 @@
 					<!-- Birthday -->
 					<div class="space-y-1" :class="{ hidden: artistToEdit.type === 'GROUP' }">
 						<ComebackLabel label="Birthday" />
-						<UPopover>
-							<UButton
-								color="neutral"
-								variant="subtle"
-								icon="i-lucide-calendar"
-								class="w-full"
-							>
-								{{ birthdayToDate ? df.format(birthdayToDate) : 'Select a date' }}
-							</UButton>
-							<template #content>
-								<UCalendar
-									class="bg-cb-quinary-900 rounded p-1"
-									:model-value="parseToCalendarDate(birthdayToDate)"
-									:min-date="new Date(1900, 0, 1)"
-									@update:model-value="onBirthdayUpdate"
-								/>
+						<UInputDate
+							ref="birthdayInputDate"
+							v-model="birthdayInputValue"
+							:min-value="new CalendarDate(1900, 1, 1)"
+							locale="en-GB"
+							class="w-full"
+							:ui="{ base: 'bg-cb-quaternary-950' }"
+						>
+							<template #trailing>
+								<UPopover
+									:reference="
+										birthdayInputDate?.inputsRef?.[3]?.$el ??
+										birthdayInputDate?.inputsRef?.[2]?.$el
+									"
+								>
+									<UButton
+										color="neutral"
+										variant="link"
+										size="sm"
+										icon="i-lucide-calendar"
+										aria-label="Select a birthday date"
+										class="cursor-pointer px-0"
+									/>
+									<template #content>
+										<UCalendar
+											v-model="birthdayInputValue"
+											class="bg-cb-quinary-900 rounded p-2"
+											:min-value="new CalendarDate(1900, 1, 1)"
+											locale="en-GB"
+											year-controls
+										/>
+									</template>
+								</UPopover>
 							</template>
-						</UPopover>
+						</UInputDate>
 					</div>
 					<!-- Debut Date -->
 					<div class="space-y-1">
 						<ComebackLabel label="Debut Date" />
-						<UPopover>
-							<UButton
-								color="neutral"
-								variant="subtle"
-								icon="i-lucide-calendar"
-								class="w-full"
-							>
-								{{ debutDateToDate ? df.format(debutDateToDate) : 'Select a date' }}
-							</UButton>
-							<template #content>
-								<UCalendar
-									class="bg-cb-quinary-900 rounded p-1"
-									:model-value="parseToCalendarDate(debutDateToDate)"
-									:min-date="new Date(2000, 0, 1)"
-									@update:model-value="onDebutDateUpdate"
-								/>
+						<UInputDate
+							ref="debutInputDate"
+							v-model="debutDateInputValue"
+							:min-value="new CalendarDate(2000, 1, 1)"
+							locale="en-GB"
+							class="w-full"
+							:ui="{ base: 'bg-cb-quaternary-950' }"
+						>
+							<template #trailing>
+								<UPopover
+									:reference="
+										debutInputDate?.inputsRef?.[3]?.$el ??
+										debutInputDate?.inputsRef?.[2]?.$el
+									"
+								>
+									<UButton
+										color="neutral"
+										variant="link"
+										size="sm"
+										icon="i-lucide-calendar"
+										aria-label="Select a debut date"
+										class="cursor-pointer px-0"
+									/>
+									<template #content>
+										<UCalendar
+											v-model="debutDateInputValue"
+											class="bg-cb-quinary-900 rounded p-2"
+											:min-value="new CalendarDate(2000, 1, 1)"
+											locale="en-GB"
+											year-controls
+										/>
+									</template>
+								</UPopover>
 							</template>
-						</UPopover>
+						</UInputDate>
 					</div>
 				</div>
 			</div>
