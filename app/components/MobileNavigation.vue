@@ -10,10 +10,17 @@
 	const isClient = ref(false)
 	const isMoreOpen = ref(false)
 	const isSearchOpen = ref(false)
+	const newsCreationModal = ref<{ openModal: () => void } | null>(null)
 	const { open: openAuthModal } = useAuthModal()
 	const handleLoginClick = () => {
 		isMoreOpen.value = false
 		openAuthModal()
+	}
+
+	const openNewsCreationModal = async () => {
+		isMoreOpen.value = false
+		await nextTick()
+		newsCreationModal.value?.openModal()
 	}
 
 	onMounted(() => {
@@ -157,16 +164,20 @@
 							Dashboard admin
 						</NuxtLink>
 
-						<div
+						<button
 							v-if="isUserLoggedIn"
-							class="rounded-xl border border-cb-quinary-900 bg-cb-quinary-950/70 px-4 py-3"
-							@click="isMoreOpen = false"
+							type="button"
+							class="cb-no-select flex items-center gap-3 rounded-xl border border-cb-quinary-900 bg-cb-primary-700/10 px-4 py-3 text-sm font-semibold text-white transition hover:bg-cb-primary-900/70"
+							@click="openNewsCreationModal"
 						>
-							<ModalNewsCreation :show-label="true" />
-						</div>
+							<IconComeback class="h-5 w-5" />
+							Nouveau comeback
+						</button>
 					</div>
 				</div>
 			</template>
 		</UModal>
+
+		<ModalNewsCreation ref="newsCreationModal" :hide-trigger="true" />
 	</div>
 </template>

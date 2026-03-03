@@ -8,6 +8,8 @@
 	// Timestamp pour forcer le refresh
 	const refreshTimestamp = ref(Date.now())
 	const musicsTimestamp = ref(Date.now())
+	const fallbackDiscoverMusicImage = '/slider-placeholder.webp'
+	const failedDiscoverMusicImages = ref<Record<string, boolean>>({})
 
 	// SSR-compatible data fetching avec useFetch + refresh pour temps réel
 	const {
@@ -94,7 +96,21 @@
 	)
 
 	const reloadDiscoverMusic = () => {
+		failedDiscoverMusicImages.value = {}
 		musicsTimestamp.value = Date.now()
+	}
+
+	const getDiscoverMusicKey = (music: Music) =>
+		String(music.id_youtube_music ?? music.id ?? music.name ?? '')
+
+	const getDiscoverMusicImage = (music: Music): string => {
+		const key = getDiscoverMusicKey(music)
+		if (failedDiscoverMusicImages.value[key]) return fallbackDiscoverMusicImage
+		return getMusicThumbnail(music) || fallbackDiscoverMusicImage
+	}
+
+	const onDiscoverMusicImageError = (music: Music) => {
+		failedDiscoverMusicImages.value[getDiscoverMusicKey(music)] = true
 	}
 
 	const getMusicThumbnail = (music: Music): string => {
@@ -304,10 +320,11 @@
 									@click="playDiscoverMusic(music)"
 								>
 									<NuxtImg
-										:src="getMusicThumbnail(music)"
+										:src="getDiscoverMusicImage(music)"
 										:alt="music.name ?? ''"
 										format="webp"
 										class="h-full w-full object-cover"
+										@error="onDiscoverMusicImageError(music)"
 									/>
 									<div
 										class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent px-2 pb-2 pt-6"
@@ -336,7 +353,7 @@
 									:artist-name="music.artists?.[0]?.name ?? ''"
 									:music-id="music.id_youtube_music ?? ''"
 									:music-name="music.name ?? ''"
-									:music-image="getMusicThumbnail(music)"
+									:music-image="getDiscoverMusicImage(music)"
 									:duration="music?.duration?.toString() || '0'"
 									class="bg-cb-quinary-900 w-full"
 									:class="{

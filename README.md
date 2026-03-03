@@ -4,9 +4,11 @@ Plateforme française de suivi des sorties musicales K-pop et artistes asiatique
 
 ## Technologies
 
-- **Frontend**: Nuxt 3, Vue 3, TypeScript, Tailwind CSS 4, Nuxt UI
-- **Backend**: Nitro (serveur Nuxt), Supabase (PostgreSQL, Auth, Storage)
-- **State**: Pinia avec persistance localStorage
+- **Frontend** : Nuxt 4, Vue 3, TypeScript, Tailwind CSS 4, Nuxt UI v4
+- **Backend** : Nitro (serveur Nuxt), Supabase (PostgreSQL, Auth, Storage)
+- **State** : Pinia avec persistance localStorage
+- **Validation** : Zod
+- **PWA** : @vite-pwa/nuxt (Workbox, offline, auto-update)
 
 ## Fonctionnalités
 
@@ -15,7 +17,7 @@ Plateforme française de suivi des sorties musicales K-pop et artistes asiatique
 - Gestion complète (CRUD) avec liens sociaux et plateformes
 - Relations entre artistes (groupes, membres, sous-unités)
 - Recherche full-text avec Supabase
-- Associations avec labels/agences
+- Associations avec labels/agences/companies
 
 ### Releases & Musiques
 
@@ -30,6 +32,16 @@ Plateforme française de suivi des sorties musicales K-pop et artistes asiatique
 - Partage public des rankings
 - Exploration des rankings de la communauté
 
+### News
+
+- Publication d'actualités liées aux artistes
+- Gestion contributeur/admin
+
+### Dashboard
+
+- Statistiques générales (artistes, releases, musiques)
+- Outils d'administration (ban, nettoyage orphelins)
+
 ### Authentification
 
 - OAuth Google via Supabase Auth
@@ -39,7 +51,7 @@ Plateforme française de suivi des sorties musicales K-pop et artistes asiatique
 ## Installation
 
 ```bash
-# Prérequis: Node.js 18+
+# Prérequis : Node.js 18+
 npm install
 
 # Variables d'environnement
@@ -55,35 +67,44 @@ npm run build
 ## Variables d'Environnement
 
 ```bash
-SUPABASE_URL=           # URL du projet Supabase
-SUPABASE_KEY=           # Clé anon Supabase
-SUPABASE_SECRET_KEY=    # Clé service role (server-side)
-YOUTUBE_API_KEY=        # API YouTube Data v3
+SUPABASE_URL=                          # URL du projet Supabase
+NUXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=  # Clé publique Supabase
+NUXT_PUBLIC_SUPABASE_SECRET_KEY=       # Clé service role (server-side)
+YOUTUBE_API_KEY=                       # API YouTube Data v3
 ```
 
 ## Structure
 
 ```
 app/
-├── components/       # Composants Vue (Card/, Modal/, Form/, Icon/)
+├── components/       # Composants Vue (Card/, Modal/, Form/, Icon/, Skeleton/, Comeback/)
 ├── composables/      # Logique réutilisable
 │   ├── Supabase/    # Opérations DB (useSupabase[Table].ts)
+│   │   └── helpers/ # Queries, CRUD, relations par entité
 │   └── auth/        # Authentification
 ├── pages/           # Routes (file-based routing)
 ├── middleware/      # Guards (auth.ts, admin.ts)
 ├── stores/          # Pinia (user.ts)
-└── types/           # TypeScript (supabase.ts généré)
+└── types/           # TypeScript (index.ts, supabase.ts généré)
 
 server/
 ├── api/             # Endpoints Nitro
 │   ├── admin/       # Endpoints admin protégés
 │   ├── artists/     # /api/artists/*
 │   ├── releases/    # /api/releases/*
-│   └── musics/      # /api/musics/*
-└── utils/
-    ├── supabase.ts  # Client Supabase (service role)
-    ├── auth.ts      # Helpers auth (requireAdmin, requireAuth)
-    └── validation.ts # Validation des inputs
+│   ├── musics/      # /api/musics/*
+│   ├── calendar/    # /api/calendar/*
+│   ├── dashboard/   # /api/dashboard/*
+│   └── news/        # /api/news/*
+├── utils/
+│   ├── supabase.ts     # Client Supabase (service role, singleton)
+│   ├── auth.ts         # requireAuth, requireAdmin, requireContributor
+│   ├── validation.ts   # Validation des inputs
+│   ├── errorHandler.ts # Gestion d'erreurs Supabase/H3
+│   ├── transformers.ts # Transformation des données de jonction
+│   └── queryFilters.ts # Filtres réutilisables pour requêtes
+└── types/
+    └── api.ts          # Types serveur (Tables<T>, PaginatedResponse, etc.)
 ```
 
 ## Scripts
@@ -91,6 +112,8 @@ server/
 ```bash
 npm run dev          # Serveur de développement
 npm run build        # Build production
+npm run generate     # Génération statique
+npm run preview      # Preview du build
 npm run lint:fix     # ESLint + Prettier
 npm run format       # Prettier uniquement
 npm run typecheck    # Vérification TypeScript
@@ -99,13 +122,15 @@ npm run check        # Lint + Typecheck (CI)
 
 ## Stratégie de Rendu
 
-| Route                    | Mode | Cache |
-| ------------------------ | ---- | ----- |
-| `/`                      | ISR  | 1h    |
-| `/calendar`              | SSG  | 24h   |
-| `/dashboard/*`           | SPA  | -     |
-| `/api/releases/latest`   | API  | 1h    |
-| `/api/calendar/releases` | API  | 24h   |
+| Route               | Mode | Cache |
+| -------------------- | ---- | ----- |
+| `/`                  | ISR  | 1h    |
+| `/calendar`          | SSG  | 24h   |
+| `/dashboard/*`       | SPA  | -     |
+| `/release/create`    | SPA  | -     |
+| `/authentification`  | SPA  | -     |
+| `/settings/*`        | SSR  | -     |
+| `/api/**`            | API  | 5min  |
 
 ## Licence
 

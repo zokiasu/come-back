@@ -65,8 +65,16 @@
 	})
 
 	const idYoutubeVideo = useIdYoutubeVideo()
+	const fallbackMusicImage = '/slider-placeholder.webp'
 
 	const displayVideo = ref(false)
+	const hasMusicImageError = ref(false)
+
+	const resolvedMusicImage = computed(() => {
+		if (hasMusicImageError.value) return fallbackMusicImage
+		if (typeof musicImage === 'string' && musicImage.trim().length > 0) return musicImage
+		return fallbackMusicImage
+	})
 
 	const { addToPlaylist } = useYouTube()
 
@@ -74,8 +82,19 @@
 		const mainArtistName =
 			artists && artists.length > 0 ? artists[0]?.name : artistName || ''
 
-		addToPlaylist(videoId, musicName, mainArtistName ?? '', musicImage)
+		addToPlaylist(videoId, musicName, mainArtistName ?? '', resolvedMusicImage.value)
 	}
+
+	const onMusicImageError = () => {
+		hasMusicImageError.value = true
+	}
+
+	watch(
+		() => musicImage,
+		() => {
+			hasMusicImageError.value = false
+		},
+	)
 
 	const convertDuration = (duration: string | number) => {
 		const durationNumber = typeof duration === 'string' ? parseInt(duration) : duration
@@ -103,11 +122,11 @@
 		>
 			<div class="hidden shrink-0 md:block">
 				<NuxtImg
-					v-if="musicImage != null || musicImage != undefined"
 					format="webp"
 					:alt="musicName"
-					:src="musicImage"
+					:src="resolvedMusicImage"
 					class="shadow-cb-secondary-950 h-10 w-10 rounded shadow"
+					@error="onMusicImageError"
 				/>
 			</div>
 

@@ -12,7 +12,9 @@
 	const title = ref<string>('Artist Page')
 	const description = ref<string>('Artist')
 	const imageBackground = ref<string | null>(null)
+	const fallbackBackground = '/slider-placeholder.webp'
 	const imageBackLoaded = ref<boolean>(false)
+	const imageBackError = ref<boolean>(false)
 	const showMultipleArtistModal = ref(false)
 	const { open: openAuthModal } = useAuthModal()
 
@@ -44,6 +46,29 @@
 			imageBackground.value = artist.value.image
 		}
 	})
+
+	watch(
+		() => imageBackground.value,
+		() => {
+			imageBackLoaded.value = false
+			imageBackError.value = false
+		},
+		{ immediate: true },
+	)
+
+	const heroBackgroundSrc = computed(
+		() => (imageBackError.value ? fallbackBackground : imageBackground.value) || fallbackBackground,
+	)
+
+	function onHeroImageLoad() {
+		imageBackLoaded.value = true
+	}
+
+	function onHeroImageError() {
+		// Retry once with a local placeholder if the remote image fails.
+		imageBackLoaded.value = false
+		imageBackError.value = true
+	}
 
 	const members = computed(
 		() =>
@@ -133,18 +158,23 @@
 		<section
 			class="background-top relative h-[30vh] overflow-hidden bg-cover bg-no-repeat lg:h-[40vh] xl:h-[50vh] 2xl:h-[70vh]"
 		>
+			<div
+				class="absolute inset-0 bg-[url('/slider-placeholder.webp')] bg-cover bg-center bg-no-repeat transition-opacity duration-500"
+				:class="imageBackLoaded ? 'opacity-0' : 'opacity-100'"
+			/>
 			<NuxtImg
-				v-if="imageBackground"
-				:src="imageBackground"
+				:src="heroBackgroundSrc"
 				:alt="artist?.name + '_background'"
 				format="webp"
-				loading="lazy"
-				class="absolute inset-0 h-full w-full object-cover"
-				@load="imageBackLoaded = true"
+				loading="eager"
+				class="absolute inset-0 h-full w-full object-cover transition-opacity duration-500"
+				:class="imageBackLoaded ? 'opacity-100' : 'opacity-0'"
+				@load="onHeroImageLoad"
+				@error="onHeroImageError"
 			/>
 			<div
 				class="absolute inset-0 flex items-end p-5 transition-all duration-500 ease-in-out lg:p-10 xl:p-14 2xl:px-32"
-				:class="imageBackLoaded ? 'bg-cb-secondary-950/60' : 'bg-cb-quinary-900'"
+				:class="imageBackLoaded ? 'bg-cb-secondary-950/60' : 'bg-cb-secondary-950/75'"
 			>
 				<div class="space-y-5 lg:container lg:mx-auto lg:px-5">
 					<SkeletonDefault v-if="isFetchingArtist" class="h-14 w-80 rounded" />

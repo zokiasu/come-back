@@ -9,12 +9,18 @@
 		showLabel?: boolean
 		buttonClass?: string
 		buttonSize?: 'xs' | 'sm' | 'md' | 'lg'
+		hideTrigger?: boolean
 	}
+
+	const emit = defineEmits<{
+		(e: 'trigger'): void
+	}>()
 
 	const props = withDefaults(defineProps<NewsCreationProps>(), {
 		showLabel: false,
 		buttonClass: '',
 		buttonSize: 'sm',
+		hideTrigger: false,
 	})
 
 	const toast = useToast()
@@ -123,6 +129,15 @@
 		isOpen.value = false
 	}
 
+	const openModal = () => {
+		isOpen.value = true
+	}
+
+	defineExpose({
+		openModal,
+		closeModal,
+	})
+
 	watchEffect(() => {
 		if (searchArtist.value.length > 2) {
 			debouncedSearch(searchArtist.value)
@@ -150,21 +165,23 @@
 			header: 'bg-cb-secondary-950',
 		}"
 	>
-	<UButton
-		variant="soft"
-		:size="props.buttonSize"
-		title="New Comeback"
-		:class="[
-			'bg-cb-primary-700/10 lg:bg-cb-primary-900/50 lg:hover:bg-cb-primary-900/70 items-center justify-center rounded text-white lg:h-full lg:cursor-pointer lg:px-5',
-			props.buttonClass,
-		]"
-	>
-		<span class="flex items-center justify-center gap-2">
-			<IconComeback class="size-5" />
-			<p v-if="props.showLabel" class="text-sm font-semibold">Nouveau comeback</p>
-			<p v-else class="hidden lg:block lg:text-nowrap">New Comeback</p>
-		</span>
-	</UButton>
+		<UButton
+			v-if="!props.hideTrigger"
+			variant="soft"
+			:size="props.buttonSize"
+			title="New Comeback"
+			:class="[
+				'bg-cb-primary-700/10 lg:bg-cb-primary-900/50 lg:hover:bg-cb-primary-900/70 items-center justify-center rounded text-white lg:h-full lg:cursor-pointer lg:px-5',
+				props.buttonClass,
+			]"
+			@click="emit('trigger')"
+		>
+			<span class="flex items-center justify-center gap-2">
+				<IconComeback class="size-5" />
+				<p v-if="props.showLabel" class="text-sm font-semibold">Nouveau comeback</p>
+				<p v-else class="hidden lg:block lg:text-nowrap">New Comeback</p>
+			</span>
+		</UButton>
 
 		<template #body>
 			<div class="bg-cb-secondary-950 space-y-3 overflow-y-auto">
