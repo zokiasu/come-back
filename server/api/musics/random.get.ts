@@ -29,46 +29,55 @@ export default defineEventHandler(async (event) => {
 
 		// 2. Générer un offset aléatoire
 		const maxOffset = Math.max(0, count - limit * 3)
-		const randomOffset = Math.floor(Math.random() * maxOffset)
+		const randomOffset =
+			maxOffset > 0 ? Math.floor(Math.random() * (maxOffset + 1)) : 0
 
-		// 3. Une seule requête avec jointures légères (artistes et releases)
-		// Appliquer les mêmes filtres que pour le count
-		const { data, error } = await supabase
-			.from('musics')
-			.select(
-				`
-				id,
-				name,
-				id_youtube_music,
-				duration,
-				thumbnails,
-				type,
-				date,
-				artists:music_artists!inner(
-					artist:artists!inner(id, name, image)
-				),
-				releases:music_releases(
-					release:releases(id, name)
+		const fetchChunk = async (offset: number) => {
+			const { data, error } = await supabase
+				.from('musics')
+				.select(
+					`
+					id,
+					name,
+					id_youtube_music,
+					duration,
+					thumbnails,
+					type,
+					date,
+					artists:music_artists!inner(
+						artist:artists!inner(id, name, image)
+					),
+					releases:music_releases(
+						release:releases(id, name)
+					)
+				`,
 				)
-			`,
-			)
-			.not('id_youtube_music', 'is', null)
-			.eq('artists.artist.verified', true)
-			.not('name', 'ilike', '%Inst.%')
-			.not('name', 'ilike', '%Instrumental%')
-			.not('name', 'ilike', '%Sped Up%')
-			.not('name', 'ilike', '%(live)%')
-			.not('name', 'ilike', '%[live]%')
-			.not('name', 'ilike', '% - Live%')
-			.range(randomOffset, randomOffset + limit * 3 - 1)
-			.order('date', { ascending: false })
+				.not('id_youtube_music', 'is', null)
+				.eq('artists.artist.verified', true)
+				.not('name', 'ilike', '%Inst.%')
+				.not('name', 'ilike', '%Instrumental%')
+				.not('name', 'ilike', '%Sped Up%')
+				.not('name', 'ilike', '%(live)%')
+				.not('name', 'ilike', '%[live]%')
+				.not('name', 'ilike', '% - Live%')
+				.range(offset, offset + limit * 3 - 1)
+				.order('date', { ascending: false })
 
-		if (error) {
-			console.error('Error fetching random musics:', error)
-			throw handleSupabaseError(error, 'musics.random')
+			if (error) {
+				console.error('Error fetching random musics:', error)
+				throw handleSupabaseError(error, 'musics.random')
+			}
+
+			return data || []
 		}
 
-		if (!data || data.length === 0) {
+		// 3. Requête principale + fallback offset 0 pour éviter les fenêtres vides.
+		let data = await fetchChunk(randomOffset)
+		if (data.length === 0 && randomOffset > 0) {
+			data = await fetchChunk(0)
+		}
+
+		if (data.length === 0) {
 			return []
 		}
 

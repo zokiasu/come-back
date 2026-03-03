@@ -7,143 +7,137 @@
 		artists?: Artist[] | undefined
 	}>()
 
-	function daysUntil(futureDate: Date) {
+	const fallbackArtistImage = '/default.png'
+	const failedArtistImages = ref<Record<string, boolean>>({})
+
+	const parsedDate = computed(() => new Date(props.date))
+	const hasValidDate = computed(() => !isNaN(parsedDate.value.getTime()))
+
+	const dayDelta = computed(() => {
+		if (!hasValidDate.value) return null
+
 		const today = new Date()
-		const future = new Date(futureDate)
+		const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+		const target = parsedDate.value
+		const targetOnly = new Date(target.getFullYear(), target.getMonth(), target.getDate())
 
-		// Compare only the date part, not the time
-		const todayDateOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate())
-		const futureDateOnly = new Date(
-			future.getFullYear(),
-			future.getMonth(),
-			future.getDate(),
-		)
+		return Math.ceil((targetOnly.getTime() - todayOnly.getTime()) / (1000 * 3600 * 24))
+	})
 
-		const differenceInTime = futureDateOnly.getTime() - todayDateOnly.getTime()
-		const differenceInDays = differenceInTime / (1000 * 3600 * 24)
+	const statusLabel = computed(() => {
+		if (dayDelta.value === null) return 'Unknown'
+		if (dayDelta.value === 0) return 'Today'
+		if (dayDelta.value > 0) return `D-${dayDelta.value}`
+		return 'Outed'
+	})
 
-		return Math.ceil(differenceInDays)
-	}
+	const statusClass = computed(() => {
+		if (dayDelta.value === null) return 'border-zinc-500/50 bg-zinc-500/20 text-zinc-100'
+		if (dayDelta.value === 0)
+			return 'border-emerald-400/40 bg-emerald-400/20 text-emerald-100'
+		if (dayDelta.value > 0) return 'border-cb-primary-900/70 bg-cb-primary-900/30 text-white'
+		return 'border-zinc-500/50 bg-zinc-500/20 text-zinc-100'
+	})
 
-	function isDatePassed(date: Date) {
-		const today = new Date()
-		const inputDate = new Date(date)
-		if (isNaN(inputDate.getTime())) {
-			throw new TypeError('Invalid date format')
-		}
-
-		// Compare only the date part, not the time
-		const todayDateOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate())
-		const inputDateOnly = new Date(
-			inputDate.getFullYear(),
-			inputDate.getMonth(),
-			inputDate.getDate(),
-		)
-
-		return inputDateOnly.getTime() < todayDateOnly.getTime()
-	}
-
-	function isSameDate(date: Date) {
-		const today = new Date()
-		const inputDate = new Date(date)
-		if (isNaN(inputDate.getTime())) {
-			throw new TypeError('Invalid date format')
-		}
-
-		return (
-			inputDate.getFullYear() === today.getFullYear() &&
-			inputDate.getMonth() === today.getMonth() &&
-			inputDate.getDate() === today.getDate()
-		)
-	}
-
-	const handleError = (artistName: string) => {
-		console.error('Failed to load image', artistName)
-	}
-
-	const formatDateForTooltip = (date: string) => {
-		const options: Intl.DateTimeFormatOptions = {
-			day: '2-digit',
-			month: '2-digit',
+	const formattedDate = computed(() => {
+		if (!hasValidDate.value) return 'Unknown date'
+		return parsedDate.value.toLocaleDateString('en-US', {
+			day: 'numeric',
+			month: 'short',
 			year: 'numeric',
-		}
-		return new Date(date).toLocaleDateString('fr-FR', options)
+		})
+	})
+
+	const displayArtists = computed(() =>
+		(props.artists ?? []).filter(
+			(artist): artist is Artist => Boolean(artist && typeof artist.name === 'string'),
+		),
+	)
+	const artistCountLabel = computed(() => {
+		if (displayArtists.value.length === 0) return 'Unknown artist'
+		if (displayArtists.value.length === 1) return '1 artist'
+		return `${displayArtists.value.length} artists`
+	})
+
+	const headlineArtists = computed(() => displayArtists.value.slice(0, 3))
+
+	const getArtistImageKey = (artist: Artist, index: number) =>
+		String(artist.id ?? `${artist.name}-${index}`)
+
+	const getArtistImage = (artist: Artist, index: number) => {
+		const key = getArtistImageKey(artist, index)
+		if (failedArtistImages.value[key]) return fallbackArtistImage
+		if (typeof artist.image === 'string' && artist.image.trim().length > 0) return artist.image
+		return fallbackArtistImage
+	}
+
+	const handleArtistImageError = (artist: Artist, index: number) => {
+		failedArtistImages.value[getArtistImageKey(artist, index)] = true
 	}
 </script>
 
 <template>
-	<div
-		class="flex w-full justify-between overflow-hidden rounded transition-all duration-500 ease-in-out"
+	<article
+		class="group flex h-full min-h-28 flex-col overflow-hidden rounded-2xl border border-cb-quinary-900 bg-cb-quinary-900/80 transition-all duration-300 hover:border-cb-tertiary-300/40"
 	>
-		<section
-			v-if="props.artists"
-			class="bg-cb-quinary-900 h-full w-full shrink space-y-1 overflow-hidden p-2"
-		>
-			<div class="flex flex-wrap gap-1">
-				<NuxtLink
-					v-for="(artistObject, index) in props.artists"
-					:key="artistObject.id"
-					:to="`/artist/${artistObject.id}`"
-					class="group flex items-center gap-2"
-				>
-					<div class="relative hidden lg:block">
-						<NuxtImg
-							:src="artistObject.image ?? undefined"
-							:alt="artistObject.name + 's picture'"
-							format="webp"
-							class="h-4 w-4 rounded-full object-cover"
-							@error="handleError(artistObject.name)"
-						/>
-					</div>
-					<h2
-						class="group-hover:text-cb-tertiary-100 truncate text-xs font-semibold transition-all duration-300 ease-in-out lg:text-sm"
-					>
-						{{ artistObject.name }}
-						<span
-							v-if="props.artists.length > 1 && index != props.artists.length - 1"
-							class="group-hover:text-cb-tertiary-200"
+		<div class="flex items-start justify-between gap-2 px-3 pb-2 pt-3">
+			<div class="min-w-0 space-y-1">
+				<div class="group/artist-row flex items-center gap-2">
+					<div class="flex -space-x-1.5">
+						<NuxtLink
+							v-for="(artist, index) in headlineArtists"
+							:key="String(artist.id ?? `${artist.name}-${index}`)"
+							:to="`/artist/${artist.id}`"
+							class="ring-cb-secondary-950 block overflow-hidden rounded-full ring-2 transition-all duration-200 group-hover/artist-row:ring-cb-primary-900/70"
 						>
-							,
-						</span>
-					</h2>
-				</NuxtLink>
+							<NuxtImg
+								:src="getArtistImage(artist, index)"
+								:alt="artist.name + ' picture'"
+								format="webp"
+								class="h-6 w-6 object-cover"
+								@error="handleArtistImageError(artist, index)"
+							/>
+						</NuxtLink>
+					</div>
+					<div class="truncate text-sm font-semibold text-white">
+						<template v-if="displayArtists.length">
+							<template v-for="(artist, index) in displayArtists" :key="artist.id ?? artist.name">
+								<NuxtLink
+									v-if="artist.id"
+									:to="`/artist/${artist.id}`"
+									class="text-white transition-colors duration-200 hover:text-cb-primary-900 group-hover/artist-row:text-cb-primary-900"
+								>
+									{{ artist.name }}
+								</NuxtLink>
+								<span v-else>{{ artist.name }}</span>
+								<span v-if="index < displayArtists.length - 1">, </span>
+							</template>
+						</template>
+						<span v-else>Unknown artist</span>
+					</div>
+				</div>
+				<p class="text-cb-tertiary-300 text-[11px] font-medium uppercase tracking-wide">
+					{{ artistCountLabel }}
+				</p>
 			</div>
-			<p class="truncate text-xs">{{ props.message }}</p>
-		</section>
 
-		<section
-			class="bg-cb-quaternary-950 -mt-0.5 flex min-w-[18%] items-center justify-center px-3 py-1 text-center md:mt-0 md:py-0"
+			<span
+				class="rounded-full border px-2 py-0.5 text-[11px] font-semibold whitespace-nowrap"
+				:class="statusClass"
+			>
+				{{ statusLabel }}
+			</span>
+		</div>
+
+		<p class="line-clamp-2 px-3 pb-3 text-xs leading-5 text-cb-tertiary-100/95">
+			{{ props.message || 'No details provided.' }}
+		</p>
+
+		<div
+			class="mt-auto flex items-center justify-between border-t border-cb-quinary-900 bg-cb-secondary-950/40 px-3 py-2 text-[11px]"
 		>
-			<p
-				v-if="!isDatePassed(new Date(props.date)) && !isSameDate(new Date(props.date))"
-				class="my-auto text-lg font-bold whitespace-nowrap select-none lg:text-xl"
-				:title="formatDateForTooltip(props.date)"
-			>
-				D-{{ daysUntil(new Date(props.date)) }}
-			</p>
-			<p
-				v-if="isSameDate(new Date(props.date))"
-				class="text-cb-tertiary-100 my-auto font-medium whitespace-nowrap select-none"
-				:title="formatDateForTooltip(props.date)"
-			>
-				Today
-			</p>
-			<p
-				v-if="!isSameDate(new Date(props.date)) && isDatePassed(new Date(props.date))"
-				class="text-cb-tertiary-100 my-auto font-medium whitespace-nowrap select-none"
-				:title="formatDateForTooltip(props.date)"
-			>
-				Outed
-			</p>
-		</section>
-	</div>
+			<p class="text-cb-tertiary-300 font-medium uppercase tracking-wide">Release date</p>
+			<p class="font-semibold text-white">{{ formattedDate }}</p>
+		</div>
+	</article>
 </template>
-
-<style>
-	.shadowCard {
-		--tw-shadow: 5px 5px 5px 2px rgba(0, 0, 0, 0.3);
-		box-shadow:
-			var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000),
-			var(--tw-shadow);
-	}
-</style>

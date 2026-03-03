@@ -15,6 +15,8 @@
 	const imageLoaded = ref(false)
 	const isPlaying = ref(false)
 	const showThumbnail = ref(true)
+	const isThumbsScrolling = ref(false)
+	let thumbsScrollTimeout: ReturnType<typeof setTimeout> | null = null
 	// @ts-expect-error - YT namespace from YouTube IFrame API
 	const player = ref<YT.Player | null>(null)
 	const playerContainer = useTemplateRef('playerContainer')
@@ -56,6 +58,14 @@
 
 	const onThumbnailLeave = () => {
 		hoveredMVIndex.value = null
+	}
+
+	const onThumbsScroll = () => {
+		isThumbsScrolling.value = true
+		if (thumbsScrollTimeout) clearTimeout(thumbsScrollTimeout)
+		thumbsScrollTimeout = setTimeout(() => {
+			isThumbsScrolling.value = false
+		}, 700)
 	}
 
 	// Charger l'API YouTube
@@ -272,6 +282,9 @@
 		if (player.value) {
 			player.value.destroy()
 		}
+		if (thumbsScrollTimeout) {
+			clearTimeout(thumbsScrollTimeout)
+		}
 	})
 </script>
 
@@ -337,7 +350,11 @@
 		</div>
 
 		<!-- Thumbnails Navigation -->
-		<div class="flex justify-start space-x-3 overflow-x-auto p-1 pb-2 md:justify-center">
+		<div
+			class="scrollBarLight flex justify-start gap-3 overflow-x-auto p-1 pb-1"
+			:class="{ 'is-scrolling': isThumbsScrolling }"
+			@scroll.passive="onThumbsScroll"
+		>
 			<button
 				v-for="(mv, index) in mvs"
 				:key="mv.id"
@@ -406,7 +423,11 @@
 	<!-- Loading State -->
 	<div v-else class="space-y-4">
 		<SkeletonDefault class="aspect-video w-full rounded-lg" />
-		<div class="flex space-x-3">
+		<div
+			class="scrollBarLight flex space-x-3 overflow-x-auto pb-1"
+			:class="{ 'is-scrolling': isThumbsScrolling }"
+			@scroll.passive="onThumbsScroll"
+		>
 			<SkeletonDefault
 				v-for="i in 7"
 				:key="i"
