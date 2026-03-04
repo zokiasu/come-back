@@ -50,7 +50,11 @@
 	})
 
 	// Musiques aléatoires - client-only car changent à chaque visite
-	const { data: musics, pending: musicsFetching } = await useFetch(
+	const {
+		data: musics,
+		pending: musicsFetching,
+		error: musicsError,
+	} = await useFetch(
 		() => `/api/musics/random?_t=${musicsTimestamp.value}`,
 		{
 			default: () => [],
@@ -64,6 +68,8 @@
 		},
 	)
 
+	const discoverMusicAutoRetried = ref(false)
+
 	const {
 		data: mvs,
 		pending: mvsFetching,
@@ -73,9 +79,25 @@
 		query: { limit: 14 },
 	})
 
-	const comebacksToday = computed<News[]>(() => {
+	const isTodayOrFuture = (dateValue: string) => {
+		const date = new Date(dateValue)
+		if (isNaN(date.getTime())) return false
+		const today = new Date()
+		const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+		const dateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+		return dateOnly.getTime() >= todayOnly.getTime()
+	}
+
+	const upcomingComebacks = computed<News[]>(() => {
 		if (!comebacks.value) return []
-		return comebacks.value.filter((comeback) => {
+		return [...comebacks.value]
+			.filter((comeback) => isTodayOrFuture(comeback.date))
+			.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+	})
+
+	const comebacksToday = computed<News[]>(() => {
+		if (!upcomingComebacks.value) return []
+		return upcomingComebacks.value.filter((comeback) => {
 			const comebacksDate = new Date(comeback.date)
 			const today = new Date()
 			return (
@@ -85,6 +107,10 @@
 			)
 		})
 	})
+
+	const upcomingFutureCount = computed(() =>
+		Math.max(upcomingComebacks.value.length - comebacksToday.value.length, 0),
+	)
 
 	const artistsForCards = computed(() =>
 		(artists.value || []).map((artist) => ({
@@ -112,6 +138,17 @@
 	const onDiscoverMusicImageError = (music: Music) => {
 		failedDiscoverMusicImages.value[getDiscoverMusicKey(music)] = true
 	}
+
+	watch(
+		() => [musicsFetching.value, musics.value?.length ?? 0] as const,
+		([isPending, musicsCount]) => {
+			if (isPending) return
+			if (discoverMusicAutoRetried.value) return
+			if (musicsCount > 0) return
+			discoverMusicAutoRetried.value = true
+			reloadDiscoverMusic()
+		},
+	)
 
 	const getMusicThumbnail = (music: Music): string => {
 		const thumbnails = music.thumbnails
@@ -279,20 +316,63 @@
 		<HomeSlider :news-today="comebacksToday" />
 		<section class="mx-auto w-full max-w-[100rem] space-y-10 px-4 pb-12 pt-4 lg:px-8">
 			<div class="space-y-12">
-				<div class="space-y-4">
-					<h2 class="text-xl font-semibold">Comebacks Reported</h2>
-					<LazyComebackReported
-						v-if="comebacks.length > 0 && !newsFetching"
-						:comeback-list="comebacks"
-						:show-title="false"
-					/>
-					<div v-else-if="newsFetching" class="grid grid-cols-1 gap-5 xl:grid-cols-3">
-						<SkeletonDefault class="h-16 w-full rounded-lg" />
-						<SkeletonDefault class="h-16 w-full rounded-lg" />
-						<SkeletonDefault class="h-16 w-full rounded-lg" />
-						<SkeletonDefault class="h-16 w-full rounded-lg" />
-						<SkeletonDefault class="h-16 w-full rounded-lg" />
-						<SkeletonDefault class="h-16 w-full rounded-lg" />
+				<div class="rounded-3xl border border-cb-quinary-900 bg-cb-secondary-950/70 p-4 md:p-6">
+					<div class="space-y-4">
+						<div class="flex flex-wrap items-center justify-between gap-3">
+							<div class="space-y-1">
+								<h2 class="text-xl font-semibold md:text-2xl">Comebacks Reported</h2>
+								<p class="text-cb-tertiary-300 text-xs md:text-sm">
+									Latest community reports, sorted by comeback date.
+								</p>
+							</div>
+							<div class="flex flex-wrap items-center justify-end gap-2">
+								<span
+									class="rounded-full border border-cb-quinary-900 bg-cb-quinary-900/70 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-cb-tertiary-200"
+								>
+									Community feed
+								</span>
+								<span
+									class="hidden rounded-full border border-cb-primary-900/60 bg-cb-primary-900/25 px-2.5 py-1 text-[11px] font-semibold text-cb-tertiary-100 md:inline-flex"
+								>
+									Upcoming: {{ upcomingFutureCount }}
+								</span>
+								<span
+									class="hidden rounded-full border border-emerald-400/30 bg-emerald-400/15 px-2.5 py-1 text-[11px] font-semibold text-emerald-100 md:inline-flex"
+								>
+									Today: {{ comebacksToday.length }}
+								</span>
+							</div>
+						</div>
+
+						<LazyComebackReported
+							v-if="upcomingComebacks.length > 0 && !newsFetching"
+							:comeback-list="upcomingComebacks"
+							:show-title="false"
+						/>
+
+						<div
+							v-else-if="newsFetching"
+							class="grid grid-cols-1 gap-3 md:grid-cols-2 2xl:grid-cols-3"
+						>
+							<SkeletonDefault class="h-28 w-full rounded-2xl" />
+							<SkeletonDefault class="h-28 w-full rounded-2xl" />
+							<SkeletonDefault class="h-28 w-full rounded-2xl" />
+							<SkeletonDefault class="h-28 w-full rounded-2xl" />
+							<SkeletonDefault class="h-28 w-full rounded-2xl" />
+							<SkeletonDefault class="h-28 w-full rounded-2xl" />
+						</div>
+
+						<div
+							v-else
+							class="border-cb-quinary-900 bg-cb-quinary-900/60 rounded-2xl border p-6 text-center"
+						>
+							<p class="text-cb-tertiary-100 text-sm font-semibold">
+								No comebacks reported yet.
+							</p>
+							<p class="text-cb-tertiary-300 mt-1 text-xs">
+								New community updates will appear here automatically.
+							</p>
+						</div>
 					</div>
 				</div>
 
@@ -375,6 +455,25 @@
 							<SkeletonDefault class="h-16 w-full rounded-lg" />
 							<SkeletonDefault class="h-16 w-full rounded-lg" />
 							<SkeletonDefault class="h-16 w-full rounded-lg" />
+						</div>
+						<div
+							v-else
+							class="border-cb-quinary-900 bg-cb-quinary-900/60 rounded-2xl border p-4 text-center"
+						>
+							<p class="text-cb-tertiary-100 text-sm font-semibold">
+								Unable to load Discover Music.
+							</p>
+							<p class="text-cb-tertiary-300 mt-1 text-xs">
+								{{ musicsError ? 'A temporary error occurred.' : 'No music available right now.' }}
+							</p>
+							<UButton
+								label="Retry"
+								variant="soft"
+								size="sm"
+								class="mt-3 bg-cb-quinary-900 hover:bg-cb-quinary-900/80 text-white"
+								icon="i-material-symbols-refresh"
+								@click="reloadDiscoverMusic"
+							/>
 						</div>
 					</div>
 					<template #fallback>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+	import { useMediaQuery } from '@vueuse/core'
 	import type { News } from '~/types'
 
 	const props = withDefaults(
@@ -12,49 +13,67 @@
 	)
 
 	const displayAll = ref(false)
-	const maxDisplay = ref(9)
+	const isDesktop = useMediaQuery('(min-width: 768px)')
+	const collapsedDisplayCount = computed(() => (isDesktop.value ? 6 : 3))
 
 	const comebackToDisplay = computed(() => {
 		return displayAll.value
 			? props.comebackList
-			: props.comebackList.slice(0, maxDisplay.value)
+			: props.comebackList.slice(0, collapsedDisplayCount.value)
 	})
 
 	const toggleDisplayAll = () => {
 		displayAll.value = !displayAll.value
 	}
+
+	const remainingCount = computed(() =>
+		Math.max(props.comebackList.length - collapsedDisplayCount.value, 0),
+	)
 </script>
 
 <template>
-	<div class="space-y-2">
+	<div class="space-y-4">
 		<p v-if="props.showTitle" class="text-sm font-semibold uppercase">Comeback reported</p>
+
 		<div
 			v-if="props.comebackList.length"
-			class="mb-5 grid grid-cols-1 gap-2 md:grid-cols-2 2xl:grid-cols-3"
+			class="space-y-3"
 		>
-			<CardNews
-				v-for="comeback in comebackToDisplay"
-				:key="comeback.id"
-				:message="comeback.message"
-				:date="comeback.date"
-				:artists="comeback.artists"
-			/>
+			<div class="grid grid-cols-1 gap-3 md:grid-cols-2 2xl:grid-cols-3">
+				<CardNews
+					v-for="comeback in comebackToDisplay"
+					:key="comeback.id"
+					:message="comeback.message"
+					:date="comeback.date"
+					:artists="comeback.artists"
+				/>
+			</div>
 		</div>
-		<div v-else class="grid grid-cols-1 gap-2 py-5 md:grid-cols-2 2xl:grid-cols-3">
+
+		<div v-else class="grid grid-cols-1 gap-3 py-1 md:grid-cols-2 2xl:grid-cols-3">
 			<SkeletonDefault
-				v-for="i in maxDisplay"
+				v-for="i in collapsedDisplayCount"
 				:key="`comeback_skeleton_` + i"
-				class="h-12 rounded"
+				class="h-28 rounded-2xl"
 			/>
 		</div>
-		<div v-if="props.comebackList.length > maxDisplay" class="flex w-full justify-center">
+
+		<div
+			v-if="props.comebackList.length > collapsedDisplayCount"
+			class="flex w-full justify-center pt-1"
+		>
 			<button
 				type="button"
-				class="border-cb-tertiary-200 flex w-fit items-center gap-1 rounded border p-1 font-semibold"
+				class="group border-cb-quinary-900 flex w-fit items-center gap-2 rounded-full border bg-cb-quinary-900/70 px-3 py-1.5 text-xs font-semibold transition hover:border-cb-tertiary-300/70 hover:bg-cb-quinary-900"
 				@click="toggleDisplayAll"
 			>
-				<IconPlus v-if="!displayAll" class="mx-auto h-3 w-3" />
-				<IconMinus v-else class="mx-auto h-3 w-3" />
+				<span v-if="displayAll">Show less</span>
+				<span v-else>Show {{ remainingCount }} more</span>
+				<UIcon
+					name="i-heroicons-chevron-down"
+					class="h-3.5 w-3.5 transition-transform duration-300"
+					:class="displayAll ? 'rotate-180' : 'rotate-0'"
+				/>
 			</button>
 		</div>
 	</div>

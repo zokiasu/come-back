@@ -164,7 +164,9 @@ body {
 
 /* Personnalisation globale de la scrollbar */
 .scrollBarLight::-webkit-scrollbar {
-	width: 5px; /* Largeur de la scrollbar */
+	width: 5px; /* Largeur verticale */
+	height: 4px; /* Hauteur horizontale */
+	background: transparent;
 }
 
 /* Le fond de la track de la scrollbar (partie sur laquelle la thumb se déplace) */
@@ -174,12 +176,21 @@ body {
 
 /* La thumb de la scrollbar (la partie que l'on déplace) */
 .scrollBarLight::-webkit-scrollbar-thumb {
-	background: var(--color-tertiary); /* Couleur de la thumb */
-	border-radius: 2.5px; /* Arrondi les bords de la thumb pour un aspect plus doux */
+	background: var(--scrollbar-thumb-color, transparent);
+	border-radius: 9999px;
+	transition: background-color 0.2s ease;
 }
 
 /* Pour Firefox */
 .scrollBarLight {
+	--scrollbar-thumb-color: transparent;
 	scrollbar-width: thin; /* "auto" ou "thin" */
-	scrollbar-color: var(--color-tertiary) transparent; /* Couleur de la thumb et de la track */
+	scrollbar-color: var(--scrollbar-thumb-color) transparent;
+}
+
+.scrollBarLight:hover,
+.scrollBarLight:focus-within,
+.scrollBarLight:active,
+.scrollBarLight.is-scrolling {
+	--scrollbar-thumb-color: rgb(255 255 255 / 28%);
 }
