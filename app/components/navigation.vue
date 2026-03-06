@@ -24,6 +24,7 @@
 
 	const routeIsIndex = computed(() => route.name === 'index')
 	const routeIsCalendar = computed(() => route.name === 'calendar')
+	const routeIsMusic = computed(() => route.name === 'music')
 	const routeIsArtist = computed(() => route.name === 'artist')
 
 	const routeIsDashboard = computed(() =>
@@ -90,6 +91,12 @@
 						:class="routeIsCalendar ? 'font-semibold text-white' : 'text-zinc-500'"
 					>
 						Calendar
+					</NuxtLink>
+					<NuxtLink
+						:to="`/music`"
+						:class="routeIsMusic ? 'font-semibold text-white' : 'text-zinc-500'"
+					>
+						Music
 					</NuxtLink>
 					<NuxtLink
 						:to="`/artist`"

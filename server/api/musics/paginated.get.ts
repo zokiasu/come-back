@@ -6,9 +6,82 @@ import {
 } from '#server/utils/queryFilters'
 
 const ALLOWED_ORDER_COLUMNS = ['date', 'name', 'created_at', 'release_year'] as const
+type OrderColumn = (typeof ALLOWED_ORDER_COLUMNS)[number]
 type MusicWithRelations = Tables<'musics'> & {
 	artists?: Array<{ artist: Tables<'artists'> | null }>
 	releases?: Array<{ release: Tables<'releases'> | null }>
+}
+
+type TransformedMusic = MusicWithRelations & {
+	artists: Tables<'artists'>[]
+	releases: Tables<'releases'>[]
+}
+
+const getComparableValue = (
+	music: TransformedMusic,
+	orderBy: OrderColumn,
+): string | number | null | undefined => {
+	switch (orderBy) {
+		case 'date':
+		case 'created_at':
+			return music[orderBy] || ''
+		case 'release_year':
+			return music.release_year
+		case 'name':
+			return music.name || ''
+	}
+}
+
+const sortTransformedMusics = (
+	musics: TransformedMusic[],
+	orderBy: OrderColumn,
+	orderDirection: 'asc' | 'desc',
+): TransformedMusic[] => {
+	return [...musics].sort((left, right) => {
+		const leftPrimary = getComparableValue(left, orderBy)
+		const rightPrimary = getComparableValue(right, orderBy)
+
+		if (leftPrimary !== rightPrimary) {
+			if (leftPrimary == null) return 1
+			if (rightPrimary == null) return -1
+
+			if (typeof leftPrimary === 'number' && typeof rightPrimary === 'number') {
+				return orderDirection === 'asc'
+					? leftPrimary - rightPrimary
+					: rightPrimary - leftPrimary
+			}
+
+			const primaryComparison =
+				String(leftPrimary).localeCompare(String(rightPrimary), 'fr-FR')
+			return orderDirection === 'asc' ? primaryComparison : -primaryComparison
+		}
+
+		const releaseComparison = (left.releases[0]?.name || '').localeCompare(
+			right.releases[0]?.name || '',
+			'fr-FR',
+		)
+		if (releaseComparison !== 0) {
+			return releaseComparison
+		}
+
+		const artistComparison = (left.artists[0]?.name || '').localeCompare(
+			right.artists[0]?.name || '',
+			'fr-FR',
+		)
+		if (artistComparison !== 0) {
+			return artistComparison
+		}
+
+		return (left.name || '').localeCompare(right.name || '', 'fr-FR')
+	})
+}
+
+const transformMusics = (musics: MusicWithRelations[]): TransformedMusic[] => {
+	return musics.map((music) => ({
+		...music,
+		artists: transformJunction(music.artists, 'artist'),
+		releases: transformJunction(music.releases, 'release'),
+	})) as TransformedMusic[]
 }
 
 export default defineEventHandler(async (event) => {
@@ -25,7 +98,7 @@ export default defineEventHandler(async (event) => {
 			query.orderBy as string,
 			ALLOWED_ORDER_COLUMNS,
 			'date',
-		)
+		) as OrderColumn
 		const orderDirection = validateOrderDirection(query.orderDirection as string, 'desc')
 		const ismv = query.ismv === 'true' ? true : query.ismv === 'false' ? false : undefined
 		const artistIds = validateArrayParam(
@@ -89,16 +162,11 @@ export default defineEventHandler(async (event) => {
 				)
 			}
 
-			const transformedData = musicsWithRelations.map((music) => ({
-				...music,
-				artists: transformJunction(music.artists, 'artist'),
-				releases: transformJunction(music.releases, 'release'),
-			}))
-
+			const transformedData = transformMusics(musicsWithRelations)
 			const totalPages = Math.ceil(Number(total) / limit)
 
 			return {
-				musics: transformedData,
+				musics: sortTransformedMusics(transformedData, orderBy, orderDirection),
 				total: Number(total),
 				page,
 				limit,
@@ -121,82 +189,169 @@ export default defineEventHandler(async (event) => {
 			musicIdsToFilter = [...new Set(musicArtistsData?.map((ma) => ma.music_id) || [])]
 		}
 
-		// Build base query for count. The verified artist filter targets the embedded
-		// artists relation, so the count query must join the same relation tree.
-		let countQuery = supabase
-			.from('musics')
-			.select(
-				`
-					id,
-					artists:music_artists!inner(
-						artist:artists!inner(id)
-					)
-				`,
-				{ count: 'exact', head: true },
+		const countSelect = `
+			id,
+			artists:music_artists!inner(
+				artist:artists!inner(id)
 			)
-
-		// Build base query for data
-		let dataQuery = supabase
-			.from('musics')
-			.select(
-				`
-				*,
-				artists:music_artists!inner(
-					artist:artists!inner(*)
-				),
-				releases:music_releases(
-					release:releases(*)
-				)
-			`,
+		`
+		const dataSelect = `
+			*,
+			artists:music_artists!inner(
+				artist:artists!inner(*)
+			),
+			releases:music_releases(
+				release:releases(*)
 			)
-		dataQuery = applyVerifiedArtistFilter(dataQuery)
-		countQuery = applyVerifiedArtistFilter(countQuery)
+		`
 
-		// Apply artist filter if specified
-		if (musicIdsToFilter !== undefined) {
-			if (musicIdsToFilter.length > 0) {
-				countQuery = countQuery.in('id', musicIdsToFilter)
-				dataQuery = dataQuery.in('id', musicIdsToFilter)
-			} else {
-				// Empty array means no results should be returned
-				countQuery = countQuery.eq('id', '00000000-0000-0000-0000-000000000000')
-				dataQuery = dataQuery.eq('id', '00000000-0000-0000-0000-000000000000')
+		const applySharedMusicFilters = <T>(query: T): T => {
+			let nextQuery = applyVerifiedArtistFilter(query) as T
+
+			if (musicIdsToFilter !== undefined) {
+				nextQuery =
+					musicIdsToFilter.length > 0
+						? ((nextQuery as T & { in: (column: string, values: string[]) => T }).in('id', musicIdsToFilter) as T)
+						: ((nextQuery as T & { eq: (column: string, value: string) => T }).eq('id', '00000000-0000-0000-0000-000000000000') as T)
 			}
+
+			nextQuery = applyMusicFilters(nextQuery, { search, years, ismv })
+			nextQuery = applyMusicNameExclusions(nextQuery)
+
+			return nextQuery
 		}
 
-		// Apply filters to both queries
-		countQuery = applyMusicFilters(countQuery, { search, years, ismv })
-		dataQuery = applyMusicFilters(dataQuery, { search, years, ismv })
+		const buildCountQuery = () =>
+			applySharedMusicFilters(
+				supabase.from('musics').select(countSelect, { count: 'exact', head: true }),
+			)
 
-		// Exclude instrumental, sped up, and live versions
-		countQuery = applyMusicNameExclusions(countQuery)
-		dataQuery = applyMusicNameExclusions(dataQuery)
+		const buildDataQuery = () =>
+			applySharedMusicFilters(supabase.from('musics').select(dataSelect))
 
-		// Apply sorting only to data query
-		dataQuery = dataQuery.order(orderBy, { ascending: orderDirection === 'asc' })
+		const pageQuery = buildDataQuery()
+			.order(orderBy, { ascending: orderDirection === 'asc' })
+			.range(offset, offset + limit - 1)
 
-		// Apply pagination only to data query
-		dataQuery = dataQuery.range(offset, offset + limit - 1)
+		const [countResult, dataResult] = await Promise.all([buildCountQuery(), pageQuery])
 
-		// Execute both queries in parallel
-		const [countResult, dataResult] = await Promise.all([countQuery, dataQuery])
-
-		// Check errors
 		if (countResult.error) throw countResult.error
 		if (dataResult.error) throw dataResult.error
 
-		// Transform data to extract junction relations
-		const transformedData = (dataResult.data || []).map((music) => ({
-			...music,
-			artists: transformJunction(music.artists, 'artist'),
-			releases: transformJunction(music.releases, 'release'),
-		}))
-
 		const total = countResult.count || 0
 		const totalPages = Math.ceil(total / limit)
+		const pageMusics = (dataResult.data || []) as MusicWithRelations[]
+		const transformedPageMusics = transformMusics(pageMusics)
+
+		if (orderBy !== 'date' || transformedPageMusics.length === 0) {
+			return {
+				musics: sortTransformedMusics(transformedPageMusics, orderBy, orderDirection),
+				total,
+				page,
+				limit,
+				totalPages,
+			}
+		}
+
+		if (transformedPageMusics.some((music) => !music.date)) {
+			return {
+				musics: sortTransformedMusics(transformedPageMusics, orderBy, orderDirection),
+				total,
+				page,
+				limit,
+				totalPages,
+			}
+		}
+
+		const orderedPageDates: string[] = []
+		const seenDates = new Set<string>()
+		for (const music of transformedPageMusics) {
+			if (music.date && !seenDates.has(music.date)) {
+				seenDates.add(music.date)
+				orderedPageDates.push(music.date)
+			}
+		}
+
+		const firstDate = orderedPageDates[0]
+		const lastDate = orderedPageDates[orderedPageDates.length - 1]
+
+		if (!firstDate || !lastDate) {
+			return {
+				musics: sortTransformedMusics(transformedPageMusics, orderBy, orderDirection),
+				total,
+				page,
+				limit,
+				totalPages,
+			}
+		}
+
+		const boundaryDates = [...new Set([firstDate, lastDate])]
+		const boundaryDateSet = new Set(boundaryDates)
+		const pageStart = offset
+		const pageEnd = offset + limit
+
+		const boundaryGroups = await Promise.all(
+			boundaryDates.map(async (date) => {
+				const fullGroupQuery = buildDataQuery().eq('date', date)
+				const beforeGroupQuery =
+					orderDirection === 'asc'
+						? buildCountQuery().lt('date', date)
+						: buildCountQuery().gt('date', date)
+
+				const [groupResult, beforeCountResult] = await Promise.all([
+					fullGroupQuery,
+					beforeGroupQuery,
+				])
+
+				if (groupResult.error) throw groupResult.error
+				if (beforeCountResult.error) throw beforeCountResult.error
+
+				return {
+					date,
+					groupStart: beforeCountResult.count || 0,
+					musics: sortTransformedMusics(
+						transformMusics((groupResult.data || []) as MusicWithRelations[]),
+						orderBy,
+						orderDirection,
+					),
+				}
+			}),
+		)
+
+		const boundaryGroupMap = new Map(boundaryGroups.map((group) => [group.date, group]))
+		const pageGroups = new Map<string, TransformedMusic[]>()
+
+		for (const music of transformedPageMusics) {
+			if (!music.date) continue
+			const group = pageGroups.get(music.date) || []
+			group.push(music)
+			pageGroups.set(music.date, group)
+		}
+
+		const stablePageMusics: TransformedMusic[] = []
+		for (const date of orderedPageDates) {
+			if (boundaryDateSet.has(date)) {
+				const boundaryGroup = boundaryGroupMap.get(date)
+				if (!boundaryGroup) continue
+
+				const sliceStart = Math.max(0, pageStart - boundaryGroup.groupStart)
+				const sliceEnd = Math.min(
+					boundaryGroup.musics.length,
+					pageEnd - boundaryGroup.groupStart,
+				)
+
+				if (sliceStart < sliceEnd) {
+					stablePageMusics.push(...boundaryGroup.musics.slice(sliceStart, sliceEnd))
+				}
+				continue
+			}
+
+			const pageGroup = pageGroups.get(date) || []
+			stablePageMusics.push(...sortTransformedMusics(pageGroup, orderBy, orderDirection))
+		}
 
 		return {
-			musics: transformedData,
+			musics: stablePageMusics,
 			total,
 			page,
 			limit,
@@ -214,4 +369,5 @@ export default defineEventHandler(async (event) => {
 		throw createInternalError('Failed to fetch paginated musics', error)
 	}
 })
+
 

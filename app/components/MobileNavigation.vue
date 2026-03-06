@@ -137,6 +137,15 @@
 						</NuxtLink>
 
 						<NuxtLink
+							to="/music"
+							class="cb-no-select flex items-center gap-3 rounded-xl border border-cb-quinary-900 bg-cb-quinary-950/70 px-4 py-3 text-sm font-semibold text-white transition hover:bg-cb-quinary-900"
+							@click="isMoreOpen = false"
+						>
+							<UIcon name="i-heroicons-play-circle" class="h-5 w-5" />
+							Explorer les musiques
+						</NuxtLink>
+
+						<NuxtLink
 							to="/settings"
 							class="cb-no-select flex items-center gap-3 rounded-xl border border-cb-quinary-900 bg-cb-quinary-950/70 px-4 py-3 text-sm font-semibold text-white transition hover:bg-cb-quinary-900"
 							@click="isMoreOpen = false"

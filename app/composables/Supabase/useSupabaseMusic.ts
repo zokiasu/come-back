@@ -22,6 +22,14 @@ interface MusicWithRelations extends Omit<Music, 'artists' | 'releases'> {
 	releases?: ReleaseJunction[]
 }
 
+interface PaginatedMusicsResponse {
+	musics: Music[]
+	total: number
+	page: number
+	limit: number
+	totalPages: number
+}
+
 export function useSupabaseMusic() {
 	const supabase = useSupabaseClient<Database>()
 	const toast = useToast()
@@ -584,7 +592,7 @@ export function useSupabaseMusic() {
 			}
 
 			// Appeler l'endpoint API optimisé
-			const result = await $fetch('/api/musics/paginated', {
+			const result = await $fetch<PaginatedMusicsResponse>('/api/musics/paginated', {
 				params,
 			})
 
@@ -653,3 +661,6 @@ export function useSupabaseMusic() {
 		getLatestMVs,
 	}
 }
+
+
+
