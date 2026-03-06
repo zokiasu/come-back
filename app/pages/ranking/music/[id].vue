@@ -105,7 +105,7 @@
 					<!-- Play button -->
 					<button
 						v-if="music.id_youtube_music"
-						class="flex size-10 shrink-0 items-center justify-center rounded-full transition-colors"
+						class="flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-full transition-colors"
 						:class="
 							isCurrentlyPlaying(music.id_youtube_music)
 								? 'bg-cb-primary-900'
@@ -152,7 +152,7 @@
 
 					<!-- Add button -->
 					<button
-						class="flex size-8 shrink-0 items-center justify-center rounded-full transition-colors"
+						class="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full transition-colors"
 						:class="
 							isMusicInCurrentRanking(music.id)
 								? 'bg-cb-primary-900 text-white'
@@ -312,7 +312,7 @@
 							<!-- Play button -->
 							<button
 								v-if="item.music.id_youtube_music"
-								class="flex size-8 shrink-0 items-center justify-center rounded-full transition-colors"
+								class="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full transition-colors"
 								:class="
 									isCurrentlyPlaying(item.music.id_youtube_music)
 										? 'bg-cb-primary-900'
@@ -444,7 +444,7 @@
 		removeMusicFromRanking,
 		reorderRankingItems,
 	} = useSupabaseRanking()
-	const { addToPlaylist } = useYouTube()
+	const { addToPlaylist, playNow, stopMusic } = useYouTube()
 	const idYoutubeVideo = useIdYoutubeVideo()
 	const isPlayingVideo = useIsPlayingVideo()
 
@@ -758,7 +758,13 @@
 	// Play music
 	const handlePlayMusic = (music: Music) => {
 		if (!music.id_youtube_music) return
-		addToPlaylist(
+
+		if (isCurrentlyPlaying(music.id_youtube_music)) {
+			stopMusic()
+			return
+		}
+
+		playNow(
 			music.id_youtube_music,
 			music.title || music.name || '',
 			formatArtists(music.artists || []),
@@ -900,6 +906,9 @@
 		middleware: ['auth'],
 	})
 </script>
+
+
+
 
 
 

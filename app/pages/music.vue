@@ -93,7 +93,7 @@
 					<button
 						v-if="music.id_youtube_music"
 						type="button"
-						class="flex size-10 shrink-0 items-center justify-center rounded-full transition-colors"
+						class="flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-full transition-colors"
 						:class="
 							isCurrentlyPlaying(music.id_youtube_music)
 								? 'bg-cb-primary-900'
@@ -135,6 +135,16 @@
 							</span>
 						</div>
 					</div>
+
+					<button
+						v-if="music.id_youtube_music"
+						type="button"
+						class="bg-cb-quaternary-950 hover:bg-cb-primary-900 flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full transition-colors"
+						aria-label="Add to playlist"
+						@click.stop="handleQueueMusic(music)"
+					>
+						<UIcon name="i-heroicons-plus-solid" class="size-4 text-white" />
+					</button>
 				</div>
 			</div>
 
@@ -192,7 +202,7 @@
 
 	const { getMusicsByPage } = useSupabaseMusic()
 	const { getAllArtists } = useSupabaseArtist()
-	const { addToPlaylist } = useYouTube()
+	const { addToPlaylist, playNow, stopMusic } = useYouTube()
 	const idYoutubeVideo = useIdYoutubeVideo()
 	const isPlayingVideo = useIsPlayingVideo()
 
@@ -517,6 +527,22 @@
 
 	const handlePlayMusic = (music: Music) => {
 		if (!music.id_youtube_music) return
+
+		if (isCurrentlyPlaying(music.id_youtube_music)) {
+			stopMusic()
+			return
+		}
+
+		playNow(
+			music.id_youtube_music,
+			music.title || music.name || '',
+			formatArtists(music.artists || []),
+			getMusicThumbnail(music),
+		)
+	}
+
+	const handleQueueMusic = (music: Music) => {
+		if (!music.id_youtube_music) return
 		addToPlaylist(
 			music.id_youtube_music,
 			music.title || music.name || '',
@@ -603,6 +629,8 @@
 		],
 	})
 </script>
+
+
 
 
 

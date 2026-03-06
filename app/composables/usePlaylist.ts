@@ -14,6 +14,20 @@ export const usePlaylist = () => {
 
 	const { playMusic, stopMusic } = useYouTube()
 
+	const createPlaylistItem = (
+		videoId: string,
+		title: string,
+		artist: string,
+		image?: string,
+	): PlaylistItem => ({
+		uid: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+		videoId,
+		title: title || 'Titre inconnu',
+		artist: artist || 'Artiste inconnu',
+		image,
+		addedAt: new Date(),
+	})
+
 	const addToPlaylist = (
 		videoId: string,
 		title: string,
@@ -25,19 +39,10 @@ export const usePlaylist = () => {
 			return false
 		}
 
-		const newItem: PlaylistItem = {
-			uid: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-			videoId,
-			title: title || 'Titre inconnu',
-			artist: artist || 'Artiste inconnu',
-			image,
-			addedAt: new Date(),
-		}
-
+		const newItem = createPlaylistItem(videoId, title, artist, image)
 		const isFirstItem = playlist.value.length === 0
 		playlist.value.push(newItem)
 
-		// Afficher la notification de succès
 		const toast = useToast()
 		const musicName = title || 'Titre inconnu'
 		toast.add({
@@ -55,9 +60,28 @@ export const usePlaylist = () => {
 			currentIndex.value = 0
 			isPlaylistActive.value = true
 			return playMusic(videoId, title, artist)
-		} else {
-			return true
 		}
+
+		return true
+	}
+
+	const playNow = (
+		videoId: string,
+		title: string,
+		artist: string,
+		image?: string,
+	) => {
+		if (!videoId) {
+			console.error('❌ ID vidéo manquant pour la lecture directe')
+			return false
+		}
+
+		const nextItem = createPlaylistItem(videoId, title, artist, image)
+		playlist.value = [nextItem]
+		currentIndex.value = 0
+		isPlaylistActive.value = true
+
+		return playMusic(nextItem.videoId, nextItem.title, nextItem.artist)
 	}
 
 	const playNext = () => {
@@ -197,6 +221,7 @@ export const usePlaylist = () => {
 
 		// Actions principales
 		addToPlaylist,
+		playNow,
 		playNext,
 		playPrevious,
 		playAtIndex,

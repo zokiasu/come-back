@@ -30,7 +30,6 @@ export const useYouTube = () => {
 		}
 	}
 
-	// Fonction pour ajouter une musique à la playlist (remplace playMusic dans l'interface utilisateur)
 	const addToPlaylist = (
 		videoId: string,
 		musicName: string,
@@ -39,6 +38,16 @@ export const useYouTube = () => {
 	) => {
 		const { addToPlaylist: addToPlaylistCore } = usePlaylist()
 		return addToPlaylistCore(videoId, musicName, artistName, image)
+	}
+
+	const playNow = (
+		videoId: string,
+		musicName: string,
+		artistName: string,
+		image?: string,
+	) => {
+		const { playNow: playNowCore } = usePlaylist()
+		return playNowCore(videoId, musicName, artistName, image)
 	}
 
 	// Fonction pour arrêter la musique
@@ -86,6 +95,7 @@ export const useYouTube = () => {
 		// Actions
 		playMusic,
 		addToPlaylist,
+		playNow,
 		stopMusic,
 		toggleMusic,
 		isCurrentlyPlaying,
