@@ -5,9 +5,15 @@
 	const musicNamePlaying = useMusicNamePlaying()
 	const authorNamePlaying = useAuthorNamePlaying()
 
-	const { skipToNext, skipToPrevious, getPlaylistInfo } = usePlaylist()
+	const { skipToNext, skipToPrevious, getPlaylistInfo, getCurrentItem } = usePlaylist()
 	const playlistInfo = computed(() => getPlaylistInfo())
+	const currentPlaylistItem = computed(() => getCurrentItem())
+	const canOpenCurrentVideoPreview = computed(() => {
+		return Boolean(currentPlaylistItem.value?.ismv && currentPlaylistItem.value?.videoId)
+	})
 	const showPlaylist = ref(false)
+	const showVideoPreview = ref(false)
+	const videoPreviewStartAt = ref(0)
 	const isMinimized = ref(false)
 
 	const isPlaying = ref(false)
@@ -335,6 +341,20 @@
 		{ immediate: true },
 	)
 
+	watch(
+		() => currentPlaylistItem.value?.uid,
+		() => {
+			showVideoPreview.value = false
+			videoPreviewStartAt.value = 0
+		},
+	)
+
+	watch(showVideoPreview, (open) => {
+		if (!open) {
+			videoPreviewStartAt.value = 0
+		}
+	})
+
 	onBeforeUnmount(() => {
 		console.warn('🎵 Démontage du composant YoutubePlayer')
 
@@ -427,6 +447,22 @@
 		}
 	}
 
+	const openCurrentVideoPreview = () => {
+		if (!canOpenCurrentVideoPreview.value) return
+
+		videoPreviewStartAt.value = Math.max(0, Math.floor(currentTime.value))
+
+		if (player.value && isPlayerReady.value) {
+			try {
+				player.value.pauseVideo()
+			} catch (error) {
+				console.error('❌ Erreur lors de la mise en pause avant ouverture vidéo:', error)
+			}
+		}
+
+		showVideoPreview.value = true
+	}
+
 	const closeYTPlayer = () => {
 		console.warn('🎵 Fermeture du lecteur YouTube')
 		isPlayingVideo.value = false
@@ -452,6 +488,7 @@
 		currentTime.value = 0
 		duration.value = 0
 		isMinimized.value = false
+		showVideoPreview.value = false
 	}
 
 	const convertDuration = (duration: number): string => {
@@ -483,6 +520,14 @@
 		:class="playerWrapperClass"
 	>
 		<PlaylistPanel v-model:is-open="showPlaylist" class="min-w-80 lg:mr-3" />
+
+		<ModalMvPreview
+			:open="showVideoPreview"
+			:video-id="currentPlaylistItem?.videoId"
+			:title="currentPlaylistItem?.title"
+			:start-at="videoPreviewStartAt"
+			@update:open="showVideoPreview = $event"
+		/>
 
 		<div
 			id="globalPlayerContainer"
@@ -608,6 +653,15 @@
 
 				<div class="ml-auto flex items-center gap-2 md:ml-0 md:justify-end md:gap-2 md:col-start-3 md:row-start-1">
 					<UButton
+						v-if="canOpenCurrentVideoPreview"
+						variant="ghost"
+						color="primary"
+						icon="i-simple-icons-youtube"
+						:label="isMobile ? undefined : 'Video'"
+						size="sm"
+						@click="openCurrentVideoPreview"
+					/>
+					<UButton
 						variant="ghost"
 						:disabled="!playlistInfo.isActive"
 						icon="i-material-symbols-queue-music"
@@ -681,4 +735,13 @@
 		</div>
 	</div>
 </template>
+
+
+
+
+
+
+
+
+
 

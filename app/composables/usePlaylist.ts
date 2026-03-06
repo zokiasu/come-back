@@ -4,6 +4,7 @@ export interface PlaylistItem {
 	title: string
 	artist: string
 	image?: string
+	ismv?: boolean
 	addedAt: Date
 }
 
@@ -19,12 +20,14 @@ export const usePlaylist = () => {
 		title: string,
 		artist: string,
 		image?: string,
+		ismv?: boolean,
 	): PlaylistItem => ({
 		uid: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
 		videoId,
 		title: title || 'Titre inconnu',
 		artist: artist || 'Artiste inconnu',
 		image,
+		ismv,
 		addedAt: new Date(),
 	})
 
@@ -33,13 +36,14 @@ export const usePlaylist = () => {
 		title: string,
 		artist: string,
 		image?: string,
+		ismv?: boolean,
 	) => {
 		if (!videoId) {
 			console.error("❌ ID vidéo manquant pour l'ajout à la playlist")
 			return false
 		}
 
-		const newItem = createPlaylistItem(videoId, title, artist, image)
+		const newItem = createPlaylistItem(videoId, title, artist, image, ismv)
 		const isFirstItem = playlist.value.length === 0
 		playlist.value.push(newItem)
 
@@ -70,13 +74,14 @@ export const usePlaylist = () => {
 		title: string,
 		artist: string,
 		image?: string,
+		ismv?: boolean,
 	) => {
 		if (!videoId) {
 			console.error('❌ ID vidéo manquant pour la lecture directe')
 			return false
 		}
 
-		const nextItem = createPlaylistItem(videoId, title, artist, image)
+		const nextItem = createPlaylistItem(videoId, title, artist, image, ismv)
 		playlist.value = [nextItem]
 		currentIndex.value = 0
 		isPlaylistActive.value = true
@@ -214,12 +219,9 @@ export const usePlaylist = () => {
 	}
 
 	return {
-		// États
 		playlist: readonly(playlist),
 		currentIndex: readonly(currentIndex),
 		isPlaylistActive: readonly(isPlaylistActive),
-
-		// Actions principales
 		addToPlaylist,
 		playNow,
 		playNext,
@@ -228,12 +230,8 @@ export const usePlaylist = () => {
 		removeFromPlaylist,
 		clearPlaylist,
 		reorderPlaylist,
-
-		// Actions de navigation
 		skipToNext,
 		skipToPrevious,
-
-		// Utilitaires
 		getCurrentItem,
 		hasNext,
 		hasPrevious,

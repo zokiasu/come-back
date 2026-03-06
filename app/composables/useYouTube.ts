@@ -4,11 +4,9 @@ export const useYouTube = () => {
 	const musicNamePlaying = useMusicNamePlaying()
 	const authorNamePlaying = useAuthorNamePlaying()
 
-	// État du lecteur
 	const isPlayerLoaded = ref(false)
 	const playerError = ref<string | null>(null)
 
-	// Fonction pour jouer une musique (utilisée maintenant par le système de playlist)
 	const playMusic = (videoId: string, musicName: string, artistName: string) => {
 		if (!videoId) {
 			console.error('❌ ID vidéo manquant')
@@ -35,9 +33,10 @@ export const useYouTube = () => {
 		musicName: string,
 		artistName: string,
 		image?: string,
+		ismv?: boolean,
 	) => {
 		const { addToPlaylist: addToPlaylistCore } = usePlaylist()
-		return addToPlaylistCore(videoId, musicName, artistName, image)
+		return addToPlaylistCore(videoId, musicName, artistName, image, ismv)
 	}
 
 	const playNow = (
@@ -45,12 +44,12 @@ export const useYouTube = () => {
 		musicName: string,
 		artistName: string,
 		image?: string,
+		ismv?: boolean,
 	) => {
 		const { playNow: playNowCore } = usePlaylist()
-		return playNowCore(videoId, musicName, artistName, image)
+		return playNowCore(videoId, musicName, artistName, image, ismv)
 	}
 
-	// Fonction pour arrêter la musique
 	const stopMusic = () => {
 		isPlayingVideo.value = false
 		idYoutubeVideo.value = ''
@@ -58,41 +57,36 @@ export const useYouTube = () => {
 		authorNamePlaying.value = 'Author Name'
 		playerError.value = null
 
-		// Vider la playlist quand on arrête manuellement
 		const { clearPlaylist } = usePlaylist()
 		clearPlaylist()
 	}
 
-	// Vérifier si une musique spécifique est en cours de lecture
 	const isCurrentlyPlaying = (videoId: string) => {
 		return isPlayingVideo.value && idYoutubeVideo.value === videoId
 	}
 
-	// Basculer la lecture d'une musique (utilise maintenant le système de playlist)
 	const toggleMusic = (
 		videoId: string,
 		musicName: string,
 		artistName: string,
 		image?: string,
+		ismv?: boolean,
 	) => {
 		if (isCurrentlyPlaying(videoId)) {
 			stopMusic()
 			return false
 		} else {
-			return addToPlaylist(videoId, musicName, artistName, image)
+			return addToPlaylist(videoId, musicName, artistName, image, ismv)
 		}
 	}
 
 	return {
-		// États
 		idYoutubeVideo: readonly(idYoutubeVideo),
 		isPlayingVideo: readonly(isPlayingVideo),
 		musicNamePlaying: readonly(musicNamePlaying),
 		authorNamePlaying: readonly(authorNamePlaying),
 		isPlayerLoaded: readonly(isPlayerLoaded),
 		playerError: readonly(playerError),
-
-		// Actions
 		playMusic,
 		addToPlaylist,
 		playNow,

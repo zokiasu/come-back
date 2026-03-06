@@ -82,7 +82,7 @@
 		const mainArtistName =
 			artists && artists.length > 0 ? artists[0]?.name : artistName || ''
 
-		addToPlaylist(videoId, musicName, mainArtistName ?? '', resolvedMusicImage.value)
+		addToPlaylist(videoId, musicName, mainArtistName ?? '', resolvedMusicImage.value, ismv)
 	}
 
 	const onMusicImageError = () => {
@@ -241,32 +241,12 @@
 			<p class="lg:hidden">M/V</p>
 		</button>
 
-		<div
-			v-if="displayVideo && ismv"
-			class="fixed inset-0 z-50 flex flex-col items-center justify-center gap-5 bg-black/80 lg:gap-10"
-			@click="displayVideo = false"
-		>
-			<iframe
-				class="aspect-video w-full md:w-[80%] lg:w-[60%]"
-				:src="`https://www.youtube.com/embed/` + musicId"
-				:title="musicName + ' M/V'"
-				frameborder="0"
-				allow="
-					accelerometer;
-					autoplay;
-					clipboard-write;
-					encrypted-media;
-					gyroscope;
-					picture-in-picture;
-					web-share;
-				"
-				referrerpolicy="strict-origin-when-cross-origin"
-				allowfullscreen
-			></iframe>
-
-			<p class="text-cb-tertiary-200/80 hover:text-cb-tertiary-200 cursor-pointer">
-				Close M/V
-			</p>
-		</div>
+		<ModalMvPreview
+			v-model:open="displayVideo"
+			:video-id="musicId"
+			:title="musicName"
+		/>
 	</div>
 </template>
+
+

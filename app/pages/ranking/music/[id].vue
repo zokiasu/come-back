@@ -143,7 +143,14 @@
 							<span v-if="music.date" class="text-cb-tertiary-400 text-xs">
 								{{ formatDate(music.date) }}
 							</span>
-							<span v-if="music.ismv" class="text-cb-primary-900 text-xs">MV</span>
+							<button
+								v-if="music.ismv && music.id_youtube_music"
+								type="button"
+								class="text-cb-primary-900 cursor-pointer text-xs font-medium"
+								@click.stop="openMvPreview(music)"
+							>
+								MV
+							</button>
 							<span v-if="music.duration" class="text-cb-tertiary-500 text-xs">
 								{{ formatDuration(music.duration) }}
 							</span>
@@ -376,6 +383,13 @@
 			</div>
 		</div>
 
+
+		<ModalMvPreview
+			:open="isMvPreviewOpen"
+			:video-id="mvPreview?.videoId"
+			:title="mvPreview?.title"
+			@update:open="isMvPreviewOpen = $event"
+		/>
 		<!-- Settings Modal -->
 		<UModal v-model:open="isSettingsModalOpen">
 			<template #content>
@@ -444,7 +458,7 @@
 		removeMusicFromRanking,
 		reorderRankingItems,
 	} = useSupabaseRanking()
-	const { addToPlaylist, playNow, stopMusic } = useYouTube()
+	const { playNow, stopMusic } = useYouTube()
 	const idYoutubeVideo = useIdYoutubeVideo()
 	const isPlayingVideo = useIsPlayingVideo()
 
@@ -474,6 +488,13 @@
 	const firstLoad = ref(true)
 	const isInitialized = ref(false)
 	const musicsLoadError = ref<string | null>(null)
+	const mvPreview = ref<{ videoId: string; title: string } | null>(null)
+	const isMvPreviewOpen = computed({
+		get: () => Boolean(mvPreview.value),
+		set: (value: boolean) => {
+			if (!value) closeMvPreview()
+		},
+	})
 
 	// Data
 	const artistsList = ref<Artist[]>([])
@@ -769,9 +790,22 @@
 			music.title || music.name || '',
 			formatArtists(music.artists || []),
 			getMusicThumbnail(music),
+			music.ismv === true,
 		)
 	}
 
+
+	const openMvPreview = (music: Music) => {
+		if (!music.id_youtube_music) return
+		mvPreview.value = {
+			videoId: music.id_youtube_music,
+			title: music.title || music.name || 'Music Video',
+		}
+	}
+
+	const closeMvPreview = () => {
+		mvPreview.value = null
+	}
 	const isCurrentlyPlaying = (videoId: string | null | undefined): boolean => {
 		if (!videoId) return false
 		return isPlayingVideo.value && idYoutubeVideo.value === videoId
@@ -906,6 +940,11 @@
 		middleware: ['auth'],
 	})
 </script>
+
+
+
+
+
 
 
 
