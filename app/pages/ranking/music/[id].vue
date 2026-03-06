@@ -198,9 +198,17 @@
 				</UButton>
 			</div>
 
+			<!-- Error state -->
+			<p
+				v-if="!loading && musicsLoadError"
+				class="bg-cb-quaternary-950 w-full rounded p-5 text-center text-sm text-red-300"
+			>
+				{{ musicsLoadError }}
+			</p>
+
 			<!-- No results -->
 			<p
-				v-if="!loading && musicsList.length === 0"
+				v-else-if="!loading && musicsList.length === 0"
 				class="bg-cb-quaternary-950 w-full rounded p-5 text-center text-sm"
 			>
 				Aucune musique trouvée
@@ -465,6 +473,7 @@
 	const loading = ref(false)
 	const firstLoad = ref(true)
 	const isInitialized = ref(false)
+	const musicsLoadError = ref<string | null>(null)
 
 	// Data
 	const artistsList = ref<Artist[]>([])
@@ -497,7 +506,11 @@
 	const hasMore = computed(() => currentPage.value <= totalPages.value)
 
 	// Menu options
-	const availableYears = [2020, 2021, 2022, 2023, 2024, 2025]
+	const currentYear = new Date().getFullYear()
+	const availableYears = Array.from(
+		{ length: currentYear - 2020 + 1 },
+		(_, index) => 2020 + index,
+	)
 	const availableStyles = [
 		'K-Pop',
 		'K-Hiphop',
@@ -550,20 +563,27 @@
 	})
 
 	// Load ranking
-	const loadRanking = async () => {
+	const loadRanking = async (): Promise<boolean> => {
 		isLoadingRanking.value = true
-		ranking.value = await getRankingById(rankingId.value)
-		isLoadingRanking.value = false
+		try {
+			ranking.value = await getRankingById(rankingId.value)
+		} finally {
+			isLoadingRanking.value = false
+		}
 
 		if (!ranking.value) {
-			navigateTo('/ranking')
+			await navigateTo('/ranking')
+			return false
 		}
+
+		return true
 	}
 
 	// Load musics
 	const loadMusics = async (isFirstCall = false): Promise<void> => {
 		if (loading.value) return
 		loading.value = true
+		musicsLoadError.value = null
 
 		try {
 			if (isFirstCall) {
@@ -601,6 +621,7 @@
 			}
 		} catch (error) {
 			console.error('Error loading music:', error)
+			musicsLoadError.value = 'Impossible de charger les musiques.'
 		} finally {
 			loading.value = false
 		}
@@ -860,12 +881,15 @@
 	// Initial load
 	onMounted(async () => {
 		console.warn('[ranking/music/[id]] onMounted - rankingId:', rankingId.value)
-		await Promise.all([
-			loadRanking(),
-			getAllArtists({ isActive: true }).then((artists) => {
-				artistsList.value = artists
-			}),
-		])
+		const rankingLoaded = await loadRanking()
+		if (!rankingLoaded) return
+
+		try {
+			artistsList.value = await getAllArtists({ isActive: true })
+		} catch (error) {
+			console.error('Error loading artists:', error)
+		}
+
 		console.warn('[ranking/music/[id]] After loadRanking - ranking:', ranking.value)
 		await loadMusics(true)
 		// Activer l'infinite scroll après le premier chargement
@@ -876,3 +900,4 @@
 		middleware: ['auth'],
 	})
 </script>
+

@@ -121,8 +121,19 @@ export default defineEventHandler(async (event) => {
 			musicIdsToFilter = [...new Set(musicArtistsData?.map((ma) => ma.music_id) || [])]
 		}
 
-		// Build base query for count
-		let countQuery = supabase.from('musics').select('id', { count: 'exact', head: true })
+		// Build base query for count. The verified artist filter targets the embedded
+		// artists relation, so the count query must join the same relation tree.
+		let countQuery = supabase
+			.from('musics')
+			.select(
+				`
+					id,
+					artists:music_artists!inner(
+						artist:artists!inner(id)
+					)
+				`,
+				{ count: 'exact', head: true },
+			)
 
 		// Build base query for data
 		let dataQuery = supabase
