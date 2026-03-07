@@ -3,6 +3,7 @@
 	import { useUserStore } from '@/stores/user'
 	import { useWindowScroll } from '@vueuse/core'
 	import { useAuthModal } from '@/composables/useAuthModal'
+	import { useAuth } from '@/composables/useAuth'
 
 	const userStore = useUserStore()
 	const { isAdminStore, isLoginStore, isHydrated } = storeToRefs(userStore)
@@ -33,6 +34,11 @@
 
 	const routeIsRanking = computed(() => (route.name as string)?.startsWith('ranking'))
 	const { open: openAuthModal } = useAuthModal()
+	const { logout } = useAuth()
+
+	const handleLogoutClick = async () => {
+		await logout()
+	}
 
 	// Utiliser le composable Nuxt pour le scroll
 	const { y: scrollY } = useWindowScroll()
@@ -135,8 +141,21 @@
 							to="/settings/profile"
 							variant="soft"
 							icon="material-symbols:settings-rounded"
+							title="Settings"
+							aria-label="Settings"
 							class="bg-cb-quaternary-950 hover:bg-cb-tertiary-200/20 h-full items-center justify-center text-xs text-white"
 						/>
+						<UButton
+							v-if="isUserLoggedIn"
+							type="button"
+							variant="soft"
+							title="Logout"
+							aria-label="Logout"
+							class="bg-cb-quaternary-950 hover:bg-cb-tertiary-200/20 h-full items-center justify-center text-xs text-white"
+							@click="handleLogoutClick"
+						>
+							<IconLogout class="h-4 w-4" />
+						</UButton>
 						<UButton
 							v-else
 							variant="soft"

@@ -21,7 +21,7 @@ export const useSupabaseAuth = () => {
 					scopes: 'openid email profile',
 					queryParams: {
 						access_type: 'offline',
-						prompt: 'consent',
+						prompt: 'select_account consent',
 					},
 					skipBrowserRedirect: true,
 				},
@@ -36,9 +36,9 @@ export const useSupabaseAuth = () => {
 				const popup = window.open(data.url, 'comeback-auth', 'width=480,height=640')
 				if (!popup) {
 					toast.add({
-						title: 'Popup bloquée',
+						title: 'Popup blocked',
 						description:
-							"Autorise les popups pour te connecter avec Google.",
+							'Allow popups to sign in with Google.',
 						color: 'warning',
 						duration: 4000,
 					})
@@ -197,7 +197,7 @@ export const useSupabaseAuth = () => {
 			}
 		} catch (err: unknown) {
 			console.error('❌ Erreur lors de la connexion Google:', err)
-			error.value = err instanceof Error ? err.message : 'Erreur de connexion'
+			error.value = err instanceof Error ? err.message : 'Sign-in error'
 		} finally {
 			isLoading.value = false
 		}
@@ -216,7 +216,7 @@ export const useSupabaseAuth = () => {
 			}
 		} catch (err: unknown) {
 			console.error('❌ Erreur lors du callback:', err)
-			error.value = err instanceof Error ? err.message : 'Erreur de callback'
+			error.value = err instanceof Error ? err.message : 'Callback error'
 		}
 	}
 
@@ -226,7 +226,7 @@ export const useSupabaseAuth = () => {
 			await authLogout()
 		} catch (err: unknown) {
 			console.error('Erreur lors de la déconnexion:', err)
-			error.value = err instanceof Error ? err.message : 'Erreur de déconnexion'
+			error.value = err instanceof Error ? err.message : 'Sign-out error'
 		}
 	}
 

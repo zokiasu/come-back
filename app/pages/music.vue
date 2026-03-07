@@ -2,9 +2,9 @@
 	<div class="flex h-[calc(100vh-5rem)] overflow-hidden">
 		<div ref="scrollContainer" class="scrollBarLight min-w-0 flex-1 overflow-y-auto p-5">
 			<div class="mb-4">
-				<h1 class="text-xl font-bold">Explorer les musiques</h1>
+				<h1 class="text-xl font-bold">Explore music</h1>
 				<p class="text-cb-tertiary-500 text-xs">
-					Ecoute les dernières musiques et affine avec les filtres.
+					Listen to recent tracks and refine the list with filters.
 				</p>
 			</div>
 
@@ -12,7 +12,7 @@
 				<div class="grid grid-cols-2 gap-2 lg:grid-cols-4">
 					<UInput
 						v-model="search"
-						placeholder="Rechercher une musique..."
+						placeholder="Search music..."
 						class="w-full"
 					/>
 					<UInputMenu
@@ -20,9 +20,9 @@
 						:items="artistsForMenu"
 						by="id"
 						multiple
-						placeholder="Artistes..."
+						placeholder="Artists..."
 						searchable
-						searchable-placeholder="Rechercher un artiste..."
+						searchable-placeholder="Search for an artist..."
 						class="bg-cb-quaternary-950 text-tertiary w-full cursor-pointer ring-transparent"
 						:ui="{
 							content: 'bg-cb-quaternary-950',
@@ -34,9 +34,9 @@
 						:items="yearsForMenu"
 						by="value"
 						multiple
-						placeholder="Années..."
+						placeholder="Years..."
 						searchable
-						searchable-placeholder="Rechercher..."
+						searchable-placeholder="Search..."
 						class="bg-cb-quaternary-950 text-tertiary w-full cursor-pointer ring-transparent"
 						:ui="{
 							content: 'bg-cb-quaternary-950',
@@ -50,7 +50,7 @@
 						multiple
 						placeholder="Styles..."
 						searchable
-						searchable-placeholder="Rechercher..."
+						searchable-placeholder="Search..."
 						class="bg-cb-quaternary-950 text-tertiary w-full cursor-pointer ring-transparent"
 						:ui="{
 							content: 'bg-cb-quaternary-950',
@@ -74,12 +74,12 @@
 							class="size-4"
 							:class="orderDirection === 'desc' ? 'rotate-180' : ''"
 						/>
-						{{ orderDirection === 'desc' ? 'Plus récent' : 'Plus ancien' }}
+						{{ orderDirection === 'desc' ? 'Newest first' : 'Oldest first' }}
 					</UButton>
-					<UCheckbox v-model="isMv" label="MVs uniquement" />
+					<UCheckbox v-model="isMv" label="MVs only" />
 
 					<span class="text-cb-tertiary-500 ml-auto text-xs">
-						{{ musicsList.length }} / {{ totalMusics }} résultats
+						{{ musicsList.length }} / {{ totalMusics }} results
 					</span>
 				</div>
 			</div>
@@ -160,7 +160,7 @@
 				class="text-cb-tertiary-500 flex items-center justify-center gap-2 py-4 text-xs"
 			>
 				<UIcon name="line-md:loading-twotone-loop" class="size-4 animate-spin" />
-				<p>{{ firstLoad ? 'Chargement...' : 'Chargement...' }}</p>
+				<p>{{ firstLoad ? 'Loading...' : 'Loading...' }}</p>
 			</div>
 
 			<div
@@ -168,10 +168,10 @@
 				class="flex justify-center gap-2 py-4"
 			>
 				<UButton color="primary" variant="outline" @click="loadMusics(false)">
-					Charger plus
+					Load more
 				</UButton>
 				<UButton color="neutral" variant="ghost" @click="loadAllMusics">
-					Charger tout ({{ totalMusics - musicsList.length }} restants)
+					Load all ({{ totalMusics - musicsList.length }} remaining)
 				</UButton>
 			</div>
 
@@ -186,7 +186,7 @@
 				v-else-if="!loading && musicsList.length === 0"
 				class="bg-cb-quaternary-950 w-full rounded p-5 text-center text-sm"
 			>
-				Aucune musique trouvée
+				No music found
 			</p>
 		</div>
 
@@ -203,7 +203,6 @@
 	import { useDebounceFn } from '@vueuse/core'
 	import type { LocationQuery, LocationQueryValue } from 'vue-router'
 	import type { Artist, ArtistMenuItem, Music } from '~/types'
-	import { useSupabaseArtist } from '~/composables/Supabase/useSupabaseArtist'
 	import { useSupabaseMusic } from '~/composables/Supabase/useSupabaseMusic'
 
 	type YearMenuItem = { value: number; label: string }
@@ -215,7 +214,6 @@
 	const currentYear = new Date().getFullYear()
 
 	const { getMusicsByPage } = useSupabaseMusic()
-	const { getAllArtists } = useSupabaseArtist()
 	const { addToPlaylist, playNow, stopMusic } = useYouTube()
 	const idYoutubeVideo = useIdYoutubeVideo()
 	const isPlayingVideo = useIsPlayingVideo()
@@ -308,6 +306,29 @@
 		})) as StyleMenuItem[]
 	})
 
+	const loadAvailableArtists = async (): Promise<void> => {
+		try {
+			const result = await $fetch<{ artists: Artist[] }>('/api/musics/filter-artists', {
+				params: {
+					search: search.value || undefined,
+					years: selectedYears.value.length > 0 ? selectedYears.value.join(',') : undefined,
+					styles:
+						selectedStyles.value.length > 0 ? selectedStyles.value.join(',') : undefined,
+					ismv: isMv.value === true ? 'true' : undefined,
+					selectedArtistIds:
+						selectedArtists.value.length > 0
+							? selectedArtists.value.join(',')
+							: undefined,
+				},
+			})
+
+			artistsList.value = result.artists
+			syncSelectedLabelsFromValues()
+		} catch (error) {
+			console.error('Error loading filtered artists:', error)
+		}
+	}
+
 	const parseQueryList = (value: LocationQueryValue | LocationQueryValue[] | undefined): string[] => {
 		if (!value) return []
 
@@ -333,15 +354,25 @@
 
 
 	const syncSelectedLabelsFromValues = () => {
-		selectedArtistsWithLabel.value = artistsList.value
-			.filter((artist) => selectedArtists.value.includes(artist.id))
-			.map((artist) => ({
+		const knownArtists = new Map<string, ArtistMenuItem>()
+
+		for (const artist of artistsList.value) {
+			knownArtists.set(artist.id, {
 				id: artist.id,
 				label: artist.name,
 				name: artist.name,
 				description: artist.description ?? undefined,
 				image: artist.image,
-			}))
+			})
+		}
+
+		for (const artist of selectedArtistsWithLabel.value) {
+			knownArtists.set(artist.id, artist)
+		}
+
+		selectedArtistsWithLabel.value = selectedArtists.value
+			.map((artistId) => knownArtists.get(artistId))
+			.filter((artist): artist is ArtistMenuItem => Boolean(artist))
 
 		selectedYearsWithLabel.value = selectedYears.value.map((year) => ({
 			value: year,
@@ -420,7 +451,7 @@
 
 		if (!isReady.value) return
 		await updateUrlFromFilters()
-		await loadMusics(true)
+		await Promise.all([loadAvailableArtists(), loadMusics(true)])
 	}
 
 	const loadMusics = async (isFirstCall = false): Promise<void> => {
@@ -470,7 +501,7 @@
 			}
 		} catch (error) {
 			console.error('Error loading music:', error)
-			musicsLoadError.value = 'Impossible de charger les musiques.'
+			musicsLoadError.value = 'Unable to load music.'
 		} finally {
 			loading.value = false
 		}
@@ -511,7 +542,7 @@
 	})
 
 	const formatArtists = (artists: { name: string }[] = []) => {
-		return artists.map((artist) => artist.name).join(', ') || 'Artiste inconnu'
+		return artists.map((artist) => artist.name).join(', ') || 'Unknown artist'
 	}
 
 	const formatDuration = (seconds: number): string => {
@@ -523,7 +554,7 @@
 	const formatDate = (dateString: string | null | undefined): string => {
 		if (!dateString) return ''
 		const date = new Date(dateString)
-		return date.toLocaleDateString('fr-FR', {
+		return date.toLocaleDateString('en-US', {
 			day: 'numeric',
 			month: 'short',
 			year: 'numeric',
@@ -624,11 +655,11 @@
 	watch([selectedArtists, selectedYears, selectedStyles, isMv, orderDirection], async () => {
 		if (isApplyingFilterState.value || !isReady.value) return
 		await updateUrlFromFilters()
-		await loadMusics(true)
+		await Promise.all([loadAvailableArtists(), loadMusics(true)])
 	})
 
 	const debouncedSearch = useDebounceFn(async () => {
-		await loadMusics(true)
+		await Promise.all([loadAvailableArtists(), loadMusics(true)])
 	}, 300)
 
 	watch(search, async () => {
@@ -638,17 +669,11 @@
 	})
 
 	onMounted(async () => {
-		try {
-			artistsList.value = await getAllArtists({ isActive: true })
-		} catch (error) {
-			console.error('Error loading artists:', error)
-		}
-
 		isApplyingFilterState.value = true
 		applyFiltersFromRoute()
 		isApplyingFilterState.value = false
 
-		await loadMusics(true)
+		await Promise.all([loadAvailableArtists(), loadMusics(true)])
 		isInitialized.value = true
 		isReady.value = true
 		await updateUrlFromFilters()
