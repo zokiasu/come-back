@@ -23,6 +23,11 @@
 			to: '/dashboard/release',
 		},
 		{
+			label: 'Music',
+			icon: 'i-heroicons-play-circle',
+			to: '/dashboard/music',
+		},
+		{
 			label: 'News',
 			icon: 'i-heroicons-newspaper',
 			to: '/dashboard/news',

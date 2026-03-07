@@ -1,4 +1,5 @@
 import type { H3Event } from 'h3'
+import { serverSupabaseUser } from '#supabase/server'
 import type { Database } from '~/types/supabase'
 
 type UserRole = Database['public']['Enums']['user_role']
@@ -23,20 +24,32 @@ export const getAuthenticatedUser = async (
 
 	// Get authorization header
 	const authHeader = getHeader(event, 'authorization')
-	if (!authHeader?.startsWith('Bearer ')) {
-		return null
-	}
+	let authUser:
+		| {
+				id: string
+		  }
+		| null = null
 
-	const token = authHeader.substring(7)
+	if (authHeader?.startsWith('Bearer ')) {
+		const token = authHeader.substring(7)
 
-	// Verify the token with Supabase Auth
-	const {
-		data: { user: authUser },
-		error: authError,
-	} = await supabase.auth.getUser(token)
+		// Verify the token with Supabase Auth
+		const {
+			data: { user },
+			error: authError,
+		} = await supabase.auth.getUser(token)
 
-	if (authError || !authUser) {
-		return null
+		if (authError || !user) {
+			return null
+		}
+
+		authUser = user
+	} else {
+		authUser = await serverSupabaseUser(event)
+
+		if (!authUser) {
+			return null
+		}
 	}
 
 	// Fetch user role from database

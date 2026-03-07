@@ -99,6 +99,8 @@ export function useSupabaseMusic() {
 					throw insertError
 				}
 			}
+
+			return true
 		} catch (error) {
 			console.error('Erreur lors de la mise à jour des artistes:', error)
 			return false
@@ -146,6 +148,8 @@ export function useSupabaseMusic() {
 					throw insertError
 				}
 			}
+
+			return true
 		} catch (error) {
 			console.error('Erreur lors de la mise à jour des releases:', error)
 			return false

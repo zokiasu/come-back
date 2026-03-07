@@ -137,54 +137,18 @@
 								<p class="text-cb-tertiary-400 text-[11px] font-semibold uppercase tracking-[0.18em]">
 									Artists
 								</p>
-								<div ref="artistSearchContainer" class="relative">
-									<UInput
-										v-model="artistFilterSearch"
-										placeholder="Filter by artist..."
-										class="bg-cb-quaternary-950 text-tertiary w-full ring-transparent"
-										@focus="openArtistSearch"
-										@click="openArtistSearch"
-										@keydown.esc="closeArtistSearch"
-									/>
-									<div
-										v-if="shouldShowArtistDropdown"
-										class="scrollBarLight bg-cb-quaternary-950 absolute left-0 right-0 top-full z-20 mt-2 max-h-72 overflow-y-auto rounded-lg border border-white/5 p-2 shadow-2xl"
-									>
-										<div v-if="artistsLoading" class="text-cb-tertiary-500 py-4 text-center text-sm">
-											Loading artists...
-										</div>
-										<div
-											v-else-if="filteredArtistsForMenu.length === 0"
-											class="text-cb-tertiary-500 py-4 text-center text-sm"
-										>
-											No artists match your search.
-										</div>
-										<div v-else class="space-y-1">
-											<button
-												v-for="artist in filteredArtistsForMenu"
-												:key="artist.id"
-												type="button"
-												class="hover:bg-cb-primary-900/20 flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors"
-												@click="toggleArtistSelection(artist)"
-											>
-												<NuxtImg
-													:src="artist.image || '/slider-placeholder.webp'"
-													alt=""
-													aria-hidden="true"
-													class="h-8 w-8 shrink-0 rounded-full object-cover"
-													format="webp"
-													loading="lazy"
-												/>
-												<span class="min-w-0 flex-1 truncate text-sm">{{ artist.label }}</span>
-												<UIcon
-													v-if="selectedArtists.includes(artist.id)"
-													name="i-heroicons-check"
-													class="text-cb-primary-900 size-4 shrink-0"
-												/>
-											</button>
-										</div>
-									</div>
-								</div>
+								<ArtistSearchSelect
+									v-model="selectedArtistsModel"
+									multiple
+									:items="artistsForMenu"
+									:loading="artistsLoading"
+									placeholder="Filter by artist..."
+									search-placeholder="Filter by artist..."
+									loading-text="Updating artists for the current filters..."
+									idle-text="Type at least 2 characters to search available artists."
+									empty-text="No artists match your search."
+									class="w-full"
+								/>
 							</div>
 
 							<div class="space-y-2">
@@ -343,7 +307,7 @@
 </template>
 
 <script setup lang="ts">
-	import { onClickOutside, useDebounceFn } from '@vueuse/core'
+	import { useDebounceFn } from '@vueuse/core'
 	import type { LocationQuery, LocationQueryValue } from 'vue-router'
 	import type { Artist, ArtistMenuItem, Music } from '~/types'
 	import { useSupabaseMusic } from '~/composables/Supabase/useSupabaseMusic'
@@ -353,7 +317,6 @@
 	const route = useRoute()
 	const router = useRouter()
 	const scrollContainer = useTemplateRef<HTMLElement>('scrollContainer')
-	const artistSearchContainer = useTemplateRef<HTMLElement>('artistSearchContainer')
 	const currentYear = new Date().getFullYear()
 
 	const { getMusicsByPage } = useSupabaseMusic()
@@ -384,8 +347,6 @@
 	const musicsLoadError = ref<string | null>(null)
 	const showAdvancedFilters = ref(false)
 	const artistsLoading = ref(false)
-	const artistFilterSearch = ref('')
-	const isArtistSearchOpen = ref(false)
 	const mvPreview = ref<{ videoId: string; title: string } | null>(null)
 	const isMvPreviewOpen = computed({
 		get: () => Boolean(mvPreview.value),
@@ -439,15 +400,6 @@
 		}))
 	})
 
-	const filteredArtistsForMenu = computed((): ArtistMenuItem[] => {
-		const searchTerm = artistFilterSearch.value.trim().toLowerCase()
-		if (searchTerm.length < 2) return []
-
-		return artistsForMenu.value.filter((artist) =>
-			artist.label.toLowerCase().includes(searchTerm),
-		).slice(0, 30)
-	})
-
 	const yearChips = computed(() => [...availableYears].reverse())
 
 	const stylesForMenu = computed(() => {
@@ -484,10 +436,23 @@
 		return `${selectedStyles.value.length} styles`
 	})
 
-	const hasArtistSearchTerm = computed(() => artistFilterSearch.value.trim().length >= 2)
-	const shouldShowArtistDropdown = computed(
-		() => isArtistSearchOpen.value && (artistsLoading.value || hasArtistSearchTerm.value),
-	)
+	const selectedArtistsModel = computed<ArtistMenuItem[]>({
+		get: () => selectedArtistsWithLabel.value,
+		set: (nextArtists) => {
+			selectedArtistsWithLabel.value = nextArtists
+			const nextIds = nextArtists.map((artist) => artist.id)
+			const currentIds = selectedArtists.value
+
+			if (
+				nextIds.length === currentIds.length &&
+				nextIds.every((artistId, index) => artistId === currentIds[index])
+			) {
+				return
+			}
+
+			selectedArtists.value = nextIds
+		},
+	})
 
 	type ActiveFilterChip =
 		| { key: 'search'; label: string }
@@ -937,29 +902,7 @@
 
 	const toggleAdvancedFilters = () => {
 		showAdvancedFilters.value = !showAdvancedFilters.value
-		if (!showAdvancedFilters.value) {
-			closeArtistSearch()
-		}
 	}
-
-	const openArtistSearch = () => {
-		isArtistSearchOpen.value = true
-	}
-
-	const closeArtistSearch = () => {
-		isArtistSearchOpen.value = false
-	}
-
-	const toggleArtistSelection = (artist: ArtistMenuItem) => {
-		selectedArtists.value = selectedArtists.value.includes(artist.id)
-			? selectedArtists.value.filter((artistId) => artistId !== artist.id)
-			: [...selectedArtists.value, artist.id]
-		syncSelectedLabelsFromValues()
-	}
-
-	onClickOutside(artistSearchContainer, () => {
-		closeArtistSearch()
-	})
 
 	const removeActiveFilter = async (chip: ActiveFilterChip) => {
 		await runFilterBatch(() => {
