@@ -28,6 +28,11 @@
 			to: '/dashboard/news',
 		},
 		{
+			label: 'MV Matcher',
+			icon: 'i-simple-icons-youtube',
+			to: '/dashboard/mv-matcher',
+		},
+		{
 			label: 'Companies',
 			icon: 'i-heroicons-building-office',
 			to: '/dashboard/companies',
@@ -79,3 +84,4 @@
 		</UDashboardPanel>
 	</UDashboardGroup>
 </template>
+
