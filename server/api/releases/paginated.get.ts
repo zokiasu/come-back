@@ -3,7 +3,14 @@ import {
 	applyVerifiedArtistFilter,
 } from '../../utils/queryFilters'
 
-const ALLOWED_ORDER_COLUMNS = ['date', 'name', 'created_at', 'updated_at'] as const
+const ALLOWED_ORDER_COLUMNS = [
+	'date',
+	'name',
+	'type',
+	'year',
+	'created_at',
+	'updated_at',
+] as const
 
 export default defineEventHandler(async (event) => {
 	const supabase = useServerSupabase()
@@ -31,9 +38,15 @@ export default defineEventHandler(async (event) => {
 		const offset = (page - 1) * limit
 
 		// Build base query for count
-		let countQuery = supabase
-			.from('releases')
-			.select('id', { count: 'exact', head: true })
+		let countQuery = supabase.from('releases').select(
+			`
+				id,
+				artists:artist_releases!inner(
+					artist:artists!inner(id, verified)
+				)
+			`,
+			{ count: 'exact', head: true },
+		)
 
 		// Build base query for data
 		let dataQuery = supabase
