@@ -9,79 +9,220 @@
 					</p>
 				</div>
 
-				<div class="mb-4 space-y-2">
-					<div class="grid grid-cols-2 gap-2 lg:grid-cols-4">
-						<UInput
-							v-model="search"
-							placeholder="Search music..."
-							class="w-full"
-						/>
-						<UInputMenu
-							v-model="selectedArtistsWithLabel"
-							:items="artistsForMenu"
-							by="id"
-							multiple
-							placeholder="Artists..."
-							searchable
-							searchable-placeholder="Search for an artist..."
-							class="bg-cb-quaternary-950 text-tertiary w-full cursor-pointer ring-transparent"
-							:ui="{
-								content: 'bg-cb-quaternary-950',
-								item: 'rounded cursor-pointer data-highlighted:before:bg-cb-primary-900/30 hover:bg-cb-primary-900',
-							}"
-						/>
-						<UInputMenu
-							v-model="selectedYearsWithLabel"
-							:items="yearsForMenu"
-							by="value"
-							multiple
-							placeholder="Years..."
-							searchable
-							searchable-placeholder="Search..."
-							class="bg-cb-quaternary-950 text-tertiary w-full cursor-pointer ring-transparent"
-							:ui="{
-								content: 'bg-cb-quaternary-950',
-								item: 'rounded cursor-pointer data-highlighted:before:bg-cb-primary-900/30 hover:bg-cb-primary-900',
-							}"
-						/>
-						<UInputMenu
-							v-model="selectedStylesWithLabel"
-							:items="stylesForMenu"
-							by="value"
-							multiple
-							placeholder="Styles..."
-							searchable
-							searchable-placeholder="Search..."
-							class="bg-cb-quaternary-950 text-tertiary w-full cursor-pointer ring-transparent"
-							:ui="{
-								content: 'bg-cb-quaternary-950',
-								item: 'rounded cursor-pointer data-highlighted:before:bg-cb-primary-900/30 hover:bg-cb-primary-900',
-							}"
-						/>
+				<div class="mb-6 space-y-4">
+					<div class="bg-cb-quinary-900/70 space-y-4 rounded-xl border border-white/5 p-4">
+						<div class="flex flex-col gap-3 lg:flex-row lg:items-center">
+							<UInput
+								v-model="search"
+								placeholder="Search tracks..."
+								class="w-full lg:flex-1"
+								size="xl"
+							/>
+
+							<div class="flex items-center gap-2">
+								<UButton
+									type="button"
+									color="neutral"
+									:variant="showAdvancedFilters ? 'solid' : 'outline'"
+									class="min-w-[8.5rem] justify-center"
+									@click="toggleAdvancedFilters"
+								>
+									<UIcon name="material-symbols-light:tune-rounded" class="size-4" />
+									More filters
+								</UButton>
+								<UButton
+									v-if="activeFilterChips.length > 0"
+									type="button"
+									color="secondary"
+									variant="outline"
+									@click="resetFilters"
+								>
+									Reset
+								</UButton>
+							</div>
+						</div>
+
+						<div class="space-y-2">
+							<div class="flex items-center justify-between gap-3">
+								<p class="text-cb-tertiary-400 text-[11px] font-semibold uppercase tracking-[0.18em]">
+									Quick filters
+								</p>
+								<span class="text-cb-tertiary-500 text-xs">
+									{{ musicsList.length }} / {{ totalMusics }} results
+								</span>
+							</div>
+
+							<div class="flex flex-wrap gap-2">
+								<UButton
+									v-for="year in yearChips"
+									:key="year"
+									type="button"
+									color="neutral"
+									:variant="selectedYears.includes(year) ? 'solid' : 'outline'"
+									:class="selectedYears.includes(year) ? 'bg-cb-primary-900 text-white' : ''"
+									size="sm"
+									@click="toggleYear(year)"
+								>
+									{{ year }}
+								</UButton>
+							</div>
+						</div>
+
+						<div class="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+							<div class="flex flex-wrap items-center gap-2">
+								<UButton
+									type="button"
+									:color="isMv ? 'primary' : 'neutral'"
+									:variant="isMv ? 'solid' : 'outline'"
+									size="sm"
+									@click="isMv = !isMv"
+								>
+									<UIcon name="material-symbols-light:smart-display-outline-rounded" class="size-4" />
+									MVs only
+								</UButton>
+
+								<div class="bg-cb-quaternary-950 flex items-center rounded-lg p-1">
+									<UButton
+										type="button"
+										size="sm"
+										:color="orderDirection === 'desc' ? 'primary' : 'neutral'"
+										:variant="orderDirection === 'desc' ? 'solid' : 'ghost'"
+										@click="setOrderDirection('desc')"
+									>
+										Newest
+									</UButton>
+									<UButton
+										type="button"
+										size="sm"
+										:color="orderDirection === 'asc' ? 'primary' : 'neutral'"
+										:variant="orderDirection === 'asc' ? 'solid' : 'ghost'"
+										@click="setOrderDirection('asc')"
+									>
+										Oldest
+									</UButton>
+								</div>
+							</div>
+
+							<div class="flex flex-wrap items-center gap-2">
+								<UButton
+									type="button"
+									color="neutral"
+									variant="outline"
+									size="sm"
+									class="min-w-[8rem] justify-center"
+									@click="toggleAdvancedFilters"
+								>
+									<UIcon name="material-symbols-light:person-search-outline" class="size-4" />
+									{{ artistsSummary }}
+								</UButton>
+								<UButton
+									type="button"
+									color="neutral"
+									variant="outline"
+									size="sm"
+									class="min-w-[8rem] justify-center"
+									@click="toggleAdvancedFilters"
+								>
+									<UIcon name="material-symbols-light:category-outline-rounded" class="size-4" />
+									{{ stylesSummary }}
+								</UButton>
+							</div>
+						</div>
+
+						<div
+							v-if="showAdvancedFilters || hasAdvancedFilters"
+							class="grid gap-3 border-t border-white/5 pt-4 lg:grid-cols-2"
+						>
+							<div class="space-y-2">
+								<p class="text-cb-tertiary-400 text-[11px] font-semibold uppercase tracking-[0.18em]">
+									Artists
+								</p>
+								<div ref="artistSearchContainer" class="relative">
+									<UInput
+										v-model="artistFilterSearch"
+										placeholder="Filter by artist..."
+										class="bg-cb-quaternary-950 text-tertiary w-full ring-transparent"
+										@focus="openArtistSearch"
+										@click="openArtistSearch"
+										@keydown.esc="closeArtistSearch"
+									/>
+									<div
+										v-if="shouldShowArtistDropdown"
+										class="scrollBarLight bg-cb-quaternary-950 absolute left-0 right-0 top-full z-20 mt-2 max-h-72 overflow-y-auto rounded-lg border border-white/5 p-2 shadow-2xl"
+									>
+										<div v-if="artistsLoading" class="text-cb-tertiary-500 py-4 text-center text-sm">
+											Loading artists...
+										</div>
+										<div
+											v-else-if="filteredArtistsForMenu.length === 0"
+											class="text-cb-tertiary-500 py-4 text-center text-sm"
+										>
+											No artists match your search.
+										</div>
+										<div v-else class="space-y-1">
+											<button
+												v-for="artist in filteredArtistsForMenu"
+												:key="artist.id"
+												type="button"
+												class="hover:bg-cb-primary-900/20 flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors"
+												@click="toggleArtistSelection(artist)"
+											>
+												<NuxtImg
+													:src="artist.image || '/slider-placeholder.webp'"
+													alt=""
+													aria-hidden="true"
+													class="h-8 w-8 shrink-0 rounded-full object-cover"
+													format="webp"
+													loading="lazy"
+												/>
+												<span class="min-w-0 flex-1 truncate text-sm">{{ artist.label }}</span>
+												<UIcon
+													v-if="selectedArtists.includes(artist.id)"
+													name="i-heroicons-check"
+													class="text-cb-primary-900 size-4 shrink-0"
+												/>
+											</button>
+										</div>
+									</div>
+								</div>
+							</div>
+
+							<div class="space-y-2">
+								<p class="text-cb-tertiary-400 text-[11px] font-semibold uppercase tracking-[0.18em]">
+									Styles
+								</p>
+								<UInputMenu
+									v-model="selectedStylesForMenu"
+									:items="stylesForMenu"
+									by="value"
+									multiple
+									placeholder="Filter by style..."
+									searchable
+									searchable-placeholder="Search for a style..."
+									class="bg-cb-quaternary-950 text-tertiary w-full cursor-pointer ring-transparent"
+									:ui="{
+										content: 'bg-cb-quaternary-950',
+										item: 'rounded cursor-pointer data-highlighted:before:bg-cb-primary-900/30 hover:bg-cb-primary-900',
+									}"
+								/>
+							</div>
+						</div>
 					</div>
 
-					<div class="flex flex-wrap items-center gap-2">
-						<UButton color="secondary" variant="outline" size="xs" @click="resetFilters">
-							Reset
-						</UButton>
+					<div v-if="activeFilterChips.length > 0" class="flex flex-wrap gap-2">
 						<UButton
+							v-for="chip in activeFilterChips"
+							:key="`${chip.key}-${'value' in chip ? chip.value : chip.label}`"
+							type="button"
 							color="neutral"
 							variant="outline"
 							size="xs"
-							@click="toggleOrderDirection"
+							class="rounded-full"
+							@click="removeActiveFilter(chip)"
 						>
-							<UIcon
-								name="material-symbols-light:sort"
-								class="size-4"
-								:class="orderDirection === 'desc' ? 'rotate-180' : ''"
-							/>
-							{{ orderDirection === 'desc' ? 'Newest first' : 'Oldest first' }}
+							{{ chip.label }}
+							<UIcon name="i-heroicons-x-mark" class="size-3" />
 						</UButton>
-						<UCheckbox v-model="isMv" label="MVs only" />
-
-						<span class="text-cb-tertiary-500 ml-auto text-xs">
-							{{ musicsList.length }} / {{ totalMusics }} results
-						</span>
 					</div>
 				</div>
 
@@ -202,17 +343,17 @@
 </template>
 
 <script setup lang="ts">
-	import { useDebounceFn } from '@vueuse/core'
+	import { onClickOutside, useDebounceFn } from '@vueuse/core'
 	import type { LocationQuery, LocationQueryValue } from 'vue-router'
 	import type { Artist, ArtistMenuItem, Music } from '~/types'
 	import { useSupabaseMusic } from '~/composables/Supabase/useSupabaseMusic'
 
-	type YearMenuItem = { value: number; label: string }
 	type StyleMenuItem = { value: string; label: string }
 
 	const route = useRoute()
 	const router = useRouter()
 	const scrollContainer = useTemplateRef<HTMLElement>('scrollContainer')
+	const artistSearchContainer = useTemplateRef<HTMLElement>('artistSearchContainer')
 	const currentYear = new Date().getFullYear()
 
 	const { getMusicsByPage } = useSupabaseMusic()
@@ -224,9 +365,7 @@
 	const selectedArtists = ref<string[]>([])
 	const selectedArtistsWithLabel = ref<ArtistMenuItem[]>([])
 	const selectedYears = ref<number[]>([])
-	const selectedYearsWithLabel = ref<YearMenuItem[]>([])
 	const selectedStyles = ref<string[]>([])
-	const selectedStylesWithLabel = ref<StyleMenuItem[]>([])
 	const isMv = ref(false)
 	const orderDirection = ref<'asc' | 'desc'>('desc')
 
@@ -239,7 +378,14 @@
 	const isInitialized = ref(false)
 	const isApplyingFilterState = ref(false)
 	const isReady = ref(false)
+	const lastSyncedQuery = ref('')
+	const lastArtistsRequestKey = ref('')
+	const lastMusicsRequestKey = ref('')
 	const musicsLoadError = ref<string | null>(null)
+	const showAdvancedFilters = ref(false)
+	const artistsLoading = ref(false)
+	const artistFilterSearch = ref('')
+	const isArtistSearchOpen = ref(false)
 	const mvPreview = ref<{ videoId: string; title: string } | null>(null)
 	const isMvPreviewOpen = computed({
 		get: () => Boolean(mvPreview.value),
@@ -287,19 +433,22 @@
 	const artistsForMenu = computed((): ArtistMenuItem[] => {
 		return artistsList.value.map((artist) => ({
 			id: artist.id,
-			label: artist.name,
-			name: artist.name,
-			description: artist.description ?? undefined,
+			label: artist.name.trim(),
+			name: artist.name.trim(),
 			image: artist.image,
 		}))
 	})
 
-	const yearsForMenu = computed(() => {
-		return availableYears.map((year) => ({
-			value: year,
-			label: year.toString(),
-		})) as YearMenuItem[]
+	const filteredArtistsForMenu = computed((): ArtistMenuItem[] => {
+		const searchTerm = artistFilterSearch.value.trim().toLowerCase()
+		if (searchTerm.length < 2) return []
+
+		return artistsForMenu.value.filter((artist) =>
+			artist.label.toLowerCase().includes(searchTerm),
+		).slice(0, 30)
 	})
+
+	const yearChips = computed(() => [...availableYears].reverse())
 
 	const stylesForMenu = computed(() => {
 		return availableStyles.map((style) => ({
@@ -308,7 +457,85 @@
 		})) as StyleMenuItem[]
 	})
 
-	const loadAvailableArtists = async (): Promise<void> => {
+	const selectedStylesForMenu = computed<StyleMenuItem[]>({
+		get: () =>
+			selectedStyles.value.map((style) => ({
+				value: style,
+				label: style,
+			})),
+		set: (nextStyles) => {
+			selectedStyles.value = nextStyles.map((style) => style.value)
+		},
+	})
+
+	const hasAdvancedFilters = computed(
+		() => selectedArtists.value.length > 0 || selectedStyles.value.length > 0,
+	)
+
+	const artistsSummary = computed(() => {
+		if (selectedArtists.value.length === 0) return 'Artists'
+		if (selectedArtists.value.length === 1) return selectedArtistsWithLabel.value[0]?.label || '1 artist'
+		return `${selectedArtists.value.length} artists`
+	})
+
+	const stylesSummary = computed(() => {
+		if (selectedStyles.value.length === 0) return 'Styles'
+		if (selectedStyles.value.length === 1) return selectedStyles.value[0]
+		return `${selectedStyles.value.length} styles`
+	})
+
+	const hasArtistSearchTerm = computed(() => artistFilterSearch.value.trim().length >= 2)
+	const shouldShowArtistDropdown = computed(
+		() => isArtistSearchOpen.value && (artistsLoading.value || hasArtistSearchTerm.value),
+	)
+
+	type ActiveFilterChip =
+		| { key: 'search'; label: string }
+		| { key: 'ismv'; label: string }
+		| { key: 'order'; label: string }
+		| { key: 'artist'; value: string; label: string }
+		| { key: 'year'; value: number; label: string }
+		| { key: 'style'; value: string; label: string }
+
+	const activeFilterChips = computed((): ActiveFilterChip[] => {
+		const chips: ActiveFilterChip[] = []
+		const trimmedSearch = search.value.trim()
+
+		if (trimmedSearch) {
+			chips.push({ key: 'search', label: `Search: ${trimmedSearch}` })
+		}
+
+		for (const artist of selectedArtistsWithLabel.value) {
+			chips.push({ key: 'artist', value: artist.id, label: artist.label })
+		}
+
+		for (const year of selectedYears.value) {
+			chips.push({ key: 'year', value: year, label: String(year) })
+		}
+
+		for (const style of selectedStyles.value) {
+			chips.push({ key: 'style', value: style, label: style })
+		}
+
+		if (isMv.value) {
+			chips.push({ key: 'ismv', label: 'MVs only' })
+		}
+
+		if (orderDirection.value === 'asc') {
+			chips.push({ key: 'order', label: 'Oldest first' })
+		}
+
+		return chips
+	})
+
+	const loadAvailableArtists = async (options?: { force?: boolean }): Promise<void> => {
+		const requestKey = buildArtistRequestKey()
+		if (!options?.force && requestKey === lastArtistsRequestKey.value && artistsList.value.length > 0) {
+			syncSelectedLabelsFromValues()
+			return
+		}
+
+		artistsLoading.value = true
 		try {
 			const result = await $fetch<{ artists: Artist[] }>('/api/musics/filter-artists', {
 				params: {
@@ -325,9 +552,12 @@
 			})
 
 			artistsList.value = result.artists
+			lastArtistsRequestKey.value = requestKey
 			syncSelectedLabelsFromValues()
 		} catch (error) {
 			console.error('Error loading filtered artists:', error)
+		} finally {
+			artistsLoading.value = false
 		}
 	}
 
@@ -354,6 +584,47 @@
 		)
 	}
 
+	const stringifyQuery = (query: Record<string, string>) => {
+		return JSON.stringify(
+			Object.keys(query)
+				.sort()
+				.reduce(
+					(accumulator, key) => {
+						const value = query[key]
+						if (value !== undefined) {
+							accumulator[key] = value
+						}
+						return accumulator
+					},
+					{} as Record<string, string>,
+				),
+		)
+	}
+
+	const buildArtistRequestKey = () =>
+		stringifyQuery({
+			search: search.value.trim(),
+			years: [...selectedYears.value].sort((left, right) => left - right).join(','),
+			styles: [...selectedStyles.value].sort((left, right) => left.localeCompare(right)).join(','),
+			ismv: isMv.value ? 'true' : '',
+			selectedArtistIds: [...selectedArtists.value]
+				.sort((left, right) => left.localeCompare(right))
+				.join(','),
+		})
+
+	const buildMusicRequestKey = (page: number) =>
+		stringifyQuery({
+			page: String(page),
+			search: search.value.trim(),
+			artistIds: [...selectedArtists.value]
+				.sort((left, right) => left.localeCompare(right))
+				.join(','),
+			years: [...selectedYears.value].sort((left, right) => left - right).join(','),
+			styles: [...selectedStyles.value].sort((left, right) => left.localeCompare(right)).join(','),
+			orderDirection: orderDirection.value,
+			ismv: isMv.value ? 'true' : '',
+		})
+
 
 	const syncSelectedLabelsFromValues = () => {
 		const knownArtists = new Map<string, ArtistMenuItem>()
@@ -361,9 +632,8 @@
 		for (const artist of artistsList.value) {
 			knownArtists.set(artist.id, {
 				id: artist.id,
-				label: artist.name,
-				name: artist.name,
-				description: artist.description ?? undefined,
+				label: artist.name.trim(),
+				name: artist.name.trim(),
 				image: artist.image,
 			})
 		}
@@ -375,16 +645,6 @@
 		selectedArtistsWithLabel.value = selectedArtists.value
 			.map((artistId) => knownArtists.get(artistId))
 			.filter((artist): artist is ArtistMenuItem => Boolean(artist))
-
-		selectedYearsWithLabel.value = selectedYears.value.map((year) => ({
-			value: year,
-			label: year.toString(),
-		}))
-
-		selectedStylesWithLabel.value = selectedStyles.value.map((style) => ({
-			value: style,
-			label: style,
-		}))
 	}
 
 	const applyFiltersFromRoute = () => {
@@ -399,6 +659,8 @@
 		selectedStyles.value = parseQueryList(route.query.styles)
 		isMv.value = route.query.ismv === 'true'
 		orderDirection.value = route.query.orderDirection === 'asc' ? 'asc' : 'desc'
+		showAdvancedFilters.value =
+			selectedArtists.value.length > 0 || selectedStyles.value.length > 0
 
 		syncSelectedLabelsFromValues()
 	}
@@ -437,27 +699,54 @@
 
 	const updateUrlFromFilters = async () => {
 		const nextQuery = buildShareableQuery()
-		if (
-			JSON.stringify(normalizeQuery(route.query)) === JSON.stringify(nextQuery)
-		) {
+		const nextQueryString = stringifyQuery(nextQuery)
+		if (stringifyQuery(normalizeQuery(route.query)) === nextQueryString) {
+			lastSyncedQuery.value = nextQueryString
 			return
 		}
 
+		lastSyncedQuery.value = nextQueryString
 		await router.replace({ query: nextQuery })
 	}
 
-	const runFilterBatch = async (callback: () => void | Promise<void>) => {
+	const refreshMusicPage = async (options?: { reloadArtists?: boolean }) => {
+		if (options?.reloadArtists === false) {
+			await loadMusics(true)
+			return
+		}
+
+		await Promise.all([loadAvailableArtists(), loadMusics(true)])
+	}
+
+	const runFilterBatch = async (
+		callback: () => void | Promise<void>,
+		options?: { reloadArtists?: boolean },
+	) => {
 		isApplyingFilterState.value = true
 		await callback()
 		isApplyingFilterState.value = false
 
 		if (!isReady.value) return
 		await updateUrlFromFilters()
-		await Promise.all([loadAvailableArtists(), loadMusics(true)])
+		await refreshMusicPage(options)
 	}
 
-	const loadMusics = async (isFirstCall = false): Promise<void> => {
+	const loadMusics = async (
+		isFirstCall = false,
+		options?: { force?: boolean },
+	): Promise<void> => {
 		if (loading.value) return
+
+		const requestKey = buildMusicRequestKey(isFirstCall ? 1 : currentPage.value)
+		if (
+			isFirstCall &&
+			!options?.force &&
+			requestKey === lastMusicsRequestKey.value &&
+			musicsList.value.length > 0
+		) {
+			return
+		}
+
 		loading.value = true
 		musicsLoadError.value = null
 
@@ -492,6 +781,7 @@
 				musicsList.value = Array.from(
 					new Map(newMusics.map((music) => [music.id, music])).values(),
 				)
+				lastMusicsRequestKey.value = requestKey
 				currentPage.value = 2
 			} else {
 				musicsList.value = Array.from(
@@ -626,38 +916,94 @@
 			selectedArtists.value = []
 			selectedArtistsWithLabel.value = []
 			selectedYears.value = []
-			selectedYearsWithLabel.value = []
 			selectedStyles.value = []
-			selectedStylesWithLabel.value = []
 			isMv.value = false
 			orderDirection.value = 'desc'
 		})
 	}
 
-	const toggleOrderDirection = () => {
-		orderDirection.value = orderDirection.value === 'desc' ? 'asc' : 'desc'
+	const setOrderDirection = (direction: 'asc' | 'desc') => {
+		orderDirection.value = direction
 	}
 
-	watch(selectedArtistsWithLabel, (newValue: ArtistMenuItem[]) => {
-		selectedArtists.value = newValue.map((artist) => artist.id)
+	const toggleYear = async (year: number) => {
+		await runFilterBatch(() => {
+			selectedYears.value = selectedYears.value.includes(year)
+				? selectedYears.value.filter((selectedYear) => selectedYear !== year)
+				: [...selectedYears.value, year].sort((a, b) => b - a)
+			syncSelectedLabelsFromValues()
+		})
+	}
+
+	const toggleAdvancedFilters = () => {
+		showAdvancedFilters.value = !showAdvancedFilters.value
+		if (!showAdvancedFilters.value) {
+			closeArtistSearch()
+		}
+	}
+
+	const openArtistSearch = () => {
+		isArtistSearchOpen.value = true
+	}
+
+	const closeArtistSearch = () => {
+		isArtistSearchOpen.value = false
+	}
+
+	const toggleArtistSelection = (artist: ArtistMenuItem) => {
+		selectedArtists.value = selectedArtists.value.includes(artist.id)
+			? selectedArtists.value.filter((artistId) => artistId !== artist.id)
+			: [...selectedArtists.value, artist.id]
+		syncSelectedLabelsFromValues()
+	}
+
+	onClickOutside(artistSearchContainer, () => {
+		closeArtistSearch()
 	})
 
-	watch(selectedYearsWithLabel, (newValue: YearMenuItem[]) => {
-		selectedYears.value = newValue.map((year) => year.value)
-	})
+	const removeActiveFilter = async (chip: ActiveFilterChip) => {
+		await runFilterBatch(() => {
+			switch (chip.key) {
+				case 'search':
+					search.value = ''
+					break
+				case 'artist':
+					selectedArtists.value = selectedArtists.value.filter((artistId) => artistId !== chip.value)
+					break
+				case 'year':
+					selectedYears.value = selectedYears.value.filter((year) => year !== chip.value)
+					break
+				case 'style':
+					selectedStyles.value = selectedStyles.value.filter((style) => style !== chip.value)
+					break
+				case 'ismv':
+					isMv.value = false
+					break
+				case 'order':
+					orderDirection.value = 'desc'
+					break
+			}
 
-	watch(selectedStylesWithLabel, (newValue: StyleMenuItem[]) => {
-		selectedStyles.value = newValue.map((style) => style.value)
-	})
+			syncSelectedLabelsFromValues()
+		}, {
+			reloadArtists: !['artist', 'order'].includes(chip.key),
+		})
+	}
 
-	watch([selectedArtists, selectedYears, selectedStyles, isMv, orderDirection], async () => {
+	watch([selectedYears, selectedStyles, isMv], async () => {
 		if (isApplyingFilterState.value || !isReady.value) return
 		await updateUrlFromFilters()
-		await Promise.all([loadAvailableArtists(), loadMusics(true)])
+		await refreshMusicPage({ reloadArtists: true })
+	})
+
+	watch([selectedArtists, orderDirection], async () => {
+		if (isApplyingFilterState.value || !isReady.value) return
+		await updateUrlFromFilters()
+		await refreshMusicPage({ reloadArtists: false })
 	})
 
 	const debouncedSearch = useDebounceFn(async () => {
-		await Promise.all([loadAvailableArtists(), loadMusics(true)])
+		await refreshMusicPage({ reloadArtists: true })
 	}, 300)
 
 	watch(search, async () => {
@@ -666,10 +1012,37 @@
 		debouncedSearch()
 	})
 
+	watch(
+		() => normalizeQuery(route.query),
+		async (nextQuery, previousQuery) => {
+			if (!isReady.value || isApplyingFilterState.value) return
+
+			const nextQueryString = stringifyQuery(nextQuery)
+			if (nextQueryString === lastSyncedQuery.value) return
+
+			const currentFilterQuery = buildShareableQuery()
+			if (nextQueryString === stringifyQuery(currentFilterQuery)) {
+				lastSyncedQuery.value = nextQueryString
+				return
+			}
+
+			isApplyingFilterState.value = true
+			applyFiltersFromRoute()
+			isApplyingFilterState.value = false
+
+			lastSyncedQuery.value = nextQueryString
+			const shouldReloadArtists = ['search', 'years', 'styles', 'ismv'].some(
+				(key) => nextQuery[key] !== previousQuery?.[key],
+			)
+			await refreshMusicPage({ reloadArtists: shouldReloadArtists })
+		},
+	)
+
 	onMounted(async () => {
 		isApplyingFilterState.value = true
 		applyFiltersFromRoute()
 		isApplyingFilterState.value = false
+		lastSyncedQuery.value = stringifyQuery(normalizeQuery(route.query))
 
 		await Promise.all([loadAvailableArtists(), loadMusics(true)])
 		isInitialized.value = true

@@ -105,6 +105,7 @@ export default defineEventHandler(async (event) => {
 			query.artistIds as string | undefined,
 			'artistIds',
 		)
+		let filteredArtistIds = artistIds
 		const styles = validateArrayParam(query.styles as string | undefined, 'styles')
 
 		// Calculate offset
@@ -112,77 +113,113 @@ export default defineEventHandler(async (event) => {
 
 		// Use optimized RPC function when filtering by styles (avoids large IN clauses)
 		if (styles && styles.length > 0) {
-			const { data: rpcData, error: rpcError } = await supabase.rpc(
-				'get_paginated_musics_by_styles',
-				{
-					style_filters: styles,
-					search_term: search || undefined,
-					year_filters: years || undefined,
-					is_mv: ismv ?? undefined,
-					order_column: orderBy,
-					order_dir: orderDirection,
-					page_limit: limit,
-					page_offset: offset,
-				},
-			)
+			if (artistIds && artistIds.length > 0) {
+				const { data: matchingArtists, error: matchingArtistsError } = await supabase
+					.from('artists')
+					.select('id')
+					.in('id', artistIds)
+					.eq('verified', true)
+					.overlaps('styles', styles)
 
-			if (rpcError) {
-				console.error('Error fetching musics by styles:', rpcError)
-				throw rpcError
+				if (matchingArtistsError) throw matchingArtistsError
+
+				const styleMatchedArtistIds = (matchingArtists || []).map((artist) => artist.id)
+				if (styleMatchedArtistIds.length === 0) {
+					return {
+						musics: [],
+						total: 0,
+						page,
+						limit,
+						totalPages: 0,
+					}
+				}
+
+				filteredArtistIds = styleMatchedArtistIds
 			}
 
-			const musicIds = rpcData?.map((m: { id: string }) => m.id) || []
-			const total = rpcData?.[0]?.total_count || 0
+			if (artistIds && artistIds.length > 0 && (!filteredArtistIds || filteredArtistIds.length === 0)) {
+				return {
+					musics: [],
+					total: 0,
+					page,
+					limit,
+					totalPages: 0,
+				}
+			}
 
-			// Fetch full music data with relations for the filtered IDs
-			let musicsWithRelations: MusicWithRelations[] = []
-			if (musicIds.length > 0) {
-				let dataQuery = supabase
-					.from('musics')
-					.select(
-						`
-						*,
-						artists:music_artists!inner(
-							artist:artists!inner(*)
-						),
-						releases:music_releases(
-							release:releases(*)
-						)
-					`,
-					)
-				dataQuery = applyVerifiedArtistFilter(dataQuery)
-				const { data: fullData, error: fullError } = await dataQuery.in('id', musicIds)
-
-				if (fullError) throw fullError
-
-				// Preserve the order from RPC by sorting according to musicIds order
-				const idOrderMap = new Map(musicIds.map((id, index) => [id, index]))
-				musicsWithRelations = (fullData || []).sort(
-					(a, b) => (idOrderMap.get(a.id) ?? 0) - (idOrderMap.get(b.id) ?? 0),
+			if (!filteredArtistIds || filteredArtistIds.length === 0) {
+				const { data: rpcData, error: rpcError } = await supabase.rpc(
+					'get_paginated_musics_by_styles',
+					{
+						style_filters: styles,
+						search_term: search || undefined,
+						year_filters: years || undefined,
+						is_mv: ismv ?? undefined,
+						order_column: orderBy,
+						order_dir: orderDirection,
+						page_limit: limit,
+						page_offset: offset,
+					},
 				)
-			}
 
-			const transformedData = transformMusics(musicsWithRelations)
-			const totalPages = Math.ceil(Number(total) / limit)
+				if (rpcError) {
+					console.error('Error fetching musics by styles:', rpcError)
+					throw rpcError
+				}
 
-			return {
-				musics: sortTransformedMusics(transformedData, orderBy, orderDirection),
-				total: Number(total),
-				page,
-				limit,
-				totalPages,
+				const musicIds = rpcData?.map((m: { id: string }) => m.id) || []
+				const total = rpcData?.[0]?.total_count || 0
+
+				// Fetch full music data with relations for the filtered IDs
+				let musicsWithRelations: MusicWithRelations[] = []
+				if (musicIds.length > 0) {
+					let dataQuery = supabase
+						.from('musics')
+						.select(
+							`
+							*,
+							artists:music_artists!inner(
+								artist:artists!inner(*)
+							),
+							releases:music_releases(
+								release:releases(*)
+							)
+						`,
+						)
+					dataQuery = applyVerifiedArtistFilter(dataQuery)
+					const { data: fullData, error: fullError } = await dataQuery.in('id', musicIds)
+
+					if (fullError) throw fullError
+
+					// Preserve the order from RPC by sorting according to musicIds order
+					const idOrderMap = new Map(musicIds.map((id, index) => [id, index]))
+					musicsWithRelations = (fullData || []).sort(
+						(a, b) => (idOrderMap.get(a.id) ?? 0) - (idOrderMap.get(b.id) ?? 0),
+					)
+				}
+
+				const transformedData = transformMusics(musicsWithRelations)
+				const totalPages = Math.ceil(Number(total) / limit)
+
+				return {
+					musics: sortTransformedMusics(transformedData, orderBy, orderDirection),
+					total: Number(total),
+					page,
+					limit,
+					totalPages,
+				}
 			}
 		}
 
-		// Standard query path (no style filter)
+		// Standard query path (or style filtering already reduced to artist ids)
 		let musicIdsToFilter: string[] | undefined
 
 		// Filter by specific artists
-		if (artistIds && artistIds.length > 0) {
+		if (filteredArtistIds && filteredArtistIds.length > 0) {
 			const { data: musicArtistsData, error: musicArtistsError } = await supabase
 				.from('music_artists')
 				.select('music_id')
-				.in('artist_id', artistIds)
+				.in('artist_id', filteredArtistIds)
 
 			if (musicArtistsError) throw musicArtistsError
 
