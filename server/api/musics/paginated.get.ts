@@ -1,9 +1,9 @@
-import type { Tables } from '#server/types/api'
+import type { Tables } from '../../types/api'
 import {
 	applyMusicFilters,
 	applyMusicNameExclusions,
 	applyVerifiedArtistFilter,
-} from '#server/utils/queryFilters'
+} from '../../utils/queryFilters'
 
 const ALLOWED_ORDER_COLUMNS = ['date', 'name', 'created_at', 'release_year'] as const
 type OrderColumn = (typeof ALLOWED_ORDER_COLUMNS)[number]

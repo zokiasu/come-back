@@ -78,6 +78,7 @@ export default defineNuxtConfig({
 		// Dashboard admin : SPA (données sensibles + interactif)
 		'/dashboard/**': { ssr: false },
 		'/newdashboard/**': { ssr: false },
+		'/music': { ssr: false },
 
 		// Pages de paramètres : Hybride
 		'/settings': { ssr: true },
@@ -127,9 +128,6 @@ export default defineNuxtConfig({
 			],
 		},
 		workbox: {
-			navigateFallback: '/',
-			navigateFallbackAllowlist: [/^\/$/, /^\/auth\/callback/],
-			navigateFallbackDenylist: [/^\/api\//],
 			globPatterns: ['**/*.{js,css,html,png,svg,ico,webp,woff2}'],
 			runtimeCaching: [
 				{
