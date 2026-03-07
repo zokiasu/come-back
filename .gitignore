@@ -40,3 +40,5 @@ service-account.json
 fix-*.mjs
 
 .codex/config.toml
+
+AGENTS.md
