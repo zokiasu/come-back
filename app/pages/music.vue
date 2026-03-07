@@ -1,193 +1,195 @@
 <template>
 	<div class="flex h-[calc(100vh-5rem)] overflow-hidden">
 		<div ref="scrollContainer" class="scrollBarLight min-w-0 flex-1 overflow-y-auto p-5">
-			<div class="mb-4">
-				<h1 class="text-xl font-bold">Explore music</h1>
-				<p class="text-cb-tertiary-500 text-xs">
-					Listen to recent tracks and refine the list with filters.
-				</p>
-			</div>
-
-			<div class="mb-4 space-y-2">
-				<div class="grid grid-cols-2 gap-2 lg:grid-cols-4">
-					<UInput
-						v-model="search"
-						placeholder="Search music..."
-						class="w-full"
-					/>
-					<UInputMenu
-						v-model="selectedArtistsWithLabel"
-						:items="artistsForMenu"
-						by="id"
-						multiple
-						placeholder="Artists..."
-						searchable
-						searchable-placeholder="Search for an artist..."
-						class="bg-cb-quaternary-950 text-tertiary w-full cursor-pointer ring-transparent"
-						:ui="{
-							content: 'bg-cb-quaternary-950',
-							item: 'rounded cursor-pointer data-highlighted:before:bg-cb-primary-900/30 hover:bg-cb-primary-900',
-						}"
-					/>
-					<UInputMenu
-						v-model="selectedYearsWithLabel"
-						:items="yearsForMenu"
-						by="value"
-						multiple
-						placeholder="Years..."
-						searchable
-						searchable-placeholder="Search..."
-						class="bg-cb-quaternary-950 text-tertiary w-full cursor-pointer ring-transparent"
-						:ui="{
-							content: 'bg-cb-quaternary-950',
-							item: 'rounded cursor-pointer data-highlighted:before:bg-cb-primary-900/30 hover:bg-cb-primary-900',
-						}"
-					/>
-					<UInputMenu
-						v-model="selectedStylesWithLabel"
-						:items="stylesForMenu"
-						by="value"
-						multiple
-						placeholder="Styles..."
-						searchable
-						searchable-placeholder="Search..."
-						class="bg-cb-quaternary-950 text-tertiary w-full cursor-pointer ring-transparent"
-						:ui="{
-							content: 'bg-cb-quaternary-950',
-							item: 'rounded cursor-pointer data-highlighted:before:bg-cb-primary-900/30 hover:bg-cb-primary-900',
-						}"
-					/>
+			<div class="mx-auto w-full max-w-[90rem]">
+				<div class="mb-4">
+					<h1 class="text-xl font-bold">Explore music</h1>
+					<p class="text-cb-tertiary-500 text-xs">
+						Listen to recent tracks and refine the list with filters.
+					</p>
 				</div>
 
-				<div class="flex flex-wrap items-center gap-2">
-					<UButton color="secondary" variant="outline" size="xs" @click="resetFilters">
-						Reset
-					</UButton>
-					<UButton
-						color="neutral"
-						variant="outline"
-						size="xs"
-						@click="toggleOrderDirection"
-					>
-						<UIcon
-							name="material-symbols-light:sort"
-							class="size-4"
-							:class="orderDirection === 'desc' ? 'rotate-180' : ''"
+				<div class="mb-4 space-y-2">
+					<div class="grid grid-cols-2 gap-2 lg:grid-cols-4">
+						<UInput
+							v-model="search"
+							placeholder="Search music..."
+							class="w-full"
 						/>
-						{{ orderDirection === 'desc' ? 'Newest first' : 'Oldest first' }}
-					</UButton>
-					<UCheckbox v-model="isMv" label="MVs only" />
-
-					<span class="text-cb-tertiary-500 ml-auto text-xs">
-						{{ musicsList.length }} / {{ totalMusics }} results
-					</span>
-				</div>
-			</div>
-
-			<div class="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-				<div
-					v-for="music in musicsList"
-					:key="music.id"
-					class="bg-cb-quinary-900 group relative flex items-center gap-3 rounded p-2"
-				>
-					<button
-						v-if="music.id_youtube_music"
-						type="button"
-						class="flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-full transition-colors"
-						:class="
-							isCurrentlyPlaying(music.id_youtube_music)
-								? 'bg-cb-primary-900'
-								: 'bg-cb-quaternary-950 hover:bg-cb-primary-900'
-						"
-						@click.stop="handlePlayMusic(music)"
-					>
-						<UIcon
-							:name="
-								isCurrentlyPlaying(music.id_youtube_music)
-									? 'i-heroicons-pause-solid'
-									: 'i-heroicons-play-solid'
-							"
-							class="size-5 text-white"
+						<UInputMenu
+							v-model="selectedArtistsWithLabel"
+							:items="artistsForMenu"
+							by="id"
+							multiple
+							placeholder="Artists..."
+							searchable
+							searchable-placeholder="Search for an artist..."
+							class="bg-cb-quaternary-950 text-tertiary w-full cursor-pointer ring-transparent"
+							:ui="{
+								content: 'bg-cb-quaternary-950',
+								item: 'rounded cursor-pointer data-highlighted:before:bg-cb-primary-900/30 hover:bg-cb-primary-900',
+							}"
 						/>
-					</button>
-					<div v-else class="size-10 shrink-0" />
-
-					<NuxtImg
-						:src="getMusicThumbnailFromList(music) || '/slider-placeholder.webp'"
-						:alt="music.name"
-						class="h-12 w-12 shrink-0 rounded object-cover"
-						format="webp"
-						loading="lazy"
-					/>
-
-					<div class="min-w-0 flex-1">
-						<p class="truncate text-sm font-medium">{{ music.name }}</p>
-						<p class="text-cb-tertiary-500 truncate text-xs">
-							{{ formatArtists(music.artists) }}
-						</p>
-						<div class="mt-1 flex items-center gap-2">
-							<span v-if="music.date" class="text-cb-tertiary-400 text-xs">
-								{{ formatDate(music.date) }}
-							</span>
-							<button
-								v-if="music.ismv && music.id_youtube_music"
-								type="button"
-								class="text-cb-primary-900 cursor-pointer text-xs font-medium"
-								@click.stop="openMvPreview(music)"
-							>
-								MV
-							</button>
-							<span v-if="music.duration" class="text-cb-tertiary-500 text-xs">
-								{{ formatDuration(music.duration) }}
-							</span>
-						</div>
+						<UInputMenu
+							v-model="selectedYearsWithLabel"
+							:items="yearsForMenu"
+							by="value"
+							multiple
+							placeholder="Years..."
+							searchable
+							searchable-placeholder="Search..."
+							class="bg-cb-quaternary-950 text-tertiary w-full cursor-pointer ring-transparent"
+							:ui="{
+								content: 'bg-cb-quaternary-950',
+								item: 'rounded cursor-pointer data-highlighted:before:bg-cb-primary-900/30 hover:bg-cb-primary-900',
+							}"
+						/>
+						<UInputMenu
+							v-model="selectedStylesWithLabel"
+							:items="stylesForMenu"
+							by="value"
+							multiple
+							placeholder="Styles..."
+							searchable
+							searchable-placeholder="Search..."
+							class="bg-cb-quaternary-950 text-tertiary w-full cursor-pointer ring-transparent"
+							:ui="{
+								content: 'bg-cb-quaternary-950',
+								item: 'rounded cursor-pointer data-highlighted:before:bg-cb-primary-900/30 hover:bg-cb-primary-900',
+							}"
+						/>
 					</div>
 
-					<button
-						v-if="music.id_youtube_music"
-						type="button"
-						class="bg-cb-quaternary-950 hover:bg-cb-primary-900 flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full transition-colors"
-						aria-label="Add to playlist"
-						@click.stop="handleQueueMusic(music)"
-					>
-						<UIcon name="i-heroicons-plus-solid" class="size-4 text-white" />
-					</button>
+					<div class="flex flex-wrap items-center gap-2">
+						<UButton color="secondary" variant="outline" size="xs" @click="resetFilters">
+							Reset
+						</UButton>
+						<UButton
+							color="neutral"
+							variant="outline"
+							size="xs"
+							@click="toggleOrderDirection"
+						>
+							<UIcon
+								name="material-symbols-light:sort"
+								class="size-4"
+								:class="orderDirection === 'desc' ? 'rotate-180' : ''"
+							/>
+							{{ orderDirection === 'desc' ? 'Newest first' : 'Oldest first' }}
+						</UButton>
+						<UCheckbox v-model="isMv" label="MVs only" />
+
+						<span class="text-cb-tertiary-500 ml-auto text-xs">
+							{{ musicsList.length }} / {{ totalMusics }} results
+						</span>
+					</div>
 				</div>
+
+				<div class="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+					<div
+						v-for="music in musicsList"
+						:key="music.id"
+						class="bg-cb-quinary-900 group relative flex items-center gap-3 rounded p-2"
+					>
+						<button
+							v-if="music.id_youtube_music"
+							type="button"
+							class="flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-full transition-colors"
+							:class="
+								isCurrentlyPlaying(music.id_youtube_music)
+									? 'bg-cb-primary-900'
+									: 'bg-cb-quaternary-950 hover:bg-cb-primary-900'
+							"
+							@click.stop="handlePlayMusic(music)"
+						>
+							<UIcon
+								:name="
+									isCurrentlyPlaying(music.id_youtube_music)
+										? 'i-heroicons-pause-solid'
+										: 'i-heroicons-play-solid'
+								"
+								class="size-5 text-white"
+							/>
+						</button>
+						<div v-else class="size-10 shrink-0" />
+
+						<NuxtImg
+							:src="getMusicThumbnailFromList(music) || '/slider-placeholder.webp'"
+							:alt="music.name"
+							class="h-12 w-12 shrink-0 rounded object-cover"
+							format="webp"
+							loading="lazy"
+						/>
+
+						<div class="min-w-0 flex-1">
+							<p class="truncate text-sm font-medium">{{ music.name }}</p>
+							<p class="text-cb-tertiary-500 truncate text-xs">
+								{{ formatArtists(music.artists) }}
+							</p>
+							<div class="mt-1 flex items-center gap-2">
+								<span v-if="music.date" class="text-cb-tertiary-400 text-xs">
+									{{ formatDate(music.date) }}
+								</span>
+								<button
+									v-if="music.ismv && music.id_youtube_music"
+									type="button"
+									class="text-cb-primary-900 cursor-pointer text-xs font-medium"
+									@click.stop="openMvPreview(music)"
+								>
+									MV
+								</button>
+								<span v-if="music.duration" class="text-cb-tertiary-500 text-xs">
+									{{ formatDuration(music.duration) }}
+								</span>
+							</div>
+						</div>
+
+						<button
+							v-if="music.id_youtube_music"
+							type="button"
+							class="bg-cb-quaternary-950 hover:bg-cb-primary-900 flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full transition-colors"
+							aria-label="Add to playlist"
+							@click.stop="handleQueueMusic(music)"
+						>
+							<UIcon name="i-heroicons-plus-solid" class="size-4 text-white" />
+						</button>
+					</div>
+				</div>
+
+				<div
+					v-if="loading"
+					class="text-cb-tertiary-500 flex items-center justify-center gap-2 py-4 text-xs"
+				>
+					<UIcon name="line-md:loading-twotone-loop" class="size-4 animate-spin" />
+					<p>{{ firstLoad ? 'Loading...' : 'Loading...' }}</p>
+				</div>
+
+				<div
+					v-if="!loading && musicsList.length > 0 && musicsList.length < totalMusics"
+					class="flex justify-center gap-2 py-4"
+				>
+					<UButton color="primary" variant="outline" @click="loadMusics(false)">
+						Load more
+					</UButton>
+					<UButton color="neutral" variant="ghost" @click="loadAllMusics">
+						Load all ({{ totalMusics - musicsList.length }} remaining)
+					</UButton>
+				</div>
+
+				<p
+					v-if="!loading && musicsLoadError"
+					class="bg-cb-quaternary-950 w-full rounded p-5 text-center text-sm text-red-300"
+				>
+					{{ musicsLoadError }}
+				</p>
+
+				<p
+					v-else-if="!loading && musicsList.length === 0"
+					class="bg-cb-quaternary-950 w-full rounded p-5 text-center text-sm"
+				>
+					No music found
+				</p>
 			</div>
-
-			<div
-				v-if="loading"
-				class="text-cb-tertiary-500 flex items-center justify-center gap-2 py-4 text-xs"
-			>
-				<UIcon name="line-md:loading-twotone-loop" class="size-4 animate-spin" />
-				<p>{{ firstLoad ? 'Loading...' : 'Loading...' }}</p>
-			</div>
-
-			<div
-				v-if="!loading && musicsList.length > 0 && musicsList.length < totalMusics"
-				class="flex justify-center gap-2 py-4"
-			>
-				<UButton color="primary" variant="outline" @click="loadMusics(false)">
-					Load more
-				</UButton>
-				<UButton color="neutral" variant="ghost" @click="loadAllMusics">
-					Load all ({{ totalMusics - musicsList.length }} remaining)
-				</UButton>
-			</div>
-
-			<p
-				v-if="!loading && musicsLoadError"
-				class="bg-cb-quaternary-950 w-full rounded p-5 text-center text-sm text-red-300"
-			>
-				{{ musicsLoadError }}
-			</p>
-
-			<p
-				v-else-if="!loading && musicsList.length === 0"
-				class="bg-cb-quaternary-950 w-full rounded p-5 text-center text-sm"
-			>
-				No music found
-			</p>
 		</div>
 
 		<ModalMvPreview
