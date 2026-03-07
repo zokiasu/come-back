@@ -14,11 +14,7 @@
 	}>()
 
 	const todayDate = new Date()
-	const todayDateFormatted = todayDate.toLocaleDateString('en-US', {
-		month: 'long',
-		day: 'numeric',
-		year: 'numeric',
-	})
+	const todayDateFormatted = todayDate.toLocaleDateString('sv-SE')
 
 	// Désactiver le loop si moins de 2 slides (évite le warning Swiper)
 	const enableLoop = computed(() => props.newsToday.length >= 2)
@@ -70,7 +66,7 @@
 								v-else
 								class="flex h-full w-full items-center justify-center bg-black/70"
 							>
-								<p class="text-3xl font-bold">Données d'artiste indisponibles</p>
+								<p class="text-3xl font-bold">Artist data unavailable</p>
 							</div>
 						</SwiperSlide>
 					</Swiper>

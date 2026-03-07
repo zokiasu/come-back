@@ -9,7 +9,7 @@
 			v-if="validArtists.length === 0"
 			class="flex h-full w-full items-center justify-center bg-black/50"
 		>
-			<p class="text-xl font-bold">Aucun artiste valide trouvé</p>
+			<p class="text-xl font-bold">No valid artist found</p>
 		</div>
 
 		<div v-else class="flex h-full w-full">
@@ -20,7 +20,7 @@
 			>
 				<NuxtImg
 					format="webp"
-					:alt="artist.name || 'Artiste inconnu'"
+					:alt="artist.name || 'Unknown artist'"
 					:src="artist.image || 'https://i.ibb.co/wLhbFZx/Frame-255.png'"
 					class="h-full w-full object-cover"
 					@load="imageLoaded = true"
@@ -31,7 +31,7 @@
 					class="bg-cb-secondary-950/30 absolute inset-0 z-50 flex flex-col items-start justify-end p-5 sm:items-center sm:justify-center"
 				>
 					<p class="text-3xl font-bold lg:text-5xl xl:text-7xl 2xl:text-9xl">
-						{{ artist.name || 'Artiste inconnu' }}
+						{{ artist.name || 'Unknown artist' }}
 					</p>
 				</NuxtLink>
 			</div>

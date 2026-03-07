@@ -119,20 +119,16 @@
 
 	const formatDate = (value: string | null | undefined) => {
 		if (!value) return '-'
-		return new Date(value).toLocaleDateString('fr-FR', {
-			day: '2-digit',
-			month: 'short',
-			year: 'numeric',
-		})
+		return new Date(value).toLocaleDateString('sv-SE')
 	}
 
 	const formatArtists = (artists: MatchArtist[]) => {
-		return artists.map((artist) => artist.name).join(', ') || 'Artiste inconnu'
+		return artists.map((artist) => artist.name).join(', ') || 'Unknown artist'
 	}
 
 	const getReleaseLine = (suggestion: MusicMatchSuggestion) => {
 		const release = suggestion.releases[0]
-		if (!release) return 'Aucune release liée'
+		if (!release) return 'No linked release'
 		const dateLabel = release.date ? ` · ${formatDate(release.date)}` : ''
 		return `${release.name}${dateLabel}`
 	}
@@ -190,10 +186,10 @@
 			activeKeywords.value = response.keywords ?? parsedKeywords.value
 		} catch (error) {
 			console.error('Error scanning YouTube MV candidates:', error)
-			errorMessage.value = 'Impossible de scanner YouTube pour cette période.'
+			errorMessage.value = 'Unable to scan YouTube for this period.'
 			toast.add({
-				title: 'Scan impossible',
-				description: 'Le scan YouTube a échoué.',
+				title: 'Scan failed',
+				description: 'The YouTube scan failed.',
 				color: 'error',
 			})
 		} finally {
@@ -243,8 +239,8 @@
 		} catch (error) {
 			console.error('Error searching manual music matches:', error)
 			toast.add({
-				title: 'Recherche impossible',
-				description: 'La recherche manuelle a échoué.',
+				title: 'Search failed',
+				description: 'Manual search failed.',
 				color: 'error',
 			})
 		} finally {
@@ -278,15 +274,15 @@
 
 			linkedVideoIds.value = [...linkedVideoIds.value, candidate.videoId]
 			toast.add({
-				title: 'MV lié',
-				description: `${suggestion.musicName} utilise maintenant cette vidéo YouTube.`,
+				title: 'MV linked',
+				description: `${suggestion.musicName} now uses this YouTube video.`,
 				color: 'success',
 			})
 		} catch (error) {
 			console.error('Error linking MV to music:', error)
 			toast.add({
-				title: 'Liaison impossible',
-				description: 'Le remplacement de l’ID YouTube a échoué.',
+				title: 'Link failed',
+				description: 'Replacing the YouTube ID failed.',
 				color: 'error',
 			})
 		} finally {
@@ -309,27 +305,27 @@
 				<div>
 					<h1 class="text-2xl font-bold text-white">MV Matcher</h1>
 					<p class="text-cb-tertiary-400 max-w-3xl text-sm">
-						Scanne YouTube sur une période donnée, ignore les vidéos déjà présentes et
-						remplace l’ID YouTube d’une musique existante quand tu confirmes le match.
+						Scan YouTube over a time range, ignore videos already in the database, and
+						replace a track's YouTube ID when you confirm the match.
 					</p>
 				</div>
 				<UBadge color="primary" variant="subtle" size="lg">
-					{{ visibleCandidates.length }} candidats à traiter
+					{{ visibleCandidates.length }} candidates to process
 				</UBadge>
 			</div>
 
 			<section class="bg-cb-quinary-900 rounded-2xl border border-white/5 p-4 md:p-5">
 				<div class="grid grid-cols-1 gap-3 lg:grid-cols-[1fr_1fr_2fr_auto_auto] lg:items-end">
-					<UFormField label="Début">
+					<UFormField label="Start">
 						<UInput v-model="startDate" type="date" class="w-full" />
 					</UFormField>
-					<UFormField label="Fin">
+					<UFormField label="End">
 						<UInput v-model="endDate" type="date" class="w-full" />
 					</UFormField>
-					<UFormField label="Mots-clés">
+					<UFormField label="Keywords">
 						<UInput v-model="keywordsInput" class="w-full" />
 					</UFormField>
-					<UFormField label="Résultats max">
+					<UFormField label="Max results">
 						<UInput
 							:model-value="String(limit)"
 							type="number"
@@ -346,7 +342,7 @@
 						class="justify-center"
 						@click="scanCandidates"
 					>
-						Scanner YouTube
+						Scan YouTube
 					</UButton>
 				</div>
 
@@ -364,15 +360,15 @@
 
 			<div class="grid grid-cols-1 gap-3 md:grid-cols-3">
 				<div class="bg-cb-quinary-900 rounded-2xl border border-white/5 p-4">
-					<p class="text-cb-tertiary-400 text-xs uppercase">Vidéos scannées</p>
+					<p class="text-cb-tertiary-400 text-xs uppercase">Scanned videos</p>
 					<p class="mt-2 text-2xl font-semibold text-white">{{ scannedVideos }}</p>
 				</div>
 				<div class="bg-cb-quinary-900 rounded-2xl border border-white/5 p-4">
-					<p class="text-cb-tertiary-400 text-xs uppercase">Déjà connues</p>
+					<p class="text-cb-tertiary-400 text-xs uppercase">Already known</p>
 					<p class="mt-2 text-2xl font-semibold text-white">{{ ignoredExisting }}</p>
 				</div>
 				<div class="bg-cb-quinary-900 rounded-2xl border border-white/5 p-4">
-					<p class="text-cb-tertiary-400 text-xs uppercase">À traiter</p>
+					<p class="text-cb-tertiary-400 text-xs uppercase">To process</p>
 					<p class="mt-2 text-2xl font-semibold text-white">
 						{{ visibleCandidates.length }}
 					</p>
@@ -404,9 +400,9 @@
 				v-else-if="visibleCandidates.length === 0"
 				class="bg-cb-quinary-900 rounded-2xl border border-white/5 p-10 text-center"
 			>
-				<p class="text-lg font-semibold text-white">Aucun candidat à traiter</p>
+				<p class="text-lg font-semibold text-white">No candidates to process</p>
 				<p class="text-cb-tertiary-400 mt-2 text-sm">
-					Essaie d’élargir la période ou les mots-clés si tu veux plus de résultats.
+					Try expanding the date range or keywords if you want more results.
 				</p>
 			</div>
 
@@ -458,7 +454,7 @@
 									YouTube
 								</UButton>
 								<UButton color="neutral" variant="ghost" size="sm" @click="ignoreCandidate(candidate.videoId)">
-									Ignorer
+									Ignore
 								</UButton>
 							</div>
 						</div>
@@ -466,7 +462,7 @@
 						<div class="space-y-4">
 							<section class="space-y-3">
 								<div class="flex items-center justify-between gap-3">
-									<h3 class="text-sm font-semibold text-white">Suggestions automatiques</h3>
+									<h3 class="text-sm font-semibold text-white">Automatic suggestions</h3>
 									<UBadge color="neutral" variant="subtle">
 										{{ candidate.suggestions.length }} suggestions
 									</UBadge>
@@ -495,7 +491,7 @@
 													{{ getReleaseLine(suggestion) }}
 												</p>
 												<p class="text-cb-tertiary-500 text-xs">
-													ID actuel: {{ suggestion.currentYoutubeId || 'aucun' }}
+													Current ID: {{ suggestion.currentYoutubeId || 'none' }}
 												</p>
 												<div
 													v-if="suggestion.matchedOn && suggestion.matchedOn.length > 0"
@@ -519,22 +515,22 @@
 												:loading="isLinking[`${candidate.videoId}:${suggestion.musicId}`]"
 												@click="linkMvToMusic(candidate, suggestion)"
 											>
-												Remplacer l'ID
+												Replace ID
 											</UButton>
 										</div>
 									</div>
 								</div>
 
 								<p v-else class="text-cb-tertiary-500 rounded-xl border border-dashed border-white/10 p-4 text-sm">
-									Aucune suggestion automatique fiable pour cette vidéo.
+									No reliable automatic suggestion found for this video.
 								</p>
 							</section>
 
 							<section class="space-y-3">
 								<div class="flex items-center justify-between gap-3">
-									<h3 class="text-sm font-semibold text-white">Recherche manuelle</h3>
+									<h3 class="text-sm font-semibold text-white">Manual search</h3>
 									<p class="text-cb-tertiary-500 text-xs">
-										Recherche par titre ou extrait pertinent.
+										Search by title or any relevant excerpt.
 									</p>
 								</div>
 
@@ -542,7 +538,7 @@
 									<UInput
 										v-model="manualSearchQueries[candidate.videoId]"
 										class="w-full"
-										placeholder="Ex: REBEL HEART IVE"
+										placeholder="Example: REBEL HEART IVE"
 										@keyup.enter="searchManualMatches(candidate)"
 									/>
 									<UButton
@@ -551,7 +547,7 @@
 										:loading="isSearchingManual[candidate.videoId]"
 										@click="searchManualMatches(candidate)"
 									>
-										Rechercher
+										Search
 									</UButton>
 								</div>
 
@@ -582,7 +578,7 @@
 												:loading="isLinking[`${candidate.videoId}:${suggestion.musicId}`]"
 												@click="linkMvToMusic(candidate, suggestion)"
 											>
-												Lier
+												Link
 											</UButton>
 										</div>
 									</div>

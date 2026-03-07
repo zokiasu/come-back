@@ -53,9 +53,10 @@
 	}
 
 	const formatAddedTime = (date: Date) => {
-		return new Intl.DateTimeFormat('fr-FR', {
+		return new Intl.DateTimeFormat('en-US', {
 			hour: '2-digit',
 			minute: '2-digit',
+			hour12: true,
 		}).format(date)
 	}
 </script>
@@ -72,9 +73,9 @@
 			>
 				<div>
 					<p class="text-cb-tertiary-500 text-xs uppercase">Queue</p>
-					<h3 class="text-lg font-semibold">Liste de lecture</h3>
+					<h3 class="text-lg font-semibold">Playlist</h3>
 					<p v-if="playlistInfo.isActive" class="text-cb-tertiary-400 text-sm">
-						{{ playlistInfo.total }} musique{{ playlistInfo.total > 1 ? 's' : '' }}
+						{{ playlistInfo.total }} track{{ playlistInfo.total > 1 ? 's' : '' }}
 					</p>
 				</div>
 				<div class="flex items-center gap-2">
@@ -85,7 +86,7 @@
 						class="text-cb-tertiary-400 hover:text-white rounded px-2 py-1 text-xs"
 						@click="handleClearPlaylist"
 					>
-						Vider
+						Clear
 					</button>
 					<button
 						type="button"
@@ -104,7 +105,7 @@
 					<UInput
 						v-model="searchQuery"
 						icon="i-heroicons-magnifying-glass"
-						placeholder="Rechercher dans la playlist..."
+						placeholder="Search in playlist..."
 						class="w-full"
 					/>
 				</div>
@@ -118,10 +119,10 @@
 						<IconPlay class="h-8 w-8" />
 					</div>
 					<h4 class="text-cb-tertiary-300 mb-2 text-lg font-medium">
-						Aucune musique dans la liste
+						No tracks in the playlist
 					</h4>
 					<p class="text-cb-tertiary-500 text-sm">
-						Ajoutez des musiques en cliquant sur le bouton play
+						Add tracks by clicking the play button
 					</p>
 				</div>
 
@@ -129,7 +130,7 @@
 					v-else-if="filteredPlaylist.length === 0"
 					class="text-cb-tertiary-500 flex flex-1 items-center justify-center px-6 text-center text-sm"
 				>
-					Aucun résultat pour cette recherche.
+					No results for this search.
 				</div>
 
 				<!-- Playlist Items -->
@@ -157,7 +158,7 @@
 								<button
 									type="button"
 									class="cb-drag-handle text-cb-tertiary-500 hover:text-white hidden sm:block"
-									aria-label="Réordonner"
+									aria-label="Reorder"
 								>
 									<UIcon name="i-heroicons-bars-3" class="h-4 w-4" />
 								</button>
@@ -213,7 +214,7 @@
 										{{ item.artist }}
 									</p>
 									<p class="text-cb-tertiary-500 text-xs">
-										Ajoutée à {{ formatAddedTime(item.addedAt) }}
+										Added at {{ formatAddedTime(item.addedAt) }}
 									</p>
 								</div>
 

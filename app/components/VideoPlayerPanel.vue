@@ -9,7 +9,7 @@
 		>
 			<!-- Header -->
 			<div class="border-cb-tertiary-700 flex items-center justify-between border-b p-3">
-				<h3 class="text-sm font-semibold">Lecteur vidéo</h3>
+				<h3 class="text-sm font-semibold">Video player</h3>
 				<button
 					class="text-cb-tertiary-400 hover:text-cb-tertiary-200 rounded p-1"
 					@click="isOpen = false"

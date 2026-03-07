@@ -24,8 +24,8 @@ export const usePlaylist = () => {
 	): PlaylistItem => ({
 		uid: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
 		videoId,
-		title: title || 'Titre inconnu',
-		artist: artist || 'Artiste inconnu',
+		title: title || 'Unknown title',
+		artist: artist || 'Unknown artist',
 		image,
 		ismv,
 		addedAt: new Date(),
@@ -39,7 +39,7 @@ export const usePlaylist = () => {
 		ismv?: boolean,
 	) => {
 		if (!videoId) {
-			console.error("❌ ID vidéo manquant pour l'ajout à la playlist")
+			console.error('❌ Missing video ID for playlist add')
 			return false
 		}
 
@@ -48,9 +48,9 @@ export const usePlaylist = () => {
 		playlist.value.push(newItem)
 
 		const toast = useToast()
-		const musicName = title || 'Titre inconnu'
+		const musicName = title || 'Unknown title'
 		toast.add({
-			title: `${musicName} a été ajouté à la playlist avec succès`,
+			title: `${musicName} was added to the playlist`,
 			color: 'success',
 			duration: 1000,
 			progress: false,
@@ -77,7 +77,7 @@ export const usePlaylist = () => {
 		ismv?: boolean,
 	) => {
 		if (!videoId) {
-			console.error('❌ ID vidéo manquant pour la lecture directe')
+			console.error('❌ Missing video ID for direct playback')
 			return false
 		}
 
@@ -129,7 +129,7 @@ export const usePlaylist = () => {
 
 	const playAtIndex = (index: number) => {
 		if (!isPlaylistActive.value || index < 0 || index >= playlist.value.length) {
-			console.error('❌ Index invalide ou playlist inactive')
+			console.error('❌ Invalid index or inactive playlist')
 			return false
 		}
 
@@ -142,7 +142,7 @@ export const usePlaylist = () => {
 
 	const removeFromPlaylist = (index: number) => {
 		if (index < 0 || index >= playlist.value.length) {
-			console.error('❌ Index invalide pour suppression')
+			console.error('❌ Invalid index for removal')
 			return false
 		}
 

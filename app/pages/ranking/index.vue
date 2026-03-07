@@ -3,14 +3,14 @@
 		<!-- Header -->
 		<div class="mb-6 flex items-center justify-between">
 			<div>
-				<h1 class="text-2xl font-bold">Mes Rankings</h1>
+				<h1 class="text-2xl font-bold">My rankings</h1>
 				<p class="text-cb-tertiary-500 text-sm">
-					Créez et gérez vos classements de musiques personnalisés
+					Create and manage your custom music rankings
 				</p>
 			</div>
 			<UButton
 				icon="i-heroicons-plus"
-				label="Nouveau ranking"
+				label="New ranking"
 				color="primary"
 				@click="openCreateModal"
 			/>
@@ -30,13 +30,13 @@
 			class="bg-cb-quaternary-950 flex flex-col items-center justify-center rounded-lg py-20"
 		>
 			<UIcon name="i-heroicons-queue-list" class="text-cb-tertiary-500 mb-4 size-16" />
-			<h2 class="mb-2 text-lg font-semibold">Aucun ranking</h2>
+			<h2 class="mb-2 text-lg font-semibold">No ranking yet</h2>
 			<p class="text-cb-tertiary-500 mb-4 text-sm">
-				Commencez par créer votre premier classement de musiques
+				Start by creating your first music ranking
 			</p>
 			<UButton
 				icon="i-heroicons-plus"
-				label="Créer mon premier ranking"
+				label="Create my first ranking"
 				color="primary"
 				@click="openCreateModal"
 			/>
@@ -85,7 +85,7 @@
 						<div class="min-w-0 flex-1">
 							<h3 class="truncate font-semibold">{{ ranking.name }}</h3>
 							<p class="text-cb-tertiary-500 text-xs">
-								{{ ranking.item_count }} musique{{ ranking.item_count > 1 ? 's' : '' }}
+								{{ ranking.item_count }} track{{ ranking.item_count > 1 ? 's' : '' }}
 							</p>
 						</div>
 						<div class="flex items-center gap-1">
@@ -99,7 +99,7 @@
 								v-else
 								name="i-heroicons-lock-closed"
 								class="text-cb-tertiary-500 size-4"
-								title="Privé"
+								title="Private"
 							/>
 						</div>
 					</div>
@@ -139,19 +139,19 @@
 		<UModal v-model:open="isCreateModalOpen">
 			<template #content>
 				<div class="bg-cb-secondary-950 p-6">
-					<h2 class="mb-4 text-lg font-semibold">Nouveau ranking</h2>
+					<h2 class="mb-4 text-lg font-semibold">New ranking</h2>
 					<div class="space-y-4">
-						<UFormField label="Nom" required>
+						<UFormField label="Name" required>
 							<UInput
 								v-model="newRankingName"
-								placeholder="Ex: Mes MVs préférés 2024"
+								placeholder="Ex: My favorite MVs of 2024"
 								class="w-full"
 							/>
 						</UFormField>
 						<UFormField label="Description">
 							<UTextarea
 								v-model="newRankingDescription"
-								placeholder="Description optionnelle..."
+								placeholder="Optional description..."
 								:rows="3"
 								class="w-full"
 							/>
@@ -159,13 +159,13 @@
 					</div>
 					<div class="mt-6 flex justify-end gap-2">
 						<UButton
-							label="Annuler"
+							label="Cancel"
 							color="neutral"
 							variant="ghost"
 							@click="isCreateModalOpen = false"
 						/>
 						<UButton
-							label="Créer"
+							label="Create"
 							color="primary"
 							:loading="isCreating"
 							:disabled="!newRankingName.trim()"
@@ -180,36 +180,36 @@
 		<UModal v-model:open="isEditModalOpen">
 			<template #content>
 				<div class="bg-cb-secondary-950 p-6">
-					<h2 class="mb-4 text-lg font-semibold">Modifier le ranking</h2>
+					<h2 class="mb-4 text-lg font-semibold">Edit ranking</h2>
 					<div class="space-y-4">
-						<UFormField label="Nom" required>
+						<UFormField label="Name" required>
 							<UInput
 								v-model="editRankingName"
-								placeholder="Nom du ranking"
+								placeholder="Ranking name"
 								class="w-full"
 							/>
 						</UFormField>
 						<UFormField label="Description">
 							<UTextarea
 								v-model="editRankingDescription"
-								placeholder="Description optionnelle..."
+								placeholder="Optional description..."
 								:rows="3"
 								class="w-full"
 							/>
 						</UFormField>
 						<UFormField>
-							<UCheckbox v-model="editRankingIsPublic" label="Rendre ce ranking public" />
+							<UCheckbox v-model="editRankingIsPublic" label="Make this ranking public" />
 						</UFormField>
 					</div>
 					<div class="mt-6 flex justify-end gap-2">
 						<UButton
-							label="Annuler"
+							label="Cancel"
 							color="neutral"
 							variant="ghost"
 							@click="isEditModalOpen = false"
 						/>
 						<UButton
-							label="Enregistrer"
+							label="Save"
 							color="primary"
 							:loading="isUpdating"
 							:disabled="!editRankingName.trim()"
@@ -224,20 +224,20 @@
 		<UModal v-model:open="isDeleteModalOpen">
 			<template #content>
 				<div class="bg-cb-secondary-950 p-6">
-					<h2 class="mb-2 text-lg font-semibold">Supprimer le ranking</h2>
+					<h2 class="mb-2 text-lg font-semibold">Delete ranking</h2>
 					<p class="text-cb-tertiary-500 mb-4">
-						Êtes-vous sûr de vouloir supprimer "{{ deletingRanking?.name }}" ? Cette
-						action est irréversible.
+						Are you sure you want to delete "{{ deletingRanking?.name }}"? This action
+						cannot be undone.
 					</p>
 					<div class="flex justify-end gap-2">
 						<UButton
-							label="Annuler"
+							label="Cancel"
 							color="neutral"
 							variant="ghost"
 							@click="isDeleteModalOpen = false"
 						/>
 						<UButton
-							label="Supprimer"
+							label="Delete"
 							color="error"
 							:loading="isDeleting"
 							@click="handleDelete"

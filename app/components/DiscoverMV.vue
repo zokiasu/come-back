@@ -404,7 +404,7 @@
 				{{ displayedMV.name }}
 			</h4>
 			<p v-if="displayedMV.date" class="text-cb-tertiary-500 text-xs min-h-[1rem]">
-				Released: {{ new Date(displayedMV.date).toLocaleDateString('fr-FR') }}
+				Released: {{ new Date(displayedMV.date).toLocaleDateString('sv-SE') }}
 			</p>
 			<!-- Indicateur de survol -->
 			<div

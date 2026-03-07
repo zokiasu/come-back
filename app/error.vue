@@ -5,7 +5,7 @@
 				{{ error?.statusCode || 500 }}
 			</h1>
 			<p class="mt-4 text-xl text-gray-600">
-				{{ error?.statusMessage || 'Une erreur est survenue' }}
+				{{ error?.statusMessage || 'An error occurred' }}
 			</p>
 			<p
 				v-if="error?.message && error.message !== error.statusMessage"
@@ -14,10 +14,8 @@
 				{{ error.message }}
 			</p>
 			<div class="mt-8 flex justify-center gap-4">
-				<UButton color="primary" size="lg" @click="handleError">
-					Retour à l'accueil
-				</UButton>
-				<UButton variant="outline" size="lg" @click="clearAndRetry">Réessayer</UButton>
+				<UButton color="primary" size="lg" @click="handleError">Back to home</UButton>
+				<UButton variant="outline" size="lg" @click="clearAndRetry">Try again</UButton>
 			</div>
 		</div>
 	</div>

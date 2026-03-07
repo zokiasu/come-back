@@ -53,7 +53,7 @@
 	const formattedValue = computed(() => {
 		const { value } = props.card
 		if (typeof value === 'number') {
-			return value.toLocaleString('fr-FR')
+			return value.toLocaleString('sv-SE')
 		}
 		return value
 	})

@@ -190,12 +190,12 @@
 
 		<LoadingIndicator
 			:show="isLoading && firstLoad"
-			message="Chargement des artistes..."
+			message="Loading artists..."
 		/>
 
 		<LoadingIndicator
 			:show="isLoading && !firstLoad"
-			message="Chargement de plus d'artistes..."
+			message="Loading more artists..."
 		/>
 		<div v-if="!hasMore && artists.length > 0" class="py-4 text-center text-gray-400">
 			All artists are displayed.

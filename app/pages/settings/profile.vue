@@ -85,7 +85,7 @@
 					<p class="opacity-50">
 						{{
 							userDetails.created_at
-								? new Date(userDetails.created_at).toLocaleDateString('fr-FR', {
+								? new Date(userDetails.created_at).toLocaleDateString('sv-SE', {
 										day: '2-digit',
 										month: '2-digit',
 										year: 'numeric',
@@ -99,7 +99,7 @@
 					<p class="opacity-50">
 						{{
 							userDetails.updated_at
-								? new Date(userDetails.updated_at).toLocaleDateString('fr-FR', {
+								? new Date(userDetails.updated_at).toLocaleDateString('sv-SE', {
 										day: '2-digit',
 										month: '2-digit',
 										year: 'numeric',

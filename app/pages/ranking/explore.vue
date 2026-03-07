@@ -3,16 +3,16 @@
 		<!-- Header -->
 		<div class="mb-6 flex items-center justify-between">
 			<div>
-				<h1 class="text-2xl font-bold">Explorer les rankings</h1>
+				<h1 class="text-2xl font-bold">Explore rankings</h1>
 				<p class="text-cb-tertiary-500 text-sm">
-					Découvrez les classements de musiques créés par la communauté
+					Discover music rankings created by the community
 				</p>
 			</div>
 			<ClientOnly>
 				<UButton
 					v-if="isUserLoggedIn"
 					icon="i-heroicons-queue-list"
-					label="Mes Rankings"
+					label="My rankings"
 					to="/ranking"
 					class="cb_button"
 				/>
@@ -36,9 +36,9 @@
 			class="bg-cb-quaternary-950 flex flex-col items-center justify-center rounded-lg py-20"
 		>
 			<UIcon name="i-heroicons-globe-alt" class="text-cb-tertiary-500 mb-4 size-16" />
-			<h2 class="mb-2 text-lg font-semibold">Aucun ranking public</h2>
+			<h2 class="mb-2 text-lg font-semibold">No public ranking yet</h2>
 			<p class="text-cb-tertiary-500 text-sm">
-				Soyez le premier à partager un ranking avec la communauté !
+				Be the first to share a ranking with the community.
 			</p>
 		</div>
 
@@ -83,7 +83,7 @@
 				<div class="p-3">
 					<h3 class="truncate font-semibold">{{ ranking.name }}</h3>
 					<p class="text-cb-tertiary-500 text-xs">
-						{{ ranking.item_count }} musique{{ ranking.item_count > 1 ? 's' : '' }}
+						{{ ranking.item_count }} track{{ ranking.item_count > 1 ? 's' : '' }}
 					</p>
 					<p
 						v-if="ranking.description"
@@ -109,7 +109,7 @@
 								<UIcon name="i-heroicons-user" class="text-cb-tertiary-500 size-3" />
 							</div>
 							<span class="text-cb-tertiary-500 truncate text-xs">
-								{{ ranking.user?.name || 'Utilisateur' }}
+								{{ ranking.user?.name || 'User' }}
 							</span>
 						</div>
 
@@ -118,7 +118,7 @@
 							v-if="ranking.user_id === currentUserId"
 							:to="`/ranking/music/${ranking.id}`"
 							class="bg-cb-quinary-900 hover:bg-cb-primary-900 flex size-8 shrink-0 items-center justify-center rounded-full transition-colors"
-							title="Modifier ce ranking"
+							title="Edit this ranking"
 							@click.stop
 						>
 							<UIcon name="i-heroicons-pencil" class="size-4" />

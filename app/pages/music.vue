@@ -554,11 +554,7 @@
 	const formatDate = (dateString: string | null | undefined): string => {
 		if (!dateString) return ''
 		const date = new Date(dateString)
-		return date.toLocaleDateString('en-US', {
-			day: 'numeric',
-			month: 'short',
-			year: 'numeric',
-		})
+		return date.toLocaleDateString('sv-SE')
 	}
 
 	const getMusicThumbnail = (music: Music): string => {

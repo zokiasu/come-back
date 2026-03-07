@@ -60,7 +60,7 @@
 				active-class="text-white"
 			>
 				<IconHome class="h-5 w-5" />
-				<span class="text-[10px] font-semibold">Accueil</span>
+				<span class="text-[10px] font-semibold">Home</span>
 			</NuxtLink>
 
 			<NuxtLink
@@ -69,17 +69,17 @@
 				active-class="text-white"
 			>
 				<IconCalendar class="h-5 w-5" />
-				<span class="text-[10px] font-semibold">Calendrier</span>
+				<span class="text-[10px] font-semibold">Calendar</span>
 			</NuxtLink>
 
 			<button
 				class="cb-no-select flex flex-1 flex-col items-center justify-center gap-1 py-3 text-cb-tertiary-200 transition-all duration-300 ease-in-out hover:text-white"
 				type="button"
-				aria-label="Recherche"
+				aria-label="Search"
 				@click="isSearchOpen = true"
 			>
 				<UIcon name="i-heroicons-magnifying-glass" class="h-5 w-5" />
-				<span class="text-[10px] font-semibold">Recherche</span>
+				<span class="text-[10px] font-semibold">Search</span>
 			</button>
 
 			<button
@@ -133,7 +133,7 @@
 							@click="isMoreOpen = false"
 						>
 							<UIcon name="i-heroicons-musical-note" class="h-5 w-5" />
-							Explorer le classement
+							Explore rankings
 						</NuxtLink>
 
 						<NuxtLink
@@ -142,7 +142,7 @@
 							@click="isMoreOpen = false"
 						>
 							<UIcon name="i-heroicons-play-circle" class="h-5 w-5" />
-							Explorer les musiques
+							Explore music
 						</NuxtLink>
 
 						<NuxtLink
@@ -151,7 +151,7 @@
 							@click="isMoreOpen = false"
 						>
 							<UIcon name="i-heroicons-cog-6-tooth" class="h-5 w-5" />
-							Parametres
+							Settings
 						</NuxtLink>
 
 						<button
@@ -160,7 +160,7 @@
 							@click="handleLoginClick"
 						>
 							<IconAccount class="h-5 w-5" />
-							Connexion
+							Sign in
 						</button>
 
 						<NuxtLink
@@ -170,7 +170,7 @@
 							@click="isMoreOpen = false"
 						>
 							<IconEdit class="h-5 w-5" />
-							Dashboard admin
+							Admin dashboard
 						</NuxtLink>
 
 						<button
@@ -180,7 +180,7 @@
 							@click="openNewsCreationModal"
 						>
 							<IconComeback class="h-5 w-5" />
-							Nouveau comeback
+							New comeback
 						</button>
 					</div>
 				</div>

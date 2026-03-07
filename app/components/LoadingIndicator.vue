@@ -7,7 +7,7 @@
 	}
 
 	const props = withDefaults(defineProps<Props>(), {
-		message: 'Chargement...',
+		message: 'Loading...',
 		position: 'responsive',
 		size: 'md',
 		show: true,

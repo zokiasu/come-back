@@ -9,21 +9,21 @@ export const useYouTube = () => {
 
 	const playMusic = (videoId: string, musicName: string, artistName: string) => {
 		if (!videoId) {
-			console.error('❌ ID vidéo manquant')
+			console.error('❌ Missing video ID')
 			return false
 		}
 
 		try {
 			idYoutubeVideo.value = videoId
-			musicNamePlaying.value = musicName || 'Titre inconnu'
-			authorNamePlaying.value = artistName || 'Artiste inconnu'
+			musicNamePlaying.value = musicName || 'Unknown title'
+			authorNamePlaying.value = artistName || 'Unknown artist'
 			isPlayingVideo.value = true
 			playerError.value = null
 
 			return true
 		} catch (error) {
-			console.error('❌ Erreur lors de la lecture:', error)
-			playerError.value = 'Erreur lors de la lecture'
+			console.error('❌ Playback error:', error)
+			playerError.value = 'Playback error'
 			return false
 		}
 	}

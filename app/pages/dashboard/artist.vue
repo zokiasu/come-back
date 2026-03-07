@@ -37,21 +37,21 @@
 
 	// Select menu options
 	const typeOptions: { label: string; id: string }[] = [
-		{ label: 'Tous les types', id: 'ALL' },
+		{ label: 'All types', id: 'ALL' },
 		{ label: 'Solo', id: 'SOLO' },
-		{ label: 'Groupe', id: 'GROUP' },
+		{ label: 'Group', id: 'GROUP' },
 	]
 
 	const genderOptions: { label: string; id: string }[] = [
-		{ label: 'Tous les genres', id: 'ALL' },
-		{ label: 'Masculin', id: 'MALE' },
-		{ label: 'Féminin', id: 'FEMALE' },
-		{ label: 'Mixte', id: 'MIXTE' },
-		{ label: 'Inconnu', id: 'UNKNOWN' },
+		{ label: 'All genders', id: 'ALL' },
+		{ label: 'Male', id: 'MALE' },
+		{ label: 'Female', id: 'FEMALE' },
+		{ label: 'Mixed', id: 'MIXTE' },
+		{ label: 'Unknown', id: 'UNKNOWN' },
 	]
 
 	const styleOptions: { label: string; id: string }[] = [
-		{ label: 'Tous les styles', id: 'ALL' },
+		{ label: 'All styles', id: 'ALL' },
 		{ label: 'K-Pop', id: 'K-Pop' },
 		{ label: 'K-Hiphop', id: 'K-Hiphop' },
 		{ label: 'K-Rap', id: 'K-Rap' },
@@ -68,30 +68,30 @@
 	]
 
 	const careerOptions: { label: string; id: string }[] = [
-		{ label: 'Tous', id: 'ALL' },
-		{ label: 'Actifs', id: 'ACTIVE' },
-		{ label: 'Inactifs', id: 'INACTIVE' },
+		{ label: 'All', id: 'ALL' },
+		{ label: 'Active', id: 'ACTIVE' },
+		{ label: 'Inactive', id: 'INACTIVE' },
 	]
 
 	const missingOptions: { label: string; id: string }[] = [
-		{ label: 'Tous', id: 'NONE' },
-		{ label: 'Sans description', id: 'NO_DESC' },
-		{ label: 'Sans réseaux', id: 'NO_SOCIALS' },
-		{ label: 'Sans plateformes', id: 'NO_PLATFORMS' },
-		{ label: 'Sans styles', id: 'NO_STYLES' },
+		{ label: 'All', id: 'NONE' },
+		{ label: 'No description', id: 'NO_DESC' },
+		{ label: 'No socials', id: 'NO_SOCIALS' },
+		{ label: 'No platforms', id: 'NO_PLATFORMS' },
+		{ label: 'No styles', id: 'NO_STYLES' },
 	]
 
 	const sortOptions: { label: string; id: string }[] = [
-		{ label: 'Nom', id: 'name' },
+		{ label: 'Name', id: 'name' },
 		{ label: 'Type', id: 'type' },
-		{ label: 'Date création', id: 'created_at' },
-		{ label: 'Date modification', id: 'updated_at' },
+		{ label: 'Created date', id: 'created_at' },
+		{ label: 'Updated date', id: 'updated_at' },
 	]
 
 	const pageSizeOptions: { label: string; id: number }[] = [
-		{ label: '20 par page', id: 20 },
-		{ label: '50 par page', id: 50 },
-		{ label: '100 par page', id: 100 },
+		{ label: '20 per page', id: 20 },
+		{ label: '50 per page', id: 50 },
+		{ label: '100 per page', id: 100 },
 	]
 
 	// Statistics
@@ -155,10 +155,10 @@
 			artistsList.value = result.artists
 			totalArtists.value = result.total
 		} catch (error) {
-			console.error('Erreur lors de la récupération des artistes:', error)
+			console.error('Error while fetching artists:', error)
 			toast.add({
-				title: 'Erreur',
-				description: 'Erreur lors du chargement des artistes',
+				title: 'Error',
+				description: 'Error while loading artists',
 				color: 'error',
 			})
 		} finally {
@@ -169,7 +169,7 @@
 	// Format date
 	const formatDate = (dateString: string | null) => {
 		if (!dateString) return '-'
-		return new Date(dateString).toLocaleDateString('fr-FR', {
+		return new Date(dateString).toLocaleDateString('sv-SE', {
 			day: '2-digit',
 			month: '2-digit',
 			year: '2-digit',
@@ -210,8 +210,8 @@
 		const missing = getMissingData(artist)
 		const labelMap: Record<string, string> = {
 			desc: 'description',
-			socials: 'réseaux',
-			platforms: 'plateformes',
+			socials: 'socials',
+			platforms: 'platforms',
 			styles: 'styles',
 		}
 		return missing.map((key) => labelMap[key]).filter(Boolean)
@@ -339,9 +339,9 @@
 		<!-- Header with stats -->
 		<div class="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
 			<div>
-				<h1 class="text-2xl font-bold">Gestion des Artistes</h1>
+				<h1 class="text-2xl font-bold">Artist Management</h1>
 				<p class="text-cb-tertiary-500 text-sm">
-					{{ stats.loaded }} / {{ stats.total }} artistes chargés
+					{{ stats.loaded }} / {{ stats.total }} artists loaded
 				</p>
 			</div>
 
@@ -357,22 +357,22 @@
 				</div>
 				<div class="rounded-lg bg-purple-900/30 px-3 py-1.5 text-center">
 					<p class="text-lg font-bold text-purple-400">{{ stats.groups }}</p>
-					<p class="text-xs text-purple-400/70">Groupes</p>
+					<p class="text-xs text-purple-400/70">Groups</p>
 				</div>
 				<div class="rounded-lg bg-green-900/30 px-3 py-1.5 text-center">
 					<p class="text-lg font-bold text-green-400">{{ stats.active }}</p>
-					<p class="text-xs text-green-400/70">Actifs</p>
+					<p class="text-xs text-green-400/70">Active</p>
 				</div>
 				<div class="rounded-lg bg-gray-900/30 px-3 py-1.5 text-center">
 					<p class="text-lg font-bold text-gray-400">{{ stats.inactive }}</p>
-					<p class="text-xs text-gray-400/70">Inactifs</p>
+					<p class="text-xs text-gray-400/70">Inactive</p>
 				</div>
 				<div
 					v-if="stats.incomplete > 0"
 					class="rounded-lg bg-amber-900/30 px-3 py-1.5 text-center"
 				>
 					<p class="text-lg font-bold text-amber-400">{{ stats.incomplete }}</p>
-					<p class="text-xs text-amber-400/70">Incomplets</p>
+					<p class="text-xs text-amber-400/70">Incomplete</p>
 				</div>
 			</div>
 		</div>
@@ -383,7 +383,7 @@
 			<div class="flex flex-wrap items-center gap-3">
 				<UInput
 					v-model="search"
-					placeholder="Rechercher..."
+					placeholder="Search..."
 					icon="i-heroicons-magnifying-glass"
 					class="w-full md:w-64"
 					:ui="{ base: 'bg-cb-quinary-900' }"
@@ -476,7 +476,7 @@
 			class="border-cb-quinary-900 bg-cb-quaternary-950 flex items-center justify-between rounded-lg border px-4 py-3"
 		>
 			<p class="text-cb-tertiary-500 text-sm">
-				Page {{ currentPage }} sur {{ totalPages }}
+				Page {{ currentPage }} of {{ totalPages }}
 			</p>
 			<UPagination
 				v-model:page="currentPage"
@@ -498,7 +498,7 @@
 					name="i-heroicons-user-group"
 					class="text-cb-tertiary-500 mx-auto size-16 opacity-50"
 				/>
-				<p class="text-cb-tertiary-500 mt-4">Aucun artiste trouvé</p>
+				<p class="text-cb-tertiary-500 mt-4">No artist found</p>
 			</div>
 
 			<!-- Artists -->
@@ -551,7 +551,7 @@
 								variant="subtle"
 								size="xs"
 							>
-								Inactif
+								Inactive
 							</UBadge>
 						</div>
 
@@ -586,7 +586,7 @@
 							v-if="artist.groups && artist.groups.length"
 							class="mt-1 flex flex-wrap items-center gap-1"
 						>
-							<span class="text-cb-tertiary-500 text-xs">Groupes:</span>
+							<span class="text-cb-tertiary-500 text-xs">Groups:</span>
 							<NuxtLink
 								v-for="group in artist.groups"
 								:key="group.id"
@@ -603,7 +603,7 @@
 							<span
 								v-if="getMissingData(artist).includes('desc')"
 								class="text-xs text-gray-400"
-								title="Sans description"
+								title="No description"
 							>
 								<UIcon name="i-heroicons-document-text" class="size-3.5" />
 								desc
@@ -612,7 +612,7 @@
 							<span
 								v-if="getMissingData(artist).includes('styles')"
 								class="text-xs text-gray-400"
-								title="Sans styles"
+								title="No styles"
 							>
 								<UIcon name="i-heroicons-tag" class="size-3.5" />
 								styles
@@ -621,12 +621,12 @@
 							<span
 								v-if="artist.social_links && artist.social_links.length > 0"
 								class="text-xs text-green-500"
-								title="Réseaux sociaux"
+								title="Social links"
 							>
 								<UIcon name="i-heroicons-share" class="size-3.5" />
 								{{ artist.social_links.length }} socials
 							</span>
-							<span v-else class="text-xs text-gray-400" title="Sans réseaux sociaux">
+							<span v-else class="text-xs text-gray-400" title="No social links">
 								<UIcon name="i-heroicons-share" class="size-3.5" />
 								socials
 							</span>
@@ -634,12 +634,12 @@
 							<span
 								v-if="artist.platform_links && artist.platform_links.length > 0"
 								class="text-xs text-green-500"
-								title="Plateformes"
+								title="Platforms"
 							>
 								<UIcon name="i-heroicons-musical-note" class="size-3.5" />
 								{{ artist.platform_links.length }} platforms
 							</span>
-							<span v-else class="text-xs text-gray-400" title="Sans plateformes">
+							<span v-else class="text-xs text-gray-400" title="No platforms">
 								<UIcon name="i-heroicons-musical-note" class="size-3.5" />
 								platforms
 							</span>
@@ -647,16 +647,16 @@
 						<span
 							v-if="getMissingData(artist).length > 0"
 							class="mt-1 inline-flex rounded bg-gray-500/10 px-1.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-gray-300"
-							:title="`Champs manquants: ${getMissingLabels(artist).join(', ')}`"
+							:title="`Missing fields: ${getMissingLabels(artist).join(', ')}`"
 						>
-							Incomplet
+							Incomplete
 						</span>
 					</div>
 
 					<!-- Dates -->
 					<div class="text-cb-tertiary-500 hidden text-right text-xs lg:block">
-						<p>Créé: {{ formatDate(artist.created_at) }}</p>
-						<p>Modifié: {{ formatDate(artist.updated_at) }}</p>
+						<p>Created: {{ formatDate(artist.created_at) }}</p>
+						<p>Updated: {{ formatDate(artist.updated_at) }}</p>
 					</div>
 
 					<!-- Actions -->
@@ -687,7 +687,7 @@
 							color="warning"
 							variant="ghost"
 							size="sm"
-							aria-label="Bannir"
+							aria-label="Ban"
 							@click="openBanModal(artist)"
 						/>
 						<UButton
@@ -715,7 +715,7 @@
 				class="border-cb-quinary-900 flex items-center justify-between border-t px-4 py-3"
 			>
 				<p class="text-cb-tertiary-500 text-sm">
-					Page {{ currentPage }} sur {{ totalPages }}
+					Page {{ currentPage }} of {{ totalPages }}
 				</p>
 				<UPagination
 					v-model:page="currentPage"

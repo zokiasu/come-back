@@ -25,27 +25,27 @@
 		if (props.country && props.city) {
 			return `${props.city}, ${props.country}`
 		}
-		return props.country || props.city || 'Non spécifié'
+		return props.country || props.city || 'Not specified'
 	})
 
 	const formattedDate = computed(() => {
 		if (props.createdAt) {
-			return new Date(props.createdAt).toLocaleDateString('fr-FR')
+		return new Date(props.createdAt).toLocaleDateString('sv-SE')
 		}
-		return 'Non disponible'
+		return 'Unavailable'
 	})
 
 	const typeLabel = computed(() => {
 		const typeLabels: Record<string, string> = {
 			LABEL: 'Label',
-			PUBLISHER: 'Éditeur',
-			DISTRIBUTOR: 'Distributeur',
+			PUBLISHER: 'Publisher',
+			DISTRIBUTOR: 'Distributor',
 			MANAGER: 'Manager',
-			AGENCY: 'Agence',
+			AGENCY: 'Agency',
 			STUDIO: 'Studio',
-			OTHER: 'Autre',
+			OTHER: 'Other',
 		}
-		return typeLabels[props.type || ''] || 'Non spécifié'
+		return typeLabels[props.type || ''] || 'Not specified'
 	})
 
 	const logoDisplay = computed(() => {
@@ -90,7 +90,7 @@
 			<div class="flex items-center space-x-3">
 				<img
 					:src="logoDisplay"
-					:alt="`Logo de ${name}`"
+					:alt="`Logo of ${name}`"
 					class="h-12 w-12 rounded-full object-cover"
 					@error="
 						($event.target as HTMLImageElement).src =
@@ -108,14 +108,14 @@
 				<span
 					v-if="verified"
 					class="rounded-full bg-green-600 px-2 py-1 text-xs text-white"
-					title="Company vérifiée"
+					title="Verified company"
 				>
 					✓
 				</span>
 				<span
 					v-else
 					class="rounded-full bg-yellow-600 px-2 py-1 text-xs text-white"
-					title="Company non vérifiée"
+					title="Unverified company"
 				>
 					?
 				</span>
@@ -131,7 +131,7 @@
 			>
 				{{ description }}
 			</p>
-			<p v-else class="text-cb-tertiary-400 text-sm italic">Aucune description</p>
+			<p v-else class="text-cb-tertiary-400 text-sm italic">No description</p>
 		</div>
 
 		<!-- Detailed information -->
@@ -160,7 +160,7 @@
 		<div class="border-cb-quinary-800 mt-auto border-t pt-3">
 			<div class="flex items-center justify-between">
 				<div class="text-cb-tertiary-400 text-xs">
-					<p>Créée: {{ formattedDate }}</p>
+					<p>Created: {{ formattedDate }}</p>
 				</div>
 				<div class="flex space-x-2">
 					<button

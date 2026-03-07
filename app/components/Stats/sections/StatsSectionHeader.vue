@@ -18,7 +18,7 @@
 				<div
 					class="border-cb-primary-900 h-4 w-4 animate-spin rounded-full border-b-2"
 				></div>
-				<span class="text-cb-tertiary-200 text-sm">Chargement...</span>
+				<span class="text-cb-tertiary-200 text-sm">Loading...</span>
 			</div>
 		</div>
 	</div>

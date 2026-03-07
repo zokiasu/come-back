@@ -32,10 +32,10 @@ export function useSupabaseRanking() {
 		console.warn('[getUserRankings] Query result:', { rankings, error })
 
 		if (error) {
-			console.error('Erreur lors de la récupération des rankings:', error)
+			console.error('Error while fetching rankings:', error)
 			toast.add({
-				title: 'Erreur',
-				description: 'Impossible de charger vos rankings',
+				title: 'Error',
+				description: 'Unable to load your rankings',
 				color: 'error',
 			})
 			return []
@@ -85,7 +85,7 @@ export function useSupabaseRanking() {
 		console.warn('[getRankingById] Ranking result:', { ranking, rankingError })
 
 		if (rankingError) {
-			console.error('Erreur lors de la récupération du ranking:', rankingError)
+			console.error('Error while fetching ranking:', rankingError)
 			return null
 		}
 
@@ -107,7 +107,7 @@ export function useSupabaseRanking() {
 			.order('position', { ascending: true })
 
 		if (itemsError) {
-			console.error('Erreur lors de la récupération des items:', itemsError)
+			console.error('Error while fetching items:', itemsError)
 			return null
 		}
 
@@ -142,8 +142,8 @@ export function useSupabaseRanking() {
 		if (!userStore.userDataStore?.id) {
 			console.warn('[createRanking] No user ID')
 			toast.add({
-				title: 'Erreur',
-				description: 'Vous devez être connecté',
+				title: 'Error',
+				description: 'You must be signed in',
 				color: 'error',
 			})
 			return null
@@ -163,18 +163,18 @@ export function useSupabaseRanking() {
 		console.warn('[createRanking] Result:', { data, error })
 
 		if (error) {
-			console.error('Erreur lors de la création du ranking:', error)
+			console.error('Error while creating ranking:', error)
 			toast.add({
-				title: 'Erreur',
-				description: 'Impossible de créer le ranking',
+				title: 'Error',
+				description: 'Unable to create ranking',
 				color: 'error',
 			})
 			return null
 		}
 
 		toast.add({
-			title: 'Succès',
-			description: 'Ranking créé avec succès',
+			title: 'Success',
+			description: 'Ranking created successfully',
 			color: 'success',
 		})
 
@@ -196,10 +196,10 @@ export function useSupabaseRanking() {
 			.single()
 
 		if (error) {
-			console.error('Erreur lors de la mise à jour du ranking:', error)
+			console.error('Error while updating ranking:', error)
 			toast.add({
-				title: 'Erreur',
-				description: 'Impossible de mettre à jour le ranking',
+				title: 'Error',
+				description: 'Unable to update ranking',
 				color: 'error',
 			})
 			return null
@@ -215,18 +215,18 @@ export function useSupabaseRanking() {
 		const { error } = await supabase.from('user_rankings').delete().eq('id', id)
 
 		if (error) {
-			console.error('Erreur lors de la suppression du ranking:', error)
+			console.error('Error while deleting ranking:', error)
 			toast.add({
-				title: 'Erreur',
-				description: 'Impossible de supprimer le ranking',
+				title: 'Error',
+				description: 'Unable to delete ranking',
 				color: 'error',
 			})
 			return false
 		}
 
 		toast.add({
-			title: 'Succès',
-			description: 'Ranking supprimé',
+			title: 'Success',
+			description: 'Ranking deleted',
 			color: 'success',
 		})
 
@@ -253,8 +253,8 @@ export function useSupabaseRanking() {
 
 		if (newPosition > 100) {
 			toast.add({
-				title: 'Limite atteinte',
-				description: 'Un ranking ne peut pas contenir plus de 100 musiques',
+				title: 'Limit reached',
+				description: 'A ranking cannot contain more than 100 tracks',
 				color: 'warning',
 			})
 			return null
@@ -274,15 +274,15 @@ export function useSupabaseRanking() {
 			if (error.code === '23505') {
 				// Duplicate key
 				toast.add({
-					title: 'Déjà présent',
-					description: 'Cette musique est déjà dans le ranking',
+					title: 'Already added',
+					description: 'This track is already in the ranking',
 					color: 'warning',
 				})
 			} else {
-				console.error("Erreur lors de l'ajout de la musique:", error)
+				console.error('Error while adding track:', error)
 				toast.add({
-					title: 'Erreur',
-					description: "Impossible d'ajouter la musique",
+					title: 'Error',
+					description: 'Unable to add the track',
 					color: 'error',
 				})
 			}
@@ -323,10 +323,10 @@ export function useSupabaseRanking() {
 			.eq('music_id', musicId)
 
 		if (error) {
-			console.error('Erreur lors de la suppression de la musique:', error)
+			console.error('Error while removing track:', error)
 			toast.add({
-				title: 'Erreur',
-				description: 'Impossible de retirer la musique',
+				title: 'Error',
+				description: 'Unable to remove the track',
 				color: 'error',
 			})
 			return false
@@ -367,10 +367,10 @@ export function useSupabaseRanking() {
 
 			return true
 		} catch (error) {
-			console.error('Erreur lors du réordonnancement:', error)
+			console.error('Error while reordering:', error)
 			toast.add({
-				title: 'Erreur',
-				description: 'Impossible de réordonner les musiques',
+				title: 'Error',
+				description: 'Unable to reorder tracks',
 				color: 'error',
 			})
 			return false
@@ -408,7 +408,7 @@ export function useSupabaseRanking() {
 			.single()
 
 		if (rankingError) {
-			console.error('Erreur lors de la récupération du ranking:', rankingError)
+			console.error('Error while fetching ranking:', rankingError)
 			return null
 		}
 
@@ -430,7 +430,7 @@ export function useSupabaseRanking() {
 			.order('position', { ascending: true })
 
 		if (itemsError) {
-			console.error('Erreur lors de la récupération des items:', itemsError)
+			console.error('Error while fetching items:', itemsError)
 			return null
 		}
 
@@ -471,7 +471,7 @@ export function useSupabaseRanking() {
 			.range(offset, offset + limit - 1)
 
 		if (error) {
-			console.error('Erreur lors de la récupération des rankings publics:', error)
+			console.error('Error while fetching public rankings:', error)
 			return { rankings: [], total: 0 }
 		}
 

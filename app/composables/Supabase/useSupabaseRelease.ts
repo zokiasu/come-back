@@ -38,7 +38,7 @@ export function useSupabaseRelease() {
 		if (error) {
 			console.error('Erreur lors de la mise à jour de la release:', error)
 			toast.add({
-				title: 'Erreur lors de la mise à jour de la release',
+				title: 'Error while updating release',
 				color: 'error',
 			})
 			return null
@@ -83,7 +83,7 @@ export function useSupabaseRelease() {
 					deleteError,
 				)
 				toast.add({
-					title: 'Erreur lors de la mise à jour des artistes',
+					title: 'Error while updating artists',
 					color: 'error',
 				})
 				throw deleteError
@@ -104,7 +104,7 @@ export function useSupabaseRelease() {
 						insertError,
 					)
 					toast.add({
-						title: 'Erreur lors de la mise à jour des artistes',
+						title: 'Error while updating artists',
 						color: 'error',
 					})
 					throw insertError
@@ -126,7 +126,7 @@ export function useSupabaseRelease() {
 		} catch (error) {
 			console.error('Erreur lors de la suppression de la release:', error)
 			toast.add({
-				title: 'Erreur lors de la suppression de la release',
+				title: 'Error while deleting release',
 				color: 'error',
 			})
 			return false
@@ -320,7 +320,7 @@ export function useSupabaseRelease() {
 			if (error) {
 				console.error('Erreur lors de la récupération des releases du mois:', error)
 				toast.add({
-					title: 'Erreur lors de la récupération des releases du mois',
+					title: 'Error while fetching monthly releases',
 					color: 'error',
 				})
 				throw error
@@ -469,7 +469,7 @@ export function useSupabaseRelease() {
 			if (releaseError) {
 				console.error('Erreur lors de la création de la release:', releaseError)
 				toast.add({
-					title: 'Erreur lors de la création de la release',
+					title: 'Error while creating release',
 					color: 'error',
 				})
 				throw releaseError
@@ -490,7 +490,7 @@ export function useSupabaseRelease() {
 					// On supprime la release créée si l'ajout des artistes échoue
 					await supabase.from('releases').delete().eq('id', release.id)
 					toast.add({
-						title: "Erreur lors de l'ajout des artistes",
+						title: 'Error while adding artists',
 						color: 'error',
 					})
 					throw artistError
@@ -513,7 +513,7 @@ export function useSupabaseRelease() {
 					// On supprime la release créée si l'ajout des liens échoue
 					await supabase.from('releases').delete().eq('id', release.id)
 					toast.add({
-						title: "Erreur lors de l'ajout des liens de plateformes",
+						title: 'Error while adding platform links',
 						color: 'error',
 					})
 					throw platformError

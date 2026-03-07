@@ -30,7 +30,7 @@
 			v-if="!section.cards?.length && !section.topLists?.length"
 			class="text-center text-sm opacity-70"
 		>
-			Aucune donnée disponible pour cette période.
+			No data available for this period.
 		</div>
 	</section>
 </template>

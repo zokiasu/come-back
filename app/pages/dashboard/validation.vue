@@ -41,21 +41,21 @@
 
 	// Select menu options
 	const typeOptions: { label: string; id: string }[] = [
-		{ label: 'Tous les types', id: 'ALL' },
+		{ label: 'All types', id: 'ALL' },
 		{ label: 'Solo', id: 'SOLO' },
-		{ label: 'Groupe', id: 'GROUP' },
+		{ label: 'Group', id: 'GROUP' },
 	]
 
 	const sortOptions: { label: string; id: string }[] = [
-		{ label: 'Date création', id: 'created_at' },
-		{ label: 'Nom', id: 'name' },
+		{ label: 'Created date', id: 'created_at' },
+		{ label: 'Name', id: 'name' },
 		{ label: 'Type', id: 'type' },
 	]
 
 	const pageSizeOptions: { label: string; id: number }[] = [
-		{ label: '20 par page', id: 20 },
-		{ label: '50 par page', id: 50 },
-		{ label: '100 par page', id: 100 },
+		{ label: '20 per page', id: 20 },
+		{ label: '50 per page', id: 50 },
+		{ label: '100 per page', id: 100 },
 	]
 
 	// Fetch unverified artists
@@ -94,10 +94,10 @@
 				creatorMap.value = map
 			}
 		} catch (error) {
-			console.error('Erreur lors de la récupération des artistes:', error)
+			console.error('Error while fetching artists:', error)
 			toast.add({
-				title: 'Erreur',
-				description: 'Erreur lors du chargement des artistes en attente',
+				title: 'Error',
+				description: 'Error while loading pending artists',
 				color: 'error',
 			})
 		} finally {
@@ -111,8 +111,8 @@
 		try {
 			await approveArtist(artist.id)
 			toast.add({
-				title: 'Artiste approuvé',
-				description: `${artist.name} a été validé avec succès`,
+				title: 'Artist approved',
+				description: `${artist.name} was approved successfully`,
 				color: 'success',
 			})
 			artistsList.value = artistsList.value.filter((a) => a.id !== artist.id)
@@ -151,7 +151,7 @@
 	// Format date
 	const formatDate = (dateString: string | null) => {
 		if (!dateString) return '-'
-		return new Date(dateString).toLocaleDateString('fr-FR', {
+		return new Date(dateString).toLocaleDateString('sv-SE', {
 			day: '2-digit',
 			month: '2-digit',
 			year: '2-digit',
@@ -160,7 +160,7 @@
 
 	const formatProfileDate = (dateString: string | null) => {
 		if (!dateString) return '-'
-		return new Date(dateString).toLocaleDateString('fr-FR', {
+		return new Date(dateString).toLocaleDateString('sv-SE', {
 			day: '2-digit',
 			month: '2-digit',
 			year: 'numeric',
@@ -201,8 +201,8 @@
 		const missing = getMissingData(artist)
 		const labelMap: Record<string, string> = {
 			desc: 'description',
-			socials: 'réseaux',
-			platforms: 'plateformes',
+			socials: 'socials',
+			platforms: 'platforms',
 			styles: 'styles',
 		}
 		return missing.map((key) => labelMap[key]).filter(Boolean)
@@ -292,9 +292,9 @@
 		<!-- Header with stats -->
 		<div class="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
 			<div>
-				<h1 class="text-2xl font-bold">Validation des Artistes</h1>
+				<h1 class="text-2xl font-bold">Artist Validation</h1>
 				<p class="text-cb-tertiary-500 text-sm">
-					Artistes ajoutés par la communauté en attente de validation
+					Artists submitted by the community and waiting for review
 				</p>
 			</div>
 
@@ -302,7 +302,7 @@
 			<div class="flex flex-wrap gap-2">
 				<div class="rounded-lg bg-amber-900/30 px-3 py-1.5 text-center">
 					<p class="text-lg font-bold text-amber-400">{{ totalArtists }}</p>
-					<p class="text-xs text-amber-400/70">En attente</p>
+					<p class="text-xs text-amber-400/70">Pending</p>
 				</div>
 			</div>
 		</div>
@@ -312,7 +312,7 @@
 			<div class="flex flex-wrap items-center gap-3">
 				<UInput
 					v-model="search"
-					placeholder="Rechercher..."
+					placeholder="Search..."
 					icon="i-heroicons-magnifying-glass"
 					class="w-full md:w-64"
 					:ui="{ base: 'bg-cb-quinary-900' }"
@@ -372,7 +372,7 @@
 			class="border-cb-quinary-900 bg-cb-quaternary-950 flex items-center justify-between rounded-lg border px-4 py-3"
 		>
 			<p class="text-cb-tertiary-500 text-sm">
-				Page {{ currentPage }} sur {{ totalPages }}
+				Page {{ currentPage }} of {{ totalPages }}
 			</p>
 			<UPagination
 				v-model:page="currentPage"
@@ -394,7 +394,7 @@
 					name="i-heroicons-check-badge"
 					class="text-cb-tertiary-500 mx-auto size-16 opacity-50"
 				/>
-				<p class="text-cb-tertiary-500 mt-4">Aucun artiste en attente de validation</p>
+				<p class="text-cb-tertiary-500 mt-4">No artist pending validation</p>
 			</div>
 
 			<!-- Artists -->
@@ -499,7 +499,7 @@
 								"
 							>
 								<UIcon name="i-heroicons-cake" class="size-3.5" />
-								Naissance: {{ formatProfileDate(artist.birth_date) }}
+								Birth: {{ formatProfileDate(artist.birth_date) }}
 							</span>
 							<span
 								class="flex items-center gap-1"
@@ -508,7 +508,7 @@
 								"
 							>
 								<UIcon name="i-heroicons-calendar-days" class="size-3.5" />
-								Début: {{ formatProfileDate(artist.debut_date) }}
+								Debut: {{ formatProfileDate(artist.debut_date) }}
 							</span>
 						</div>
 
@@ -518,7 +518,7 @@
 							<span
 								v-if="getMissingData(artist).includes('desc')"
 								class="text-xs text-gray-400"
-								title="Sans description"
+								title="No description"
 							>
 								<UIcon name="i-heroicons-document-text" class="size-3.5" />
 								desc
@@ -527,7 +527,7 @@
 							<span
 								v-if="getMissingData(artist).includes('styles')"
 								class="text-xs text-gray-400"
-								title="Sans styles"
+								title="No styles"
 							>
 								<UIcon name="i-heroicons-tag" class="size-3.5" />
 								styles
@@ -536,12 +536,12 @@
 							<span
 								v-if="artist.social_links && artist.social_links.length > 0"
 								class="text-xs text-green-500"
-								title="Réseaux sociaux"
+								title="Social links"
 							>
 								<UIcon name="i-heroicons-share" class="size-3.5" />
 								{{ artist.social_links.length }} socials
 							</span>
-							<span v-else class="text-xs text-gray-400" title="Sans réseaux sociaux">
+							<span v-else class="text-xs text-gray-400" title="No social links">
 								<UIcon name="i-heroicons-share" class="size-3.5" />
 								socials
 							</span>
@@ -549,12 +549,12 @@
 							<span
 								v-if="artist.platform_links && artist.platform_links.length > 0"
 								class="text-xs text-green-500"
-								title="Plateformes"
+								title="Platforms"
 							>
 								<UIcon name="i-heroicons-musical-note" class="size-3.5" />
 								{{ artist.platform_links.length }} platforms
 							</span>
-							<span v-else class="text-xs text-gray-400" title="Sans plateformes">
+							<span v-else class="text-xs text-gray-400" title="No platforms">
 								<UIcon name="i-heroicons-musical-note" class="size-3.5" />
 								platforms
 							</span>
@@ -562,9 +562,9 @@
 						<span
 							v-if="getMissingData(artist).length > 0"
 							class="mt-1 inline-flex rounded bg-gray-500/10 px-1.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-gray-300"
-							:title="`Champs manquants: ${getMissingLabels(artist).join(', ')}`"
+							:title="`Missing fields: ${getMissingLabels(artist).join(', ')}`"
 						>
-							Incomplet
+							Incomplete
 						</span>
 
 						<!-- Creator info -->
@@ -574,9 +574,9 @@
 								class="text-cb-tertiary-500 size-3.5"
 							/>
 							<span class="text-cb-tertiary-500 text-xs">
-								Ajouté par
+								Added by
 								<span class="text-cb-tertiary-300 font-medium">
-									{{ creatorMap.get(artist.id)?.name || 'Inconnu' }}
+									{{ creatorMap.get(artist.id)?.name || 'Unknown' }}
 								</span>
 							</span>
 						</div>
@@ -584,7 +584,7 @@
 
 					<!-- Dates -->
 					<div class="text-cb-tertiary-500 hidden text-right text-xs lg:block">
-						<p>Créé: {{ formatDate(artist.created_at) }}</p>
+						<p>Created: {{ formatDate(artist.created_at) }}</p>
 					</div>
 
 					<!-- Actions -->
@@ -597,7 +597,7 @@
 							class="cursor-pointer"
 							:loading="approvingId === artist.id"
 							:disabled="approvingId !== null && approvingId !== artist.id"
-							aria-label="Approuver"
+							aria-label="Approve"
 							@click="handleApprove(artist)"
 						/>
 						<UButton
@@ -608,7 +608,7 @@
 							size="sm"
 							class="cursor-pointer"
 							:disabled="approvingId !== null"
-							aria-label="Bannir"
+							aria-label="Ban"
 							@click="openBanModal(artist)"
 						/>
 						<UButton
@@ -618,7 +618,7 @@
 							size="sm"
 							class="cursor-pointer"
 							:disabled="approvingId !== null"
-							aria-label="Rejeter"
+							aria-label="Reject"
 							@click="openRejectModal(artist)"
 						/>
 						<ComebackExternalLink
@@ -635,7 +635,7 @@
 							size="sm"
 							target="_blank"
 							class="cursor-pointer"
-							aria-label="Éditer"
+							aria-label="Edit"
 						/>
 						<UButton
 							:to="`/artist/${artist.id}`"
@@ -645,7 +645,7 @@
 							size="sm"
 							target="_blank"
 							class="cursor-pointer"
-							aria-label="Voir"
+							aria-label="View"
 						/>
 					</div>
 				</div>
@@ -657,7 +657,7 @@
 				class="border-cb-quinary-900 flex items-center justify-between border-t px-4 py-3"
 			>
 				<p class="text-cb-tertiary-500 text-sm">
-					Page {{ currentPage }} sur {{ totalPages }}
+					Page {{ currentPage }} of {{ totalPages }}
 				</p>
 				<UPagination
 					v-model:page="currentPage"

@@ -18,10 +18,10 @@
 					>
 						<!-- Informations de base -->
 						<div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-							<UFormField label="Nom de la release" name="name" required>
+							<UFormField label="Release name" name="name" required>
 								<UInput
 									v-model="formState.name"
-									placeholder="Ex: Nouveau album"
+									placeholder="Ex: New album"
 									:disabled="isSubmitting"
 									size="lg"
 									class="w-full"
@@ -32,7 +32,7 @@
 								<USelect
 									v-model="formState.type"
 									:items="releaseTypeOptions"
-									placeholder="Sélectionner un type"
+									placeholder="Select a type"
 									:disabled="isSubmitting"
 									size="lg"
 									class="w-full"
@@ -41,7 +41,7 @@
 						</div>
 
 						<div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-							<UFormField label="Date de sortie" name="date">
+							<UFormField label="Release date" name="date">
 								<UInput
 									v-model="formState.date"
 									type="date"
@@ -51,7 +51,7 @@
 								/>
 							</UFormField>
 
-							<UFormField label="Année" name="year">
+							<UFormField label="Year" name="year">
 								<UInput
 									v-model.number="formState.year"
 									type="number"
@@ -76,23 +76,23 @@
 							/>
 							<template #help>
 								<p class="text-xs text-gray-500">
-									L'identifiant unique de la release sur YouTube Music (obligatoire)
+									The unique release ID on YouTube Music (required)
 								</p>
 							</template>
 						</UFormField>
 
 						<!-- Artiste principal -->
-						<UFormField label="Artiste principal" name="artistId" required>
+						<UFormField label="Main artist" name="artistId" required>
 							<ArtistSearchSelect
 								v-model="selectedArtist"
 								:disabled="isSubmitting"
-								placeholder="Rechercher un artiste..."
+								placeholder="Search for an artist..."
 							/>
 						</UFormField>
 
 						<!-- IDs externes optionnels -->
 						<UAccordion
-							:items="[{ label: 'Informations avancées (optionnel)', slot: 'advanced' }]"
+							:items="[{ label: 'Advanced information (optional)', slot: 'advanced' }]"
 							variant="soft"
 							:ui="{
 								trigger: 'bg-cb-quaternary-900 cursor-pointer',
@@ -114,7 +114,7 @@
 									<UFormField label="Description" name="description">
 										<UTextarea
 											v-model="formState.description"
-											placeholder="Description de la release..."
+											placeholder="Release description..."
 											:disabled="isSubmitting"
 											:rows="3"
 											class="w-full"
@@ -123,7 +123,7 @@
 
 									<UCheckbox
 										v-model="formState.verified"
-										label="Marquer comme vérifiée"
+										label="Mark as verified"
 										:disabled="isSubmitting"
 									/>
 								</div>
@@ -139,10 +139,10 @@
 								:disabled="isSubmitting"
 								@click="resetForm"
 							>
-								Réinitialiser
+								Reset
 							</UButton>
 							<UButton type="submit" :loading="isSubmitting" icon="i-heroicons-plus">
-								Créer la release
+								Create release
 							</UButton>
 						</div>
 					</UForm>
@@ -152,16 +152,14 @@
 				<UCard v-if="createdRelease">
 					<template #header>
 						<div class="flex items-center justify-between">
-							<h3 class="text-lg font-semibold">Ajouter des musiques</h3>
-							<UChip :text="`${musics.length} musique${musics.length > 1 ? 's' : ''}`" />
+							<h3 class="text-lg font-semibold">Add tracks</h3>
+							<UChip :text="`${musics.length} track${musics.length > 1 ? 's' : ''}`" />
 						</div>
 					</template>
 
 					<!-- Liste des musiques ajoutées -->
 					<div v-if="musics.length > 0" class="mb-6">
-						<h4 class="mb-3 text-sm font-medium text-gray-700">
-							Musiques dans la release :
-						</h4>
+						<h4 class="mb-3 text-sm font-medium text-gray-700">Tracks in this release:</h4>
 						<div class="space-y-3">
 							<div
 								v-for="(music, index) in musics"
@@ -179,7 +177,7 @@
 										<p class="text-sm text-gray-500">
 											{{ formatDuration(music.duration || 0) }}
 											<span v-if="music.verified" class="text-primary-500 ml-2">
-												• Vérifié
+												• Verified
 											</span>
 										</p>
 									</div>
@@ -205,16 +203,16 @@
 								name="i-heroicons-musical-note"
 								class="mx-auto mb-4 h-12 w-12 text-gray-400"
 							/>
-							<h4 class="mb-2 text-lg font-medium text-gray-900">Ajouter des musiques</h4>
+							<h4 class="mb-2 text-lg font-medium text-gray-900">Add tracks</h4>
 							<p class="mb-4 text-gray-500">
-								Recherchez et ajoutez des musiques existantes à cette release
+								Search for existing tracks and add them to this release
 							</p>
 
 							<!-- Champ de recherche de musique -->
 							<div class="mx-auto max-w-md">
 								<UInput
 									v-model="musicSearchQuery"
-									placeholder="Rechercher une musique..."
+									placeholder="Search music..."
 									icon="i-heroicons-magnifying-glass"
 									size="lg"
 									:loading="isSearchingMusic"
@@ -240,14 +238,14 @@
 											<p class="text-sm text-gray-500">
 												{{ formatDuration(music.duration || 0) }}
 												<span v-if="music.verified" class="text-primary-500 ml-2">
-													• Vérifié
+													• Verified
 												</span>
 											</p>
 										</div>
 										<div class="flex items-center space-x-2">
 											<UChip
 												v-if="musics.some((m) => m.id === music.id)"
-												text="Déjà ajoutée"
+												text="Already added"
 												color="success"
 												size="sm"
 											/>
@@ -259,7 +257,7 @@
 												size="sm"
 												:loading="isAddingMusic"
 											>
-												Ajouter
+												Add
 											</UButton>
 										</div>
 									</button>
@@ -272,10 +270,10 @@
 								class="mt-4 text-center"
 							>
 								<p class="text-sm text-gray-500">
-									Aucune musique trouvée pour "{{ musicSearchQuery }}"
+									No music found for "{{ musicSearchQuery }}"
 								</p>
 								<p class="mt-1 text-xs text-gray-400">
-									Seules les musiques existantes peuvent être ajoutées
+									Only existing tracks can be added
 								</p>
 							</div>
 						</div>
@@ -290,10 +288,10 @@
 						variant="soft"
 						icon="i-heroicons-arrow-left"
 					>
-						Retour au dashboard
+						Back to dashboard
 					</UButton>
 					<UButton :to="`/release/${createdRelease.id}`" icon="i-heroicons-eye">
-						Voir la release
+						View release
 					</UButton>
 				</div>
 			</div>
@@ -316,7 +314,7 @@
 
 	// Configuration de la page
 	definePageMeta({
-		title: 'Créer une release',
+		title: 'Create release',
 		requiresAuth: true,
 		middleware: 'admin',
 	})
@@ -328,10 +326,10 @@
 
 	// Schema de validation
 	const releaseSchema = z.object({
-		name: z.string().min(1, 'Le nom est requis'),
+		name: z.string().min(1, 'Name is required'),
 		type: z.enum(['ALBUM', 'EP', 'SINGLE', 'MIXTAPE', 'COMPILATION']),
-		artistId: z.string().min(1, 'Un artiste est requis'),
-		id_youtube_music: z.string().min(1, "L'ID YouTube Music est requis"),
+		artistId: z.string().min(1, 'An artist is required'),
+		id_youtube_music: z.string().min(1, 'YouTube Music ID is required'),
 		date: z.string().optional(),
 		year: z
 			.number()
@@ -410,16 +408,16 @@
 			if (result) {
 				createdRelease.value = result
 				toast.add({
-					title: 'Release créée avec succès',
-					description: `"${result.name}" a été créée. Vous pouvez maintenant ajouter des musiques.`,
+					title: 'Release created successfully',
+					description: `"${result.name}" was created. You can now add tracks.`,
 					color: 'success',
 				})
 			}
 		} catch (error) {
 			console.error('Erreur lors de la création de la release:', error)
 			toast.add({
-				title: 'Erreur lors de la création',
-				description: 'Une erreur est survenue lors de la création de la release.',
+				title: 'Error while creating release',
+				description: 'An error occurred while creating the release.',
 				color: 'error',
 			})
 		} finally {
@@ -435,15 +433,15 @@
 			musics.value = musics.value.filter((m) => m.id !== musicId)
 
 			toast.add({
-				title: 'Musique supprimée',
-				description: 'La musique a été retirée de la release.',
+				title: 'Track removed',
+				description: 'The track was removed from the release.',
 				color: 'success',
 			})
 		} catch (error) {
 			console.error('Erreur lors de la suppression:', error)
 			toast.add({
-				title: 'Erreur',
-				description: 'Impossible de retirer la musique de la release.',
+				title: 'Error',
+				description: 'Unable to remove the track from the release.',
 				color: 'error',
 			})
 		}
@@ -480,8 +478,8 @@
 			musicOptions.value = []
 
 			toast.add({
-				title: 'Fonctionnalité en développement',
-				description: 'La recherche de musiques sera bientôt disponible.',
+				title: 'Feature in development',
+				description: 'Music search will be available soon.',
 				color: 'info',
 			})
 		} catch (error) {
@@ -500,15 +498,15 @@
 		try {
 			// TODO: Implémenter l'ajout de musique à la release
 			toast.add({
-				title: 'Fonctionnalité en développement',
-				description: "L'ajout de musiques sera bientôt disponible.",
+				title: 'Feature in development',
+				description: 'Adding tracks will be available soon.',
 				color: 'info',
 			})
 		} catch (error) {
 			console.error("Erreur lors de l'ajout de la musique:", error)
 			toast.add({
-				title: 'Erreur',
-				description: "Impossible d'ajouter la musique à la release.",
+				title: 'Error',
+				description: 'Unable to add the track to the release.',
 				color: 'error',
 			})
 		} finally {

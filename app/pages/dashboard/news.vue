@@ -35,20 +35,20 @@
 
 	// Select menu items
 	const verifiedOptions: { label: string; id: string }[] = [
-		{ label: 'Tous les statuts', id: 'all' },
-		{ label: 'Vérifiées', id: 'verified' },
-		{ label: 'En attente', id: 'pending' },
+		{ label: 'All statuses', id: 'all' },
+		{ label: 'Verified', id: 'verified' },
+		{ label: 'Pending', id: 'pending' },
 	]
 	const periodOptions: { label: string; id: string }[] = [
-		{ label: 'Toutes les périodes', id: 'all' },
-		{ label: "Aujourd'hui", id: 'today' },
-		{ label: 'Cette semaine', id: 'week' },
-		{ label: 'Ce mois', id: 'month' },
+		{ label: 'All periods', id: 'all' },
+		{ label: 'Today', id: 'today' },
+		{ label: 'This week', id: 'week' },
+		{ label: 'This month', id: 'month' },
 	]
 	const pageSizeOptions: { label: string; id: number }[] = [
-		{ label: '20 par page', id: 20 },
-		{ label: '50 par page', id: 50 },
-		{ label: '100 par page', id: 100 },
+		{ label: '20 per page', id: 20 },
+		{ label: '50 per page', id: 50 },
+		{ label: '100 per page', id: 100 },
 	]
 
 	// Edit modal state
@@ -83,7 +83,7 @@
 	const columns: TableColumn<News>[] = [
 		{
 			accessorKey: 'artists',
-			header: 'Artiste(s)',
+			header: 'Artist(s)',
 		},
 		{
 			accessorKey: 'message',
@@ -95,11 +95,11 @@
 		},
 		{
 			accessorKey: 'verified',
-			header: 'Statut',
+			header: 'Status',
 		},
 		{
 			accessorKey: 'user',
-			header: 'Créé par',
+			header: 'Created by',
 		},
 		{
 			accessorKey: 'id',
@@ -161,8 +161,8 @@
 		} catch (error) {
 			console.error('Erreur lors de la récupération des news:', error)
 			toast.add({
-				title: 'Erreur',
-				description: 'Erreur lors du chargement des news',
+				title: 'Error',
+				description: 'Error while loading news',
 				color: 'error',
 			})
 		} finally {
@@ -173,11 +173,7 @@
 	// Format date for display
 	const formatDate = (dateString: string | null) => {
 		if (!dateString) return '-'
-		return new Date(dateString).toLocaleDateString('fr-FR', {
-			year: 'numeric',
-			month: 'short',
-			day: 'numeric',
-		})
+		return new Date(dateString).toLocaleDateString('sv-SE')
 	}
 
 	// Format artists for display
@@ -271,8 +267,8 @@
 			await updateNewsArtistsRelations(editingNews.value.id, artistIds)
 
 			toast.add({
-				title: 'Succès',
-				description: 'News mise à jour',
+				title: 'Success',
+				description: 'News updated',
 				color: 'success',
 			})
 
@@ -281,8 +277,8 @@
 		} catch (error) {
 			console.error('Error updating news:', error)
 			toast.add({
-				title: 'Erreur',
-				description: 'Erreur lors de la mise à jour',
+				title: 'Error',
+				description: 'Error while updating news',
 				color: 'error',
 			})
 		} finally {
@@ -303,23 +299,23 @@
 			const success = await deleteNewsFunction(deletingNewsId.value)
 			if (success) {
 				toast.add({
-					title: 'Succès',
-					description: 'News supprimée',
+					title: 'Success',
+					description: 'News deleted',
 					color: 'success',
 				})
 				fetchNews()
 			} else {
 				toast.add({
-					title: 'Erreur',
-					description: 'Erreur lors de la suppression',
+					title: 'Error',
+					description: 'Error while deleting news',
 					color: 'error',
 				})
 			}
 		} catch (error) {
 			console.error('Erreur lors de la suppression:', error)
 			toast.add({
-				title: 'Erreur',
-				description: 'Erreur lors de la suppression',
+				title: 'Error',
+				description: 'Error while deleting news',
 				color: 'error',
 			})
 		} finally {
@@ -371,9 +367,9 @@
 		<!-- Header with stats -->
 		<div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 			<div>
-				<h1 class="text-2xl font-bold">Gestion des News</h1>
+				<h1 class="text-2xl font-bold">News Management</h1>
 				<p class="text-cb-tertiary-500 text-sm">
-					{{ stats.loadedCount }} / {{ stats.total }} news chargées
+					{{ stats.loadedCount }} / {{ stats.total }} news loaded
 				</p>
 			</div>
 
@@ -385,11 +381,11 @@
 				</div>
 				<div class="rounded-lg bg-green-900/30 px-4 py-2 text-center">
 					<p class="text-2xl font-bold text-green-400">{{ stats.verified }}</p>
-					<p class="text-xs text-green-400/70">Vérifiées</p>
+										<p class="text-xs text-green-400/70">Verified</p>
 				</div>
 				<div class="rounded-lg bg-yellow-900/30 px-4 py-2 text-center">
 					<p class="text-2xl font-bold text-yellow-400">{{ stats.pending }}</p>
-					<p class="text-xs text-yellow-400/70">En attente</p>
+										<p class="text-xs text-yellow-400/70">Pending</p>
 				</div>
 			</div>
 		</div>
@@ -399,7 +395,7 @@
 			<!-- Search -->
 			<UInput
 				v-model="search"
-				placeholder="Rechercher..."
+				placeholder="Search..."
 				icon="i-heroicons-magnifying-glass"
 				class="w-full md:w-64"
 				:ui="{ base: 'bg-cb-quinary-900' }"
@@ -463,7 +459,7 @@
 						class="flex items-center gap-1 hover:text-white"
 						@click="handleSort('artist')"
 					>
-						Artiste(s)
+						Artist(s)
 						<UIcon
 							v-if="sortColumn === 'artist'"
 							:name="
@@ -529,7 +525,7 @@
 						variant="subtle"
 						size="sm"
 					>
-						{{ row.original.verified ? 'Vérifiée' : 'En attente' }}
+								{{ row.original.verified ? 'Verified' : 'Pending' }}
 					</UBadge>
 				</template>
 
@@ -544,7 +540,7 @@
 							format="webp"
 						/>
 						<span class="text-cb-tertiary-400 text-xs">
-							{{ row.original.user?.name || 'Inconnu' }}
+							{{ row.original.user?.name || 'Unknown' }}
 						</span>
 					</div>
 				</template>
@@ -579,7 +575,7 @@
 							name="i-heroicons-document-magnifying-glass"
 							class="mx-auto size-12 opacity-50"
 						/>
-						<p class="mt-2">Aucune news trouvée</p>
+						<p class="mt-2">No news found</p>
 					</div>
 				</template>
 			</UTable>
@@ -590,7 +586,7 @@
 				class="border-cb-quinary-900 flex items-center justify-between border-t px-4 py-3"
 			>
 				<p class="text-cb-tertiary-500 text-sm">
-					Page {{ currentPage }} sur {{ totalPages }}
+					Page {{ currentPage }} of {{ totalPages }}
 				</p>
 				<UPagination
 					v-model:page="currentPage"
@@ -605,7 +601,7 @@
 			<template #content>
 				<div class="bg-cb-secondary-950 space-y-5 p-6">
 					<div class="flex items-center justify-between">
-						<h3 class="text-xl font-bold">Modifier la news</h3>
+						<h3 class="text-xl font-bold">Edit news</h3>
 						<UButton
 							icon="i-heroicons-x-mark"
 							color="neutral"
@@ -618,8 +614,8 @@
 					<div class="relative">
 						<UInput
 							v-model="searchArtist"
-							label="Rechercher un artiste"
-							placeholder="Tapez pour rechercher..."
+							label="Search artist"
+							placeholder="Type to search..."
 							icon="i-heroicons-magnifying-glass"
 						/>
 						<div
@@ -644,7 +640,7 @@
 
 					<!-- Selected artists -->
 					<div v-if="artistListSelected.length" class="space-y-2">
-						<p class="text-cb-tertiary-400 text-sm">Artistes sélectionnés</p>
+						<p class="text-cb-tertiary-400 text-sm">Selected artists</p>
 						<div class="flex flex-wrap gap-2">
 							<UBadge
 								v-for="artist in artistListSelected"
@@ -678,21 +674,21 @@
 					<UTextarea
 						v-model="editNewsMessage"
 						label="Message"
-						placeholder="Message de la news..."
+						placeholder="News message..."
 						:rows="3"
 					/>
 
 					<!-- Actions -->
 					<div class="flex gap-3">
 						<UButton
-							label="Annuler"
+							label="Cancel"
 							color="neutral"
 							variant="outline"
 							class="flex-1"
 							@click="closeEditModal"
 						/>
 						<UButton
-							label="Enregistrer"
+							label="Save"
 							color="primary"
 							class="flex-1"
 							:loading="isUpdating"
@@ -712,21 +708,21 @@
 							name="i-heroicons-exclamation-triangle"
 							class="mx-auto size-12 text-red-500"
 						/>
-						<h3 class="mt-4 text-lg font-bold">Confirmer la suppression</h3>
+						<h3 class="mt-4 text-lg font-bold">Confirm deletion</h3>
 						<p class="text-cb-tertiary-400 mt-2 text-sm">
-							Cette action est irréversible. La news sera définitivement supprimée.
+							This action cannot be undone. The news item will be permanently deleted.
 						</p>
 					</div>
 					<div class="flex gap-3">
 						<UButton
-							label="Annuler"
+							label="Cancel"
 							color="neutral"
 							variant="outline"
 							class="flex-1"
 							@click="isDeleteModalOpen = false"
 						/>
 						<UButton
-							label="Supprimer"
+							label="Delete"
 							color="error"
 							class="flex-1"
 							@click="confirmDelete"

@@ -246,7 +246,7 @@
 							:key="`current_artist_${relation.artist?.id}`"
 							is-artist
 							:artist-id="String(relation.artist?.id ?? '')"
-							:main-title="relation.artist?.name ?? 'Artiste inconnu'"
+								:main-title="relation.artist?.name ?? 'Unknown artist'"
 							:sub-title="
 								relation.relationship_type
 									? getCompanyTypeLabel(relation.relationship_type)
@@ -271,7 +271,7 @@
 							:key="`past_artist_${relation.artist?.id}`"
 							is-artist
 							:artist-id="String(relation.artist?.id ?? '')"
-							:main-title="relation.artist?.name ?? 'Artiste inconnu'"
+								:main-title="relation.artist?.name ?? 'Unknown artist'"
 							:sub-title="
 								relation.relationship_type
 									? getCompanyTypeLabel(relation.relationship_type)

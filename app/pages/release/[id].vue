@@ -106,14 +106,14 @@
 				.catch(() => {
 					toast.add({
 						color: 'error',
-						title: 'Une erreur est survenue lors de la mise à jour',
+						title: 'An error occurred while updating',
 					})
 				})
 		} catch (error) {
 			console.error('Error updating release:', error)
 			toast.add({
 				color: 'error',
-				title: 'Une erreur est survenue lors de la mise à jour',
+				title: 'An error occurred while updating',
 			})
 		}
 	}
@@ -153,7 +153,7 @@
 			title.value =
 				release.value.name +
 				' par ' +
-				(release.value.artists?.[0]?.name || 'Artiste inconnu')
+				(release.value.artists?.[0]?.name || 'Unknown artist')
 			description.value = release.value.description || ''
 
 			// Copie profonde des musiques pour conserver l'état initial
@@ -378,7 +378,7 @@
 
 				<!-- Suggestions -->
 				<section v-if="suggestedReleases.length && release.artists" class="space-y-2">
-					<CardDefault :name="`Autres releases de ${release.artists[0]?.name}`">
+					<CardDefault :name="`Other releases by ${release.artists[0]?.name}`">
 						<transition-group
 							name="list-complete"
 							tag="div"

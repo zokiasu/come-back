@@ -17,7 +17,7 @@
 			v-if="!section.cards?.length"
 			class="text-cb-tertiary-200 py-4 text-center text-sm"
 		>
-			Aucune donnée disponible pour cette période.
+			No data available for this period.
 		</div>
 	</section>
 </template>

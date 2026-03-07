@@ -53,8 +53,8 @@
 		} catch (error) {
 			console.error("Erreur lors de l'analyse d'impact:", error)
 			toast.add({
-				title: 'Erreur',
-				description: "Impossible d'analyser l'impact de la suppression",
+				title: 'Error',
+				description: 'Unable to analyze deletion impact',
 				color: 'error',
 			})
 		} finally {
@@ -106,7 +106,7 @@
 								class="text-cb-primary-900 h-5 w-5"
 							/>
 						</div>
-						<h3 class="text-lg font-semibold text-white">Confirmer la suppression</h3>
+						<h3 class="text-lg font-semibold text-white">Confirm deletion</h3>
 					</div>
 					<UButton
 						color="neutral"
@@ -124,7 +124,7 @@
 						class="bg-cb-primary-900/10 border-cb-primary-900/30 rounded-lg border p-4"
 					>
 						<p class="text-sm text-zinc-400">
-							Vous êtes sur le point de supprimer l'artiste :
+							You are about to delete this artist:
 						</p>
 						<p class="mt-1 text-xl font-bold text-white">{{ artistName }}</p>
 					</div>
@@ -135,7 +135,7 @@
 							name="i-heroicons-arrow-path"
 							class="text-cb-primary-900 h-5 w-5 animate-spin"
 						/>
-						<span class="text-sm text-zinc-400">Analyse des conséquences...</span>
+						<span class="text-sm text-zinc-400">Analyzing impact...</span>
 					</div>
 
 					<!-- Impact analysis -->
@@ -144,7 +144,7 @@
 						<div class="bg-cb-quaternary-950 rounded-lg p-4">
 							<div class="mb-3 flex items-center gap-2">
 								<UIcon name="i-heroicons-chart-bar" class="h-5 w-5 text-amber-500" />
-								<h4 class="font-semibold text-white">Impact de la suppression</h4>
+								<h4 class="font-semibold text-white">Deletion impact</h4>
 							</div>
 
 							<div class="space-y-3">
@@ -155,7 +155,7 @@
 											name="i-heroicons-musical-note"
 											class="h-4 w-4 text-zinc-500"
 										/>
-										<span class="text-sm text-zinc-300">Releases supprimées</span>
+										<span class="text-sm text-zinc-300">Deleted releases</span>
 									</div>
 									<span
 										class="rounded-full px-2.5 py-0.5 text-sm font-medium"
@@ -181,7 +181,7 @@
 										v-if="impact.exclusiveReleases.length > 3"
 										class="text-xs text-zinc-500"
 									>
-										... et {{ impact.exclusiveReleases.length - 3 }} autres
+										... and {{ impact.exclusiveReleases.length - 3 }} more
 									</p>
 								</div>
 
@@ -189,7 +189,7 @@
 								<div class="flex items-center justify-between">
 									<div class="flex items-center gap-2">
 										<UIcon name="i-heroicons-play" class="h-4 w-4 text-zinc-500" />
-										<span class="text-sm text-zinc-300">Musiques supprimées</span>
+										<span class="text-sm text-zinc-300">Deleted tracks</span>
 									</div>
 									<span
 										class="rounded-full px-2.5 py-0.5 text-sm font-medium"
@@ -215,7 +215,7 @@
 										v-if="impact.exclusiveMusics.length > 3"
 										class="text-xs text-zinc-500"
 									>
-										... et {{ impact.exclusiveMusics.length - 3 }} autres
+										... and {{ impact.exclusiveMusics.length - 3 }} more
 									</p>
 								</div>
 
@@ -223,7 +223,7 @@
 								<div class="flex items-center justify-between">
 									<div class="flex items-center gap-2">
 										<UIcon name="i-heroicons-newspaper" class="h-4 w-4 text-zinc-500" />
-										<span class="text-sm text-zinc-300">News supprimées</span>
+										<span class="text-sm text-zinc-300">Deleted news posts</span>
 									</div>
 									<span
 										class="rounded-full px-2.5 py-0.5 text-sm font-medium"
@@ -246,7 +246,7 @@
 										• {{ news.message.substring(0, 50) }}...
 									</p>
 									<p v-if="impact.exclusiveNews.length > 2" class="text-xs text-zinc-500">
-										... et {{ impact.exclusiveNews.length - 2 }} autres
+										... and {{ impact.exclusiveNews.length - 2 }} more
 									</p>
 								</div>
 							</div>
@@ -261,10 +261,10 @@
 									<UIcon name="i-heroicons-check" class="h-4 w-4 text-emerald-500" />
 								</div>
 								<div>
-									<h4 class="font-medium text-emerald-400">Contenu préservé</h4>
+									<h4 class="font-medium text-emerald-400">Preserved content</h4>
 									<p class="mt-1 text-sm text-zinc-400">
-										Les musiques, releases et news partagées avec d'autres artistes seront
-										conservées. Seuls les liens avec cet artiste seront supprimés.
+										Tracks, releases, and news shared with other artists will be
+										preserved. Only links to this artist will be removed.
 									</p>
 								</div>
 							</div>
@@ -280,7 +280,7 @@
 						class="text-zinc-400 hover:text-white"
 						@click="close"
 					>
-						Annuler
+						Cancel
 					</UButton>
 					<UButton
 						color="error"
@@ -292,7 +292,7 @@
 						<template #leading>
 							<UIcon v-if="!isDeleting" name="i-heroicons-trash" class="h-4 w-4" />
 						</template>
-						{{ isDeleting ? 'Suppression...' : 'Supprimer' }}
+						{{ isDeleting ? 'Deleting...' : 'Delete' }}
 					</UButton>
 				</div>
 			</div>

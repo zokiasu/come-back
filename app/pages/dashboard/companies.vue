@@ -74,7 +74,7 @@
 		try {
 			stats.value = await getCompaniesStats()
 		} catch (error) {
-			console.error('Erreur lors du chargement des statistiques:', error)
+			console.error('Error while loading statistics:', error)
 		}
 	}
 
@@ -119,7 +119,7 @@
 
 			closeDeleteModal()
 		} catch (error) {
-			console.error('Erreur lors de la suppression:', error)
+			console.error('Error while deleting:', error)
 		}
 	}
 
@@ -195,10 +195,10 @@
 
 			currentPage.value++
 		} catch (error) {
-			console.error('Erreur lors de la récupération des companies:', error)
+			console.error('Error while fetching companies:', error)
 			toast.add({
-				title: 'Erreur lors du chargement des companies',
-				description: 'Une erreur est survenue lors du chargement des companies',
+				title: 'Error while loading companies',
+				description: 'An error occurred while loading companies',
 				color: 'error',
 			})
 		} finally {
@@ -303,7 +303,7 @@
 			try {
 				await getCompanies(true)
 			} catch (error) {
-				console.error('Erreur dans le watcher:', error)
+				console.error('Error in watcher:', error)
 			}
 		},
 	)
@@ -327,7 +327,7 @@
 		ref="scrollContainer"
 		class="scrollBarLight relative h-full space-y-3 overflow-hidden overflow-y-scroll p-6"
 	>
-		<!-- Statistiques en header -->
+			<!-- Statistics header -->
 		<section class="bg-cb-secondary-950 sticky top-0 z-20 w-full space-y-4 pb-4">
 			<div class="grid grid-cols-2 gap-2 md:grid-cols-4">
 				<div class="bg-cb-quinary-900 rounded p-3 text-center">
@@ -348,14 +348,14 @@
 				</div>
 			</div>
 
-			<!-- Barre de recherche et bouton d'ajout -->
+			<!-- Search bar and add button -->
 			<div class="flex gap-2">
 				<div class="relative flex-1">
 					<input
 						id="search-input"
 						v-model="search"
 						type="text"
-						placeholder="Rechercher des companies..."
+						placeholder="Search companies..."
 						class="bg-cb-quinary-900 placeholder-cb-tertiary-200 focus:bg-cb-tertiary-200 focus:text-cb-quinary-900 focus:placeholder-cb-quinary-900 w-full rounded border-none px-5 py-2 drop-shadow-xl transition-all duration-300 ease-in-out focus:outline-none"
 					/>
 				</div>
@@ -363,11 +363,11 @@
 					class="bg-cb-primary-900 hover:bg-cb-primary-800 rounded px-4 py-2 text-white transition-colors"
 					@click="openCreateModal"
 				>
-					+ Ajouter
+					+ Add
 				</button>
 			</div>
 
-			<!-- Filtres -->
+			<!-- Filters -->
 			<div class="flex w-full flex-col gap-2 sm:flex-row sm:justify-between">
 				<div class="flex w-fit flex-wrap justify-between gap-2 sm:flex-nowrap">
 					<button
@@ -377,7 +377,7 @@
 						"
 						@click="changeOnlyFilter('onlyUnverified')"
 					>
-						Non vérifiées
+						Unverified
 					</button>
 					<button
 						class="w-full rounded px-2 py-1 text-xs uppercase hover:bg-zinc-500 lg:text-nowrap"
@@ -386,7 +386,7 @@
 						"
 						@click="changeOnlyFilter('onlyWithoutWebsite')"
 					>
-						Sans site web
+						No website
 					</button>
 					<button
 						class="w-full rounded px-2 py-1 text-xs uppercase hover:bg-zinc-500 lg:text-nowrap"
@@ -395,7 +395,7 @@
 						"
 						@click="changeOnlyFilter('onlyWithoutLogo')"
 					>
-						Sans logo
+						No logo
 					</button>
 					<button
 						class="w-full rounded px-2 py-1 text-xs uppercase hover:bg-zinc-500 lg:text-nowrap"
@@ -406,7 +406,7 @@
 						"
 						@click="changeOnlyFilter('onlyWithoutDescription')"
 					>
-						Sans description
+						No description
 					</button>
 					<select
 						v-model="typeFilter"
@@ -448,7 +448,7 @@
 			</div>
 		</section>
 
-		<!-- Liste des companies -->
+		<!-- Company list -->
 		<transition-group
 			v-if="filteredCompaniesList.length > 0"
 			id="companies-list"
@@ -500,18 +500,18 @@
 					class="bg-cb-quinary-900 mx-auto flex w-full gap-1 rounded px-2 py-1 uppercase hover:bg-zinc-500 md:w-fit"
 					@click="loadAllCompanies"
 				>
-					<p>Charger tout</p>
+					<p>Load all</p>
 				</button>
 			</div>
 			<p
 				v-else
 				class="bg-cb-quinary-900 mx-auto flex w-full gap-1 rounded px-2 py-1 uppercase hover:bg-zinc-500 md:w-fit"
 			>
-				Chargement...
+				Loading...
 			</p>
 		</div>
 
-		<!-- Modal de confirmation de suppression -->
+		<!-- Delete confirmation modal -->
 		<UModal v-model:open="deleteModal.isOpen">
 			<template #content>
 				<ModalConfirmDeleteCompany
@@ -523,7 +523,7 @@
 			</template>
 		</UModal>
 
-		<!-- Modal de création/édition -->
+		<!-- Create/edit modal -->
 		<UModal v-model:open="editModal.isOpen">
 			<template #content>
 				<ModalCreateEditCompany

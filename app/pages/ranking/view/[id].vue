@@ -17,11 +17,11 @@
 				name="i-heroicons-exclamation-circle"
 				class="text-cb-tertiary-500 mb-4 size-16"
 			/>
-			<h2 class="mb-2 text-lg font-semibold">Ranking introuvable</h2>
+			<h2 class="mb-2 text-lg font-semibold">Ranking not found</h2>
 			<p class="text-cb-tertiary-500 mb-4 text-sm">
-				Ce ranking n'existe pas ou n'est pas public.
+				This ranking does not exist or is not public.
 			</p>
-			<UButton label="Retour à l'exploration" color="primary" to="/ranking/explore" />
+			<UButton label="Back to explore" color="primary" to="/ranking/explore" />
 		</div>
 
 		<!-- Ranking content -->
@@ -57,10 +57,10 @@
 								<UIcon name="i-heroicons-user" class="text-cb-tertiary-500 size-4" />
 							</div>
 							<span class="text-cb-tertiary-500 text-sm">
-								Créé par {{ ranking.user?.name || 'Utilisateur' }}
+								Created by {{ ranking.user?.name || 'User' }}
 							</span>
 							<span class="text-cb-tertiary-500 text-sm">
-								&bull; {{ ranking.item_count }} musique{{
+								&bull; {{ ranking.item_count }} track{{
 									ranking.item_count > 1 ? 's' : ''
 								}}
 							</span>
@@ -72,14 +72,14 @@
 				<div class="mt-4 flex flex-wrap gap-2">
 					<UButton
 						icon="i-heroicons-play-solid"
-						label="Tout lire"
+						label="Play all"
 						color="primary"
 						@click="playAllMusics"
 					/>
 					<UButton
 						v-if="youtubePlaylistUrl"
 						icon="i-simple-icons-youtube"
-						label="Ouvrir sur YouTube"
+						label="Open on YouTube"
 						color="neutral"
 						variant="outline"
 						:to="youtubePlaylistUrl"
@@ -123,7 +123,7 @@
 					name="i-heroicons-musical-note"
 					class="text-cb-tertiary-500 mb-4 size-12"
 				/>
-				<p class="text-cb-tertiary-500 text-sm">Ce ranking est vide</p>
+				<p class="text-cb-tertiary-500 text-sm">This ranking is empty</p>
 			</div>
 
 			<!-- Music list -->
@@ -195,7 +195,7 @@
 							:href="`https://www.youtube.com/watch?v=${item.music.id_youtube_music}`"
 							target="_blank"
 							class="bg-cb-quaternary-950 flex items-center gap-1 rounded-full px-2.5 py-1.5 text-xs font-medium transition-colors hover:bg-red-600"
-							title="Voir le MV sur YouTube"
+							title="Watch the MV on YouTube"
 						>
 							<UIcon name="i-simple-icons-youtube" class="size-4" />
 							<span>MV</span>
@@ -285,17 +285,17 @@
 		if (music.artists && Array.isArray(music.artists)) {
 			return (
 				(music.artists as Array<{ name?: string }>).map((a) => a.name).join(', ') ||
-				'Artiste inconnu'
+				'Unknown artist'
 			)
 		}
-		return 'Artiste inconnu'
+		return 'Unknown artist'
 	}
 
 	// Format date
 	const formatDate = (dateString: string | null | undefined): string => {
 		if (!dateString) return ''
 		const date = new Date(dateString)
-		return date.toLocaleDateString('fr-FR', {
+		return date.toLocaleDateString('en-US', {
 			day: 'numeric',
 			month: 'short',
 			year: 'numeric',
@@ -355,14 +355,14 @@
 		ranking.value?.name ? `${ranking.value.name} | Comeback` : 'Ranking | Comeback',
 	)
 	const pageDescription = computed(() => {
-		if (!ranking.value) return 'Découvrez ce classement musical sur Comeback'
+		if (!ranking.value) return 'Discover this music ranking on Comeback'
 		const itemCount = ranking.value.item_count || ranking.value.items.length
-		const userName = ranking.value.user?.name || 'Un utilisateur'
+		const userName = ranking.value.user?.name || 'A user'
 
 		// Build teaser with top 7 musics
 		const topMusics = ranking.value.items.slice(0, 7)
 		if (topMusics.length === 0) {
-			return `${userName} a créé un classement de ${itemCount} musique${itemCount > 1 ? 's' : ''}. Découvrez son top sur Comeback !`
+			return `${userName} created a ranking of ${itemCount} track${itemCount > 1 ? 's' : ''}. Discover their top picks on Comeback!`
 		}
 
 		const teaserList = topMusics

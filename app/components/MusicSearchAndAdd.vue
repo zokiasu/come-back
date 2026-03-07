@@ -158,7 +158,7 @@
 									</UFormField>
 								</div>
 
-								<UFormField label="Lien YouTube" name="youtube_link">
+								<UFormField label="YouTube link" name="youtube_link">
 									<UInput
 										v-model="newMusicForm.youtube_link"
 										placeholder="https://www.youtube.com/watch?v=..."
@@ -169,7 +169,7 @@
 								<UFormField label="Description" name="description">
 									<UTextarea
 										v-model="newMusicForm.description"
-										placeholder="Description de la musique..."
+										placeholder="Music description..."
 										:disabled="loading"
 										:rows="3"
 									/>
@@ -177,13 +177,13 @@
 
 								<UCheckbox
 									v-model="newMusicForm.ismv"
-									label="C'est un clip vidéo (MV)"
+									label="This is a music video (MV)"
 									:disabled="loading"
 								/>
 
 								<UCheckbox
 									v-model="newMusicForm.verified"
-									label="Marquer comme vérifiée"
+									label="Mark as verified"
 									:disabled="loading"
 								/>
 							</div>
@@ -198,7 +198,7 @@
 							:disabled="loading"
 							@click="resetNewMusicForm"
 						>
-							Réinitialiser
+							Reset
 						</UButton>
 						<UButton type="submit" :loading="loading" icon="i-heroicons-plus">
 							Create and add
@@ -242,7 +242,7 @@
 
 	// Schema de validation
 	const musicSchema = z.object({
-		name: z.string().min(1, 'Le titre est requis'),
+		name: z.string().min(1, 'Title is required'),
 		type: z.enum(['SONG']).optional(),
 		duration: z.number().min(1).optional(),
 		language: z.string().optional(),
@@ -306,13 +306,13 @@
 	const musicTypeOptions = [{ label: 'Song', value: 'SONG' }]
 
 	const languageOptions = [
-		{ label: 'Coréen', value: 'KO' },
-		{ label: 'Anglais', value: 'EN' },
-		{ label: 'Japonais', value: 'JP' },
-		{ label: 'Chinois', value: 'ZH' },
-		{ label: 'Français', value: 'FR' },
-		{ label: 'Espagnol', value: 'ES' },
-		{ label: 'Autre', value: 'OTHER' },
+		{ label: 'Korean', value: 'KO' },
+		{ label: 'English', value: 'EN' },
+		{ label: 'Japanese', value: 'JP' },
+		{ label: 'Chinese', value: 'ZH' },
+		{ label: 'French', value: 'FR' },
+		{ label: 'Spanish', value: 'ES' },
+		{ label: 'Other', value: 'OTHER' },
 	]
 
 	// Fonctions utilitaires
@@ -323,7 +323,7 @@
 	}
 
 	const formatArtists = (artists?: Artist[]) => {
-		if (!artists || artists.length === 0) return 'Artiste inconnu'
+		if (!artists || artists.length === 0) return 'Unknown artist'
 		return artists.map((a) => a.name).join(', ')
 	}
 
@@ -404,7 +404,7 @@
 
 				toast.add({
 					title: 'Music created successfully',
-					description: `"${createdMusic.name}" a été créée.`,
+					description: `"${createdMusic.name}" was created.`,
 					color: 'success',
 				})
 			}

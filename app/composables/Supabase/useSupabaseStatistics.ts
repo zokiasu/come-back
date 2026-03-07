@@ -187,14 +187,8 @@ export function useSupabaseStatistics() {
 
 			const date = new Date(row.date)
 			const label = isDaily
-				? date.toLocaleDateString('fr-FR', {
-						day: '2-digit',
-						month: '2-digit',
-					})
-				: date.toLocaleDateString('fr-FR', {
-						month: 'short',
-						year: 'numeric',
-					})
+				? date.toLocaleDateString('sv-SE')
+				: `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
 
 			counts.set(label, (counts.get(label) || 0) + 1)
 		})
@@ -343,7 +337,7 @@ export function useSupabaseStatistics() {
 						genreStats[style] = (genreStats[style] || 0) + 1
 					})
 				} else {
-					genreStats['Non défini'] = (genreStats['Non défini'] || 0) + 1
+					genreStats.Undefined = (genreStats.Undefined || 0) + 1
 				}
 			})
 
@@ -400,7 +394,7 @@ export function useSupabaseStatistics() {
 				topMusics: buildArtistRanking(filteredMusics),
 			}
 		} catch (error) {
-			console.error('Erreur dans getArtistGeneralStats:', error)
+			console.error('Error in getArtistGeneralStats:', error)
 			return {
 				typeStats: [],
 				genderStats: [],
@@ -525,7 +519,7 @@ export function useSupabaseStatistics() {
 		const relationshipTypes: Record<string, number> = {}
 
 		companyArtistsData?.forEach((relation) => {
-			const companyName = relation.companies?.name || 'Inconnue'
+			const companyName = relation.companies?.name || 'Unknown'
 
 			if (!companyArtistCount[relation.company_id]) {
 				companyArtistCount[relation.company_id] = {
@@ -715,7 +709,7 @@ export function useSupabaseStatistics() {
 				if (!companiesById.has(relation.company_id)) {
 					companiesById.set(relation.company_id, {
 						company_id: relation.company_id,
-						company_name: relation.companies?.name || 'Inconnue',
+						company_name: relation.companies?.name || 'Unknown',
 						artistIds: new Set<string>(),
 						releaseIds: new Set<string>(),
 					})
@@ -759,10 +753,10 @@ export function useSupabaseStatistics() {
 
 			return {
 				general: {
-					title: "Vue d'ensemble",
+					title: 'Overview',
 					cards: [
 						{
-							title: 'Total Artistes',
+							title: 'Total Artists',
 							value: totalVerifiedArtists,
 							icon: 'i-heroicons-user-group',
 							color: 'blue',
@@ -774,7 +768,7 @@ export function useSupabaseStatistics() {
 							color: 'green',
 						},
 						{
-							title: 'Total Musiques',
+							title: 'Total Tracks',
 							value: filteredMusics.length,
 							icon: 'i-heroicons-play',
 							color: 'purple',
@@ -788,28 +782,28 @@ export function useSupabaseStatistics() {
 					],
 				},
 				artists: {
-					title: 'Statistiques par Artistes',
+					title: 'Artist Statistics',
 					cards: [
 						{
-							title: 'Artistes Solo',
+							title: 'Solo Artists',
 							value: artistGeneral.typeStats.find((s) => s.type === 'SOLO')?.count || 0,
 							icon: 'i-heroicons-user',
 							color: 'blue',
 						},
 						{
-							title: 'Groupes',
+							title: 'Groups',
 							value: artistGeneral.typeStats.find((s) => s.type === 'GROUP')?.count || 0,
 							icon: 'i-heroicons-user-group',
 							color: 'green',
 						},
 						{
-							title: 'Profils Vérifiés',
+							title: 'Verified Profiles',
 							value: `${artistGeneral.qualityStats.verificationRate}%`,
 							icon: 'i-heroicons-check-badge',
 							color: 'green',
 						},
 						{
-							title: 'Profils Complets',
+							title: 'Completed Profiles',
 							value: `${artistGeneral.qualityStats.completionRate}%`,
 							icon: 'i-heroicons-clipboard-document-check',
 							color: 'blue',
@@ -817,48 +811,48 @@ export function useSupabaseStatistics() {
 					],
 					charts: [
 						{
-							title: 'Répartition par Genre Musical',
+							title: 'Music Genre Distribution',
 							data: {
 								labels: artistGeneral.genreStats.map((s) => s.genre),
 								data: artistGeneral.genreStats.map((s) => s.count),
 								type: 'bar',
 							},
-							description: 'Top 10 des genres musicaux les plus représentés',
+							description: 'Top 10 most represented music genres',
 						},
 						{
-							title: 'Répartition Hommes/Femmes (Globale)',
+							title: 'Gender Distribution (Overall)',
 							data: {
 								labels: artistGeneral.genderStats.map((s) => s.gender),
 								data: artistGeneral.genderStats.map((s) => s.count),
 								colors: getGenderColors(artistGeneral.genderStats),
 								type: 'doughnut',
 							},
-							description: 'Répartition par genre pour tous les artistes vérifiés',
+							description: 'Gender distribution for all verified artists',
 						},
 						{
-							title: 'Répartition Hommes/Femmes (Artistes Solo)',
+							title: 'Gender Distribution (Solo Artists)',
 							data: {
 								labels: artistGeneral.soloGenderStats.map((s) => s.gender),
 								data: artistGeneral.soloGenderStats.map((s) => s.count),
 								colors: getGenderColors(artistGeneral.soloGenderStats),
 								type: 'doughnut',
 							},
-							description: 'Répartition par genre pour les artistes solo vérifiés',
+							description: 'Gender distribution for verified solo artists',
 						},
 						{
-							title: 'Répartition Hommes/Femmes (Groupes)',
+							title: 'Gender Distribution (Groups)',
 							data: {
 								labels: artistGeneral.groupGenderStats.map((s) => s.gender),
 								data: artistGeneral.groupGenderStats.map((s) => s.count),
 								colors: getGenderColors(artistGeneral.groupGenderStats),
 								type: 'doughnut',
 							},
-							description: 'Répartition par genre pour les groupes vérifiés',
+							description: 'Gender distribution for verified groups',
 						},
 						{
-							title: 'Qualité des Profils',
+							title: 'Profile Quality',
 							data: {
-								labels: ['Vérifiés', 'Avec Image', 'Profils Complets'],
+								labels: ['Verified', 'With Image', 'Completed Profiles'],
 								data: [
 									artistGeneral.qualityStats.verificationRate,
 									artistGeneral.qualityStats.imageRate,
@@ -866,12 +860,12 @@ export function useSupabaseStatistics() {
 								],
 								type: 'bar',
 							},
-							description: 'Qualité des profils parmi les artistes vérifiés',
+							description: 'Profile quality among verified artists',
 						},
 					],
 					topLists: [
 						{
-							title: 'Top Artistes - Releases',
+							title: 'Top Artists - Releases',
 							items: artistGeneral.topReleases.map(
 								(artist: { name: string; count: number }, index: number) => ({
 									id: `release-${index}`,
@@ -882,20 +876,20 @@ export function useSupabaseStatistics() {
 							),
 						},
 						{
-							title: 'Top Artistes - Musiques',
+							title: 'Top Artists - Tracks',
 							items: artistGeneral.topMusics.map(
 								(artist: { name: string; count: number }, index: number) => ({
 									id: `music-${index}`,
 									name: artist.name,
 									value: artist.count,
-									subtitle: `${artist.count} musiques`,
+									subtitle: `${artist.count} tracks`,
 								}),
 							),
 						},
 					],
 				},
 				companies: {
-					title: 'Statistiques des Companies',
+					title: 'Company Statistics',
 					cards: [
 						{
 							title: 'Total Companies',
@@ -909,18 +903,18 @@ export function useSupabaseStatistics() {
 							title: 'Top Companies',
 							items: companyStatsData.slice(0, 10).map((comp, index) => ({
 								id: comp.company_id || index.toString(),
-								name: comp.company_name || 'Inconnu',
+								name: comp.company_name || 'Unknown',
 								value: comp.artist_count || 0,
-								subtitle: `${comp.artist_count || 0} artistes, ${comp.release_count || 0} releases`,
+								subtitle: `${comp.artist_count || 0} artists, ${comp.release_count || 0} releases`,
 							})),
 						},
 					],
 				},
 				music: {
-					title: 'Statistiques Musicales',
+					title: 'Music Statistics',
 					cards: [
 						{
-							title: 'Total Musiques',
+							title: 'Total Tracks',
 							value: filteredMusics.length,
 							icon: 'i-heroicons-play',
 							color: 'purple',
@@ -934,35 +928,35 @@ export function useSupabaseStatistics() {
 					],
 					charts: [
 						{
-							title: `Évolution des Releases ${isMonthlyView ? 'par jour' : 'par mois'}`,
+							title: `Release Evolution ${isMonthlyView ? 'by day' : 'by month'}`,
 							data: {
 								labels: releasesTemporalChart.labels,
 								data: releasesTemporalChart.data,
 								type: 'line',
 							},
 							description: isMonthlyView
-								? 'Nombre de releases liées à des artistes vérifiés, par jour'
-								: 'Nombre de releases liées à des artistes vérifiés, par mois',
+								? 'Number of releases linked to verified artists, by day'
+								: 'Number of releases linked to verified artists, by month',
 						},
 						{
-							title: `Évolution des Musiques ${isMonthlyView ? 'par jour' : 'par mois'}`,
+							title: `Track Evolution ${isMonthlyView ? 'by day' : 'by month'}`,
 							data: {
 								labels: musicsTemporalChart.labels,
 								data: musicsTemporalChart.data,
 								type: 'line',
 							},
 							description: isMonthlyView
-								? 'Nombre de musiques liées à des artistes vérifiés, par jour'
-								: 'Nombre de musiques liées à des artistes vérifiés, par mois',
+								? 'Number of tracks linked to verified artists, by day'
+								: 'Number of tracks linked to verified artists, by month',
 						},
 					],
 				},
 			}
 		} catch (error) {
-			console.error('Erreur lors du chargement des statistiques:', error)
+			console.error('Error while loading statistics:', error)
 			toast.add({
-				title: 'Erreur',
-				description: 'Impossible de charger les statistiques',
+				title: 'Error',
+				description: 'Unable to load statistics',
 				color: 'error',
 			})
 			throw error

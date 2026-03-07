@@ -57,7 +57,7 @@
 				class="text-cb-tertiary-200 hover:text-white"
 				@click="toggleShowAll"
 			>
-				{{ showingAll ? 'Voir moins' : `Voir ${items.length - displayLimit} de plus` }}
+				{{ showingAll ? 'Show less' : `Show ${items.length - displayLimit} more` }}
 				<Icon
 					:name="showingAll ? 'i-heroicons-chevron-up' : 'i-heroicons-chevron-down'"
 					class="ml-1 h-4 w-4"
@@ -70,7 +70,7 @@
 			<div class="text-cb-tertiary-200 mb-2">
 				<Icon name="i-heroicons-list-bullet" class="mx-auto h-8 w-8" />
 			</div>
-			<p class="text-cb-tertiary-200 text-sm">Aucun élément à afficher</p>
+			<p class="text-cb-tertiary-200 text-sm">No items to display</p>
 		</div>
 	</div>
 </template>
@@ -120,7 +120,7 @@
 
 	const formatValue = (value: number | string) => {
 		if (typeof value === 'number') {
-			return value.toLocaleString('fr-FR')
+			return value.toLocaleString('sv-SE')
 		}
 		return value
 	}

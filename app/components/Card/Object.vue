@@ -32,7 +32,7 @@
 			month: '2-digit',
 			year: 'numeric',
 		}
-		return new Date(date).toLocaleDateString('fr-FR', options)
+		return new Date(date).toLocaleDateString('sv-SE')
 	}
 </script>
 

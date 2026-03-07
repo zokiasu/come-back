@@ -41,11 +41,7 @@
 
 	const formattedDate = computed(() => {
 		if (!hasValidDate.value) return 'Unknown date'
-		return parsedDate.value.toLocaleDateString('en-US', {
-			day: 'numeric',
-			month: 'short',
-			year: 'numeric',
-		})
+		return parsedDate.value.toLocaleDateString('sv-SE')
 	})
 
 	const displayArtists = computed(() =>

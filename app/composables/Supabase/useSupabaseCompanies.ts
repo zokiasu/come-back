@@ -48,19 +48,19 @@ export function useSupabaseCompanies() {
 		if (error) {
 			console.error('Erreur lors de la création de la company:', error)
 			toast.add({
-				title: 'Erreur',
-				description: 'Erreur lors de la création de la company',
+				title: 'Error',
+				description: 'Error while creating the company',
 				color: 'error',
 			})
 			throw createError({
 				statusCode: 400,
-				message: `Erreur lors de la création de la company: ${error.message}`,
+				message: `Error while creating the company: ${error.message}`,
 			})
 		}
 
 		toast.add({
-			title: 'Company créée',
-			description: `${companyData.name} a été créée avec succès`,
+			title: 'Company created',
+			description: `${companyData.name} was created successfully`,
 			color: 'success',
 		})
 
@@ -82,19 +82,19 @@ export function useSupabaseCompanies() {
 		if (error) {
 			console.error('Erreur lors de la mise à jour de la company:', error)
 			toast.add({
-				title: 'Erreur',
-				description: 'Erreur lors de la mise à jour de la company',
+				title: 'Error',
+				description: 'Error while updating the company',
 				color: 'error',
 			})
 			throw createError({
 				statusCode: 400,
-				message: `Erreur lors de la mise à jour de la company: ${error.message}`,
+				message: `Error while updating the company: ${error.message}`,
 			})
 		}
 
 		toast.add({
-			title: 'Company mise à jour',
-			description: `${data.name} a été mise à jour avec succès`,
+			title: 'Company updated',
+			description: `${data.name} was updated successfully`,
 			color: 'success',
 		})
 
@@ -112,7 +112,7 @@ export function useSupabaseCompanies() {
 		if (relations && relations.length > 0) {
 			throw createError({
 				statusCode: 400,
-				message: `Cette company est liée à ${relations.length} artiste(s). Supprimez d'abord ces relations.`,
+				message: `This company is linked to ${relations.length} artist(s). Remove those relations first.`,
 			})
 		}
 
@@ -121,19 +121,19 @@ export function useSupabaseCompanies() {
 		if (error) {
 			console.error('Erreur lors de la suppression de la company:', error)
 			toast.add({
-				title: 'Erreur',
-				description: 'Erreur lors de la suppression de la company',
+				title: 'Error',
+				description: 'Error while deleting the company',
 				color: 'error',
 			})
 			throw createError({
 				statusCode: 400,
-				message: `Erreur lors de la suppression de la company: ${error.message}`,
+				message: `Error while deleting the company: ${error.message}`,
 			})
 		}
 
 		toast.add({
-			title: 'Company supprimée',
-			description: 'La company a été supprimée avec succès',
+			title: 'Company deleted',
+			description: 'The company was deleted successfully',
 			color: 'success',
 		})
 
@@ -216,7 +216,7 @@ export function useSupabaseCompanies() {
 			console.error('Erreur lors de la récupération de la company:', error)
 			throw createError({
 				statusCode: 400,
-				message: `Erreur de base de données: ${error.message}`,
+				message: `Database error: ${error.message}`,
 			})
 		}
 
@@ -236,7 +236,7 @@ export function useSupabaseCompanies() {
 		if (error) {
 			throw createError({
 				statusCode: 400,
-				message: `Erreur lors de la vérification de l'existence: ${error.message}`,
+				message: `Error while checking existence: ${error.message}`,
 			})
 		}
 
@@ -278,19 +278,19 @@ export function useSupabaseCompanies() {
 		if (error) {
 			console.error('Erreur lors de la liaison company-artiste:', error)
 			toast.add({
-				title: 'Erreur',
-				description: 'Erreur lors de la liaison company-artiste',
+				title: 'Error',
+				description: 'Error while linking company and artist',
 				color: 'error',
 			})
 			throw createError({
 				statusCode: 400,
-				message: `Erreur de base de données: ${error.message}`,
+				message: `Database error: ${error.message}`,
 			})
 		}
 
 		toast.add({
-			title: 'Relation créée',
-			description: "La company a été liée à l'artiste avec succès",
+			title: 'Relation created',
+			description: 'The company was linked to the artist successfully',
 			color: 'success',
 		})
 
@@ -307,19 +307,19 @@ export function useSupabaseCompanies() {
 		if (error) {
 			console.error('Erreur lors de la suppression de la liaison:', error)
 			toast.add({
-				title: 'Erreur',
-				description: 'Erreur lors de la suppression de la liaison',
+				title: 'Error',
+				description: 'Error while deleting the relation',
 				color: 'error',
 			})
 			throw createError({
 				statusCode: 400,
-				message: `Erreur de base de données: ${error.message}`,
+				message: `Database error: ${error.message}`,
 			})
 		}
 
 		toast.add({
-			title: 'Relation supprimée',
-			description: 'La liaison company-artiste a été supprimée avec succès',
+			title: 'Relation deleted',
+			description: 'The company-artist relation was deleted successfully',
 			color: 'success',
 		})
 
@@ -347,19 +347,19 @@ export function useSupabaseCompanies() {
 		if (error) {
 			console.error('Erreur lors de la mise à jour de la relation:', error)
 			toast.add({
-				title: 'Erreur',
-				description: 'Erreur lors de la mise à jour de la relation',
+				title: 'Error',
+				description: 'Error while updating the relation',
 				color: 'error',
 			})
 			throw createError({
 				statusCode: 400,
-				message: `Erreur de base de données: ${error.message}`,
+				message: `Database error: ${error.message}`,
 			})
 		}
 
 		toast.add({
-			title: 'Relation mise à jour',
-			description: 'La relation company-artiste a été mise à jour avec succès',
+			title: 'Relation updated',
+			description: 'The company-artist relation was updated successfully',
 			color: 'success',
 		})
 
@@ -390,7 +390,7 @@ export function useSupabaseCompanies() {
 			console.error('Erreur lors de la récupération des artistes de la company:', error)
 			throw createError({
 				statusCode: 400,
-				message: `Erreur de base de données: ${error.message}`,
+				message: `Database error: ${error.message}`,
 			})
 		}
 
@@ -414,7 +414,7 @@ export function useSupabaseCompanies() {
 			console.error("Erreur lors de la récupération des companies de l'artiste:", error)
 			throw createError({
 				statusCode: 400,
-				message: `Erreur de base de données: ${error.message}`,
+				message: `Database error: ${error.message}`,
 			})
 		}
 

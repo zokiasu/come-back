@@ -11,9 +11,9 @@
 					to="/ranking"
 				/>
 				<div>
-					<h1 class="text-xl font-bold">Explorer les musiques</h1>
+					<h1 class="text-xl font-bold">Explore music</h1>
 					<p class="text-cb-tertiary-500 text-xs">
-						Cliquez sur + pour ajouter une musique au ranking
+						Click + to add a track to this ranking
 					</p>
 				</div>
 			</div>
@@ -23,7 +23,7 @@
 				<div class="grid grid-cols-2 gap-2 lg:grid-cols-4">
 					<UInput
 						v-model="search"
-						placeholder="Rechercher une musique..."
+						placeholder="Search music..."
 						class="w-full"
 					/>
 					<UInputMenu
@@ -31,9 +31,9 @@
 						:items="artistsForMenu"
 						by="id"
 						multiple
-						placeholder="Artistes..."
+						placeholder="Artists..."
 						searchable
-						searchable-placeholder="Rechercher un artiste..."
+						searchable-placeholder="Search for an artist..."
 						class="bg-cb-quaternary-950 text-tertiary w-full cursor-pointer ring-transparent"
 						:ui="{
 							content: 'bg-cb-quaternary-950',
@@ -45,9 +45,9 @@
 						:items="yearsForMenu"
 						by="value"
 						multiple
-						placeholder="Années..."
+						placeholder="Years..."
 						searchable
-						searchable-placeholder="Rechercher..."
+						searchable-placeholder="Search..."
 						class="bg-cb-quaternary-950 text-tertiary w-full cursor-pointer ring-transparent"
 						:ui="{
 							content: 'bg-cb-quaternary-950',
@@ -61,7 +61,7 @@
 						multiple
 						placeholder="Styles..."
 						searchable
-						searchable-placeholder="Rechercher..."
+						searchable-placeholder="Search..."
 						class="bg-cb-quaternary-950 text-tertiary w-full cursor-pointer ring-transparent"
 						:ui="{
 							content: 'bg-cb-quaternary-950',
@@ -85,12 +85,12 @@
 							class="size-4"
 							:class="orderDirection === 'desc' ? 'rotate-180' : ''"
 						/>
-						{{ orderDirection === 'desc' ? 'Plus récent' : 'Plus ancien' }}
+						{{ orderDirection === 'desc' ? 'Newest first' : 'Oldest first' }}
 					</UButton>
-					<UCheckbox v-model="isMv" label="MVs uniquement" />
+					<UCheckbox v-model="isMv" label="MVs only" />
 
 					<span class="text-cb-tertiary-500 ml-auto text-xs">
-						{{ musicsList.length }} / {{ totalMusics }} résultats
+						{{ musicsList.length }} / {{ totalMusics }} results
 					</span>
 				</div>
 			</div>
@@ -189,7 +189,7 @@
 				class="text-cb-tertiary-500 flex items-center justify-center gap-2 py-4 text-xs"
 			>
 				<UIcon name="line-md:loading-twotone-loop" class="size-4 animate-spin" />
-				<p>{{ firstLoad ? 'Chargement...' : 'Chargement...' }}</p>
+				<p>{{ firstLoad ? 'Loading...' : 'Loading...' }}</p>
 			</div>
 
 			<!-- Load more -->
@@ -198,10 +198,10 @@
 				class="flex justify-center gap-2 py-4"
 			>
 				<UButton color="primary" variant="outline" @click="loadMusics(false)">
-					Charger plus
+					Load more
 				</UButton>
 				<UButton color="neutral" variant="ghost" @click="loadAllMusics">
-					Charger tout ({{ totalMusics - musicsList.length }} restants)
+					Load all ({{ totalMusics - musicsList.length }} remaining)
 				</UButton>
 			</div>
 
@@ -218,7 +218,7 @@
 				v-else-if="!loading && musicsList.length === 0"
 				class="bg-cb-quaternary-950 w-full rounded p-5 text-center text-sm"
 			>
-				Aucune musique trouvée
+				No music found
 			</p>
 		</div>
 
@@ -234,10 +234,10 @@
 							class="cursor-pointer truncate text-lg font-bold hover:underline"
 							@click="startEditName"
 						>
-							{{ ranking?.name || 'Chargement...' }}
+							{{ ranking?.name || 'Loading...' }}
 						</h2>
 						<p class="text-cb-tertiary-500 text-xs">
-							{{ rankingItems.length }}/100 musiques
+							{{ rankingItems.length }}/100 tracks
 						</p>
 					</div>
 					<div v-else class="flex-1">
@@ -258,7 +258,7 @@
 							size="xs"
 							color="neutral"
 							variant="ghost"
-							:title="ranking?.is_public ? 'Public' : 'Privé'"
+							:title="ranking?.is_public ? 'Public' : 'Private'"
 							@click="togglePublic"
 						/>
 						<UButton
@@ -286,8 +286,8 @@
 					class="text-cb-tertiary-500 py-10 text-center text-sm"
 				>
 					<UIcon name="i-heroicons-musical-note" class="mx-auto mb-2 size-10" />
-					<p>Aucune musique</p>
-					<p class="text-xs">Ajoutez des musiques depuis la liste</p>
+					<p>No tracks yet</p>
+					<p class="text-xs">Add tracks from the list</p>
 				</div>
 
 				<draggable
@@ -373,7 +373,7 @@
 			<div class="border-t border-zinc-700 p-4">
 				<div class="flex gap-2">
 					<UButton
-						label="Retour aux rankings"
+						label="Back to rankings"
 						color="neutral"
 						variant="outline"
 						class="flex-1"
@@ -394,9 +394,9 @@
 		<UModal v-model:open="isSettingsModalOpen">
 			<template #content>
 				<div class="bg-cb-secondary-950 p-6">
-					<h2 class="mb-4 text-lg font-semibold">Paramètres du ranking</h2>
+					<h2 class="mb-4 text-lg font-semibold">Ranking settings</h2>
 					<div class="space-y-4">
-						<UFormField label="Nom">
+						<UFormField label="Name">
 							<UInput v-model="settingsName" class="w-full" />
 						</UFormField>
 						<UFormField label="Description">
@@ -404,22 +404,22 @@
 								v-model="settingsDescription"
 								:rows="3"
 								class="w-full"
-								placeholder="Description optionnelle..."
+								placeholder="Optional description..."
 							/>
 						</UFormField>
 						<UFormField>
-							<UCheckbox v-model="settingsIsPublic" label="Rendre ce ranking public" />
+							<UCheckbox v-model="settingsIsPublic" label="Make this ranking public" />
 						</UFormField>
 					</div>
 					<div class="mt-6 flex justify-end gap-2">
 						<UButton
-							label="Annuler"
+							label="Cancel"
 							color="neutral"
 							variant="ghost"
 							@click="isSettingsModalOpen = false"
 						/>
 						<UButton
-							label="Enregistrer"
+							label="Save"
 							color="primary"
 							:loading="isSavingSettings"
 							@click="saveSettings"
@@ -642,7 +642,7 @@
 			}
 		} catch (error) {
 			console.error('Error loading music:', error)
-			musicsLoadError.value = 'Impossible de charger les musiques.'
+			musicsLoadError.value = 'Unable to load music.'
 		} finally {
 			loading.value = false
 		}
@@ -687,7 +687,7 @@
 
 	// Helpers
 	const formatArtists = (artists: { name: string }[] = []) => {
-		return artists.map((a) => a.name).join(', ') || 'Artiste inconnu'
+		return artists.map((a) => a.name).join(', ') || 'Unknown artist'
 	}
 
 	const formatDuration = (seconds: number): string => {
@@ -699,7 +699,7 @@
 	const formatDate = (dateString: string | null | undefined): string => {
 		if (!dateString) return ''
 		const date = new Date(dateString)
-		return date.toLocaleDateString('fr-FR', {
+		return date.toLocaleDateString('en-US', {
 			day: 'numeric',
 			month: 'short',
 			year: 'numeric',

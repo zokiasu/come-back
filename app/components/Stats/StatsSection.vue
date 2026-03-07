@@ -23,7 +23,7 @@
 				<!-- Loading Indicator -->
 				<div v-if="loading" class="flex items-center space-x-2">
 					<LoadingIndicator size="sm" />
-					<span class="text-sm text-gray-500 dark:text-gray-400">Chargement...</span>
+					<span class="text-sm text-gray-500 dark:text-gray-400">Loading...</span>
 				</div>
 			</div>
 		</div>
@@ -78,10 +78,10 @@
 				<Icon name="i-heroicons-chart-bar" class="mx-auto h-12 w-12" />
 			</div>
 			<h3 class="mb-2 text-lg font-medium text-gray-900 dark:text-white">
-				Aucune donnée disponible
+				No data available
 			</h3>
 			<p class="text-gray-500 dark:text-gray-400">
-				Les statistiques pour cette section ne sont pas encore disponibles.
+				Statistics for this section are not available yet.
 			</p>
 		</div>
 	</div>

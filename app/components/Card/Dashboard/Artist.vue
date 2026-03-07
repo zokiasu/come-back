@@ -13,7 +13,7 @@
 	const showFullDescription = ref(false)
 
 	const createdAtDate = artist.created_at
-		? new Date(artist.created_at).toLocaleDateString('fr-FR', {
+		? new Date(artist.created_at).toLocaleDateString('sv-SE', {
 				day: '2-digit',
 				month: '2-digit',
 				year: '2-digit',
@@ -21,7 +21,7 @@
 		: ''
 
 	const updatedAtDate = artist.updated_at
-		? new Date(artist.updated_at).toLocaleDateString('fr-FR', {
+		? new Date(artist.updated_at).toLocaleDateString('sv-SE', {
 				day: '2-digit',
 				month: '2-digit',
 				year: '2-digit',

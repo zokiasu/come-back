@@ -84,7 +84,7 @@
 		<div>
 			<h1 class="text-3xl font-bold text-white">Dashboard</h1>
 			<p class="text-cb-tertiary-200 mt-1 text-sm">
-				Bienvenue sur votre tableau de bord Comeback
+				Welcome to your Comeback dashboard
 			</p>
 		</div>
 
@@ -94,7 +94,7 @@
 				<div
 					class="border-cb-primary-900 h-8 w-8 animate-spin rounded-full border-b-2"
 				></div>
-				<p class="text-cb-tertiary-200 text-sm">Chargement des données...</p>
+				<p class="text-cb-tertiary-200 text-sm">Loading data...</p>
 			</div>
 		</div>
 
@@ -114,7 +114,7 @@
 								{{ stats.totalArtists }}
 							</p>
 							<p class="text-cb-tertiary-300 mt-1 text-xs">
-								{{ stats.activeArtists }} actifs
+								{{ stats.activeArtists }} active
 							</p>
 						</div>
 						<div
@@ -137,7 +137,7 @@
 								{{ stats.totalReleases }}
 							</p>
 							<p class="text-cb-tertiary-300 mt-1 text-xs">
-								{{ stats.recentReleases }} ce mois
+								{{ stats.recentReleases }} this month
 							</p>
 						</div>
 						<div
@@ -162,7 +162,7 @@
 							<p class="mt-2 text-3xl font-bold text-white">
 								{{ stats.totalNews }}
 							</p>
-							<p class="text-cb-tertiary-300 mt-1 text-xs">Publications</p>
+							<p class="text-cb-tertiary-300 mt-1 text-xs">Posts</p>
 						</div>
 						<div
 							class="bg-cb-primary-900/20 group-hover:bg-cb-primary-900/30 rounded-lg p-3 transition-colors"
@@ -184,7 +184,7 @@
 								{{ stats.totalCompanies }}
 							</p>
 							<p class="text-cb-tertiary-300 mt-1 text-xs">
-								{{ stats.verifiedCompanies }} vérifiées
+								{{ stats.verifiedCompanies }} verified
 							</p>
 						</div>
 						<div
@@ -204,12 +204,12 @@
 				<!-- Artistes récents -->
 				<div class="bg-cb-quinary-900 rounded-lg p-6">
 					<div class="mb-4 flex items-center justify-between">
-						<h2 class="text-lg font-semibold text-white">Artistes récents</h2>
+						<h2 class="text-lg font-semibold text-white">Recent artists</h2>
 						<NuxtLink
 							to="/dashboard/artist"
 							class="text-cb-primary-400 hover:text-cb-primary-300 text-sm transition-colors"
 						>
-							Voir tout
+							View all
 						</NuxtLink>
 					</div>
 					<div class="space-y-3">
@@ -225,7 +225,7 @@
 							</div>
 							<div class="flex-1">
 								<p class="font-medium text-white">{{ artist.name }}</p>
-								<p class="text-cb-tertiary-300 text-xs">{{ artist.type || 'Artiste' }}</p>
+								<p class="text-cb-tertiary-300 text-xs">{{ artist.type || 'Artist' }}</p>
 							</div>
 						</div>
 					</div>
@@ -234,12 +234,12 @@
 				<!-- Releases récentes -->
 				<div class="bg-cb-quinary-900 rounded-lg p-6">
 					<div class="mb-4 flex items-center justify-between">
-						<h2 class="text-lg font-semibold text-white">Releases récentes</h2>
+						<h2 class="text-lg font-semibold text-white">Recent releases</h2>
 						<NuxtLink
 							to="/dashboard/release"
 							class="text-cb-primary-400 hover:text-cb-primary-300 text-sm transition-colors"
 						>
-							Voir tout
+							View all
 						</NuxtLink>
 					</div>
 					<div class="space-y-3">
@@ -266,7 +266,7 @@
 							<div class="flex-1">
 								<p class="font-medium text-white">{{ release.name }}</p>
 								<p class="text-cb-tertiary-300 text-xs">
-									{{ release.artists?.[0]?.name || 'Artiste inconnu' }}
+									{{ release.artists?.[0]?.name || 'Unknown artist' }}
 								</p>
 							</div>
 						</div>
@@ -277,12 +277,12 @@
 			<!-- News récentes -->
 			<div class="bg-cb-quinary-900 rounded-lg p-6">
 				<div class="mb-4 flex items-center justify-between">
-					<h2 class="text-lg font-semibold text-white">News récentes</h2>
+					<h2 class="text-lg font-semibold text-white">Recent news</h2>
 					<NuxtLink
 						to="/dashboard/news"
 						class="text-cb-primary-400 hover:text-cb-primary-300 text-sm transition-colors"
 					>
-						Voir tout
+						View all
 					</NuxtLink>
 				</div>
 				<div class="space-y-3">
@@ -295,7 +295,7 @@
 						<div class="mt-2 flex items-center gap-2 text-xs text-gray-400">
 							<span v-if="news.artists?.[0]">{{ news.artists[0].name }}</span>
 							<span v-if="news.date">
-								• {{ new Date(news.date).toLocaleDateString('fr-FR') }}
+								• {{ new Date(news.date).toLocaleDateString('sv-SE') }}
 							</span>
 						</div>
 					</div>

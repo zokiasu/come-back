@@ -76,7 +76,7 @@
 		} catch (error) {
 			console.error('❌ Erreur lors de la création du lecteur YouTube:', error)
 			errorDetected.value = true
-			errorMessage.value = 'Erreur lors du chargement du lecteur'
+			errorMessage.value = 'Error while loading the player'
 		}
 	}
 
@@ -133,21 +133,21 @@
 
 		switch (event.data) {
 			case 2:
-				errorMessage.value = 'ID de vidéo invalide'
+				errorMessage.value = 'Invalid video ID'
 				break
 			case 5:
-				errorMessage.value = 'Erreur de lecture HTML5'
+				errorMessage.value = 'HTML5 playback error'
 				break
 			case 100:
-				errorMessage.value = 'Vidéo introuvable ou supprimée'
+				errorMessage.value = 'Video not found or removed'
 				break
 			case 101:
 			case 150:
-				errorMessage.value = 'Vidéo restreinte ou non disponible dans votre région'
+				errorMessage.value = 'Video restricted or unavailable in your region'
 				break
 			default:
 				errorMessage.value =
-					'Erreur de lecture YouTube. Essayez de désactiver votre bloqueur de publicités.'
+					'YouTube playback error. Try disabling your ad blocker.'
 		}
 	}
 
@@ -232,7 +232,7 @@
 			console.warn('⚠️ Bloqueur de publicités détecté')
 			errorDetected.value = true
 			errorMessage.value =
-				'Bloqueur de publicités détecté - le lecteur peut ne pas fonctionner'
+				'Ad blocker detected. The player may not work properly.'
 		}
 
 		if (window.YT && window.YT.Player) {
@@ -259,7 +259,7 @@
 				console.error("❌ Erreur lors du chargement de l'API YouTube:", error)
 				errorDetected.value = true
 				errorMessage.value =
-					'Impossible de charger YouTube. Vérifiez votre bloqueur de publicités.'
+					'Unable to load YouTube. Check your ad blocker.'
 			}
 
 			const firstScriptTag = document.getElementsByTagName('script')[0]
@@ -280,7 +280,7 @@
 				if (!window.YT || !window.YT.Player) {
 					console.error('❌ Timeout: API YouTube non chargée après 10 secondes')
 					errorDetected.value = true
-					errorMessage.value = 'Timeout YouTube. Bloqueur de publicités actif ?'
+					errorMessage.value = 'YouTube timed out. Is an ad blocker active?'
 				}
 			}, 10000)
 		}
@@ -312,7 +312,7 @@
 				} catch (error) {
 					console.error('❌ Erreur lors du changement de vidéo:', error)
 					errorDetected.value = true
-					errorMessage.value = 'Erreur lors du changement de vidéo'
+					errorMessage.value = 'Error while changing the video'
 				}
 			}
 		},

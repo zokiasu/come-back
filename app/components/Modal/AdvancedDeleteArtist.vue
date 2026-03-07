@@ -145,21 +145,21 @@
 					<div v-else-if="impact" class="space-y-4">
 						<div class="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
 							<h4 class="mb-3 font-semibold text-yellow-800">
-								📊 Contenu qui sera supprimé définitivement :
+								📊 Content that will be permanently deleted:
 							</h4>
 
 							<div class="space-y-2 text-sm">
 								<p>
 									<strong>{{ impact.exclusiveReleases.length }}</strong>
-									releases exclusives
+									exclusive releases
 									<strong>{{ impact.exclusiveMusics.length }}</strong>
-									musiques exclusives
+									exclusive tracks
 									<strong>{{ impact.exclusiveNews.length }}</strong>
-									news exclusives
+									exclusive news posts
 								</p>
 
 								<div v-if="totalExclusiveItems === 0" class="font-medium text-green-600">
-									✅ Aucun contenu exclusif ne sera supprimé !
+									✅ No exclusive content will be deleted!
 								</div>
 							</div>
 						</div>
@@ -172,9 +172,9 @@
 				>
 					<p class="text-sm text-orange-800">
 						⚠️
-						<strong>Mode rapide :</strong>
-						Seules les relations de l'artiste seront supprimées. Le contenu (musiques,
-						albums, news) restera dans la base de données.
+						<strong>Quick mode:</strong>
+						Only artist relations will be deleted. Content (tracks, albums, news)
+						will remain in the database.
 					</p>
 				</div>
 			</div>

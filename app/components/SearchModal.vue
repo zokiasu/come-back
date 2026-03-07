@@ -13,7 +13,7 @@
 
 	const props = withDefaults(defineProps<SearchModalProps>(), {
 		showLabel: false,
-		label: 'Recherche',
+		label: 'Search',
 		buttonClass: '',
 		layout: 'column',
 		buttonSize: 'sm',

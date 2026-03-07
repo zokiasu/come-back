@@ -83,14 +83,14 @@
 	>
 		<div class="flex items-start justify-between gap-4">
 			<div class="space-y-1">
-				<p class="text-sm font-semibold text-white">Installer Comeback</p>
+				<p class="text-sm font-semibold text-white">Install Comeback</p>
 				<p class="text-xs text-cb-tertiary-200">
 					<span v-if="isIos">
-						Sur iOS : touchez <span class="font-semibold text-white">Partager</span> puis
-						<span class="font-semibold text-white">Sur l\'écran d\'accueil</span>.
+						On iOS, tap <span class="font-semibold text-white">Share</span> then
+						<span class="font-semibold text-white">Add to Home Screen</span>.
 					</span>
 					<span v-else>
-						Accédez à Comeback en un tap, même depuis l\'écran d\'accueil.
+						Access Comeback in one tap, even from your home screen.
 					</span>
 				</p>
 			</div>
@@ -98,7 +98,7 @@
 				class="cb-no-select text-xs font-semibold text-cb-tertiary-200 hover:text-white"
 				@click="dismissPrompt"
 			>
-				Plus tard
+				Later
 			</button>
 		</div>
 		<div v-if="!isIos" class="mt-3 flex gap-3">
@@ -106,13 +106,13 @@
 				class="cb-no-select bg-cb-primary-900 hover:bg-cb-primary-800 text-xs font-semibold text-white px-4 py-2 rounded-full"
 				@click="installApp"
 			>
-				Installer
+				Install
 			</button>
 			<button
 				class="cb-no-select text-xs font-semibold text-cb-tertiary-200 hover:text-white"
 				@click="dismissPrompt"
 			>
-				Non merci
+				No thanks
 			</button>
 		</div>
 	</div>

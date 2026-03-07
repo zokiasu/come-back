@@ -112,7 +112,7 @@
 						...baseData,
 						datasets: [
 							{
-								label: 'Valeurs',
+								label: 'Values',
 								data: props.data.data,
 								backgroundColor: colors.map((color) => `${color}CC`),
 								borderColor: colors,
@@ -152,7 +152,7 @@
 						...baseData,
 						datasets: [
 							{
-								label: 'Valeurs',
+								label: 'Values',
 								data: props.data.data,
 								borderColor: colors[0],
 								backgroundColor: `${colors[0]}33`,
@@ -199,7 +199,7 @@
 						...baseData,
 						datasets: [
 							{
-								label: 'Répartition',
+								label: 'Distribution',
 								data: props.data.data,
 								backgroundColor: colors,
 								borderColor: '#ffffff',
@@ -227,7 +227,7 @@
 						...baseData,
 						datasets: [
 							{
-								label: 'Valeurs',
+								label: 'Values',
 								data: props.data.data,
 								backgroundColor: colors,
 							},

@@ -1,8 +1,8 @@
 <template>
 	<UModal
 		v-model:open="open"
-		:title="`Ajouter plusieurs membres`"
-		:description="`Ajouter plusieurs membres à l'artiste`"
+		:title="`Add multiple members`"
+		:description="`Add multiple members to the artist`"
 	>
 		<template #body>
 			<form @submit.prevent="submitAll">
@@ -12,10 +12,10 @@
 						:key="idx"
 						class="border-cb-tertiary-700 grid grid-cols-2 items-end gap-1 rounded border p-3"
 					>
-						<UFormField label="Nom *" class="flex-1">
+						<UFormField label="Name *" class="flex-1">
 							<UInput
 								v-model="member.name"
-								placeholder="Nom du membre"
+								placeholder="Member name"
 								required
 								class="w-full"
 							/>
@@ -30,10 +30,10 @@
 						<UFormField label="Type">
 							<USelect v-model="member.type" :items="typeOptions" class="w-full" />
 						</UFormField>
-						<UFormField label="Date de naissance">
+						<UFormField label="Birth date">
 							<UInput v-model="member.birth_date" type="date" class="w-full" />
 						</UFormField>
-						<UFormField label="Date de début">
+						<UFormField label="Debut date">
 							<UInput v-model="member.debut_date" type="date" class="w-full" />
 						</UFormField>
 						<UButton
@@ -51,27 +51,27 @@
 						variant="soft"
 						@click.prevent="addMember"
 					>
-						Ajouter un membre
+						Add a member
 					</UButton>
 				</div>
 				<div class="mt-6 flex justify-end gap-2">
 					<UButton type="button" color="neutral" variant="soft" @click="close">
-						Annuler
+						Cancel
 					</UButton>
 					<UButton type="submit" color="primary" :loading="loading">
-						Créer tous les membres
+						Create all members
 					</UButton>
 				</div>
 			</form>
 			<div v-if="results.length" class="mt-4">
-				<h3 class="mb-2 font-semibold">Résultat :</h3>
+				<h3 class="mb-2 font-semibold">Result:</h3>
 				<ul class="space-y-1">
 					<li
 						v-for="(res, idx) in results"
 						:key="idx"
 						:class="res.success ? 'text-green-600' : 'text-red-600'"
 					>
-						{{ res.name }} : {{ res.success ? 'Créé' : 'Erreur - ' + res.error }}
+						{{ res.name }} : {{ res.success ? 'Created' : 'Error - ' + res.error }}
 					</li>
 				</ul>
 			</div>
@@ -145,9 +145,9 @@
 		for (const member of members.value) {
 			if (!member.name) {
 				results.value.push({
-					name: member.name || '(sans nom)',
+					name: member.name || '(unnamed)',
 					success: false,
-					error: 'Nom requis',
+					error: 'Name is required',
 				})
 				continue
 			}
@@ -202,7 +202,7 @@
 				results.value.push({
 					name: member.name,
 					success: false,
-					error: e instanceof Error ? e.message : 'Erreur inconnue',
+					error: e instanceof Error ? e.message : 'Unknown error',
 				})
 			}
 		}

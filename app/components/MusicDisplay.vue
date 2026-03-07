@@ -180,7 +180,7 @@
 							<span class="hidden whitespace-nowrap md:block">
 								{{
 									releases[0]?.date
-										? new Date(releases[0].date).toLocaleDateString('fr-FR')
+										? new Date(releases[0].date).toLocaleDateString('sv-SE')
 										: ''
 								}}
 							</span>

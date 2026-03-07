@@ -61,30 +61,30 @@
 
 	// Select menu options
 	const typeOptions: { label: string; id: string }[] = [
-		{ label: 'Tous les types', id: 'ALL' },
+		{ label: 'All types', id: 'ALL' },
 		{ label: 'Single', id: 'SINGLE' },
 		{ label: 'Album', id: 'ALBUM' },
 		{ label: 'EP', id: 'EP' },
 	]
 
 	const verifiedOptions: { label: string; id: string }[] = [
-		{ label: 'Tous les statuts', id: 'all' },
-		{ label: 'Vérifiées', id: 'verified' },
-		{ label: 'En attente', id: 'pending' },
+		{ label: 'All statuses', id: 'all' },
+		{ label: 'Verified', id: 'verified' },
+		{ label: 'Pending', id: 'pending' },
 	]
 
 	const sortOptions: { label: string; id: string }[] = [
-		{ label: 'Date de sortie', id: 'date' },
-		{ label: 'Nom', id: 'name' },
+		{ label: 'Release date', id: 'date' },
+		{ label: 'Name', id: 'name' },
 		{ label: 'Type', id: 'type' },
-		{ label: 'Année', id: 'year' },
-		{ label: 'Date création', id: 'created_at' },
+		{ label: 'Year', id: 'year' },
+		{ label: 'Created date', id: 'created_at' },
 	]
 
 	const pageSizeOptions: { label: string; id: number }[] = [
-		{ label: '20 par page', id: 20 },
-		{ label: '50 par page', id: 50 },
-		{ label: '100 par page', id: 100 },
+		{ label: '20 per page', id: 20 },
+		{ label: '50 per page', id: 50 },
+		{ label: '100 per page', id: 100 },
 	]
 
 	// Artists menu for filter
@@ -196,10 +196,10 @@
 			releasesList.value = normalizeReleases(result.releases)
 			totalReleases.value = result.total
 		} catch (error) {
-			console.error('Erreur lors de la récupération des releases:', error)
+			console.error('Error while fetching releases:', error)
 			toast.add({
-				title: 'Erreur',
-				description: 'Erreur lors du chargement des releases',
+				title: 'Error',
+				description: 'Error while loading releases',
 				color: 'error',
 			})
 		} finally {
@@ -210,11 +210,7 @@
 	// Format date
 	const formatDate = (dateString: string | null) => {
 		if (!dateString) return '-'
-		return new Date(dateString).toLocaleDateString('fr-FR', {
-			year: 'numeric',
-			month: 'short',
-			day: 'numeric',
-		})
+		return new Date(dateString).toLocaleDateString('sv-SE')
 	}
 
 	// Format artists
@@ -286,23 +282,23 @@
 			const success = await deleteReleaseFunction(deletingReleaseId.value)
 			if (success) {
 				toast.add({
-					title: 'Succès',
-					description: 'Release supprimée',
+					title: 'Success',
+					description: 'Release deleted',
 					color: 'success',
 				})
 				fetchReleases()
 			} else {
 				toast.add({
-					title: 'Erreur',
-					description: 'Erreur lors de la suppression',
+					title: 'Error',
+					description: 'Error while deleting release',
 					color: 'error',
 				})
 			}
 		} catch (error) {
 			console.error('Erreur lors de la suppression:', error)
 			toast.add({
-				title: 'Erreur',
-				description: 'Erreur lors de la suppression',
+				title: 'Error',
+				description: 'Error while deleting release',
 				color: 'error',
 			})
 		} finally {
@@ -384,9 +380,9 @@
 		<div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 			<div class="flex items-center gap-4">
 				<div>
-					<h1 class="text-2xl font-bold">Gestion des Releases</h1>
+					<h1 class="text-2xl font-bold">Release Management</h1>
 					<p class="text-cb-tertiary-500 text-sm">
-						{{ stats.loaded }} / {{ stats.total }} releases chargées
+						{{ stats.loaded }} / {{ stats.total }} releases loaded
 					</p>
 				</div>
 				<UButton
@@ -396,7 +392,7 @@
 					size="sm"
 					class="bg-cb-primary-800 text-white"
 				>
-					Nouvelle release
+					New release
 				</UButton>
 			</div>
 
@@ -423,7 +419,7 @@
 					class="rounded-lg bg-red-900/30 px-3 py-1.5 text-center"
 				>
 					<p class="text-lg font-bold text-red-400">{{ stats.pending }}</p>
-					<p class="text-xs text-red-400/70">À vérifier</p>
+					<p class="text-xs text-red-400/70">Needs review</p>
 				</div>
 			</div>
 		</div>
@@ -434,7 +430,7 @@
 			<div class="flex flex-wrap items-center gap-3">
 				<UInput
 					v-model="search"
-					placeholder="Rechercher..."
+					placeholder="Search..."
 					icon="i-heroicons-magnifying-glass"
 					class="w-full md:w-64"
 					:ui="{ base: 'bg-cb-quinary-900' }"
@@ -500,9 +496,9 @@
 					:items="artistsForMenu"
 					by="id"
 					multiple
-					placeholder="Filtrer par artistes..."
+					placeholder="Filter by artists..."
 					searchable
-					searchable-placeholder="Rechercher un artiste..."
+					searchable-placeholder="Search artist..."
 					class="bg-cb-quinary-900 flex-1"
 					:ui="{
 						content: 'bg-cb-quaternary-950',
@@ -511,7 +507,7 @@
 				/>
 				<UButton
 					v-if="selectedArtists.length > 0"
-					label="Effacer"
+					label="Clear"
 					color="error"
 					variant="ghost"
 					size="sm"
@@ -533,7 +529,7 @@
 					name="i-heroicons-musical-note"
 					class="text-cb-tertiary-500 mx-auto size-16 opacity-50"
 				/>
-				<p class="text-cb-tertiary-500 mt-4">Aucune release trouvée</p>
+				<p class="text-cb-tertiary-500 mt-4">No release found</p>
 			</div>
 
 			<!-- Releases -->
@@ -577,7 +573,7 @@
 								{{ release.type || 'N/A' }}
 							</UBadge>
 							<UBadge v-if="!release.verified" color="error" variant="subtle" size="xs">
-								Non vérifié
+								Unverified
 							</UBadge>
 							<UBadge
 								v-if="hasYearMismatch(release)"
@@ -585,7 +581,7 @@
 								variant="subtle"
 								size="xs"
 							>
-								Année incorrecte
+								Incorrect year
 							</UBadge>
 						</div>
 						<p class="text-cb-tertiary-400 truncate text-sm">
@@ -606,7 +602,7 @@
 						class="text-cb-tertiary-500 hidden text-center md:block"
 					>
 						<p class="text-lg font-semibold">{{ release.musics.length }}</p>
-						<p class="text-xs">pistes</p>
+						<p class="text-xs">tracks</p>
 					</div>
 
 					<!-- Actions -->
@@ -645,7 +641,7 @@
 				class="border-cb-quinary-900 flex items-center justify-between border-t px-4 py-3"
 			>
 				<p class="text-cb-tertiary-500 text-sm">
-					Page {{ currentPage }} sur {{ totalPages }}
+					Page {{ currentPage }} of {{ totalPages }}
 				</p>
 				<UPagination
 					v-model:page="currentPage"
@@ -660,7 +656,7 @@
 			<template #content>
 				<div class="bg-cb-secondary-950 p-6">
 					<div class="mb-4 flex items-center justify-between">
-						<h3 class="text-xl font-bold">Modifier la release</h3>
+						<h3 class="text-xl font-bold">Edit release</h3>
 						<UButton
 							icon="i-heroicons-x-mark"
 							color="neutral"
@@ -693,22 +689,22 @@
 							name="i-heroicons-exclamation-triangle"
 							class="mx-auto size-12 text-red-500"
 						/>
-						<h3 class="mt-4 text-lg font-bold">Confirmer la suppression</h3>
+						<h3 class="mt-4 text-lg font-bold">Confirm deletion</h3>
 						<p class="text-cb-tertiary-400 mt-2 text-sm">
-							Cette action est irréversible. La release et toutes ses associations seront
-							supprimées.
+							This action cannot be undone. The release and all associated links will be
+							deleted.
 						</p>
 					</div>
 					<div class="flex gap-3">
 						<UButton
-							label="Annuler"
+							label="Cancel"
 							color="neutral"
 							variant="outline"
 							class="flex-1"
 							@click="isDeleteModalOpen = false"
 						/>
 						<UButton
-							label="Supprimer"
+							label="Delete"
 							color="error"
 							class="flex-1"
 							@click="confirmDelete"

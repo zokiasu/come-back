@@ -73,7 +73,7 @@
 						class="bg-cb-quinary-900 text-cb-tertiary-200 hover:bg-cb-quinary-800 flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm transition-all hover:text-white"
 					>
 						<UIcon name="i-heroicons-arrow-left" class="h-4 w-4" />
-						<span>Retour à Comeback</span>
+							<span>Back to Comeback</span>
 					</NuxtLink>
 				</div>
 			</template>

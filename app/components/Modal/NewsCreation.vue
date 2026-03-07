@@ -148,7 +148,7 @@
 
 	watch(newsDate, (newVal) => {
 		if (newVal) {
-			newsMessage.value = `Next comeback on ${newVal.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`
+			newsMessage.value = `Next comeback on ${newVal.toLocaleDateString('sv-SE')}`
 		}
 	})
 </script>
@@ -185,7 +185,9 @@
 		</UButton>
 
 		<template #body>
-			<div class="bg-cb-secondary-950 space-y-3 overflow-y-auto">
+			<div
+				class="scrollBarLight bg-cb-secondary-950 max-h-[70vh] space-y-3 overflow-y-auto overflow-x-hidden pr-1"
+			>
 				<div class="relative">
 					<ComebackInput
 						v-model="searchArtist"
@@ -195,11 +197,12 @@
 					/>
 					<div
 						v-if="artistListSearched.length"
-						class="scrollBarLight oversc bg-cb-quaternary-950 absolute top-18 z-10 flex h-40 w-full flex-col justify-start overflow-hidden overflow-y-auto p-1"
+						class="scrollBarLight bg-cb-quaternary-950 absolute left-0 right-0 top-full z-10 mt-2 flex max-h-40 flex-col justify-start overflow-y-auto rounded p-1"
 					>
 						<button
 							v-for="artist in artistListSearched"
 							:key="artist.id"
+							type="button"
 							class="hover:bg-cb-quinary-900 rounded p-2 text-start"
 							@click="addArtistToNews(artist)"
 						>
@@ -208,17 +211,33 @@
 					</div>
 				</div>
 
-				<div v-if="artistListSelected.length" class="flex flex-col gap-1">
+				<div class="flex flex-col gap-1">
 					<ComebackLabel label="Artist(s)" />
-					<div class="flex flex-wrap gap-5">
-						<div
-							v-for="artist in artistListSelected"
-							:key="artist.id"
-							class="relative flex cursor-pointer flex-col items-center justify-center rounded px-5 py-1 hover:bg-red-500/50"
-							@click="removeArtistFromNews(artist)"
+					<div
+						class="bg-cb-quinary-900 min-h-20 rounded border border-cb-quinary-900/80 p-3"
+					>
+						<p
+							v-if="artistListSelected.length === 0"
+							class="text-cb-tertiary-500 text-sm"
 						>
-							<img :src="artist.picture ?? undefined" class="h-8 w-8 rounded-full object-cover" />
-							<p>{{ artist.name }}</p>
+							Select one or more artists to attach this comeback.
+						</p>
+						<div v-else class="flex flex-wrap gap-3">
+							<button
+								v-for="artist in artistListSelected"
+								:key="artist.id"
+								type="button"
+								class="hover:bg-cb-primary-900/20 focus-visible:ring-cb-primary-900 flex max-w-full cursor-pointer flex-col items-center justify-center rounded px-3 py-2 text-center transition focus-visible:ring-2 focus-visible:outline-none"
+								:title="`Remove ${artist.name}`"
+								@click="removeArtistFromNews(artist)"
+							>
+								<img
+									:src="artist.picture ?? undefined"
+									:alt="artist.name"
+									class="h-8 w-8 rounded-full object-cover"
+								/>
+								<p class="mt-2 max-w-28 truncate text-sm">{{ artist.name }}</p>
+							</button>
 						</div>
 					</div>
 				</div>

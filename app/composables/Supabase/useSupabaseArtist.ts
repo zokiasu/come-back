@@ -85,10 +85,10 @@ export function useSupabaseArtist() {
 			supabase,
 			id,
 			(message) =>
-				toast.add({ title: 'Artiste supprimé', description: message, color: 'success' }),
+				toast.add({ title: 'Artist deleted', description: message, color: 'success' }),
 			(message) =>
 				toast.add({
-					title: 'Erreur de suppression',
+					title: 'Deletion error',
 					description: message,
 					color: 'error',
 				}),
@@ -101,10 +101,10 @@ export function useSupabaseArtist() {
 			supabase,
 			id,
 			(message) =>
-				toast.add({ title: 'Artiste supprimé', description: message, color: 'success' }),
+				toast.add({ title: 'Artist deleted', description: message, color: 'success' }),
 			(message) =>
 				toast.add({
-					title: 'Erreur de suppression',
+					title: 'Deletion error',
 					description: message,
 					color: 'error',
 				}),
@@ -168,8 +168,8 @@ export function useSupabaseArtist() {
 		if (error) {
 			console.error("Erreur lors de l'approbation de l'artiste:", error)
 			toast.add({
-				title: 'Erreur',
-				description: "Impossible d'approuver l'artiste",
+				title: 'Error',
+				description: 'Unable to approve the artist',
 				color: 'error',
 			})
 			throw error

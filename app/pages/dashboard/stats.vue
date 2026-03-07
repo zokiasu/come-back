@@ -3,18 +3,18 @@
 		<!-- Header Section -->
 		<section class="bg-cb-secondary-950 sticky top-0 z-20 w-full space-y-4 p-6">
 			<div class="space-y-2">
-				<h1 class="text-2xl font-bold text-white">Tableau de Bord des Statistiques</h1>
+				<h1 class="text-2xl font-bold text-white">Statistics dashboard</h1>
 				<p class="text-cb-tertiary-200 text-sm">
 					{{ currentPeriodDisplay }}
 				</p>
 			</div>
 
-			<!-- Filtres temporels -->
+			<!-- Time filters -->
 			<div class="bg-cb-quinary-900 space-y-4 rounded-lg p-4">
-				<h2 class="text-sm font-semibold text-white uppercase">Filtres</h2>
+				<h2 class="text-sm font-semibold text-white uppercase">Filters</h2>
 				<div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
 					<div class="space-y-1">
-						<label class="text-cb-tertiary-200 text-xs uppercase">Période</label>
+						<label class="text-cb-tertiary-200 text-xs uppercase">Period</label>
 						<select
 							v-model="selectedPeriod"
 							class="bg-cb-quaternary-950 placeholder-cb-tertiary-200 hover:bg-cb-tertiary-200 hover:text-cb-quinary-900 w-full rounded border-none p-2 text-xs transition-all duration-300 ease-in-out focus:outline-none"
@@ -30,7 +30,7 @@
 						</select>
 					</div>
 					<div class="space-y-1">
-						<label class="text-cb-tertiary-200 text-xs uppercase">Année</label>
+						<label class="text-cb-tertiary-200 text-xs uppercase">Year</label>
 						<select
 							v-model="selectedYear"
 							class="bg-cb-quaternary-950 placeholder-cb-tertiary-200 hover:bg-cb-tertiary-200 hover:text-cb-quinary-900 w-full rounded border-none p-2 text-xs transition-all duration-300 ease-in-out focus:outline-none"
@@ -46,7 +46,7 @@
 						</select>
 					</div>
 					<div class="space-y-1">
-						<label class="text-cb-tertiary-200 text-xs uppercase">Mois</label>
+						<label class="text-cb-tertiary-200 text-xs uppercase">Month</label>
 						<select
 							v-model="selectedMonth"
 							:disabled="selectedPeriod !== 'month'"
@@ -68,8 +68,8 @@
 							class="bg-cb-primary-900 hover:bg-cb-primary-800 w-full rounded px-3 py-2 text-xs font-medium text-white transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-50"
 							@click="refreshStats"
 						>
-							<span v-if="loading">Actualisation...</span>
-							<span v-else>Actualiser</span>
+							<span v-if="loading">Refreshing...</span>
+							<span v-else>Refresh</span>
 						</button>
 					</div>
 				</div>
@@ -82,7 +82,7 @@
 				<div
 					class="border-cb-primary-900 h-8 w-8 animate-spin rounded-full border-b-2"
 				></div>
-				<p class="text-cb-tertiary-200 text-sm">Chargement des statistiques...</p>
+				<p class="text-cb-tertiary-200 text-sm">Loading statistics...</p>
 			</div>
 		</div>
 
@@ -127,7 +127,7 @@
 	definePageMeta({
 		middleware: ['admin'],
 		layout: 'dashboard',
-		ssr: false, // Dashboard admin en SPA
+		ssr: false, // Admin dashboard in SPA mode
 	})
 
 	const { getStatistics } = useSupabaseStatistics()
@@ -138,10 +138,10 @@
 	const selectedMonth = ref<number | null>(null)
 
 	const periodOptions = [
-		{ value: 'all', label: 'Toute la période' },
-		{ value: 'year', label: 'Cette année' },
-		{ value: 'month', label: 'Ce mois' },
-		{ value: 'week', label: 'Cette semaine' },
+		{ value: 'all', label: 'All time' },
+		{ value: 'year', label: 'This year' },
+		{ value: 'month', label: 'This month' },
+		{ value: 'week', label: 'This week' },
 	]
 
 	const yearOptions = computed(() => {
@@ -150,23 +150,23 @@
 		for (let year = currentYear; year >= 2020; year--) {
 			years.push({ value: year, label: year.toString() })
 		}
-		return [{ value: null, label: 'Toutes les années' }, ...years]
+		return [{ value: null, label: 'All years' }, ...years]
 	})
 
 	const monthOptions = computed(() => [
-		{ value: null, label: 'Tous les mois' },
-		{ value: 0, label: 'Janvier' },
-		{ value: 1, label: 'Février' },
-		{ value: 2, label: 'Mars' },
-		{ value: 3, label: 'Avril' },
-		{ value: 4, label: 'Mai' },
-		{ value: 5, label: 'Juin' },
-		{ value: 6, label: 'Juillet' },
-		{ value: 7, label: 'Août' },
-		{ value: 8, label: 'Septembre' },
-		{ value: 9, label: 'Octobre' },
-		{ value: 10, label: 'Novembre' },
-		{ value: 11, label: 'Décembre' },
+		{ value: null, label: 'All months' },
+		{ value: 0, label: 'January' },
+		{ value: 1, label: 'February' },
+		{ value: 2, label: 'March' },
+		{ value: 3, label: 'April' },
+		{ value: 4, label: 'May' },
+		{ value: 5, label: 'June' },
+		{ value: 6, label: 'July' },
+		{ value: 7, label: 'August' },
+		{ value: 8, label: 'September' },
+		{ value: 9, label: 'October' },
+		{ value: 10, label: 'November' },
+		{ value: 11, label: 'December' },
 	])
 
 	const currentPeriodDisplay = computed(() => {
@@ -175,7 +175,7 @@
 		const currentMonth = now.getMonth()
 
 		if (selectedPeriod.value === 'all' && !selectedYear.value) {
-			return 'Toutes les données disponibles'
+			return 'All available data'
 		}
 
 		if (selectedYear.value) {
@@ -187,29 +187,29 @@
 			}
 
 			if (selectedPeriod.value === 'year' || selectedPeriod.value === 'all') {
-				return `Année ${selectedYear.value}`
+				return `Year ${selectedYear.value}`
 			}
 		}
 
 		switch (selectedPeriod.value) {
 			case 'week': {
 				const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-				return `Du ${oneWeekAgo.toLocaleDateString('fr-FR')} au ${now.toLocaleDateString('fr-FR')}`
+				return `From ${oneWeekAgo.toLocaleDateString('sv-SE')} to ${now.toLocaleDateString('sv-SE')}`
 			}
 			case 'month': {
 				if (selectedMonth.value !== null) {
 					const monthName = monthOptions.value.find(
 						(m) => m.value === selectedMonth.value,
 					)?.label
-					return `${monthName} ${currentYear} (mois spécifique)`
+				return `${monthName} ${currentYear} (specific month)`
 				}
 				const monthName = monthOptions.value.find((m) => m.value === currentMonth)?.label
-				return `${monthName} ${currentYear} (en cours)`
+				return `${monthName} ${currentYear} (current)`
 			}
 			case 'year':
-				return `${currentYear} (en cours)`
+				return `${currentYear} (current)`
 			default:
-				return 'Toutes les données disponibles'
+				return 'All available data'
 		}
 	})
 
@@ -240,11 +240,11 @@
 			companyStats.value = stats.companies
 			musicStats.value = stats.music
 		} catch (error) {
-			console.error('Erreur lors du chargement des statistiques:', error)
+			console.error('Error while loading statistics:', error)
 			const toast = useToast()
 			toast.add({
-				title: 'Erreur',
-				description: 'Impossible de charger les statistiques',
+				title: 'Error',
+				description: 'Unable to load statistics',
 				color: 'error',
 			})
 		} finally {
@@ -263,7 +263,7 @@
 	})
 
 	useSeoMeta({
-		title: 'Statistiques - Admin - Comeback',
-		description: 'Tableau de bord des statistiques de la plateforme Comeback',
+		title: 'Statistics - Admin - Comeback',
+		description: 'Statistics dashboard for the Comeback platform',
 	})
 </script>

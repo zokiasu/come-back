@@ -40,7 +40,7 @@
 			const date = new Date(dateString)
 			if (isNaN(date.getTime())) return ''
 
-			// Formater au format YYYY-MM-DD
+			// Format as YYYY-MM-DD
 			return date.toISOString().split('T')[0]
 		} catch (error) {
 			console.error('Error formatting date:', error)
@@ -123,7 +123,7 @@
 
 <template>
 	<UForm class="space-y-4" @submit="saveChanges">
-		<!-- Nom de la release -->
+		<!-- Release name -->
 		<UFormField label="Name" name="name" required>
 			<UInput
 				v-model="formData.name"
@@ -150,7 +150,7 @@
 			<UInput v-model="formData.date" type="date" :disabled="isLoading" class="w-full" />
 		</UFormField>
 
-		<!-- Année -->
+		<!-- Year -->
 		<UFormField label="Year" name="year">
 			<UInput
 				v-model.number="formData.year"
@@ -162,7 +162,7 @@
 			/>
 		</UFormField>
 
-		<!-- Statut vérifié -->
+		<!-- Verified status -->
 		<UFormField name="verified">
 			<UCheckbox
 				v-model="formData.verified"
@@ -182,7 +182,7 @@
 			>
 				Cancel
 			</UButton>
-			<UButton type="submit" :loading="isLoading">Sauvegarder</UButton>
+			<UButton type="submit" :loading="isLoading">Save</UButton>
 		</div>
 	</UForm>
 </template>
