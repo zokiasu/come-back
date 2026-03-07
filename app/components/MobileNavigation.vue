@@ -6,15 +6,16 @@
 
 	const userStore = useUserStore()
 	const { isLoginStore, isAdminStore, isHydrated } = storeToRefs(userStore)
+	const supabaseUser = useSupabaseUser()
 
 	const isClient = ref(false)
 	const isMoreOpen = ref(false)
 	const isSearchOpen = ref(false)
 	const newsCreationModal = ref<{ openModal: () => void } | null>(null)
 	const { open: openAuthModal } = useAuthModal()
-	const handleLoginClick = () => {
+	const handleLoginClick = async () => {
 		isMoreOpen.value = false
-		openAuthModal()
+		await openAuthModal()
 	}
 
 	const openNewsCreationModal = async () => {
@@ -30,7 +31,7 @@
 	// Computed pour vérifier si l'utilisateur est connecté (source unique de vérité)
 	const isUserLoggedIn = computed(() => {
 		if (!isClient.value) return false
-		return isHydrated.value && isLoginStore.value
+		return Boolean(supabaseUser.value?.id) || (isHydrated.value && isLoginStore.value)
 	})
 
 	const bottomOffsetClass = computed(() => {

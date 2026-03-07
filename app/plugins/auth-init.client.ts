@@ -27,11 +27,23 @@ export default defineNuxtPlugin(async () => {
 				const { ensureUserProfile } = useAuth()
 				const userStore = useUserStore()
 
-				if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+				if (
+					event === 'INITIAL_SESSION' ||
+					event === 'SIGNED_IN' ||
+					event === 'TOKEN_REFRESHED' ||
+					event === 'USER_UPDATED'
+				) {
 					await ensureUserProfile()
 				}
 
 				if (event === 'SIGNED_OUT') {
+					await new Promise((resolve) => setTimeout(resolve, 300))
+					const { data: sessionData } = await supabase.auth.getSession()
+					if (sessionData.session?.user?.id) {
+						await ensureUserProfile()
+						return
+					}
+
 					await userStore.resetStore()
 				}
 			})

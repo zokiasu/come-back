@@ -148,11 +148,43 @@ export const useAuth = () => {
 	const isSyncing = ref(false)
 	const syncError = ref<string | null>(null)
 
+	const preserveAuthenticatedState = (authUser: SupabaseAuthUser) => {
+		userStore.setSupabaseUser(authUser)
+		userStore.setIsLogin(true)
+
+		if (userDataStore.value?.id === authUser.id) {
+			userStore.setIsAdmin(userDataStore.value.role === 'ADMIN')
+		} else {
+			userStore.setUserData(null)
+			userStore.setIsAdmin(false)
+		}
+
+		userStore.isHydrated = true
+	}
+
 	// Fonction pour synchroniser le profil utilisateur
 	const ensureUserProfile = async () => {
 		// Attendre que l'utilisateur soit complètement initialisé (avec id)
 		// Supabase v2 peut avoir un user.value sans id pendant l'initialisation OAuth
 		if (!user.value?.id) {
+			const { data: sessionData } = await supabase.auth.getSession()
+			const sessionUser = sessionData.session?.user
+
+			if (sessionUser?.id) {
+				const authUser: SupabaseAuthUser = {
+					id: sessionUser.id,
+					email: sessionUser.email,
+					user_metadata: sessionUser.user_metadata,
+				}
+
+				if (userDataStore.value?.id === authUser.id && isLoginStore.value) {
+					preserveAuthenticatedState(authUser)
+					return true
+				}
+
+				return await syncUserProfileFromAuthUser(authUser)
+			}
+
 			// Ne pas réinitialiser si on a déjà des données valides dans le store
 			if (userDataStore.value && isLoginStore.value) {
 				return true
@@ -164,16 +196,16 @@ export const useAuth = () => {
 		// Si l'utilisateur Supabase existe mais qu'on n'a pas de données dans le store
 		// ou si l'ID ne correspond pas, on re-synchronise
 		if (!userDataStore.value || userDataStore.value.id !== user.value.id) {
+			const authUser: SupabaseAuthUser = {
+				id: user.value.id,
+				email: user.value.email,
+				user_metadata: user.value.user_metadata,
+			}
+
 			try {
 				isSyncing.value = true
 				syncError.value = null
 
-				// Cast explicite car user.value a déjà été vérifié avoir un id
-				const authUser: SupabaseAuthUser = {
-					id: user.value.id,
-					email: user.value.email,
-					user_metadata: user.value.user_metadata,
-				}
 				const userData = await createOrUpdateUser(authUser)
 				await syncUserProfile(authUser, userData)
 
@@ -182,8 +214,8 @@ export const useAuth = () => {
 				const errorMessage = error instanceof Error ? error.message : 'Erreur de synchronisation'
 				console.error('❌ Erreur lors de la synchronisation:', error)
 				syncError.value = errorMessage
-				await resetStore()
-				return false
+				preserveAuthenticatedState(authUser)
+				return true
 			} finally {
 				isSyncing.value = false
 			}
@@ -209,8 +241,8 @@ export const useAuth = () => {
 			const errorMessage = error instanceof Error ? error.message : 'Erreur de synchronisation'
 			console.error('❌ Erreur lors de la synchronisation (auth user):', error)
 			syncError.value = errorMessage
-			await resetStore()
-			return false
+			preserveAuthenticatedState(authUser)
+			return true
 		} finally {
 			isSyncing.value = false
 		}

@@ -1,9 +1,14 @@
 <script setup lang="ts">
+	import { storeToRefs } from 'pinia'
 	import { useSupabaseAuth } from '@/composables/auth/supabase-auth.composable'
 	import { useAuthModal } from '@/composables/useAuthModal'
+	import { useUserStore } from '@/stores/user'
 
 	const { loginWithGoogle, isLoading } = useSupabaseAuth()
 	const { isOpen, close } = useAuthModal()
+	const userStore = useUserStore()
+	const { isLoginStore } = storeToRefs(userStore)
+	const supabaseUser = useSupabaseUser()
 
 	const authOptions = [
 		{
@@ -37,6 +42,16 @@
 			enabled: false,
 		},
 	]
+
+	watch(
+		[isOpen, () => isLoginStore.value, () => Boolean(supabaseUser.value?.id)],
+		([modalOpen, isLoggedIn, hasSupabaseUser]) => {
+			if (modalOpen && (isLoggedIn || hasSupabaseUser)) {
+				close()
+			}
+		},
+		{ immediate: true },
+	)
 </script>
 
 <template>

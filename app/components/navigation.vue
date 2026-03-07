@@ -7,15 +7,15 @@
 
 	const userStore = useUserStore()
 	const { isAdminStore, isLoginStore, isHydrated } = storeToRefs(userStore)
+	const supabaseUser = useSupabaseUser()
 
 	const route = useRoute()
 
 	const navbar = useTemplateRef('navbar')
 
 	// Computed pour vérifier si l'utilisateur est connecté
-	// Ces computeds sont utilisés dans <ClientOnly>, donc pas besoin de vérifier isClient
 	const isUserLoggedIn = computed(() => {
-		return isHydrated.value && isLoginStore.value
+		return Boolean(supabaseUser.value?.id) || (isHydrated.value && isLoginStore.value)
 	})
 
 	// Computed pour vérifier si l'utilisateur est admin
