@@ -1,7 +1,7 @@
 <template>
 	<div class="flex h-[calc(100vh-5rem)] overflow-hidden">
 		<div ref="scrollContainer" class="scrollBarLight min-w-0 flex-1 overflow-y-auto p-5">
-			<div class="mx-auto w-full max-w-[90rem]">
+			<div class="mx-auto w-full max-w-[95rem]">
 				<div class="mb-4">
 					<h1 class="text-xl font-bold">Explore music</h1>
 					<p class="text-cb-tertiary-500 text-xs">
