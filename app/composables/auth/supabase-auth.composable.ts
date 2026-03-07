@@ -138,6 +138,17 @@ export const useSupabaseAuth = () => {
 					if (!event.data || event.data.type !== 'comeback-auth') return
 
 					if (event.data.status === 'success') {
+						// Hydrater le client Supabase de la fenêtre principale avec la session de la popup
+						if (event.data.session?.access_token) {
+							try {
+								await supabase.auth.setSession({
+									access_token: event.data.session.access_token,
+									refresh_token: event.data.session.refresh_token,
+								})
+							} catch (e) {
+								console.warn('Failed to set session from popup:', e)
+							}
+						}
 						await handleAuthSuccess()
 					}
 
@@ -151,9 +162,21 @@ export const useSupabaseAuth = () => {
 					try {
 						const payload = JSON.parse(event.newValue) as {
 							status?: string
+							session?: { access_token: string; refresh_token: string }
 							reason?: string
 						}
 						if (payload.status === 'success') {
+							// Hydrater le client Supabase de la fenêtre principale avec la session de la popup
+							if (payload.session?.access_token) {
+								try {
+									await supabase.auth.setSession({
+										access_token: payload.session.access_token,
+										refresh_token: payload.session.refresh_token,
+									})
+								} catch (e) {
+									console.warn('Failed to set session from storage:', e)
+								}
+							}
 							await handleAuthSuccess()
 						}
 					} catch {

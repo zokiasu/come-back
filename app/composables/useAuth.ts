@@ -20,6 +20,19 @@ export const useAuth = () => {
 		return undefined
 	}
 
+	const getSessionAuthUser = async (): Promise<SupabaseAuthUser | null> => {
+		const { data: sessionData } = await supabase.auth.getSession()
+		const sessionUser = sessionData.session?.user
+
+		if (!sessionUser?.id) return null
+
+		return {
+			id: sessionUser.id,
+			email: sessionUser.email,
+			user_metadata: sessionUser.user_metadata ?? {},
+		}
+	}
+
 	// Fonction pour créer ou mettre à jour un utilisateur (intégrée depuis useSupabaseUserManager)
 	const createOrUpdateUser = async (authUser: SupabaseAuthUser): Promise<User | null> => {
 		// Vérifier que l'utilisateur et son ID sont définis (Supabase v2 peut retourner un user sans id pendant l'init)
@@ -167,15 +180,10 @@ export const useAuth = () => {
 		// Attendre que l'utilisateur soit complètement initialisé (avec id)
 		// Supabase v2 peut avoir un user.value sans id pendant l'initialisation OAuth
 		if (!user.value?.id) {
-			const { data: sessionData } = await supabase.auth.getSession()
-			const sessionUser = sessionData.session?.user
+			const authUser = await getSessionAuthUser()
 
-			if (sessionUser?.id) {
-				const authUser: SupabaseAuthUser = {
-					id: sessionUser.id,
-					email: sessionUser.email,
-					user_metadata: sessionUser.user_metadata,
-				}
+			if (authUser?.id) {
+				preserveAuthenticatedState(authUser)
 
 				if (userDataStore.value?.id === authUser.id && isLoginStore.value) {
 					preserveAuthenticatedState(authUser)
@@ -234,6 +242,7 @@ export const useAuth = () => {
 		try {
 			isSyncing.value = true
 			syncError.value = null
+			preserveAuthenticatedState(authUser)
 			const userData = await createOrUpdateUser(authUser)
 			await syncUserProfile(authUser, userData)
 			return true
@@ -291,6 +300,12 @@ export const useAuth = () => {
 		// Si on a un utilisateur Supabase complet mais pas de données dans le store
 		if (user.value?.id) {
 			return await ensureUserProfile()
+		}
+
+		const sessionAuthUser = await getSessionAuthUser()
+		if (sessionAuthUser?.id) {
+			preserveAuthenticatedState(sessionAuthUser)
+			return await syncUserProfileFromAuthUser(sessionAuthUser)
 		}
 
 		// Si on a des données valides dans le store (restaurées depuis localStorage)

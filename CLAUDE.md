@@ -19,6 +19,8 @@ npm run generate     # Génération statique
 npm run preview      # Preview du build
 ```
 
+Pas de suite de tests configurée (ni Vitest ni Jest).
+
 ## Variables d'environnement
 
 ```
@@ -98,6 +100,26 @@ useSupabaseArtist.ts → helpers/artist/artistQueries.ts  (fetch)
                      → helpers/artist/artistCrud.ts      (create/update/delete)
                      → helpers/artist/artistRelations.ts  (groups/members)
 ```
+
+### Architecture d'authentification
+
+L'auth fonctionne en couches avec synchronisation entre Supabase, Pinia et localStorage :
+
+**Côté client** :
+- `useAuth.ts` — orchestrateur principal (session, profil, sync). Expose `ensureAuthInitialized()` qui résout quand la session Supabase et les données utilisateur sont prêtes.
+- `useAuthModal.ts` — gestion de l'état du modal d'authentification
+- `auth/supabase-auth.composable.ts` — logique OAuth spécifique (popup, message passing, session polling)
+
+**Middleware** : `auth.ts` et `admin.ts` utilisent un pattern retry avec timeout pour attendre l'initialisation asynchrone de l'auth (constantes dans `app/constants/auth.ts`) :
+- `AUTH_INIT_TIMEOUT_MS: 5000` — timeout pour `ensureAuthInitialized()`
+- `AUTH_MAX_RETRY_ATTEMPTS: 30` × `AUTH_RETRY_DELAY_MS: 100` = 3s max d'attente pour `userData`
+- Le middleware vérifie `user.value?.id` (Supabase) OU `userStore.userDataStore + isLoginStore` (localStorage)
+
+**Côté serveur** : `server/utils/auth.ts` — `getAuthenticatedUser()` supporte Bearer token ET session cookie, puis récupère le rôle depuis la BDD (pas depuis le JWT).
+
+### Pinia Store (`user.ts`)
+
+Persiste `userDataStore` et `isLoginStore` en localStorage (clé `userStore`). `isAdminStore` n'est PAS persisté — il est recalculé dans `afterHydrate` depuis `userDataStore.role`. Le flag `isHydrated` empêche les erreurs de désynchronisation SSR/client.
 
 ### Base de Données
 
@@ -190,16 +212,23 @@ const { data } = await useFetch('/api/releases/paginated', {
 
 ## Stratégie de Rendu
 
-| Route                         | Mode | Détails            |
-| ----------------------------- | ---- | ------------------ |
-| `/`                           | ISR  | 3600s revalidation |
-| `/calendar`                   | SSG  | Prerender          |
-| `/authentification`, `/auth/` | SPA  | Client-side only   |
-| `/dashboard/**`               | SPA  | Client-side only   |
-| `/release/create`             | SPA  | Client-side only   |
-| `/settings/**`                | SSR  | Hybride            |
+| Route                          | Mode | Détails            |
+| ------------------------------ | ---- | ------------------ |
+| `/`                            | ISR  | 3600s revalidation |
+| `/calendar`                    | SSG  | Prerender          |
+| `/authentification`, `/auth/`  | SPA  | Client-side only   |
+| `/dashboard/**`, `/newdashboard/**` | SPA  | Client-side only   |
+| `/release/create`, `/music`    | SPA  | Client-side only   |
+| `/settings/**`                 | SSR  | Hybride            |
+| `/api/**`                      | —    | CORS activé + cache headers |
 
-## ESLint
+## Formatage & Linting
+
+### Prettier (.prettierrc)
+
+Tabs, `printWidth: 90`, single quotes, no semicolons, trailing commas, `vueIndentScriptAndStyle: true`. Plugin `prettier-plugin-tailwindcss` pour le tri des classes.
+
+### ESLint
 
 Règles notables (eslint.config.mjs) :
 - `@typescript-eslint/no-explicit-any`: warn
@@ -227,6 +256,14 @@ MAX_ARRAY_ITEMS: 100
 MAX_PAGE_SIZE: 100
 MIN_YEAR: 1900, MAX_YEAR: 2100
 ```
+
+## Librairies notables
+
+- **Zod** — validation de schémas (formulaires, données)
+- **Swiper** — carrousels (transpilé via `nuxt.config.ts`)
+- **vuedraggable** — drag-and-drop (rankings)
+- **chart.js + vue-chartjs** — graphiques (dashboard)
+- **@vite-pwa/nuxt** — PWA avec Workbox runtime caching (images Google, ibb.co)
 
 ## Rappels
 

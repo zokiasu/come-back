@@ -253,9 +253,23 @@
 				log('Profile synced successfully! Redirecting to home...')
 				statusMessage.value = 'Redirecting...'
 				await new Promise((resolve) => setTimeout(resolve, 500))
+
+				// Récupérer les tokens pour que la fenêtre principale puisse hydrater son client Supabase
+				const { data: sessionForOpener } = await supabase.auth.getSession()
+				const sessionTokens = sessionForOpener?.session
+					? {
+							access_token: sessionForOpener.session.access_token,
+							refresh_token: sessionForOpener.session.refresh_token,
+						}
+					: null
+
 				if (window.opener) {
 					window.opener.postMessage(
-						{ type: 'comeback-auth', status: 'success' },
+						{
+							type: 'comeback-auth',
+							status: 'success',
+							session: sessionTokens,
+						},
 						window.location.origin,
 					)
 					window.close()
@@ -263,7 +277,11 @@
 				}
 				localStorage.setItem(
 					'comeback-auth',
-					JSON.stringify({ status: 'success', ts: Date.now() }),
+					JSON.stringify({
+						status: 'success',
+						session: sessionTokens,
+						ts: Date.now(),
+					}),
 				)
 				window.close()
 				await navigateTo('/')
