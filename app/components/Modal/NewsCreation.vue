@@ -37,6 +37,13 @@
 	const artistListSelected = ref<SelectedNewsArtist[]>([])
 	const newsDate = ref<Date | null>(null)
 	const newsMessage = ref<string>('')
+	const isFormValid = computed(() => {
+		return (
+			artistListSelected.value.length > 0 &&
+			Boolean(newsDate.value) &&
+			newsMessage.value.trim().length > 0
+		)
+	})
 
 	const parseToCalendarDate = (date: Date | null | undefined): CalendarDate | null => {
 		if (!date) return null
@@ -65,37 +72,47 @@
 	}, 500)
 
 	const creationNews = async () => {
+		if (!isFormValid.value || sendNews.value) {
+			toast.add({
+				title: 'Missing information',
+				description: 'Select at least one artist, a date and a message.',
+				icon: 'i-lucide-circle-alert',
+				color: 'warning',
+			})
+			return
+		}
+
 		const news: Omit<News, 'id' | 'artists' | 'created_at' | 'updated_at'> = {
 			date: newsDate.value?.toISOString() ?? new Date().toISOString(),
-			message: newsMessage.value,
+			message: newsMessage.value.trim(),
 			verified: false,
 		}
 		sendNews.value = true
 
-		// Extraire uniquement les IDs des artistes
 		const artistIds = artistListSelected.value.map((artist) => artist.id)
 
-		createNews(news, artistIds)
-			.then(() => {
-				toast.add({
-					title: 'News created',
-					description: 'News created successfully',
-					icon: 'i-lucide-check-circle',
-					color: 'success',
-				})
-				sendNews.value = false
-				closeModal()
+		try {
+			await createNews(news, artistIds)
+			toast.add({
+				title: 'News created',
+				description: 'News created successfully',
+				icon: 'i-lucide-check-circle',
+				color: 'success',
 			})
-			.catch((error) => {
-				toast.add({
-					title: 'Error creating news',
-					description: 'Error creating news',
-					icon: 'i-lucide-x-circle',
-					color: 'error',
-				})
-				console.error('Error creating news', error)
+			closeModal()
+		} catch (error) {
+			toast.add({
+				title: 'Error creating news',
+				description: 'Error creating news',
+				icon: 'i-lucide-x-circle',
+				color: 'error',
 			})
+			console.error('Error creating news', error)
+		} finally {
+			sendNews.value = false
+		}
 	}
+
 
 	const addArtistToNews = (artist: NewsArtist) => {
 		// Avoid duplicates
@@ -270,8 +287,9 @@
 				</div>
 
 				<button
-					:disabled="sendNews"
-					class="bg-cb-primary-900 w-full rounded py-2 font-semibold uppercase transition-all duration-300 ease-in-out hover:scale-105 hover:bg-red-900"
+					:disabled="sendNews || !isFormValid"
+					type="button"
+					class="bg-cb-primary-900 disabled:bg-cb-quaternary-900 disabled:text-cb-tertiary-500 w-full rounded py-2 font-semibold uppercase transition-all duration-300 ease-in-out enabled:cursor-pointer enabled:hover:scale-105 enabled:hover:bg-red-900"
 					@click="creationNews"
 				>
 					<p v-if="sendNews">Sending...</p>
