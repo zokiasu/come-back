@@ -102,6 +102,29 @@ export async function updateArtistRecord(
 	const { artistId, updates, socialLinks, platformLinks, groups, members, companies } =
 		params
 
+	if (updates.id_youtube_music) {
+		const { data: conflictingArtist, error: conflictError } = await supabase
+			.from('artists')
+			.select('id, name')
+			.eq('id_youtube_music', updates.id_youtube_music)
+			.neq('id', artistId)
+			.maybeSingle()
+
+		if (conflictError) {
+			console.error(
+				"Erreur lors de la vérification d'un conflit d'ID YouTube Music:",
+				conflictError,
+			)
+			throw new Error("Erreur lors de la vérification de l'ID YouTube Music")
+		}
+
+		if (conflictingArtist) {
+			throw new Error(
+				`This YouTube Music ID is already linked to ${conflictingArtist.name}.`,
+			)
+		}
+	}
+
 	// Mettre à jour l'artiste
 	const { data: artist, error } = await supabase
 		.from('artists')
@@ -112,6 +135,11 @@ export async function updateArtistRecord(
 
 	if (error) {
 		console.error("Erreur lors de la mise à jour de l'artiste:", error)
+
+		if ('code' in error && error.code === '23505') {
+			throw new Error('This artist conflicts with an existing unique value.')
+		}
+
 		throw new Error("Erreur lors de la mise à jour de l'artiste")
 	}
 
