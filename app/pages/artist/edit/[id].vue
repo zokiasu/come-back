@@ -277,6 +277,25 @@
 		}
 	}
 
+	const withTimeout = async <T>(
+		promise: Promise<T>,
+		timeoutMs: number,
+		errorMessage: string,
+	): Promise<T> => {
+		let timeoutId: ReturnType<typeof setTimeout> | null = null
+
+		try {
+			return await Promise.race([
+				promise,
+				new Promise<never>((_, reject) => {
+					timeoutId = setTimeout(() => reject(new Error(errorMessage)), timeoutMs)
+				}),
+			])
+		} finally {
+			if (timeoutId) clearTimeout(timeoutId)
+		}
+	}
+
 	const sendUpdateArtist = async () => {
 		isUploadingEdit.value = true
 
@@ -330,39 +349,34 @@
 			const validPlatformLinks = platformLinkManager.getValidLinks()
 			const validSocialLinks = socialLinkManager.getValidLinks()
 
-			await updateArtist(
-				currentArtistId,
-				updates,
-				validSocialLinks,
-				validPlatformLinks,
-				buildArtistRefs(artistGroups.value),
-				buildArtistRefs(artistMembers.value),
-				selectedCompanies,
+			await withTimeout(
+				updateArtist(
+					currentArtistId,
+					updates,
+					validSocialLinks,
+					validPlatformLinks,
+					buildArtistRefs(artistGroups.value),
+					buildArtistRefs(artistMembers.value),
+					selectedCompanies,
+				),
+				15000,
+				'Artist update timed out. Please try again.',
 			)
-				.then(() => {
-					toast.add({
-						title: 'Artist updated successfully',
-						color: 'success',
-					})
-					isUploadingEdit.value = false
-					// Optional: reload data or navigate
-					router.push(`/artist/${route.params.id}`)
-				})
-				.catch((error: unknown) => {
-					const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-					// Error updating artist
-					toast.add({
-						title: 'Error updating artist',
-						description: errorMessage,
-						color: 'error',
-					})
-				})
-		} catch {
-			// Error updating artist
+
+			toast.add({
+				title: 'Artist updated successfully',
+				color: 'success',
+			})
+
+			await router.push(`/artist/${route.params.id}`)
+		} catch (error: unknown) {
+			const errorMessage = error instanceof Error ? error.message : 'Unknown error'
 			toast.add({
 				title: 'Error updating artist',
+				description: errorMessage,
 				color: 'error',
 			})
+			console.error('Error updating artist', error)
 		} finally {
 			isUploadingEdit.value = false
 		}
