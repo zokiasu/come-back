@@ -143,6 +143,7 @@
 	<UModal
 		v-model:open="isOpen"
 		title="Create Comeback"
+		description="Search artists, pick a date and submit a new comeback report."
 		:ui="{
 			overlay: 'bg-cb-quinary-950/75',
 			content: 'ring-cb-quinary-950',
