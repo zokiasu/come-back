@@ -1,9 +1,8 @@
 <script setup lang="ts">
 	import { CalendarDate } from '@internationalized/date'
 
-	import type { News } from '~/types'
+	import type { Artist, News } from '~/types'
 	import { useSupabaseNews } from '~/composables/Supabase/useSupabaseNews'
-	import { useSupabaseSearch } from '~/composables/useSupabaseSearch'
 
 	type NewsCreationProps = {
 		showLabel?: boolean
@@ -25,15 +24,11 @@
 
 	const toast = useToast()
 	const { createNews } = useSupabaseNews()
-	const { searchArtistsFullText } = useSupabaseSearch()
 
-	type NewsArtist = { id: string; name: string; image?: string | null }
 	type SelectedNewsArtist = { id: string; name: string; picture?: string | null }
 
 	const sendNews = ref<boolean>(false)
 	const isOpen = ref<boolean>(false)
-	const searchArtist = ref<string>('')
-	const artistListSearched = ref<NewsArtist[]>([])
 	const artistListSelected = ref<SelectedNewsArtist[]>([])
 	const newsDate = ref<Date | null>(null)
 	const newsMessage = ref<string>('')
@@ -58,18 +53,21 @@
 		}
 	}
 
-	// Définition d'une fonction de recherche débattue
-	const debouncedSearch = useDebounce(async (query) => {
-		try {
-			const result = await searchArtistsFullText({
-				query,
-				limit: 10,
-			})
-			artistListSearched.value = result.artists
-		} catch (error) {
-			console.error('Erreur lors de la recherche:', error)
-		}
-	}, 500)
+	const selectedArtistsModel = computed<Artist[]>({
+		get: () =>
+			artistListSelected.value.map((artist) => ({
+				id: artist.id,
+				name: artist.name,
+				image: artist.picture ?? null,
+			})) as Artist[],
+		set: (artists) => {
+			artistListSelected.value = artists.map((artist) => ({
+				id: artist.id,
+				name: artist.name,
+				picture: artist.image ?? null,
+			}))
+		},
+	})
 
 	const creationNews = async () => {
 		if (!isFormValid.value || sendNews.value) {
@@ -113,32 +111,12 @@
 		}
 	}
 
-
-	const addArtistToNews = (artist: NewsArtist) => {
-		// Avoid duplicates
-		if (!artistListSelected.value.some((a) => a.id === artist.id)) {
-			artistListSelected.value.push({
-				id: artist.id,
-				name: artist.name,
-				picture: artist.image,
-			})
-		}
-		clearSearch()
-	}
-
 	const removeArtistFromNews = (artist: SelectedNewsArtist) => {
 		artistListSelected.value = artistListSelected.value.filter((a) => a.id !== artist.id)
 	}
 
-	const clearSearch = () => {
-		searchArtist.value = ''
-		artistListSearched.value = []
-	}
-
 	const closeModal = () => {
 		// Réinitialisation des états
-		searchArtist.value = ''
-		artistListSearched.value = []
 		artistListSelected.value = []
 		newsDate.value = null
 		newsMessage.value = ''
@@ -154,15 +132,6 @@
 		openModal,
 		closeModal,
 	})
-
-	watchEffect(() => {
-		if (searchArtist.value.length > 2) {
-			debouncedSearch(searchArtist.value)
-		} else {
-			artistListSearched.value = []
-		}
-	})
-
 	watch(newsDate, (newVal) => {
 		if (newVal) {
 			newsMessage.value = `Next comeback on ${newVal.toLocaleDateString('sv-SE')}`
@@ -205,27 +174,18 @@
 			<div
 				class="scrollBarLight bg-cb-secondary-950 max-h-[70vh] space-y-3 overflow-y-auto overflow-x-hidden pr-1"
 			>
-				<div class="relative">
-					<ComebackInput
-						v-model="searchArtist"
-						label="Select artist(s)"
-						placeholder="Search Artist"
-						@clear="clearSearch"
+				<div class="space-y-1">
+					<ComebackLabel label="Select artist(s)" />
+					<ArtistSearchSelect
+						v-model="selectedArtistsModel"
+						multiple
+						placeholder="Search artist"
+						search-placeholder="Search artist"
+						idle-text="Type at least 2 characters to search artists."
+						loading-text="Searching artists..."
+						empty-text="No artists match your search."
+						class="w-full"
 					/>
-					<div
-						v-if="artistListSearched.length"
-						class="scrollBarLight bg-cb-quaternary-950 absolute left-0 right-0 top-full z-10 mt-2 flex max-h-40 flex-col justify-start overflow-y-auto rounded p-1"
-					>
-						<button
-							v-for="artist in artistListSearched"
-							:key="artist.id"
-							type="button"
-							class="hover:bg-cb-quinary-900 rounded p-2 text-start"
-							@click="addArtistToNews(artist)"
-						>
-							{{ artist.name }}
-						</button>
-					</div>
 				</div>
 
 				<div class="flex flex-col gap-1">

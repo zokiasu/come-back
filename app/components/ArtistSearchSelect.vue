@@ -3,6 +3,7 @@
 	import type { Artist, ArtistMenuItem } from '~/types'
 
 	type SelectableArtist = Artist | ArtistMenuItem
+	const artistSearchCache = new Map<string, Artist[]>()
 
 	const props = withDefaults(
 		defineProps<{
@@ -86,7 +87,7 @@
 	})
 
 	const selectedIds = computed(() => new Set(selectedItems.value.map((artist) => artist.id)))
-	const trimmedSearch = computed(() => searchInput.value.trim())
+	const trimmedSearch = computed(() => searchInput.value.trim().replace(/\s+/g, ' '))
 	const hasSearchTerm = computed(() => trimmedSearch.value.length >= props.minSearchChars)
 	const combinedLoading = computed(() => props.loading || isRemoteLoading.value)
 	const inputPlaceholder = computed(() => {
@@ -135,6 +136,14 @@
 		}
 
 		const requestId = ++latestSearchRequestId.value
+		const cacheKey = `${props.maxResults}:${query.trim().toLowerCase()}`
+
+		if (artistSearchCache.has(cacheKey)) {
+			remoteSuggestions.value = artistSearchCache.get(cacheKey) || []
+			isRemoteLoading.value = false
+			return
+		}
+
 		isRemoteLoading.value = true
 		try {
 			const { artists } = await $fetch<{ artists: Artist[] }>('/api/artists/search', {
@@ -147,6 +156,7 @@
 			if (requestId !== latestSearchRequestId.value) return
 
 			remoteSuggestions.value = artists || []
+			artistSearchCache.set(cacheKey, remoteSuggestions.value)
 		} catch (error) {
 			if (requestId !== latestSearchRequestId.value) return
 			console.error('Error while searching artists:', error)
