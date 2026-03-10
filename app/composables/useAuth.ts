@@ -1,6 +1,12 @@
 import { storeToRefs } from 'pinia'
 import type { SupabaseAuthUser, UserInsertData, UserUpdateData } from '~/types/auth'
 
+let authWatcherBound = false
+let authInitialized = false
+let sharedInitPromise: Promise<boolean> | null = null
+let sharedSessionAuthUserPromise: Promise<SupabaseAuthUser | null> | null = null
+let sharedIsLoggingOutFlag = false
+
 export const useAuth = () => {
 	const user = useSupabaseUser()
 	const supabase = useSupabaseClient()
@@ -21,16 +27,31 @@ export const useAuth = () => {
 	}
 
 	const getSessionAuthUser = async (): Promise<SupabaseAuthUser | null> => {
-		const { data: sessionData } = await supabase.auth.getSession()
-		const sessionUser = sessionData.session?.user
-
-		if (!sessionUser?.id) return null
-
-		return {
-			id: sessionUser.id,
-			email: sessionUser.email,
-			user_metadata: sessionUser.user_metadata ?? {},
+		if (sharedSessionAuthUserPromise) {
+			return await sharedSessionAuthUserPromise
 		}
+
+		sharedSessionAuthUserPromise = (async () => {
+			try {
+				const { data: sessionData } = await supabase.auth.getSession()
+				const sessionUser = sessionData.session?.user
+
+				if (!sessionUser?.id) return null
+
+				return {
+					id: sessionUser.id,
+					email: sessionUser.email,
+					user_metadata: sessionUser.user_metadata ?? {},
+				}
+			} catch (error) {
+				console.warn('Unable to read auth session safely:', error)
+				return null
+			} finally {
+				sharedSessionAuthUserPromise = null
+			}
+		})()
+
+		return await sharedSessionAuthUserPromise
 	}
 
 	// Fonction pour créer ou mettre à jour un utilisateur (intégrée depuis useSupabaseUserManager)
@@ -158,8 +179,8 @@ export const useAuth = () => {
 	}
 
 	// État de synchronisation
-	const isSyncing = ref(false)
-	const syncError = ref<string | null>(null)
+	const isSyncing = useState('auth-is-syncing', () => false)
+	const syncError = useState<string | null>('auth-sync-error', () => null)
 
 	const preserveAuthenticatedState = (authUser: SupabaseAuthUser) => {
 		userStore.setSupabaseUser(authUser)
@@ -258,12 +279,10 @@ export const useAuth = () => {
 	}
 
 	// Flag pour indiquer une déconnexion volontaire
-	let isLoggingOutFlag = false
-
 	// Fonction de déconnexion
 	const logout = async () => {
 		try {
-			isLoggingOutFlag = true
+			sharedIsLoggingOutFlag = true
 			const supabase = useSupabaseClient()
 			const { error: logoutError } = await supabase.auth.signOut()
 
@@ -277,12 +296,12 @@ export const useAuth = () => {
 			await navigateTo('/')
 		} catch (err: unknown) {
 			console.error('Erreur lors de la déconnexion:', err)
-			isLoggingOutFlag = false
+			sharedIsLoggingOutFlag = false
 		}
 	}
 
 	// Fonction d'initialisation au chargement de l'app
-	const initializeAuth = async () => {
+	const runInitializeAuth = async () => {
 		// Si on a un utilisateur Supabase complet (avec id) et des données dans le store
 		if (
 			user.value?.id &&
@@ -323,59 +342,66 @@ export const useAuth = () => {
 		return false
 	}
 
-	// Watcher pour surveiller les changements d'utilisateur Supabase
-	let isInitialized = false
-	let initPromise: Promise<boolean> | null = null
+	const initializeAuth = async (): Promise<boolean> => {
+		if (sharedInitPromise) {
+			return await sharedInitPromise
+		}
 
-	watch(
-		user,
-		async (newUser, oldUser) => {
-			// Initialisation une seule fois au démarrage
-			if (!isInitialized) {
-				isInitialized = true
-				initPromise = initializeAuth()
-				await initPromise
-				return
-			}
+		sharedInitPromise = runInitializeAuth()
+		return await sharedInitPromise
+	}
 
-			// Ignorer les changements si l'utilisateur n'a pas d'id (état intermédiaire Supabase v2)
-			if (newUser && !newUser.id) {
-				return
-			}
+	if (!authWatcherBound) {
+		authWatcherBound = true
 
-			// Gestion des changements d'utilisateur après l'initialisation
-			if (newUser?.id && !oldUser?.id) {
-				await ensureUserProfile()
-			} else if (!newUser && oldUser) {
-				// L'utilisateur Supabase a disparu
-				// Ne réinitialiser que si c'est une vraie déconnexion (pas une race condition au refresh)
-				if (isLoggingOutFlag || (!userDataStore.value && !isLoginStore.value)) {
-					await resetStore()
-					isLoggingOutFlag = false
+		watch(
+			user,
+			async (newUser, oldUser) => {
+				// Initialisation une seule fois au démarrage
+				if (!authInitialized) {
+					authInitialized = true
+					await initializeAuth()
+					return
 				}
-			} else if (newUser?.id && oldUser?.id && newUser.id !== oldUser.id) {
-				await ensureUserProfile()
-			}
-		},
-		{ immediate: true },
-	)
+
+				// Ignorer les changements si l'utilisateur n'a pas d'id (état intermédiaire Supabase v2)
+				if (newUser && !newUser.id) {
+					return
+				}
+
+				// Gestion des changements d'utilisateur après l'initialisation
+				if (newUser?.id && !oldUser?.id) {
+					await ensureUserProfile()
+				} else if (!newUser && oldUser) {
+					// L'utilisateur Supabase a disparu
+					// Ne réinitialiser que si c'est une vraie déconnexion (pas une race condition au refresh)
+					if (sharedIsLoggingOutFlag || (!userDataStore.value && !isLoginStore.value)) {
+						await resetStore()
+						sharedIsLoggingOutFlag = false
+					}
+				} else if (newUser?.id && oldUser?.id && newUser.id !== oldUser.id) {
+					await ensureUserProfile()
+				}
+			},
+			{ immediate: true },
+		)
+	}
 
 	// Fonction pour s'assurer que l'auth est initialisée (pour les middlewares)
 	const ensureAuthInitialized = async (): Promise<boolean> => {
 		// Si déjà initialisé, retourner immédiatement
-		if (isInitialized) {
+		if (authInitialized) {
 			return true
 		}
 
 		// Si une initialisation est en cours, l'attendre
-		if (initPromise) {
-			await initPromise
+		if (sharedInitPromise) {
+			await sharedInitPromise
 			return true
 		}
 
 		// Sinon démarrer l'initialisation
-		initPromise = initializeAuth()
-		await initPromise
+		await initializeAuth()
 		return true
 	}
 
