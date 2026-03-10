@@ -21,6 +21,8 @@
 	// Filters state
 	const search = ref('')
 	const typeFilter = ref<string>('ALL')
+	const genderFilter = ref<string>('ALL')
+	const onlyWithStyles = ref(false)
 
 	// Sorting state
 	const sortColumn = ref<string>('created_at')
@@ -46,6 +48,14 @@
 		{ label: 'Group', id: 'GROUP' },
 	]
 
+	const genderOptions: { label: string; id: string }[] = [
+		{ label: 'All genders', id: 'ALL' },
+		{ label: 'Male', id: 'MALE' },
+		{ label: 'Female', id: 'FEMALE' },
+		{ label: 'Mixed', id: 'MIXTE' },
+		{ label: 'Unknown', id: 'UNKNOWN' },
+	]
+
 	const sortOptions: { label: string; id: string }[] = [
 		{ label: 'Created date', id: 'created_at' },
 		{ label: 'Name', id: 'name' },
@@ -66,6 +76,8 @@
 			const result = await getArtistsByPage(currentPage.value, pageSizeValue.value, {
 				search: search.value || undefined,
 				type: typeFilter.value === 'ALL' ? undefined : (typeFilter.value as ArtistType),
+				gender: genderFilter.value === 'ALL' ? undefined : genderFilter.value,
+				onlyWithStyles: onlyWithStyles.value || undefined,
 				verified: null,
 				skipYoutubeMusicFilter: true,
 				orderBy: sortColumn.value as keyof Artist,
@@ -227,7 +239,7 @@
 		debouncedFetch()
 	})
 
-	watch([typeFilter, sortColumn, sortDirection, pageSizeValue], () => {
+	watch([typeFilter, genderFilter, onlyWithStyles, sortColumn, sortDirection, pageSizeValue], () => {
 		isFilterChange.value = true
 		currentPage.value = 1
 		fetchArtists()
@@ -324,6 +336,20 @@
 					value-key="id"
 					class="w-full md:w-36"
 					:ui="{ base: 'bg-cb-quinary-900' }"
+				/>
+
+				<USelectMenu
+					v-model="genderFilter"
+					:items="genderOptions"
+					value-key="id"
+					class="w-full md:w-40"
+					:ui="{ base: 'bg-cb-quinary-900' }"
+				/>
+
+				<UCheckbox
+					v-model="onlyWithStyles"
+					label="Has styles only"
+					class="shrink-0"
 				/>
 
 				<div class="flex items-center gap-2">

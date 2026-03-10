@@ -18,6 +18,7 @@ export interface ArtistPageOptions {
 	onlyWithoutSocials?: boolean
 	onlyWithoutPlatforms?: boolean
 	onlyWithoutStyles?: boolean
+	onlyWithStyles?: boolean
 	verified?: boolean | null
 	skipYoutubeMusicFilter?: boolean
 }
@@ -285,6 +286,10 @@ export async function fetchArtistsByPage(
 
 	if (options?.onlyWithoutStyles) {
 		query = query.or('styles.is.null,styles.eq.{}')
+	}
+
+	if (options?.onlyWithStyles) {
+		query = query.not('styles', 'is', null).not('styles', 'eq', '{}')
 	}
 
 	// Filtre verified
