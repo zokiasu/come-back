@@ -652,20 +652,88 @@
 		</div>
 
 		<!-- Edit Modal -->
-		<UModal v-model:open="isEditModalOpen">
+		<UModal
+			v-model:open="isEditModalOpen"
+			title="Edit release"
+			description="Update release metadata and verification state."
+			:ui="{
+				content:
+					'bg-cb-secondary-950 w-full max-w-5xl rounded-[28px] border border-cb-quinary-900/70 shadow-2xl',
+			}"
+		>
 			<template #content>
-				<div class="bg-cb-secondary-950 p-6">
-					<div class="mb-4 flex items-center justify-between">
-						<h3 class="text-xl font-bold">Edit release</h3>
+				<div
+					v-if="editingRelease"
+					class="bg-cb-secondary-950 flex max-h-[90vh] flex-col overflow-hidden"
+				>
+					<div
+						class="border-cb-quinary-900/70 flex items-start justify-between gap-6 border-b px-6 py-5"
+					>
+						<div class="flex min-w-0 items-start gap-4">
+							<div
+								v-if="editingRelease.image"
+								class="bg-cb-quinary-900 h-20 w-20 shrink-0 overflow-hidden rounded-2xl"
+							>
+								<NuxtImg
+									:src="editingRelease.image || ''"
+									:alt="editingRelease.name"
+									format="webp"
+									class="h-full w-full object-cover"
+								/>
+							</div>
+							<div
+								v-else
+								class="bg-cb-quinary-900 flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl"
+							>
+								<UIcon
+									name="i-heroicons-musical-note"
+									class="text-cb-tertiary-500 size-10"
+								/>
+							</div>
+
+							<div class="min-w-0 space-y-2">
+								<div class="flex flex-wrap items-center gap-2">
+									<h3 class="truncate text-2xl font-bold">Edit release</h3>
+									<UBadge
+										v-if="editingRelease.type"
+										color="primary"
+										variant="subtle"
+										size="xs"
+									>
+										{{ editingRelease.type }}
+									</UBadge>
+									<UBadge
+										v-if="!editingRelease.verified"
+										color="warning"
+										variant="subtle"
+										size="xs"
+									>
+										Pending
+									</UBadge>
+								</div>
+								<p class="truncate text-sm font-medium">{{ editingRelease.name }}</p>
+								<p class="text-cb-tertiary-500 text-sm">
+									{{ formatArtists(editingRelease.artists) }}
+								</p>
+								<div class="text-cb-tertiary-500 flex flex-wrap items-center gap-3 text-xs">
+									<span>{{ editingRelease.musics.length }} linked track(s)</span>
+									<span v-if="editingRelease.id_youtube_music">
+										YouTube: {{ editingRelease.id_youtube_music }}
+									</span>
+								</div>
+							</div>
+						</div>
+
 						<UButton
 							icon="i-heroicons-x-mark"
 							color="neutral"
 							variant="ghost"
+							aria-label="Close edit release modal"
 							@click="closeEditModal"
 						/>
 					</div>
+
 					<FormEditRelease
-						v-if="editingRelease"
 						:id="editingRelease.id"
 						:name="editingRelease.name"
 						:type="editingRelease.type || ''"
