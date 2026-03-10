@@ -82,6 +82,28 @@
 
 	const validGenders = ['MALE', 'FEMALE', 'MIXTE', 'UNKNOWN'] as const
 	const artistTypes = ['SOLO', 'GROUP'] as const
+	const genderLabels: Record<(typeof validGenders)[number], string> = {
+		MALE: 'Male',
+		FEMALE: 'Female',
+		MIXTE: 'Mixed',
+		UNKNOWN: 'Unknown',
+	}
+	const artistTypeLabels: Record<(typeof artistTypes)[number], string> = {
+		SOLO: 'Solo artist',
+		GROUP: 'Group',
+	}
+	const genderOptions = validGenders.map((gender) => ({
+		value: gender,
+		label: genderLabels[gender],
+	}))
+	const artistTypeOptions = artistTypes.map((type) => ({
+		value: type,
+		label: artistTypeLabels[type],
+	}))
+	const careerOptions = [
+		{ value: true, label: 'Active career' },
+		{ value: false, label: 'Inactive career' },
+	]
 
 	// État de la modal de création de company
 	const isCompanyModalOpen = ref(false)
@@ -103,6 +125,75 @@
 	const imagePreview = ref<string | null>(null)
 	const isDragging = ref(false)
 	const fileInput = ref<HTMLInputElement | null>(null)
+
+	const formatDisplayDate = (value: string | Date | null | undefined) => {
+		if (!value) return 'Not set'
+
+		const date = value instanceof Date ? value : new Date(value)
+		if (Number.isNaN(date.getTime())) return 'Not set'
+
+		return new Intl.DateTimeFormat('en-GB', {
+			day: '2-digit',
+			month: 'short',
+			year: 'numeric',
+		}).format(date)
+	}
+
+	const heroImageSrc = computed(() => {
+		return imagePreview.value || artistToEdit.value?.image || artist.value?.image || null
+	})
+
+	const overviewBadges = computed(() => {
+		if (!artistToEdit.value) return []
+
+		return [
+			{
+				label: artistTypeLabels[artistToEdit.value.type ?? 'SOLO'],
+				class: 'bg-cb-primary-900/15 text-cb-primary-300 ring-cb-primary-900/30',
+			},
+			{
+				label: genderLabels[artistToEdit.value.gender ?? 'UNKNOWN'],
+				class: 'bg-cb-quinary-900 text-white ring-cb-quinary-800',
+			},
+			{
+				label: artistToEdit.value.active_career ? 'Active career' : 'Inactive career',
+				class: artistToEdit.value.active_career
+					? 'bg-emerald-500/15 text-emerald-300 ring-emerald-500/30'
+					: 'bg-zinc-700/60 text-zinc-200 ring-zinc-600',
+			},
+		]
+	})
+
+	const overviewStats = computed(() => {
+		if (!artistToEdit.value) return []
+
+		return [
+			{
+				label: 'Styles',
+				value: String(artistStyles.value.length),
+				helper: artistStyles.value.length === 1 ? 'genre linked' : 'genres linked',
+			},
+			{
+				label: artistToEdit.value.type === 'GROUP' ? 'Members' : 'Groups',
+				value: String(
+					artistToEdit.value.type === 'GROUP'
+						? artistMembers.value.length
+						: artistGroups.value.length,
+				),
+				helper: artistToEdit.value.type === 'GROUP' ? 'artist relations' : 'group links',
+			},
+			{
+				label: 'Companies',
+				value: String(artistCompanies.value.length),
+				helper: `${artistCompanies.value.filter((relation) => relation.is_current).length} current`,
+			},
+			{
+				label: 'Links',
+				value: String(artistPlatformList.value.length + artistSocialList.value.length),
+				helper: 'platforms and socials',
+			},
+		]
+	})
 
 	// --- Computed Properties for UInputMenu Items ---
 	const stylesForMenu = computed((): MenuItem<MusicStyle>[] => {
@@ -564,617 +655,827 @@
 <template>
 	<div
 		v-if="artistToEdit && artist"
-		class="container mx-auto min-h-[calc(100vh-60px)] space-y-5 p-5 lg:px-10"
+		class="mx-auto min-h-[calc(100vh-60px)] max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8"
 	>
-		<div
-			class="flex items-end justify-between border-b border-zinc-700 pb-1 text-lg font-semibold uppercase lg:text-xl"
+		<section
+			class="bg-cb-secondary-950 overflow-hidden rounded-[28px] border border-cb-quinary-900/70 shadow-2xl"
 		>
-			<p>Artist Edition : {{ artistToEdit.name }}</p>
-			<button
-				:disabled="isUploadingEdit"
-				class="bg-cb-primary-900 w-fit rounded px-3 py-1 text-base font-semibold uppercase transition-all duration-300 ease-in-out hover:scale-105 hover:bg-red-900"
-				@click="sendUpdateArtist"
+			<div
+				class="border-cb-quinary-900/70 flex flex-col gap-6 border-b px-6 py-6 xl:flex-row xl:items-start xl:justify-between"
 			>
-				{{ isUploadingEdit ? 'Loading' : 'Saves' }}
-			</button>
-		</div>
-
-		<div class="grid grid-cols-1 gap-5 2xl:grid-cols-2">
-			<!-- Picture -->
-			<div class="flex flex-col gap-2">
-				<div class="flex items-end gap-2">
-					<ComebackLabel label="Image" />
-					<p class="text-cb-quinary-900 text-sm italic">
-						Picture will be automaticaly update based on Youtube Music
-					</p>
-				</div>
-				<NuxtImg
-					v-if="artistToEdit.image"
-					:src="artistToEdit.image"
-					:alt="artistToEdit.name"
-					format="webp"
-					loading="lazy"
-					class="aspect-video rounded object-cover"
-				/>
-				<UFormField v-if="isAdminStore" label="Image personnalisée">
+				<div class="flex flex-col gap-5 sm:flex-row sm:items-start">
 					<div
-						:class="{ 'bg-cb-primary-900/20': isDragging }"
-						class="border-cb-primary-900 hover:bg-cb-primary-900/10 cursor-pointer rounded border-2 border-dashed p-4 text-center transition"
-						@click="() => fileInput && fileInput.click()"
-						@dragover.prevent="isDragging = true"
-						@dragleave.prevent="isDragging = false"
-						@drop.prevent="onDrop"
+						class="bg-cb-quinary-900 flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-3xl border border-cb-quinary-900/70"
 					>
-						<input
-							ref="fileInput"
-							type="file"
-							accept="image/*"
-							class="hidden"
-							@change="onFileChange"
+						<NuxtImg
+							v-if="heroImageSrc"
+							:src="heroImageSrc"
+							:alt="artistToEdit.name"
+							format="webp"
+							loading="lazy"
+							class="h-full w-full object-cover"
 						/>
-						<div v-if="!imagePreview">
-							<span class="block text-sm text-gray-400">
-								Glissez-déposez une image ici ou cliquez pour choisir un fichier
+						<UIcon v-else name="i-lucide-image" class="text-cb-quinary-700 h-10 w-10" />
+					</div>
+
+					<div class="space-y-4">
+						<div class="space-y-2">
+							<p class="text-cb-quinary-700 text-xs font-semibold uppercase tracking-[0.35em]">
+								Artist editor
+							</p>
+							<div class="space-y-1">
+								<h1 class="text-2xl font-bold sm:text-3xl">
+									{{ artistToEdit.name || 'Untitled artist' }}
+								</h1>
+								<p class="max-w-2xl text-sm leading-6 text-gray-400">
+									Refine core identity, relationships, companies and editorial data from a
+									single workspace.
+								</p>
+							</div>
+						</div>
+
+						<div class="flex flex-wrap gap-2">
+							<span
+								v-for="badge in overviewBadges"
+								:key="badge.label"
+								:class="badge.class"
+								class="rounded-full px-3 py-1 text-xs font-medium ring-1"
+							>
+								{{ badge.label }}
 							</span>
 						</div>
-						<img
-							v-if="imagePreview"
-							:src="imagePreview"
-							class="mx-auto mt-2 h-32 w-32 rounded object-cover"
-						/>
+
+						<div class="flex flex-wrap gap-2 text-sm text-gray-300">
+							<div
+								class="bg-cb-quaternary-950 rounded-full border border-cb-quinary-900/70 px-3 py-1.5"
+							>
+								<span class="text-cb-quinary-700 mr-2 text-xs uppercase tracking-[0.2em]">
+									Artist ID
+								</span>
+								<span class="font-medium">{{ artistToEdit.id }}</span>
+							</div>
+							<div
+								class="bg-cb-quaternary-950 rounded-full border border-cb-quinary-900/70 px-3 py-1.5"
+							>
+								<span class="text-cb-quinary-700 mr-2 text-xs uppercase tracking-[0.2em]">
+									YouTube
+								</span>
+								<span class="font-medium">
+									{{ artistToEdit.id_youtube_music || 'Not linked yet' }}
+								</span>
+							</div>
+						</div>
 					</div>
-				</UFormField>
-				<div v-else class="text-xs text-gray-500 italic">
-					L'image sera automatiquement synchronisée depuis YouTube Music.
+				</div>
+
+				<div class="flex w-full flex-col gap-3 xl:w-auto xl:min-w-[240px]">
+					<UButton
+						label="View artist page"
+						icon="i-lucide-eye"
+						color="neutral"
+						variant="soft"
+						class="w-full cursor-pointer justify-center"
+						:to="`/artist/${artist.id}`"
+					/>
+					<UButton
+						label="Save changes"
+						icon="i-lucide-save"
+						color="primary"
+						:loading="isUploadingEdit"
+						class="w-full cursor-pointer justify-center"
+						@click="sendUpdateArtist"
+					/>
+					<p class="text-xs leading-5 text-gray-500">
+						Changes are applied directly to the artist record and related junction tables.
+					</p>
 				</div>
 			</div>
-			<!-- Name & Id YTM & Birthday & Debut Date -->
-			<div class="flex flex-col gap-5 md:grid md:grid-cols-2 2xl:flex">
-				<ComebackInput
-					v-model="artistToEdit.id"
-					label="Unique Id"
-					:placeholder="artist.id"
-					disabled
-				/>
-				<ComebackInput
-					v-model="artistToEdit.name"
-					label="Name"
-					:placeholder="artist.name"
-				/>
-				<ComebackInput
-					:model-value="artistToEdit.id_youtube_music || ''"
-					label="Id Youtube Music"
-					:placeholder="artist.id_youtube_music || ''"
-					@update:model-value="
-						(value: string | number) => {
-							if (artistToEdit) {
-								artistToEdit.id_youtube_music = value ? String(value) : null
-							}
-						}
-					"
-				/>
-				<!-- Birthday & Debut Date -->
+
+			<div class="grid gap-4 px-6 py-5 sm:grid-cols-2 xl:grid-cols-4">
 				<div
-					class="grid gap-5"
-					:class="artistToEdit.type == 'GROUP' ? 'grid-cols-1' : 'grid-cols-2'"
+					v-for="stat in overviewStats"
+					:key="stat.label"
+					class="bg-cb-quaternary-950 rounded-2xl border border-cb-quinary-900/70 p-4"
 				>
-					<!-- Birthday -->
-					<div class="space-y-1" :class="{ hidden: artistToEdit.type === 'GROUP' }">
-						<ComebackLabel label="Birthday" />
-						<UInputDate
-							ref="birthdayInputDate"
-							v-model="birthdayInputValue"
-							:min-value="new CalendarDate(1900, 1, 1)"
-							locale="en-GB"
-							class="w-full"
-							:ui="{ base: 'bg-cb-quaternary-950' }"
-						>
-							<template #trailing>
-								<UPopover
-									:reference="
-										birthdayInputDate?.inputsRef?.[3]?.$el ??
-										birthdayInputDate?.inputsRef?.[2]?.$el
-									"
+					<p class="text-cb-quinary-700 text-xs font-semibold uppercase tracking-[0.25em]">
+						{{ stat.label }}
+					</p>
+					<p class="mt-3 text-2xl font-bold">{{ stat.value }}</p>
+					<p class="mt-1 text-sm text-gray-400">{{ stat.helper }}</p>
+				</div>
+			</div>
+		</section>
+
+		<div class="grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(320px,0.95fr)]">
+			<div class="space-y-6">
+				<section
+					class="bg-cb-secondary-950 rounded-[28px] border border-cb-quinary-900/70 p-6 shadow-xl"
+				>
+					<div class="mb-5 space-y-2">
+						<h2 class="text-xl font-semibold">Identity details</h2>
+						<p class="text-sm leading-6 text-gray-400">
+							Core identifiers used across pages, search and YouTube sync flows.
+						</p>
+					</div>
+
+					<div class="grid gap-4 lg:grid-cols-2">
+						<ComebackInput
+							v-model="artistToEdit.id"
+							label="Unique ID"
+							:placeholder="artist.id"
+							disabled
+						/>
+						<ComebackInput
+							v-model="artistToEdit.name"
+							label="Display name"
+							:placeholder="artist.name"
+						/>
+						<div class="lg:col-span-2">
+							<ComebackInput
+								:model-value="artistToEdit.id_youtube_music || ''"
+								label="YouTube Music ID"
+								:placeholder="artist.id_youtube_music || ''"
+								@update:model-value="
+									(value: string | number) => {
+										if (artistToEdit) {
+											artistToEdit.id_youtube_music = value ? String(value) : null
+										}
+									}
+								"
+							/>
+						</div>
+					</div>
+				</section>
+
+				<section
+					class="bg-cb-secondary-950 rounded-[28px] border border-cb-quinary-900/70 p-6 shadow-xl"
+				>
+					<div class="mb-5 space-y-2">
+						<h2 class="text-xl font-semibold">Timeline and status</h2>
+						<p class="text-sm leading-6 text-gray-400">
+							Define how the artist should be classified and when the project became active.
+						</p>
+					</div>
+
+					<div
+						class="grid gap-4"
+						:class="artistToEdit.type === 'GROUP' ? 'lg:grid-cols-1' : 'lg:grid-cols-2'"
+					>
+						<div v-if="artistToEdit.type !== 'GROUP'" class="space-y-2">
+							<ComebackLabel label="Birthday" />
+							<UInputDate
+								ref="birthdayInputDate"
+								v-model="birthdayInputValue"
+								:min-value="new CalendarDate(1900, 1, 1)"
+								locale="en-GB"
+								class="w-full"
+								:ui="{ base: 'bg-cb-quaternary-950 border border-cb-quinary-900/70 rounded-xl' }"
+							>
+								<template #trailing>
+									<UPopover
+										:reference="
+											birthdayInputDate?.inputsRef?.[3]?.$el ??
+											birthdayInputDate?.inputsRef?.[2]?.$el
+										"
+									>
+										<UButton
+											color="neutral"
+											variant="link"
+											size="sm"
+											icon="i-lucide-calendar"
+											aria-label="Select a birthday date"
+											class="cursor-pointer px-0"
+										/>
+										<template #content>
+											<UCalendar
+												v-model="birthdayInputValue"
+												class="bg-cb-quinary-900 rounded p-2"
+												:min-value="new CalendarDate(1900, 1, 1)"
+												locale="en-GB"
+												year-controls
+											/>
+										</template>
+									</UPopover>
+								</template>
+							</UInputDate>
+						</div>
+
+						<div class="space-y-2">
+							<ComebackLabel label="Debut date" />
+							<UInputDate
+								ref="debutInputDate"
+								v-model="debutDateInputValue"
+								:min-value="new CalendarDate(2000, 1, 1)"
+								locale="en-GB"
+								class="w-full"
+								:ui="{ base: 'bg-cb-quaternary-950 border border-cb-quinary-900/70 rounded-xl' }"
+							>
+								<template #trailing>
+									<UPopover
+										:reference="
+											debutInputDate?.inputsRef?.[3]?.$el ??
+											debutInputDate?.inputsRef?.[2]?.$el
+										"
+									>
+										<UButton
+											color="neutral"
+											variant="link"
+											size="sm"
+											icon="i-lucide-calendar"
+											aria-label="Select a debut date"
+											class="cursor-pointer px-0"
+										/>
+										<template #content>
+											<UCalendar
+												v-model="debutDateInputValue"
+												class="bg-cb-quinary-900 rounded p-2"
+												:min-value="new CalendarDate(2000, 1, 1)"
+												locale="en-GB"
+												year-controls
+											/>
+										</template>
+									</UPopover>
+								</template>
+							</UInputDate>
+						</div>
+					</div>
+
+					<div class="mt-6 grid gap-5 xl:grid-cols-3">
+						<div class="space-y-3">
+							<ComebackLabel label="Gender" />
+							<div class="flex flex-wrap gap-2">
+								<UButton
+									v-for="option in genderOptions"
+									:key="option.value"
+									type="button"
+									size="sm"
+									:color="artistToEdit.gender === option.value ? 'primary' : 'neutral'"
+									:variant="artistToEdit.gender === option.value ? 'solid' : 'soft'"
+									class="cursor-pointer rounded-full"
+									:aria-pressed="artistToEdit.gender === option.value"
+									@click="artistToEdit.gender = option.value"
+								>
+									{{ option.label }}
+								</UButton>
+							</div>
+						</div>
+
+						<div class="space-y-3">
+							<ComebackLabel label="Type" />
+							<div class="flex flex-wrap gap-2">
+								<UButton
+									v-for="option in artistTypeOptions"
+									:key="option.value"
+									type="button"
+									size="sm"
+									:color="artistToEdit.type === option.value ? 'primary' : 'neutral'"
+									:variant="artistToEdit.type === option.value ? 'solid' : 'soft'"
+									class="cursor-pointer rounded-full"
+									:aria-pressed="artistToEdit.type === option.value"
+									@click="artistToEdit.type = option.value"
+								>
+									{{ option.label }}
+								</UButton>
+							</div>
+						</div>
+
+						<div class="space-y-3">
+							<ComebackLabel label="Career status" />
+							<div class="flex flex-wrap gap-2">
+								<UButton
+									v-for="option in careerOptions"
+									:key="option.label"
+									type="button"
+									size="sm"
+									:color="artistToEdit.active_career === option.value ? 'primary' : 'neutral'"
+									:variant="artistToEdit.active_career === option.value ? 'solid' : 'soft'"
+									class="cursor-pointer rounded-full"
+									:aria-pressed="artistToEdit.active_career === option.value"
+									@click="artistToEdit.active_career = option.value"
+								>
+									{{ option.label }}
+								</UButton>
+							</div>
+						</div>
+					</div>
+				</section>
+
+				<section
+					class="bg-cb-secondary-950 rounded-[28px] border border-cb-quinary-900/70 p-6 shadow-xl"
+				>
+					<div class="mb-5 space-y-2">
+						<h2 class="text-xl font-semibold">Taxonomy</h2>
+						<p class="text-sm leading-6 text-gray-400">
+							Use styles and tags to improve filtering, discovery and cross-linking.
+						</p>
+					</div>
+
+					<div class="grid gap-5 xl:grid-cols-2">
+						<div v-if="stylesList" class="space-y-3">
+							<div class="flex flex-wrap items-center justify-between gap-3">
+								<ComebackLabel label="Styles" />
+								<UModal
+									:ui="{
+										overlay: 'bg-cb-quinary-950/75',
+										content: 'ring-cb-quinary-950',
+									}"
 								>
 									<UButton
-										color="neutral"
-										variant="link"
-										size="sm"
-										icon="i-lucide-calendar"
-										aria-label="Select a birthday date"
-										class="cursor-pointer px-0"
+										label="Create new style"
+										variant="soft"
+										color="primary"
+										class="cursor-pointer"
 									/>
+
 									<template #content>
-										<UCalendar
-											v-model="birthdayInputValue"
-											class="bg-cb-quinary-900 rounded p-2"
-											:min-value="new CalendarDate(1900, 1, 1)"
-											locale="en-GB"
-											year-controls
-										/>
+										<ModalCreateStyleTag :style-fetch="stylesList" />
 									</template>
-								</UPopover>
-							</template>
-						</UInputDate>
-					</div>
-					<!-- Debut Date -->
-					<div class="space-y-1">
-						<ComebackLabel label="Debut Date" />
-						<UInputDate
-							ref="debutInputDate"
-							v-model="debutDateInputValue"
-							:min-value="new CalendarDate(2000, 1, 1)"
-							locale="en-GB"
-							class="w-full"
-							:ui="{ base: 'bg-cb-quaternary-950' }"
-						>
-							<template #trailing>
-								<UPopover
-									:reference="
-										debutInputDate?.inputsRef?.[3]?.$el ??
-										debutInputDate?.inputsRef?.[2]?.$el
-									"
+								</UModal>
+							</div>
+							<UInputMenu
+								v-model="artistStyles"
+								:items="stylesForMenu"
+								by="id"
+								multiple
+								placeholder="Select styles"
+								searchable
+								searchable-placeholder="Search a style..."
+								class="w-full"
+								:ui="{
+									base: 'bg-cb-quaternary-950 border border-cb-quinary-900/70 rounded-xl',
+									content: 'bg-cb-quaternary-950',
+									item: 'rounded cursor-pointer data-highlighted:before:bg-cb-primary-900/30 hover:bg-cb-primary-900',
+								}"
+							/>
+						</div>
+
+						<div v-if="tagsList" class="space-y-3">
+							<div class="flex flex-wrap items-center justify-between gap-3">
+								<ComebackLabel label="General tags" />
+								<UModal
+									:ui="{
+										overlay: 'bg-cb-quinary-950/75',
+										content: 'ring-cb-quinary-950',
+									}"
 								>
 									<UButton
-										color="neutral"
-										variant="link"
-										size="sm"
-										icon="i-lucide-calendar"
-										aria-label="Select a debut date"
-										class="cursor-pointer px-0"
+										label="Create new tag"
+										variant="soft"
+										color="primary"
+										class="cursor-pointer"
 									/>
+
 									<template #content>
-										<UCalendar
-											v-model="debutDateInputValue"
-											class="bg-cb-quinary-900 rounded p-2"
-											:min-value="new CalendarDate(2000, 1, 1)"
-											locale="en-GB"
-											year-controls
-										/>
+										<ModalCreateTag :general-tags="tagsList" />
 									</template>
-								</UPopover>
-							</template>
-						</UInputDate>
-					</div>
-				</div>
-			</div>
-		</div>
-
-		<div class="space-y-5 lg:space-y-10">
-			<!-- Gender & Type & Active Career -->
-			<div class="grid grid-cols-1 gap-5 lg:grid-cols-3">
-				<!-- Gender -->
-				<div class="grid w-full grid-cols-1 gap-1">
-					<ComebackLabel label="Gender" />
-					<div class="flex gap-2">
-						<div
-							v-for="gender in validGenders"
-							:key="gender"
-							class="flex w-full items-center gap-2"
-						>
-							<input
-								:id="gender"
-								v-model="artistToEdit.gender"
-								type="radio"
-								:value="gender"
-								class="hidden"
+								</UModal>
+							</div>
+							<UInputMenu
+								v-model="artistTags"
+								:items="tagsForMenu"
+								by="id"
+								multiple
+								placeholder="Select tags"
+								searchable
+								searchable-placeholder="Search a tag..."
+								class="w-full"
+								:ui="{
+									base: 'bg-cb-quaternary-950 border border-cb-quinary-900/70 rounded-xl',
+									content: 'bg-cb-quaternary-950',
+									item: 'rounded cursor-pointer data-highlighted:before:bg-cb-primary-900/30 hover:bg-cb-primary-900',
+								}"
 							/>
-							<button
-								class="w-full rounded px-3 py-1 text-sm"
-								:class="
-									artistToEdit.gender === gender
-										? 'bg-cb-primary-900 text-white'
-										: 'bg-cb-quaternary-950'
-								"
-								@click="artistToEdit.gender = gender"
-							>
-								{{ gender }}
-							</button>
 						</div>
 					</div>
-				</div>
-				<!-- Type -->
-				<div class="grid w-full grid-cols-1 gap-1">
-					<ComebackLabel label="Type" />
-					<div class="flex gap-2">
-						<div
-							v-for="type in artistTypes"
-							:key="type"
-							class="flex w-full items-center gap-2"
-						>
-							<input
-								:id="type"
-								v-model="artistToEdit.type"
-								type="radio"
-								:value="type"
-								class="hidden"
-							/>
-							<button
-								class="w-full rounded px-3 py-1 text-sm"
-								:class="
-									artistToEdit.type === type
-										? 'bg-cb-primary-900 text-white'
-										: 'bg-cb-quaternary-950'
-								"
-								@click="artistToEdit.type = type"
-							>
-								{{ type }}
-							</button>
-						</div>
-					</div>
-				</div>
-				<!-- Active Career -->
-				<div class="grid w-full grid-cols-1 gap-1">
-					<ComebackLabel label="Active Career" />
-					<div class="flex gap-2">
-						<div
-							v-for="status in [
-								{ value: true, label: 'Active' },
-								{ value: false, label: 'Inactive' },
-							]"
-							:key="status.label"
-							class="flex w-full items-center gap-2"
-						>
-							<input
-								:id="status.label"
-								v-model="artistToEdit.active_career"
-								type="radio"
-								:value="status.value"
-								class="hidden"
-							/>
-							<button
-								class="w-full rounded px-3 py-1 text-sm"
-								:class="
-									artistToEdit.active_career === status.value
-										? 'bg-cb-primary-900 text-white'
-										: 'bg-cb-quaternary-950'
-								"
-								@click="artistToEdit.active_career = status.value"
-							>
-								{{ status.label }}
-							</button>
-						</div>
-					</div>
-				</div>
-			</div>
+				</section>
 
-			<!-- Styles & General Tags -->
-			<div class="grid grid-cols-1 gap-5 xl:grid-cols-2">
-				<!-- Styles -->
-				<div v-if="stylesList" class="flex flex-col gap-1">
-					<div class="flex justify-between gap-3">
-						<ComebackLabel label="Styles" />
-						<UModal
-							:ui="{
-								overlay: 'bg-cb-quinary-950/75',
-								content: 'ring-cb-quinary-950',
-							}"
-						>
-							<UButton
-								label="Create New Style"
-								variant="soft"
-								class="bg-cb-primary-900 hover:bg-cb-primary-900/90 h-full cursor-pointer items-center justify-center rounded px-5 text-white"
-							/>
-
-							<template #content>
-								<ModalCreateStyleTag :style-fetch="stylesList" />
-							</template>
-						</UModal>
+				<section
+					class="bg-cb-secondary-950 rounded-[28px] border border-cb-quinary-900/70 p-6 shadow-xl"
+				>
+					<div class="mb-5 space-y-2">
+						<h2 class="text-xl font-semibold">Editorial description</h2>
+						<p class="text-sm leading-6 text-gray-400">
+							Keep the page copy concise and readable. This text is used on the public
+							artist page and in search contexts.
+						</p>
 					</div>
-					<UInputMenu
-						v-model="artistStyles"
-						:items="stylesForMenu"
-						by="id"
-						multiple
-						placeholder="Select styles"
-						searchable
-						searchable-placeholder="Search a style..."
-						class="bg-cb-quaternary-950 text-tertiary w-full cursor-pointer ring-transparent"
-						:ui="{
-							content: 'bg-cb-quaternary-950',
-							item: 'rounded cursor-pointer data-highlighted:before:bg-cb-primary-900/30 hover:bg-cb-primary-900',
-						}"
+
+					<textarea
+						v-model="artistToEdit.description"
+						:placeholder="artistToEdit.description || 'Write a concise artist description...'"
+						class="bg-cb-quaternary-950 min-h-[220px] w-full rounded-2xl border border-cb-quinary-900/70 p-4 text-sm leading-6 text-white outline-none transition focus:border-cb-primary-900/60 focus:ring-2 focus:ring-cb-primary-900/20"
+						@input="adjustTextareaDirect($event.target as HTMLTextAreaElement)"
 					/>
-				</div>
-				<!-- General Tags -->
-				<div v-if="tagsList" class="flex flex-col gap-1">
-					<div class="flex justify-between gap-3">
-						<ComebackLabel label="General Tags" />
+				</section>
+
+				<section
+					class="bg-cb-secondary-950 rounded-[28px] border border-cb-quinary-900/70 p-6 shadow-xl"
+				>
+					<div class="mb-5 flex flex-wrap items-start justify-between gap-3">
+						<div class="space-y-2">
+							<h2 class="text-xl font-semibold">Artist relationships</h2>
+							<p class="text-sm leading-6 text-gray-400">
+								Link soloists to their groups or manage the full roster for group profiles.
+							</p>
+						</div>
 						<UModal
+							v-if="isAdminStore"
 							:ui="{
 								overlay: 'bg-cb-quinary-950/75',
 								content: 'ring-cb-quinary-950',
 							}"
 						>
 							<UButton
-								label="Create New Tag"
+								label="Create new artist"
 								variant="soft"
-								class="bg-cb-primary-900 hover:bg-cb-primary-900/90 h-full cursor-pointer items-center justify-center rounded px-5 text-white"
+								color="primary"
+								class="cursor-pointer"
 							/>
 
 							<template #content>
-								<ModalCreateTag :general-tags="tagsList" />
-							</template>
-						</UModal>
-					</div>
-					<UInputMenu
-						v-model="artistTags"
-						:items="tagsForMenu"
-						by="id"
-						multiple
-						placeholder="Select tags"
-						searchable
-						searchable-placeholder="Search a tag..."
-						class="bg-cb-quaternary-950 text-tertiary w-full cursor-pointer ring-transparent"
-						:ui="{
-							content: 'bg-cb-quaternary-950',
-							item: 'rounded cursor-pointer data-highlighted:before:bg-cb-primary-900/30 hover:bg-cb-primary-900',
-						}"
-					/>
-				</div>
-			</div>
-
-			<!-- Companies Relations -->
-			<div class="flex w-full flex-col gap-1">
-				<div class="flex justify-between gap-3">
-					<ComebackLabel label="Company Relations" />
-					<div class="flex gap-2">
-						<UModal
-							v-model:open="isCompanyModalOpen"
-							:ui="{
-								overlay: 'bg-cb-quinary-950/75',
-								content: 'ring-cb-quinary-950',
-							}"
-						>
-							<UButton
-								label="Create New Company"
-								variant="soft"
-								size="sm"
-								class="bg-cb-primary-900 hover:bg-cb-primary-900/90 cursor-pointer text-white"
-							/>
-
-							<template #content>
-								<ModalCreateEditCompany
-									:company="null"
-									:is-creating="true"
-									@updated="handleCompanyUpdated"
+								<ModalCreateArtist
+									:styles-list="stylesList"
+									:tags-list="tagsList"
+									:group-list="groupList"
+									:members-list="membersList"
 								/>
 							</template>
 						</UModal>
-						<UButton
-							label="Add Relation"
-							size="sm"
-							class="bg-cb-primary-900 hover:bg-cb-primary-900/90 cursor-pointer text-white"
-							@click="addCompanyRelation"
-						/>
 					</div>
-				</div>
 
-				<!-- Liste des relations compagnies -->
-				<div
-					v-if="artistCompanies.length > 0"
-					class="grid grid-cols-1 gap-3 lg:grid-cols-2"
-				>
-					<div
-						v-for="(relation, index) in artistCompanies"
-						:key="index"
-						class="bg-cb-quinary-900 space-y-3 rounded p-3"
-					>
-						<div class="flex items-start justify-between">
-							<div class="flex-1 space-y-3">
-								<!-- Sélection de la compagnie -->
-								<div>
-									<label class="mb-1 block text-xs font-medium text-gray-300">
-										Company
-									</label>
-									<UInputMenu
-										:key="`company-menu-${index}-${companiesMenuKey}`"
-										:model-value="relation.company ?? undefined"
-										:items="companiesForMenu"
-										by="id"
-										placeholder="Select a company"
-										searchable
-										searchable-placeholder="Search company..."
-										class="bg-cb-quaternary-950 text-tertiary w-full cursor-pointer ring-transparent"
-										:ui="{
-											content: 'bg-cb-quaternary-950',
-											item: 'rounded cursor-pointer data-highlighted:before:bg-cb-primary-900/30 hover:bg-cb-primary-900',
-										}"
-										@update:model-value="
-											(company: unknown) =>
-												updateCompanyInRelation(index, company as CompanyMenuItem)
-										"
-									/>
-								</div>
+					<div class="grid gap-5" :class="artistToEdit.type === 'GROUP' ? 'xl:grid-cols-2' : ''">
+						<div v-if="groupList" class="space-y-3">
+							<ComebackLabel :label="artistToEdit.type === 'GROUP' ? 'Related groups' : 'Groups'" />
+							<UInputMenu
+								v-model="artistGroups"
+								:search-term="groupSearchTerm"
+								:items="groupsForMenu"
+								by="id"
+								multiple
+								placeholder="Search groups"
+								searchable
+								searchable-placeholder="Search a group..."
+								:loading="isSearchingGroups"
+								class="w-full"
+								:ui="{
+									base: 'bg-cb-quaternary-950 border border-cb-quinary-900/70 rounded-xl',
+									content: 'bg-cb-quaternary-950',
+									item: 'rounded cursor-pointer data-highlighted:before:bg-cb-primary-900/30 hover:bg-cb-primary-900',
+								}"
+								@update:search-term="onGroupSearchTermChange"
+							/>
+						</div>
 
-								<!-- Type de relation -->
-								<div>
-									<label class="mb-1 block text-xs font-medium text-gray-300">
-										Relationship Type
-									</label>
-									<select
-										v-model="relation.relationship_type"
-										class="bg-cb-quaternary-950 w-full rounded border-gray-600 px-3 py-2 text-sm"
-									>
-										<option v-for="type in relationshipTypes" :key="type" :value="type">
-											{{ type }}
-										</option>
-									</select>
-								</div>
-
-								<!-- Statut actuel -->
-								<div class="flex items-center space-x-2">
-									<input
-										:id="`current-${index}`"
-										v-model="relation.is_current"
-										type="checkbox"
-										class="rounded"
-									/>
-									<label :for="`current-${index}`" class="text-xs text-gray-300">
-										Current relationship
-									</label>
-								</div>
-							</div>
-
-							<!-- Bouton de suppression -->
-							<button
-								class="ml-3 rounded bg-red-600 p-2 text-xs text-white hover:bg-red-700"
-								@click="removeCompanyRelation(index)"
-							>
-								Remove
-							</button>
+						<div
+							v-if="artistsList && artistToEdit.type === 'GROUP'"
+							class="space-y-3"
+						>
+							<ComebackLabel label="Members" />
+							<UInputMenu
+								v-model="artistMembers"
+								:search-term="memberSearchTerm"
+								:items="membersForMenu"
+								by="id"
+								multiple
+								placeholder="Search members"
+								searchable
+								searchable-placeholder="Search a member..."
+								:loading="isSearchingMembers"
+								class="w-full"
+								:ui="{
+									base: 'bg-cb-quaternary-950 border border-cb-quinary-900/70 rounded-xl',
+									content: 'bg-cb-quaternary-950',
+									item: 'rounded cursor-pointer data-highlighted:before:bg-cb-primary-900/30 hover:bg-cb-primary-900',
+								}"
+								@update:search-term="onMemberSearchTermChange"
+							/>
 						</div>
 					</div>
-				</div>
+				</section>
 
-				<!-- Message si aucune relation -->
-				<div v-else class="py-4 text-center text-sm text-gray-400">
-					No company relations added yet. Click "Add Relation" to start.
-				</div>
-			</div>
+				<section
+					class="bg-cb-secondary-950 rounded-[28px] border border-cb-quinary-900/70 p-6 shadow-xl"
+				>
+					<div class="mb-5 flex flex-wrap items-start justify-between gap-3">
+						<div class="space-y-2">
+							<h2 class="text-xl font-semibold">Company relations</h2>
+							<p class="text-sm leading-6 text-gray-400">
+								Track labels, agencies and other business links tied to the artist profile.
+							</p>
+						</div>
+						<div class="flex flex-wrap gap-2">
+							<UModal
+								v-model:open="isCompanyModalOpen"
+								:ui="{
+									overlay: 'bg-cb-quinary-950/75',
+									content: 'ring-cb-quinary-950',
+								}"
+							>
+								<UButton
+									label="Create new company"
+									variant="soft"
+									color="primary"
+									class="cursor-pointer"
+								/>
 
-			<!-- Description -->
-			<div class="flex flex-col gap-1">
-				<ComebackLabel label="Description" />
-				<textarea
-					v-model="artistToEdit.description"
-					:placeholder="artistToEdit.description || 'Description'"
-					class="focus:bg-cb-tertiary-200 focus:text-cb-secondary-950 min-h-full w-full appearance-none border-b bg-transparent transition-all duration-150 ease-in-out focus:rounded focus:p-1.5 focus:outline-none"
-					@input="adjustTextareaDirect($event.target as HTMLTextAreaElement)"
-				/>
-			</div>
+								<template #content>
+									<ModalCreateEditCompany
+										:company="null"
+										:is-creating="true"
+										@updated="handleCompanyUpdated"
+									/>
+								</template>
+							</UModal>
+							<UButton
+								label="Add relation"
+								icon="i-lucide-plus"
+								color="primary"
+								class="cursor-pointer"
+								@click="addCompanyRelation"
+							/>
+						</div>
+					</div>
 
-			<!-- Group -->
-			<div v-if="groupList" class="flex flex-col gap-1">
-				<div class="flex justify-between gap-3">
-					<ComebackLabel label="Group" />
-					<UModal
-						v-if="isAdminStore"
-						:ui="{
-							overlay: 'bg-cb-quinary-950/75',
-							content: 'ring-cb-quinary-950',
-						}"
+					<div
+						v-if="artistCompanies.length > 0"
+						class="grid grid-cols-1 gap-4 xl:grid-cols-2"
 					>
-						<UButton
-							label="Create New Artist"
-							variant="soft"
-							class="bg-cb-primary-900 hover:bg-cb-primary-900/90 h-full cursor-pointer items-center justify-center rounded px-5 text-white"
+						<div
+							v-for="(relation, index) in artistCompanies"
+							:key="index"
+							class="bg-cb-quaternary-950 rounded-2xl border border-cb-quinary-900/70 p-4"
+						>
+							<div class="flex items-start justify-between gap-4">
+								<div class="min-w-0 flex-1 space-y-4">
+									<div class="space-y-2">
+										<label class="text-cb-quinary-700 block text-xs font-semibold uppercase tracking-[0.2em]">
+											Company
+										</label>
+										<UInputMenu
+											:key="`company-menu-${index}-${companiesMenuKey}`"
+											:model-value="relation.company ?? undefined"
+											:items="companiesForMenu"
+											by="id"
+											placeholder="Select a company"
+											searchable
+											searchable-placeholder="Search company..."
+											class="w-full"
+											:ui="{
+												base: 'bg-cb-secondary-950 border border-cb-quinary-900/70 rounded-xl',
+												content: 'bg-cb-secondary-950',
+												item: 'rounded cursor-pointer data-highlighted:before:bg-cb-primary-900/30 hover:bg-cb-primary-900',
+											}"
+											@update:model-value="
+												(company: unknown) =>
+													updateCompanyInRelation(index, company as CompanyMenuItem)
+											"
+										/>
+									</div>
+
+									<div class="space-y-2">
+										<label class="text-cb-quinary-700 block text-xs font-semibold uppercase tracking-[0.2em]">
+											Relationship type
+										</label>
+										<select
+											v-model="relation.relationship_type"
+											class="bg-cb-secondary-950 w-full rounded-xl border border-cb-quinary-900/70 px-3 py-2.5 text-sm outline-none transition focus:border-cb-primary-900/60 focus:ring-2 focus:ring-cb-primary-900/20"
+										>
+											<option
+												v-for="type in relationshipTypes"
+												:key="type"
+												:value="type"
+											>
+												{{ type }}
+											</option>
+										</select>
+									</div>
+
+									<label
+										:for="`current-${index}`"
+										class="flex cursor-pointer items-center gap-3 rounded-xl border border-cb-quinary-900/70 px-3 py-2 text-sm text-gray-300"
+									>
+										<input
+											:id="`current-${index}`"
+											v-model="relation.is_current"
+											type="checkbox"
+											class="accent-cb-primary-900 h-4 w-4 rounded"
+										/>
+										<span>Current relationship</span>
+									</label>
+								</div>
+
+								<UButton
+									icon="i-lucide-trash-2"
+									color="error"
+									variant="soft"
+									class="cursor-pointer"
+									aria-label="Remove company relation"
+									title="Remove company relation"
+									@click="removeCompanyRelation(index)"
+								/>
+							</div>
+						</div>
+					</div>
+
+					<div
+						v-else
+						class="bg-cb-quaternary-950 rounded-2xl border border-dashed border-cb-quinary-900/70 px-4 py-10 text-center text-sm text-gray-400"
+					>
+						No company relations yet. Add one when the artist is tied to a label,
+						agency or distributor.
+					</div>
+				</section>
+
+				<section
+					class="bg-cb-secondary-950 rounded-[28px] border border-cb-quinary-900/70 p-6 shadow-xl"
+				>
+					<div class="mb-5 space-y-2">
+						<h2 class="text-xl font-semibold">Platforms and socials</h2>
+						<p class="text-sm leading-6 text-gray-400">
+							Keep official links updated so cards and profile pages stay accurate.
+						</p>
+					</div>
+
+					<div class="grid grid-cols-1 gap-5 lg:grid-cols-2">
+						<LinkManager
+							:items="artistPlatformList"
+							label="Platforms"
+							name-placeholder="Platform's name"
+							link-placeholder="Platform's link"
+							key-prefix="platform"
+							@add-item="platformLinkManager.add"
+							@remove-item="platformLinkManager.remove"
+							@update-name="platformLinkManager.updateName"
+							@update-link="platformLinkManager.updateLink"
 						/>
 
-						<template #content>
-							<ModalCreateArtist
-								:styles-list="stylesList"
-								:tags-list="tagsList"
-								:group-list="groupList"
-								:members-list="membersList"
-							/>
-						</template>
-					</UModal>
-				</div>
-				<UInputMenu
-					v-model="artistGroups"
-					:search-term="groupSearchTerm"
-					:items="groupsForMenu"
-					by="id"
-					multiple
-					placeholder="Search a group"
-					searchable
-					searchable-placeholder="Search a group..."
-					:loading="isSearchingGroups"
-					class="bg-cb-quaternary-950 text-tertiary w-full cursor-pointer ring-transparent"
-					:ui="{
-						content: 'bg-cb-quaternary-950',
-						item: 'rounded cursor-pointer data-highlighted:before:bg-cb-primary-900/30 hover:bg-cb-primary-900',
-					}"
-					@update:search-term="onGroupSearchTermChange"
-				/>
-			</div>
-
-			<!-- Members -->
-			<div
-				v-if="artistsList && artistToEdit.type === 'GROUP'"
-				class="flex flex-col gap-1"
-			>
-				<div class="flex justify-between gap-3">
-					<ComebackLabel label="Members" />
-					<UModal
-						v-if="isAdminStore"
-						:ui="{
-							overlay: 'bg-cb-quinary-950/75',
-							content: 'ring-cb-quinary-950',
-						}"
-					>
-						<UButton
-							label="Create New Artist"
-							variant="soft"
-							class="bg-cb-primary-900 hover:bg-cb-primary-900/90 h-full cursor-pointer items-center justify-center rounded px-5 text-white"
+						<LinkManager
+							:items="artistSocialList"
+							label="Socials"
+							name-placeholder="Social name"
+							link-placeholder="Social link"
+							key-prefix="social"
+							@add-item="socialLinkManager.add"
+							@remove-item="socialLinkManager.remove"
+							@update-name="socialLinkManager.updateName"
+							@update-link="socialLinkManager.updateLink"
 						/>
+					</div>
+				</section>
+			</div>
 
-						<template #content>
-							<ModalCreateArtist
-								:styles-list="stylesList"
-								:tags-list="tagsList"
-								:group-list="groupList"
-								:members-list="membersList"
+			<div class="space-y-6 xl:sticky xl:top-24 xl:self-start">
+				<section
+					class="bg-cb-secondary-950 rounded-[28px] border border-cb-quinary-900/70 p-6 shadow-xl"
+				>
+					<div class="mb-4 space-y-2">
+						<h2 class="text-xl font-semibold">Visuals and sync</h2>
+						<p class="text-sm leading-6 text-gray-400">
+							The public profile image normally follows YouTube Music. Admins can stage a
+							custom preview here before saving.
+						</p>
+					</div>
+
+					<div
+						class="bg-cb-quaternary-950 mb-4 overflow-hidden rounded-3xl border border-cb-quinary-900/70"
+					>
+						<NuxtImg
+							v-if="heroImageSrc"
+							:src="heroImageSrc"
+							:alt="artistToEdit.name"
+							format="webp"
+							loading="lazy"
+							class="aspect-[4/3] w-full object-cover"
+						/>
+						<div
+							v-else
+							class="text-cb-quinary-700 flex aspect-[4/3] items-center justify-center"
+						>
+							<UIcon name="i-lucide-image" class="h-12 w-12" />
+						</div>
+					</div>
+
+					<UFormField
+						v-if="isAdminStore"
+						label="Custom image preview"
+						description="Drop a file here to preview a custom image before saving."
+					>
+						<div
+							:class="{ 'bg-cb-primary-900/15 border-cb-primary-900/60': isDragging }"
+							class="bg-cb-quaternary-950 border-cb-quinary-900/70 cursor-pointer rounded-2xl border border-dashed p-5 text-center transition"
+							@click="fileInput?.click()"
+							@dragover.prevent="isDragging = true"
+							@dragleave.prevent="isDragging = false"
+							@drop.prevent="onDrop"
+						>
+							<input
+								ref="fileInput"
+								type="file"
+								accept="image/*"
+								class="hidden"
+								@change="onFileChange"
 							/>
-						</template>
-					</UModal>
-				</div>
-				<UInputMenu
-					v-model="artistMembers"
-					:search-term="memberSearchTerm"
-					:items="membersForMenu"
-					by="id"
-					multiple
-					placeholder="Search a member"
-					searchable
-					searchable-placeholder="Search a member..."
-					:loading="isSearchingMembers"
-					class="bg-cb-quaternary-950 text-tertiary w-full cursor-pointer ring-transparent"
-					:ui="{
-						content: 'bg-cb-quaternary-950',
-						item: 'rounded cursor-pointer data-highlighted:before:bg-cb-primary-900/30 hover:bg-cb-primary-900',
-					}"
-					@update:search-term="onMemberSearchTermChange"
-				/>
+							<p class="text-sm text-gray-300">
+								Drag and drop an image here, or click to browse from disk.
+							</p>
+							<p class="mt-2 text-xs text-gray-500">
+								This preview does not bypass the regular YouTube sync behavior.
+							</p>
+						</div>
+					</UFormField>
+
+					<div
+						v-else
+						class="bg-cb-quaternary-950 rounded-2xl border border-cb-quinary-900/70 p-4 text-sm leading-6 text-gray-400"
+					>
+						Image updates are synchronized automatically from YouTube Music for non-admin
+						users.
+					</div>
+				</section>
+
+				<section
+					class="bg-cb-secondary-950 rounded-[28px] border border-cb-quinary-900/70 p-6 shadow-xl"
+				>
+					<div class="mb-4 space-y-2">
+						<h2 class="text-xl font-semibold">Quick overview</h2>
+						<p class="text-sm leading-6 text-gray-400">
+							Useful checkpoints before publishing your edits.
+						</p>
+					</div>
+
+					<div class="space-y-3">
+						<div
+							class="bg-cb-quaternary-950 flex items-center justify-between rounded-2xl border border-cb-quinary-900/70 px-4 py-3"
+						>
+							<div>
+								<p class="text-cb-quinary-700 text-xs font-semibold uppercase tracking-[0.2em]">
+									{{ artistToEdit.type === 'GROUP' ? 'Profile mode' : 'Birthday' }}
+								</p>
+								<p class="mt-1 font-medium">
+									{{
+										artistToEdit.type === 'GROUP'
+											? 'Birthday hidden for group profiles'
+											: formatDisplayDate(birthdayToDate)
+									}}
+								</p>
+							</div>
+						</div>
+
+						<div
+							class="bg-cb-quaternary-950 flex items-center justify-between rounded-2xl border border-cb-quinary-900/70 px-4 py-3"
+						>
+							<div>
+								<p class="text-cb-quinary-700 text-xs font-semibold uppercase tracking-[0.2em]">
+									Debut date
+								</p>
+								<p class="mt-1 font-medium">{{ formatDisplayDate(debutDateToDate) }}</p>
+							</div>
+						</div>
+
+						<div
+							class="bg-cb-quaternary-950 flex items-center justify-between rounded-2xl border border-cb-quinary-900/70 px-4 py-3"
+						>
+							<div>
+								<p class="text-cb-quinary-700 text-xs font-semibold uppercase tracking-[0.2em]">
+									General tags
+								</p>
+								<p class="mt-1 font-medium">{{ artistTags.length }}</p>
+							</div>
+						</div>
+					</div>
+				</section>
+
+				<section
+					class="bg-cb-secondary-950 rounded-[28px] border border-cb-quinary-900/70 p-6 shadow-xl"
+				>
+					<div class="mb-4 space-y-2">
+						<h2 class="text-xl font-semibold">Save panel</h2>
+						<p class="text-sm leading-6 text-gray-400">
+							Use this primary action once the profile feels consistent.
+						</p>
+					</div>
+
+					<div class="space-y-3">
+						<UButton
+							label="Save changes"
+							icon="i-lucide-save"
+							color="primary"
+							size="xl"
+							:loading="isUploadingEdit"
+							class="w-full cursor-pointer justify-center"
+							@click="sendUpdateArtist"
+						/>
+						<UButton
+							label="Return to artist page"
+							icon="i-lucide-arrow-left"
+							color="neutral"
+							variant="soft"
+							class="w-full cursor-pointer justify-center"
+							:to="`/artist/${artist.id}`"
+						/>
+					</div>
+				</section>
 			</div>
-
-			<!-- Platforms & Socials -->
-			<div class="grid grid-cols-1 gap-5 lg:grid-cols-2">
-				<LinkManager
-					:items="artistPlatformList"
-					label="Platforms"
-					name-placeholder="Platform's Name"
-					link-placeholder="Platform's Link"
-					key-prefix="platform"
-					@add-item="platformLinkManager.add"
-					@remove-item="platformLinkManager.remove"
-					@update-name="platformLinkManager.updateName"
-					@update-link="platformLinkManager.updateLink"
-				/>
-
-				<LinkManager
-					:items="artistSocialList"
-					label="Socials"
-					name-placeholder="Social's Name"
-					link-placeholder="Social's Link"
-					key-prefix="social"
-					@add-item="socialLinkManager.add"
-					@remove-item="socialLinkManager.remove"
-					@update-name="socialLinkManager.updateName"
-					@update-link="socialLinkManager.updateLink"
-				/>
-			</div>
-		</div>
-
-		<div class="border-t border-zinc-700 pt-3">
-			<button
-				:disabled="isUploadingEdit"
-				class="bg-cb-primary-900 w-full rounded py-3 text-xl font-semibold uppercase transition-all duration-300 ease-in-out hover:scale-105 hover:bg-red-900"
-				@click="sendUpdateArtist"
-			>
-				{{ isUploadingEdit ? 'Loading' : 'Saves' }}
-			</button>
 		</div>
 	</div>
 </template>
