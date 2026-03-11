@@ -11,10 +11,7 @@
 	} from '~/types'
 
 	import { useSupabaseArtist } from '~/composables/Supabase/useSupabaseArtist'
-	import { useSupabaseMusicStyles } from '~/composables/Supabase/useSupabaseMusicStyles'
-	import { useSupabaseGeneralTags } from '~/composables/Supabase/useSupabaseGeneralTags'
 	import { useSupabaseCompanies } from '~/composables/Supabase/useSupabaseCompanies'
-	import { useSupabaseSearch } from '~/composables/useSupabaseSearch'
 	import { useYoutubeMusicIdCheck } from '~/composables/useYoutubeMusicIdCheck'
 	import { useUserStore } from '~/stores/user'
 
@@ -26,15 +23,19 @@
 		description?: string
 		label: string
 	}
+	type ArtistCreateOptionsPayload = {
+		artists: Artist[]
+		styles: MusicStyle[]
+		tags: GeneralTag[]
+		companies: Company[]
+	}
 
 	const toast = useToast()
+	const config = useRuntimeConfig()
 	const userStore = useUserStore()
 	const { isAdminStore } = storeToRefs(userStore)
-	const { getAllArtists, createArtist } = useSupabaseArtist()
-	const { getAllMusicStyles } = useSupabaseMusicStyles()
-	const { getAllGeneralTags } = useSupabaseGeneralTags()
-	const { getAllCompanies, relationshipTypes } = useSupabaseCompanies()
-	const { searchArtistsFullText } = useSupabaseSearch()
+	const { createArtist } = useSupabaseArtist()
+	const { relationshipTypes } = useSupabaseCompanies()
 	const {
 		status: ytmIdStatus,
 		message: ytmIdMessage,
@@ -46,6 +47,8 @@
 	const title = ref('Create Artist Page')
 	const description = ref('Create Artist Page')
 	const isUploadingEdit = ref(false)
+	const isBootstrapping = ref(true)
+	const bootstrapError = ref<string | null>(null)
 	const isCompanyModalOpen = ref(false)
 
 	const stylesList = ref<MusicStyle[]>([])
@@ -299,12 +302,14 @@
 
 		isSearchingGroups.value = true
 		try {
-			const result = await searchArtistsFullText({
-				query,
-				limit: 15,
-				type: 'GROUP',
+			const result = await $fetch<{ artists: Artist[] }>('/api/artists/search', {
+				query: {
+					search: query,
+					limit: 15,
+					type: 'GROUP',
+				},
 			})
-			groupSearchResults.value = result.artists
+			groupSearchResults.value = result.artists || []
 		} catch (error) {
 			console.error('Group search error:', error)
 			groupSearchResults.value = []
@@ -322,11 +327,13 @@
 
 		isSearchingMembers.value = true
 		try {
-			const result = await searchArtistsFullText({
-				query,
-				limit: 15,
+			const result = await $fetch<{ artists: Artist[] }>('/api/artists/search', {
+				query: {
+					search: query,
+					limit: 15,
+				},
 			})
-			memberSearchResults.value = result.artists
+			memberSearchResults.value = result.artists || []
 		} catch (error) {
 			console.error('Member search error:', error)
 			memberSearchResults.value = []
@@ -345,9 +352,91 @@
 		debouncedMemberSearch(query)
 	}
 
+	const getAdminAuthHeaders = () => {
+		if (!import.meta.client) return undefined
+
+		const supabaseUrl = config.public.supabase?.url
+		if (!supabaseUrl) return undefined
+
+		const projectRef = new URL(supabaseUrl).host.split('.')[0]
+		if (!projectRef) return undefined
+
+		const cookiePrefix = `sb-${projectRef}-auth-token`
+		const cookieEntries = document.cookie
+			.split('; ')
+			.map((entry) => {
+				const separatorIndex = entry.indexOf('=')
+				if (separatorIndex === -1) return null
+
+				return {
+					name: entry.slice(0, separatorIndex),
+					value: entry.slice(separatorIndex + 1),
+				}
+			})
+			.filter((entry): entry is { name: string; value: string } => Boolean(entry))
+
+		const matchingCookies = cookieEntries
+			.filter(
+				(entry) =>
+					entry.name === cookiePrefix || entry.name.startsWith(`${cookiePrefix}.`),
+			)
+			.sort((left, right) => left.name.localeCompare(right.name))
+
+		if (!matchingCookies.length) return undefined
+
+		const rawValue = matchingCookies.map((entry) => entry.value).join('')
+		const decodedValue = decodeURIComponent(rawValue)
+
+		if (!decodedValue.startsWith('base64-')) return undefined
+
+		try {
+			const parsed = JSON.parse(atob(decodedValue.slice(7)))
+			if (typeof parsed?.access_token === 'string') {
+				return {
+					Authorization: `Bearer ${parsed.access_token}`,
+				}
+			}
+		} catch {
+			return undefined
+		}
+
+		return undefined
+	}
+
+	const loadCreateOptions = async () => {
+		return $fetch<ArtistCreateOptionsPayload>('/api/admin/artist-create-options', {
+			headers: getAdminAuthHeaders(),
+		})
+	}
+
 	const refreshArtistOptions = async () => {
-		artistsList.value = await getAllArtists()
-		groupList.value = artistsList.value.filter((artist) => artist.type === 'GROUP')
+		const payload = await loadCreateOptions()
+		artistsList.value = payload.artists
+		groupList.value = payload.artists.filter((artist) => artist.type === 'GROUP')
+	}
+
+	const applyBootstrapPayload = (payload: ArtistCreateOptionsPayload) => {
+		artistsList.value = payload.artists
+		groupList.value = payload.artists.filter((artist) => artist.type === 'GROUP')
+		stylesList.value = payload.styles
+		tagsList.value = payload.tags
+		companiesList.value = payload.companies
+	}
+
+	const bootstrapPage = async () => {
+		isBootstrapping.value = true
+		bootstrapError.value = null
+
+		try {
+			const payload = await loadCreateOptions()
+			applyBootstrapPayload(payload)
+		} catch (error) {
+			console.error('Error while bootstrapping artist creation page:', error)
+			bootstrapError.value =
+				'Unable to load the required artist creation data. Please retry.'
+		} finally {
+			isBootstrapping.value = false
+		}
 	}
 
 	const resetForm = () => {
@@ -374,6 +463,35 @@
 		resetYtmCheck()
 	}
 
+	const resolveSelectedArtists = (
+		selectedItems: ArtistMenuItem[],
+		source: Artist[],
+		fallbackType: ArtistType,
+	): Artist[] => {
+		return selectedItems.map((item) => {
+			const existingArtist = source.find((artist) => artist.id === item.id)
+			if (existingArtist) return existingArtist
+
+			return {
+				id: item.id,
+				name: item.label,
+				image: '',
+				description: item.description ?? null,
+				id_youtube_music: null,
+				type: fallbackType,
+				gender: 'UNKNOWN',
+				active_career: true,
+				verified: true,
+				general_tags: [],
+				styles: [],
+				birth_date: null,
+				debut_date: null,
+				created_at: null,
+				updated_at: null,
+			} as Artist
+		})
+	}
+
 	const creationArtist = async () => {
 		if (!artistName.value.trim()) {
 			toast.add({
@@ -396,12 +514,16 @@
 		isUploadingEdit.value = true
 
 		try {
-			const selectedGroups = artistGroups.value
-				.map((group) => groupList.value.find((artist) => artist.id === group.id))
-				.filter((artist): artist is Artist => Boolean(artist))
-			const selectedMembers = artistMembers.value
-				.map((member) => artistsList.value.find((artist) => artist.id === member.id))
-				.filter((artist): artist is Artist => Boolean(artist))
+			const selectedGroups = resolveSelectedArtists(
+				artistGroups.value,
+				groupList.value,
+				'GROUP',
+			)
+			const selectedMembers = resolveSelectedArtists(
+				artistMembers.value,
+				artistsList.value,
+				'SOLO',
+			)
 			const selectedCompanies = artistCompanies.value
 				.filter((relation) => Boolean(relation.company))
 				.map((relation) => ({
@@ -472,8 +594,8 @@
 
 	const handleCompanyUpdated = async () => {
 		try {
-			const companiesResponse = await getAllCompanies({ limit: 1000 })
-			companiesList.value = companiesResponse.companies
+			const payload = await loadCreateOptions()
+			companiesList.value = payload.companies
 			companiesMenuKey.value = companiesMenuKey.value + 1
 			isCompanyModalOpen.value = false
 		} catch (error) {
@@ -517,18 +639,7 @@
 	})
 
 	onMounted(async () => {
-		const [artists, styles, tags, companiesResponse] = await Promise.all([
-			getAllArtists(),
-			getAllMusicStyles(),
-			getAllGeneralTags(),
-			getAllCompanies({ limit: 1000 }),
-		])
-
-		artistsList.value = artists
-		groupList.value = artists.filter((artist) => artist.type === 'GROUP')
-		stylesList.value = styles
-		tagsList.value = tags
-		companiesList.value = companiesResponse.companies
+		await bootstrapPage()
 	})
 
 	definePageMeta({
@@ -548,8 +659,66 @@
 
 <template>
 	<div
-		class="mx-auto min-h-[calc(100vh-60px)] max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8"
+		class="mx-auto min-h-[calc(100vh-60px)] max-w-7xl px-4 py-6 sm:px-6 lg:px-8"
 	>
+		<div
+			v-if="isBootstrapping"
+			class="flex min-h-[calc(100vh-140px)] items-center justify-center"
+		>
+			<div
+				class="bg-cb-secondary-950 border-cb-quinary-900/70 w-full max-w-2xl rounded-[28px] border p-10 shadow-2xl"
+			>
+				<div class="flex flex-col items-center gap-5 text-center">
+					<div
+						class="bg-cb-quaternary-950 border-cb-quinary-900/70 flex h-16 w-16 items-center justify-center rounded-2xl border"
+					>
+						<UIcon
+							name="i-lucide-loader-circle"
+							class="text-cb-primary-900 h-8 w-8 animate-spin"
+						/>
+					</div>
+					<div class="space-y-2">
+						<h1 class="text-2xl font-semibold">Loading artist creator</h1>
+						<p class="mx-auto max-w-xl text-sm leading-6 text-gray-400">
+							We are preparing artists, groups, styles, tags and companies before opening
+							the form.
+						</p>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div
+			v-else-if="bootstrapError"
+			class="flex min-h-[calc(100vh-140px)] items-center justify-center"
+		>
+			<div
+				class="bg-cb-secondary-950 border-cb-quinary-900/70 w-full max-w-2xl rounded-[28px] border p-10 shadow-2xl"
+			>
+				<div class="flex flex-col items-center gap-5 text-center">
+					<div
+						class="bg-cb-primary-900/15 text-cb-primary-300 ring-cb-primary-900/30 rounded-2xl px-4 py-2 text-sm font-medium ring-1"
+					>
+						Data loading failed
+					</div>
+					<div class="space-y-2">
+						<h1 class="text-2xl font-semibold">Artist creator is not ready yet</h1>
+						<p class="mx-auto max-w-xl text-sm leading-6 text-gray-400">
+							{{ bootstrapError }}
+						</p>
+					</div>
+					<UButton
+						label="Retry loading"
+						icon="i-lucide-refresh-cw"
+						color="primary"
+						class="cursor-pointer justify-center !bg-cb-primary-900 !text-white hover:!bg-cb-primary-800 hover:!text-white"
+						@click="bootstrapPage"
+					/>
+				</div>
+			</div>
+		</div>
+
+		<template v-else>
 		<section
 			class="bg-cb-secondary-950 border-cb-quinary-900/70 overflow-hidden rounded-[28px] border shadow-2xl"
 		>
@@ -1375,5 +1544,6 @@
 				</section>
 			</div>
 		</div>
+		</template>
 	</div>
 </template>
