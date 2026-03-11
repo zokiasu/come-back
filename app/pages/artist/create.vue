@@ -638,7 +638,7 @@
 						color="primary"
 						:loading="isUploadingEdit"
 						:disabled="!canCreateArtist"
-						class="w-full cursor-pointer justify-center"
+						class="w-full cursor-pointer justify-center !bg-cb-primary-900 !text-white hover:!bg-cb-primary-800 hover:!text-white disabled:!bg-cb-primary-900 disabled:!text-white"
 						@click="creationArtist"
 					/>
 					<p class="text-xs leading-5 text-gray-500">
@@ -1352,7 +1352,7 @@
 							size="xl"
 							:loading="isUploadingEdit"
 							:disabled="!canCreateArtist"
-							class="w-full cursor-pointer justify-center"
+							class="w-full cursor-pointer justify-center !bg-cb-primary-900 !text-white hover:!bg-cb-primary-800 hover:!text-white disabled:!bg-cb-primary-900 disabled:!text-white"
 							@click="creationArtist"
 						/>
 						<UButton
