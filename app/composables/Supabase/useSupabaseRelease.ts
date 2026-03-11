@@ -21,6 +21,7 @@ interface ReleaseWithArtistJunctions extends Omit<Release, 'artists'> {
 export function useSupabaseRelease() {
 	const supabase = useSupabaseClient<Database>()
 	const toast = useToast()
+	const { requireAuthHeaders } = useApiAuthHeaders()
 
 	// Met à jour une release
 	const updateRelease = async (
@@ -121,7 +122,10 @@ export function useSupabaseRelease() {
 	// Supprime une release
 	const deleteRelease = async (id: string) => {
 		try {
-			await $fetch(`/api/releases/${id}`, { method: 'DELETE' })
+			await $fetch(`/api/releases/${id}`, {
+				method: 'DELETE',
+				headers: requireAuthHeaders(),
+			})
 			return true
 		} catch (error) {
 			console.error('Erreur lors de la suppression de la release:', error)

@@ -20,8 +20,8 @@
 	}>()
 
 	const { getArtistDeletionImpact } = useSupabaseArtist()
+	const { requireAuthHeaders } = useApiAuthHeaders()
 	const toast = useToast()
-	const supabase = useSupabaseClient()
 
 	const isLoading = ref(false)
 	const isBanning = ref(false)
@@ -69,20 +69,13 @@
 
 		isBanning.value = true
 		try {
-			const { data } = await supabase.auth.getSession()
-			const accessToken = data.session?.access_token
-			if (!accessToken) {
-				throw new Error('Missing access token')
-			}
 			await $fetch('/api/admin/ban-artist', {
 				method: 'POST',
 				body: {
 					artistId: props.artistId,
 					reason: banReason.value.trim() || undefined,
 				},
-				headers: {
-					Authorization: `Bearer ${accessToken}`,
-				},
+				headers: requireAuthHeaders(),
 			})
 			toast.add({
 				title: 'Artist banned',

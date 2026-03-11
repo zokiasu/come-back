@@ -57,7 +57,7 @@
 		layout: 'dashboard',
 	})
 
-	const supabase = useSupabaseClient()
+	const { requireAuthHeaders } = useApiAuthHeaders()
 	const toast = useToast()
 
 	const createDateInputValue = (date: Date) => {
@@ -144,19 +144,6 @@
 		previewState.value = null
 	}
 
-	const getAuthHeaders = async () => {
-		const { data } = await supabase.auth.getSession()
-		const accessToken = data.session?.access_token
-
-		if (!accessToken) {
-			throw new Error('Missing access token')
-		}
-
-		return {
-			Authorization: `Bearer ${accessToken}`,
-		}
-	}
-
 	const ignoreCandidate = (videoId: string) => {
 		dismissedVideoIds.value = [...dismissedVideoIds.value, videoId]
 	}
@@ -169,9 +156,8 @@
 		resetTransientState()
 
 		try {
-			const headers = await getAuthHeaders()
 			const response = await $fetch<CandidateScanResponse>('/api/admin/youtube/mv-candidates', {
-				headers,
+				headers: requireAuthHeaders(),
 				query: {
 					startDate: startDate.value,
 					endDate: endDate.value,
@@ -218,11 +204,10 @@
 		}
 
 		try {
-			const headers = await getAuthHeaders()
 			const response = await $fetch<ManualSearchResponse>(
 				'/api/admin/youtube/mv-music-search',
 				{
-					headers,
+					headers: requireAuthHeaders(),
 					query: {
 						query,
 						contextTitle: candidate.title,
@@ -262,10 +247,9 @@
 		}
 
 		try {
-			const headers = await getAuthHeaders()
 			await $fetch('/api/admin/youtube/link-mv', {
 				method: 'POST',
-				headers,
+				headers: requireAuthHeaders(),
 				body: {
 					musicId: suggestion.musicId,
 					videoId: candidate.videoId,
