@@ -14,6 +14,24 @@ interface NewsResponse {
 export function useSupabaseNews() {
 	const supabase = useSupabaseClient<Database>()
 	const toast = useToast()
+	const withTimeout = async <T>(
+		promise: PromiseLike<T>,
+		timeoutMs: number,
+		errorMessage: string,
+	): Promise<T> => {
+		let timeoutId: ReturnType<typeof setTimeout> | null = null
+
+		try {
+			return await Promise.race([
+				promise,
+				new Promise<never>((_, reject) => {
+					timeoutId = setTimeout(() => reject(new Error(errorMessage)), timeoutMs)
+				}),
+			])
+		} finally {
+			if (timeoutId) clearTimeout(timeoutId)
+		}
+	}
 
 	// Crée une nouvelle news
 	const createNews = async (
@@ -28,18 +46,22 @@ export function useSupabaseNews() {
 			throw new Error('Le message est requis pour créer une news')
 		}
 
-		const { data: news, error } = await supabase
-			.from('news')
-			.insert(data)
-			.select(
-				`
-				*,
-				news_artists_junction(
-					artist_id
+		const { data: news, error } = await withTimeout(
+			supabase
+				.from('news')
+				.insert(data)
+				.select(
+					`
+					*,
+					news_artists_junction(
+						artist_id
+					)
+				`,
 				)
-			`,
-			)
-			.single()
+				.single(),
+			15000,
+			'The comeback request timed out while creating the report.',
+		)
 
 		if (error) {
 			console.error('Erreur lors de la création de la news:', error)
@@ -58,13 +80,15 @@ export function useSupabaseNews() {
 			}),
 		)
 
-		const { error: junctionError } = await supabase
-			.from('news_artists_junction')
-			.insert(junctionInserts)
-			.select()
+		const { error: junctionError } = await withTimeout(
+			supabase.from('news_artists_junction').insert(junctionInserts).select(),
+			15000,
+			'The comeback request timed out while linking artists.',
+		)
 
 		if (junctionError) {
 			console.error('Erreur lors de la création des relations artistes:', junctionError)
+			await supabase.from('news').delete().eq('id', news.id)
 			toast.add({
 				title: 'Erreur',
 				description: 'Erreur lors de la création des relations artistes',

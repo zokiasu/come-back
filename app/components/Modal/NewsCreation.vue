@@ -101,7 +101,8 @@
 		} catch (error) {
 			toast.add({
 				title: 'Error creating news',
-				description: 'Error creating news',
+				description:
+					error instanceof Error ? error.message : 'Error creating news',
 				icon: 'i-lucide-x-circle',
 				color: 'error',
 			})
