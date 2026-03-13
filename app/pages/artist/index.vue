@@ -258,6 +258,7 @@
 			styles: selectedStyles.value.length > 0 ? selectedStyles.value : undefined,
 			gender: selectedGender.value || undefined,
 			isActive: selectedActivity.value !== null ? selectedActivity.value : undefined,
+			verified: true,
 			orderBy: 'name',
 			orderDirection: 'asc',
 		})
