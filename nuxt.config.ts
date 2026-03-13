@@ -128,7 +128,8 @@ export default defineNuxtConfig({
 			],
 		},
 		workbox: {
-			globPatterns: ['**/*.{js,css,html,png,svg,ico,webp,woff2}'],
+			globPatterns: ['**/*.{js,css,png,svg,ico,webp,woff2}'],
+			navigateFallback: null,
 			runtimeCaching: [
 				{
 					urlPattern: /^https:\/\/lh3\.googleusercontent\.com\/.*/i,
