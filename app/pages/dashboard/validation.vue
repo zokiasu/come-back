@@ -515,6 +515,25 @@
 							</span>
 						</div>
 
+						<div
+							v-if="artist.nationalities && artist.nationalities.length"
+							class="mt-1 flex flex-wrap gap-1"
+						>
+							<span
+								v-for="nationality in artist.nationalities.slice(0, 3)"
+								:key="nationality"
+								class="rounded bg-amber-900/30 px-1.5 py-0.5 text-xs text-amber-200"
+							>
+								{{ nationality }}
+							</span>
+							<span
+								v-if="artist.nationalities.length > 3"
+								class="text-cb-tertiary-500 text-xs"
+							>
+								+{{ artist.nationalities.length - 3 }}
+							</span>
+						</div>
+
 						<!-- Birth & Debut dates -->
 						<div class="mt-1 flex flex-wrap items-center gap-3 text-xs">
 							<span

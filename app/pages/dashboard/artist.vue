@@ -1,9 +1,11 @@
 <script setup lang="ts">
-	import type { Artist, ArtistType } from '~/types'
+	import type { Artist, ArtistType, Nationality } from '~/types'
 	import { useSupabaseArtist } from '~/composables/Supabase/useSupabaseArtist'
+	import { useSupabaseNationalities } from '~/composables/Supabase/useSupabaseNationalities'
 
 	const toast = useToast()
 	const { getArtistsByPage } = useSupabaseArtist()
+	const { getAllNationalities } = useSupabaseNationalities()
 
 	// Data state
 	const artistsList = ref<Artist[]>([])
@@ -15,8 +17,11 @@
 	const typeFilter = ref<ArtistType | 'ALL'>('ALL')
 	const genderFilter = ref<string>('ALL')
 	const styleFilter = ref<string>('ALL')
+	const nationalityFilter = ref<string>('ALL')
 	const careerFilter = ref<string>('ALL')
 	const missingFilter = ref<string>('NONE')
+
+	const nationalitiesList = ref<Nationality[]>([])
 
 	// Sorting state
 	const sortColumn = ref<keyof Artist>('name')
@@ -66,6 +71,14 @@
 		{ label: 'Thai-Pop', id: 'Thai-Pop' },
 		{ label: 'Pop', id: 'Pop' },
 	]
+
+	const nationalityOptions = computed(() => [
+		{ label: 'All nationalities', id: 'ALL' },
+		...nationalitiesList.value.map((nationality) => ({
+			label: nationality.name,
+			id: nationality.name,
+		})),
+	])
 
 	const careerOptions: { label: string; id: string }[] = [
 		{ label: 'All', id: 'ALL' },
@@ -142,6 +155,8 @@
 				type: typeFilter.value === 'ALL' ? undefined : typeFilter.value,
 				gender: genderFilter.value === 'ALL' ? undefined : genderFilter.value,
 				styles: styleFilter.value === 'ALL' ? undefined : [styleFilter.value],
+				nationalities:
+					nationalityFilter.value === 'ALL' ? undefined : [nationalityFilter.value],
 				isActive:
 					careerFilter.value === 'ALL' ? undefined : careerFilter.value === 'ACTIVE',
 				onlyWithoutDesc: missingFilter.value === 'NO_DESC',
@@ -267,6 +282,7 @@
 			typeFilter,
 			genderFilter,
 			styleFilter,
+			nationalityFilter,
 			careerFilter,
 			missingFilter,
 			sortColumn,
@@ -314,7 +330,8 @@
 	}
 
 	// Initial load
-	onMounted(() => {
+	onMounted(async () => {
+		nationalitiesList.value = await getAllNationalities()
 		fetchArtists()
 		if (import.meta.client) {
 			window.addEventListener('keydown', onPageNavigationKeydown)
@@ -410,6 +427,14 @@
 					:items="styleOptions"
 					value-key="id"
 					class="w-full md:w-36"
+					:ui="{ base: 'bg-cb-quinary-900' }"
+				/>
+
+				<USelectMenu
+					v-model="nationalityFilter"
+					:items="nationalityOptions"
+					value-key="id"
+					class="w-full md:w-44"
 					:ui="{ base: 'bg-cb-quinary-900' }"
 				/>
 

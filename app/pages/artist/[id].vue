@@ -223,6 +223,13 @@
 					</div>
 					<div v-if="!isFetchingArtist" class="flex flex-wrap gap-2">
 						<p
+							v-for="nationality in artist.nationalities"
+							:key="nationality"
+							class="bg-cb-quaternary-950 w-fit rounded px-3 py-1 text-xs font-semibold whitespace-nowrap uppercase"
+							>
+							{{ nationality }}
+						</p>
+						<p
 							v-for="style in artist.styles"
 							:key="style"
 							class="bg-cb-quaternary-950 w-fit rounded px-3 py-1 text-xs font-semibold whitespace-nowrap uppercase"

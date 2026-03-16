@@ -5,6 +5,7 @@
 		Artist,
 		MusicStyle,
 		GeneralTag,
+		Nationality,
 		ArtistGender,
 		ArtistType,
 		Company,
@@ -27,6 +28,7 @@
 		artists: Artist[]
 		styles: MusicStyle[]
 		tags: GeneralTag[]
+		nationalities: Nationality[]
 		companies: Company[]
 	}
 
@@ -53,6 +55,7 @@
 
 	const stylesList = ref<MusicStyle[]>([])
 	const tagsList = ref<GeneralTag[]>([])
+	const nationalitiesList = ref<Nationality[]>([])
 	const groupList = ref<Artist[]>([])
 	const artistsList = ref<Artist[]>([])
 	const companiesList = ref<Company[]>([])
@@ -71,6 +74,7 @@
 
 	const artistStyles = ref<MenuItem<MusicStyle>[]>([])
 	const artistTags = ref<MenuItem<GeneralTag>[]>([])
+	const artistNationalities = ref<MenuItem<Nationality>[]>([])
 	const artistCompanies = ref<
 		{
 			company: CompanyMenuItem | undefined
@@ -161,13 +165,21 @@
 		]
 	})
 
+	const overviewTaxonomyBadges = computed(() => {
+		return [
+			...artistNationalities.value.map((nationality) => ({
+				label: nationality.name,
+				class: 'bg-amber-500/15 text-amber-200 ring-amber-500/30',
+			})),
+			...artistStyles.value.map((style) => ({
+				label: style.name,
+				class: 'bg-cb-quinary-900 text-white ring-cb-quinary-800',
+			})),
+		]
+	})
+
 	const overviewStats = computed(() => {
 		return [
-			{
-				label: 'Styles',
-				value: String(artistStyles.value.length),
-				helper: artistStyles.value.length === 1 ? 'genre linked' : 'genres linked',
-			},
 			{
 				label: 'Tags',
 				value: String(artistTags.value.length),
@@ -210,6 +222,15 @@
 			(tag): MenuItem<GeneralTag> => ({
 				...tag,
 				label: tag.name,
+			}),
+		)
+	})
+
+	const nationalitiesForMenu = computed(() => {
+		return nationalitiesList.value.map(
+			(nationality): MenuItem<Nationality> => ({
+				...nationality,
+				label: nationality.name,
 			}),
 		)
 	})
@@ -364,11 +385,17 @@
 		groupList.value = payload.artists.filter((artist) => artist.type === 'GROUP')
 	}
 
+	const refreshNationalities = async () => {
+		const payload = await loadCreateOptions()
+		nationalitiesList.value = payload.nationalities
+	}
+
 	const applyBootstrapPayload = (payload: ArtistCreateOptionsPayload) => {
 		artistsList.value = payload.artists
 		groupList.value = payload.artists.filter((artist) => artist.type === 'GROUP')
 		stylesList.value = payload.styles
 		tagsList.value = payload.tags
+		nationalitiesList.value = payload.nationalities
 		companiesList.value = payload.companies
 	}
 
@@ -401,6 +428,7 @@
 		artistActiveCareer.value = true
 		artistStyles.value = []
 		artistTags.value = []
+		artistNationalities.value = []
 		artistCompanies.value = []
 		artistDescription.value = ''
 		groupSearchTerm.value = ''
@@ -432,6 +460,7 @@
 				active_career: true,
 				verified: true,
 				general_tags: [],
+				nationalities: [],
 				styles: [],
 				birth_date: null,
 				debut_date: null,
@@ -503,6 +532,7 @@
 					: null,
 				styles: artistStyles.value.map((style) => style.name),
 				general_tags: artistTags.value.map((tag) => tag.name),
+				nationalities: artistNationalities.value.map((nationality) => nationality.name),
 			}
 
 			const validPlatformLinks = platformLinkManager.getValidLinks()
@@ -708,6 +738,20 @@
 							<div class="flex flex-wrap gap-2">
 								<span
 									v-for="badge in overviewBadges"
+									:key="badge.label"
+									:class="badge.class"
+									class="rounded-full px-3 py-1 text-xs font-medium ring-1"
+								>
+									{{ badge.label }}
+								</span>
+							</div>
+
+							<div
+								v-if="overviewTaxonomyBadges.length > 0"
+								class="flex flex-wrap gap-2"
+							>
+								<span
+									v-for="badge in overviewTaxonomyBadges"
 									:key="badge.label"
 									:class="badge.class"
 									class="rounded-full px-3 py-1 text-xs font-medium ring-1"
@@ -978,13 +1022,13 @@
 						<div class="mb-5 space-y-2">
 							<h2 class="text-xl font-semibold">Taxonomy</h2>
 							<p class="text-sm leading-6 text-gray-400">
-								Use styles and tags to improve discovery, filtering and editorial
-								consistency.
+								Use styles, nationalities and tags to improve discovery, filtering and
+								editorial consistency.
 							</p>
 						</div>
 
 						<div class="grid gap-5 xl:grid-cols-2">
-							<div v-if="stylesList" class="space-y-3">
+							<div v-if="stylesList" class="space-y-3 xl:col-span-full">
 								<div class="flex flex-wrap items-center justify-between gap-3">
 									<ComebackLabel label="Styles" />
 									<UModal
@@ -1013,6 +1057,47 @@
 									placeholder="Select styles"
 									searchable
 									searchable-placeholder="Search a style..."
+									class="w-full"
+									:ui="{
+										base: 'bg-cb-quaternary-950 border border-cb-quinary-900/70 rounded-xl',
+										content: 'bg-cb-quaternary-950',
+										item: 'rounded cursor-pointer data-highlighted:before:bg-cb-primary-900/30 hover:bg-cb-primary-900',
+									}"
+								/>
+							</div>
+
+							<div v-if="nationalitiesList" class="space-y-3">
+								<div class="flex flex-wrap items-center justify-between gap-3">
+									<ComebackLabel label="Nationalities" />
+									<UModal
+										:ui="{
+											overlay: 'bg-cb-quinary-950/75',
+											content: 'ring-cb-quinary-950',
+										}"
+									>
+										<UButton
+											label="Create new nationality"
+											variant="soft"
+											color="primary"
+											class="cursor-pointer"
+										/>
+
+										<template #content>
+											<ModalCreateNationality
+												:nationalities="nationalitiesList"
+												@created="refreshNationalities"
+											/>
+										</template>
+									</UModal>
+								</div>
+								<UInputMenu
+									v-model="artistNationalities"
+									:items="nationalitiesForMenu"
+									by="id"
+									multiple
+									placeholder="Select nationalities"
+									searchable
+									searchable-placeholder="Search a nationality..."
 									class="w-full"
 									:ui="{
 										base: 'bg-cb-quaternary-950 border border-cb-quinary-900/70 rounded-xl',
@@ -1109,6 +1194,7 @@
 								<template #content>
 									<ModalCreateArtist
 										:styles-list="stylesList"
+										:nationalities-list="nationalitiesList"
 										:tags-list="tagsList"
 										:group-list="groupList"
 										:members-list="artistsList"
@@ -1402,6 +1488,19 @@
 						</div>
 
 						<div class="space-y-3">
+							<div
+								class="bg-cb-quaternary-950 border-cb-quinary-900/70 flex items-center justify-between rounded-2xl border px-4 py-3"
+							>
+								<div>
+									<p
+										class="text-cb-quinary-700 text-xs font-semibold tracking-[0.2em] uppercase"
+									>
+										Nationalities
+									</p>
+									<p class="mt-1 font-medium">{{ artistNationalities.length }}</p>
+								</div>
+							</div>
+
 							<div
 								class="bg-cb-quaternary-950 border-cb-quinary-900/70 flex items-center justify-between rounded-2xl border px-4 py-3"
 							>

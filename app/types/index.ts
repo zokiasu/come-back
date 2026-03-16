@@ -34,6 +34,7 @@ export type News = Tables<'news'> & {
 }
 export type MusicStyle = Tables<'music_styles'>
 export type GeneralTag = Tables<'general_tags'>
+export type Nationality = Tables<'nationalities'>
 export type ArtistSocialLink = Tables<'artist_social_links'>
 export type ArtistPlatformLink = Tables<'artist_platform_links'>
 export type ReleasePlatformLink = Tables<'release_platform_links'>

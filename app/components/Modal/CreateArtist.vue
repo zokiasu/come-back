@@ -3,6 +3,7 @@
 		Artist,
 		MusicStyle,
 		GeneralTag,
+		Nationality,
 		ArtistGender,
 		ArtistType,
 		ArtistMenuItem,
@@ -40,12 +41,14 @@
 
 	interface Props {
 		stylesList: MusicStyle[]
+		nationalitiesList: Nationality[]
 		tagsList: GeneralTag[]
 		groupList: Artist[]
 		membersList: Artist[]
 	}
 
-	const { stylesList, tagsList, groupList, membersList } = defineProps<Props>()
+	const { stylesList, nationalitiesList, tagsList, groupList, membersList } =
+		defineProps<Props>()
 
 	interface Emits {
 		(e: 'closeModal'): void
@@ -64,6 +67,7 @@
 		gender: 'UNKNOWN' as ArtistGender,
 		styles: [],
 		general_tags: [],
+		nationalities: [],
 	})
 
 	const { createLinkListManager } = useLinkManager()
@@ -74,6 +78,7 @@
 	const selectedGroups = ref<ArtistMenuItem[]>([])
 	const selectedMembers = ref<ArtistMenuItem[]>([])
 	const artistStyles = ref<MenuItem<MusicStyle>[]>([])
+	const artistNationalities = ref<MenuItem<Nationality>[]>([])
 	const artistTags = ref<MenuItem<GeneralTag>[]>([])
 
 	const isUploadingEdit = ref(false)
@@ -93,6 +98,15 @@
 			(tag): MenuItem<GeneralTag> => ({
 				...tag,
 				label: tag.name,
+			}),
+		)
+	})
+
+	const nationalitiesForMenu = computed((): MenuItem<Nationality>[] => {
+		return nationalitiesList.map(
+			(nationality): MenuItem<Nationality> => ({
+				...nationality,
+				label: nationality.name,
 			}),
 		)
 	})
@@ -155,6 +169,7 @@
 					...artist.value,
 					styles: artistStyles.value.map((style) => style.name),
 					general_tags: artistTags.value.map((tag) => tag.name),
+					nationalities: artistNationalities.value.map((nationality) => nationality.name),
 				} as Omit<Artist, 'id' | 'created_at' | 'updated_at'>,
 				socialList.value,
 				platformList.value,
@@ -236,7 +251,7 @@
 				</select>
 			</div>
 		</div>
-		<!-- Styles & General Tags -->
+		<!-- Styles, Nationalities & General Tags -->
 		<div class="grid grid-cols-1 gap-5">
 			<!-- Styles -->
 			<div v-if="stylesList" class="flex flex-col gap-1">
@@ -249,6 +264,24 @@
 					placeholder="Select styles"
 					searchable
 					searchable-placeholder="Search a style..."
+					class="bg-cb-quaternary-950 text-tertiary w-full cursor-pointer ring-transparent"
+					:ui="{
+						content: 'bg-cb-quaternary-950',
+						item: 'rounded cursor-pointer data-highlighted:before:bg-cb-primary-900/30 hover:bg-cb-primary-900',
+					}"
+				/>
+			</div>
+			<!-- Nationalities -->
+			<div v-if="nationalitiesList" class="flex flex-col gap-1">
+				<ComebackLabel label="Nationalities" />
+				<UInputMenu
+					v-model="artistNationalities"
+					:items="nationalitiesForMenu"
+					by="id"
+					multiple
+					placeholder="Select nationalities"
+					searchable
+					searchable-placeholder="Search a nationality..."
 					class="bg-cb-quaternary-950 text-tertiary w-full cursor-pointer ring-transparent"
 					:ui="{
 						content: 'bg-cb-quaternary-950',

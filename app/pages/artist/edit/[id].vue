@@ -5,7 +5,7 @@
 	import { useUserStore } from '~/stores/user'
 
 	// Internal Types
-	import type { Artist, MusicStyle, GeneralTag, Company } from '~/types'
+	import type { Artist, MusicStyle, GeneralTag, Nationality, Company } from '~/types'
 	import type { TablesInsert } from '~/types/supabase'
 
 	// Creates a generic type that adds 'label' to an existing type T
@@ -39,6 +39,7 @@
 	} = useSupabaseArtist()
 	const { getAllMusicStyles } = useSupabaseMusicStyles()
 	const { getAllGeneralTags } = useSupabaseGeneralTags()
+	const { getAllNationalities } = useSupabaseNationalities()
 	const { getAllCompanies, relationshipTypes } = useSupabaseCompanies()
 	const { searchArtistsFullText } = useSupabaseSearch()
 
@@ -53,10 +54,12 @@
 	const artistsList = ref<Artist[]>([]) // Liste complète des artistes
 	const stylesList = ref<MusicStyle[]>([])
 	const tagsList = ref<GeneralTag[]>([])
+	const nationalitiesList = ref<Nationality[]>([])
 	const companiesList = ref<Company[]>([])
 	// Refs pour les v-model des UInputMenu - contiennent les objets sélectionnés
 	const artistStyles = ref<MenuItem<MusicStyle>[]>([])
 	const artistTags = ref<MenuItem<GeneralTag>[]>([])
+	const artistNationalities = ref<MenuItem<Nationality>[]>([])
 	const artistCompanies = ref<
 		{
 			company: CompanyMenuItem | undefined
@@ -159,15 +162,23 @@
 		]
 	})
 
+	const overviewTaxonomyBadges = computed(() => {
+		return [
+			...artistNationalities.value.map((nationality) => ({
+				label: nationality.name,
+				class: 'bg-amber-500/15 text-amber-200 ring-amber-500/30',
+			})),
+			...artistStyles.value.map((style) => ({
+				label: style.name,
+				class: 'bg-cb-quinary-900 text-white ring-cb-quinary-800',
+			})),
+		]
+	})
+
 	const overviewStats = computed(() => {
 		if (!artistToEdit.value) return []
 
 		return [
-			{
-				label: 'Styles',
-				value: String(artistStyles.value.length),
-				helper: artistStyles.value.length === 1 ? 'genre linked' : 'genres linked',
-			},
 			{
 				label: artistToEdit.value.type === 'GROUP' ? 'Members' : 'Groups',
 				value: String(
@@ -205,6 +216,15 @@
 			(tag): MenuItem<GeneralTag> => ({
 				...tag,
 				label: tag.name,
+			}),
+		)
+	})
+
+	const nationalitiesForMenu = computed((): MenuItem<Nationality>[] => {
+		return nationalitiesList.value.map(
+			(nationality): MenuItem<Nationality> => ({
+				...nationality,
+				label: nationality.name,
 			}),
 		)
 	})
@@ -418,6 +438,7 @@
 				// Map selected objects to get names (or IDs if backend changed)
 				styles: artistStyles.value.map((style) => style.name),
 				general_tags: artistTags.value.map((tag) => tag.name),
+				nationalities: artistNationalities.value.map((nationality) => nationality.name),
 			}
 
 			const selectedCompanies: TablesInsert<'artist_companies'>[] = artistCompanies.value
@@ -517,11 +538,16 @@
 		}
 	}
 
+	const handleNationalitiesUpdated = async () => {
+		nationalitiesList.value = await getAllNationalities()
+	}
+
 	onMounted(async () => {
 		try {
 			artist.value = await getFullArtistById(route.params.id as string)
 			stylesList.value = await getAllMusicStyles()
 			tagsList.value = await getAllGeneralTags()
+			nationalitiesList.value = await getAllNationalities()
 			const companiesResponse = await getAllCompanies({ limit: 1000 })
 			companiesList.value = companiesResponse.companies
 
@@ -583,6 +609,17 @@
 							return tag ? ({ ...tag, label: tag.name } as MenuItem<GeneralTag>) : null
 						})
 						.filter((item): item is MenuItem<GeneralTag> => item !== null) || []
+				artistNationalities.value =
+					artist.value.nationalities
+						?.map((nationalityName) => {
+							const nationality = nationalitiesList.value.find(
+								(item) => item.name === nationalityName,
+							)
+							return nationality
+								? ({ ...nationality, label: nationality.name } as MenuItem<Nationality>)
+								: null
+						})
+						.filter((item): item is MenuItem<Nationality> => item !== null) || []
 
 				// Charger les compagnies liées à l'artiste
 				artistCompanies.value =
@@ -694,6 +731,17 @@
 						<div class="flex flex-wrap gap-2">
 							<span
 								v-for="badge in overviewBadges"
+								:key="badge.label"
+								:class="badge.class"
+								class="rounded-full px-3 py-1 text-xs font-medium ring-1"
+							>
+								{{ badge.label }}
+							</span>
+						</div>
+
+						<div v-if="overviewTaxonomyBadges.length > 0" class="flex flex-wrap gap-2">
+							<span
+								v-for="badge in overviewTaxonomyBadges"
 								:key="badge.label"
 								:class="badge.class"
 								class="rounded-full px-3 py-1 text-xs font-medium ring-1"
@@ -974,12 +1022,13 @@
 					<div class="mb-5 space-y-2">
 						<h2 class="text-xl font-semibold">Taxonomy</h2>
 						<p class="text-sm leading-6 text-gray-400">
-							Use styles and tags to improve filtering, discovery and cross-linking.
+							Use styles, nationalities and tags to improve filtering, discovery and
+							cross-linking.
 						</p>
 					</div>
 
 					<div class="grid gap-5 xl:grid-cols-2">
-						<div v-if="stylesList" class="space-y-3">
+						<div v-if="stylesList" class="space-y-3 xl:col-span-full">
 							<div class="flex flex-wrap items-center justify-between gap-3">
 								<ComebackLabel label="Styles" />
 								<UModal
@@ -1008,6 +1057,47 @@
 								placeholder="Select styles"
 								searchable
 								searchable-placeholder="Search a style..."
+								class="w-full"
+								:ui="{
+									base: 'bg-cb-quaternary-950 border border-cb-quinary-900/70 rounded-xl',
+									content: 'bg-cb-quaternary-950',
+									item: 'rounded cursor-pointer data-highlighted:before:bg-cb-primary-900/30 hover:bg-cb-primary-900',
+								}"
+							/>
+						</div>
+
+						<div v-if="nationalitiesList" class="space-y-3">
+							<div class="flex flex-wrap items-center justify-between gap-3">
+								<ComebackLabel label="Nationalities" />
+								<UModal
+									:ui="{
+										overlay: 'bg-cb-quinary-950/75',
+										content: 'ring-cb-quinary-950',
+									}"
+								>
+									<UButton
+										label="Create new nationality"
+										variant="soft"
+										color="primary"
+										class="cursor-pointer"
+									/>
+
+									<template #content>
+										<ModalCreateNationality
+											:nationalities="nationalitiesList"
+											@created="handleNationalitiesUpdated"
+										/>
+									</template>
+								</UModal>
+							</div>
+							<UInputMenu
+								v-model="artistNationalities"
+								:items="nationalitiesForMenu"
+								by="id"
+								multiple
+								placeholder="Select nationalities"
+								searchable
+								searchable-placeholder="Search a nationality..."
 								class="w-full"
 								:ui="{
 									base: 'bg-cb-quaternary-950 border border-cb-quinary-900/70 rounded-xl',
@@ -1106,6 +1196,7 @@
 							<template #content>
 								<ModalCreateArtist
 									:styles-list="stylesList"
+									:nationalities-list="nationalitiesList"
 									:tags-list="tagsList"
 									:group-list="groupList"
 									:members-list="membersList"
@@ -1418,6 +1509,19 @@
 					</div>
 
 					<div class="space-y-3">
+						<div
+							class="bg-cb-quaternary-950 border-cb-quinary-900/70 flex items-center justify-between rounded-2xl border px-4 py-3"
+						>
+							<div>
+								<p
+									class="text-cb-quinary-700 text-xs font-semibold tracking-[0.2em] uppercase"
+								>
+									Nationalities
+								</p>
+								<p class="mt-1 font-medium">{{ artistNationalities.length }}</p>
+							</div>
+						</div>
+
 						<div
 							class="bg-cb-quaternary-950 border-cb-quinary-900/70 flex items-center justify-between rounded-2xl border px-4 py-3"
 						>

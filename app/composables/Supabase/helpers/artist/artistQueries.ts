@@ -11,6 +11,7 @@ export interface ArtistPageOptions {
 	orderBy?: keyof Artist
 	orderDirection?: 'asc' | 'desc'
 	general_tags?: string[]
+	nationalities?: string[]
 	styles?: string[]
 	gender?: string
 	isActive?: boolean
@@ -268,6 +269,10 @@ export async function fetchArtistsByPage(
 
 	if (options?.general_tags?.length) {
 		query = query.overlaps('general_tags', options.general_tags)
+	}
+
+	if (options?.nationalities?.length) {
+		query = query.overlaps('nationalities', options.nationalities)
 	}
 
 	if (options?.styles?.length) {
