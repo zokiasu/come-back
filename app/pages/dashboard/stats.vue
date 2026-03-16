@@ -201,7 +201,7 @@
 					const monthName = monthOptions.value.find(
 						(m) => m.value === selectedMonth.value,
 					)?.label
-				return `${monthName} ${currentYear} (specific month)`
+					return `${monthName} ${currentYear} (specific month)`
 				}
 				const monthName = monthOptions.value.find((m) => m.value === currentMonth)?.label
 				return `${monthName} ${currentYear} (current)`

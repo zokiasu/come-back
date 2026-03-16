@@ -38,7 +38,6 @@
 			thumbnailUrl.value,
 		)
 	}
-
 </script>
 
 <template>

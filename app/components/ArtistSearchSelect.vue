@@ -86,7 +86,9 @@
 			: []
 	})
 
-	const selectedIds = computed(() => new Set(selectedItems.value.map((artist) => artist.id)))
+	const selectedIds = computed(
+		() => new Set(selectedItems.value.map((artist) => artist.id)),
+	)
 	const trimmedSearch = computed(() => searchInput.value.trim().replace(/\s+/g, ' '))
 	const hasSearchTerm = computed(() => trimmedSearch.value.length >= props.minSearchChars)
 	const combinedLoading = computed(() => props.loading || isRemoteLoading.value)
@@ -250,7 +252,7 @@
 
 		<div
 			v-if="shouldShowDropdown"
-			class="scrollBarLight bg-cb-quaternary-950 absolute left-0 right-0 top-full z-30 mt-2 max-h-72 overflow-y-auto rounded-lg border border-white/5 p-2 shadow-2xl"
+			class="scrollBarLight bg-cb-quaternary-950 absolute top-full right-0 left-0 z-30 mt-2 max-h-72 overflow-y-auto rounded-lg border border-white/5 p-2 shadow-2xl"
 		>
 			<div v-if="combinedLoading" class="text-cb-tertiary-500 py-4 text-center text-sm">
 				{{ loadingText }}

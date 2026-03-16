@@ -12,68 +12,63 @@
 	const failedDiscoverMusicImages = ref<Record<string, boolean>>({})
 
 	// SSR-compatible data fetching avec useFetch + refresh pour temps réel
-	const {
-		data: comebacks,
-		pending: newsFetching,
-	} = await useFetch(() => `/api/news/latest?_t=${refreshTimestamp.value}`, {
-		default: () => [],
-		server: true,
-		key: 'news-latest',
-		// Pas besoin de transform car l'API retourne déjà triées par date croissante
-	})
+	const { data: comebacks, pending: newsFetching } = await useFetch(
+		() => `/api/news/latest?_t=${refreshTimestamp.value}`,
+		{
+			default: () => [],
+			server: true,
+			key: 'news-latest',
+			// Pas besoin de transform car l'API retourne déjà triées par date croissante
+		},
+	)
 
-	const {
-		data: releases,
-		pending: releasesFetching,
-	} = await useFetch('/api/releases/latest', {
-		default: () => [],
-		server: true,
-		query: { limit: 10 },
-		transform: (data: unknown[]) =>
-			(data as ReleaseListItem[]).sort(
-				(a, b) => new Date(b.date || '').getTime() - new Date(a.date || '').getTime(),
-			),
-	})
+	const { data: releases, pending: releasesFetching } = await useFetch(
+		'/api/releases/latest',
+		{
+			default: () => [],
+			server: true,
+			query: { limit: 10 },
+			transform: (data: unknown[]) =>
+				(data as ReleaseListItem[]).sort(
+					(a, b) => new Date(b.date || '').getTime() - new Date(a.date || '').getTime(),
+				),
+		},
+	)
 
-	const {
-		data: artists,
-		pending: artistsFetching,
-	} = await useFetch('/api/artists/latest', {
-		default: () => [],
-		server: true,
-		query: { limit: 10 },
-		transform: (data: unknown[]) =>
-			(data as ArtistListItem[]).sort(
-				(a, b) =>
-					new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime(),
-			),
-	})
+	const { data: artists, pending: artistsFetching } = await useFetch(
+		'/api/artists/latest',
+		{
+			default: () => [],
+			server: true,
+			query: { limit: 10 },
+			transform: (data: unknown[]) =>
+				(data as ArtistListItem[]).sort(
+					(a, b) =>
+						new Date(b.created_at || '').getTime() -
+						new Date(a.created_at || '').getTime(),
+				),
+		},
+	)
 
 	// Musiques aléatoires - client-only car changent à chaque visite
 	const {
 		data: musics,
 		pending: musicsFetching,
 		error: musicsError,
-	} = await useFetch(
-		() => `/api/musics/random?_t=${musicsTimestamp.value}`,
-		{
-			default: () => [],
-			server: false,
-			query: { limit: 9 },
-			watch: [musicsTimestamp],
-			transform: (data: unknown[]) =>
-				(data as MusicListItem[]).sort(
-					(a, b) => new Date(b.date || '').getTime() - new Date(a.date || '').getTime(),
-				),
-		},
-	)
+	} = await useFetch(() => `/api/musics/random?_t=${musicsTimestamp.value}`, {
+		default: () => [],
+		server: false,
+		query: { limit: 9 },
+		watch: [musicsTimestamp],
+		transform: (data: unknown[]) =>
+			(data as MusicListItem[]).sort(
+				(a, b) => new Date(b.date || '').getTime() - new Date(a.date || '').getTime(),
+			),
+	})
 
 	const discoverMusicAutoRetried = ref(false)
 
-	const {
-		data: mvs,
-		pending: mvsFetching,
-	} = await useFetch('/api/musics/latest-mvs', {
+	const { data: mvs, pending: mvsFetching } = await useFetch('/api/musics/latest-mvs', {
 		default: () => [],
 		server: true,
 		query: { limit: 14 },
@@ -153,7 +148,7 @@
 	const getMusicThumbnail = (music: Music): string => {
 		const thumbnails = music.thumbnails
 		if (!Array.isArray(thumbnails) || thumbnails.length === 0) return ''
-		const last = thumbnails[thumbnails.length-1]
+		const last = thumbnails[thumbnails.length - 1]
 		if (!last || typeof last !== 'object' || !('url' in last)) return ''
 		const url = (last as { url?: unknown }).url
 		return typeof url === 'string' ? url : ''
@@ -162,11 +157,11 @@
 	const { addToPlaylist, isCurrentlyPlaying } = useYouTube()
 
 	const playDiscoverMusic = (music: Music) => {
-		const videoId = (music as Music & { id_youtube_music?: string | null }).id_youtube_music
+		const videoId = (music as Music & { id_youtube_music?: string | null })
+			.id_youtube_music
 		if (!videoId) return
 		const artistName =
-			(music as Music & { artists?: Array<{ name?: string }> }).artists?.[0]?.name ||
-			''
+			(music as Music & { artists?: Array<{ name?: string }> }).artists?.[0]?.name || ''
 		addToPlaylist(videoId, music.name ?? '', artistName, getMusicThumbnail(music))
 	}
 
@@ -314,9 +309,11 @@
 <template>
 	<div class="flex-1">
 		<HomeSlider :news-today="comebacksToday" />
-		<section class="mx-auto w-full max-w-[100rem] space-y-10 px-4 pb-12 pt-4 lg:px-8">
+		<section class="mx-auto w-full max-w-[100rem] space-y-10 px-4 pt-4 pb-12 lg:px-8">
 			<div class="space-y-12">
-				<div class="rounded-3xl border border-cb-quinary-900 bg-cb-secondary-950/70 p-4 md:p-6">
+				<div
+					class="border-cb-quinary-900 bg-cb-secondary-950/70 rounded-3xl border p-4 md:p-6"
+				>
 					<div class="space-y-4">
 						<div class="flex flex-wrap items-center justify-between gap-3">
 							<div class="space-y-1">
@@ -327,12 +324,12 @@
 							</div>
 							<div class="flex flex-wrap items-center justify-end gap-2">
 								<span
-									class="rounded-full border border-cb-quinary-900 bg-cb-quinary-900/70 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-cb-tertiary-200"
+									class="border-cb-quinary-900 bg-cb-quinary-900/70 text-cb-tertiary-200 rounded-full border px-3 py-1 text-[11px] font-semibold tracking-wide uppercase"
 								>
 									Community feed
 								</span>
 								<span
-									class="hidden rounded-full border border-cb-primary-900/60 bg-cb-primary-900/25 px-2.5 py-1 text-[11px] font-semibold text-cb-tertiary-100 md:inline-flex"
+									class="border-cb-primary-900/60 bg-cb-primary-900/25 text-cb-tertiary-100 hidden rounded-full border px-2.5 py-1 text-[11px] font-semibold md:inline-flex"
 								>
 									Upcoming: {{ upcomingFutureCount }}
 								</span>
@@ -396,7 +393,7 @@
 									v-for="music in musics"
 									:key="music.id_youtube_music ?? music.id"
 									type="button"
-									class="relative aspect-square overflow-hidden rounded-lg bg-cb-quinary-900"
+									class="bg-cb-quinary-900 relative aspect-square overflow-hidden rounded-lg"
 									@click="playDiscoverMusic(music)"
 								>
 									<NuxtImg
@@ -407,7 +404,7 @@
 										@error="onDiscoverMusicImageError(music)"
 									/>
 									<div
-										class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent px-2 pb-2 pt-6"
+										class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent px-2 pt-6 pb-2"
 									>
 										<p class="truncate text-xs font-semibold text-white">
 											{{ music.name }}
@@ -415,10 +412,9 @@
 									</div>
 									<span
 										v-if="
-											music.id_youtube_music &&
-											isCurrentlyPlaying(music.id_youtube_music)
+											music.id_youtube_music && isCurrentlyPlaying(music.id_youtube_music)
 										"
-										class="absolute right-2 top-2 rounded-full bg-cb-primary-900/90 px-2 py-1 text-[10px] font-semibold text-white"
+										class="bg-cb-primary-900/90 absolute top-2 right-2 rounded-full px-2 py-1 text-[10px] font-semibold text-white"
 									>
 										Playing
 									</span>
@@ -464,13 +460,17 @@
 								Unable to load Discover Music.
 							</p>
 							<p class="text-cb-tertiary-300 mt-1 text-xs">
-								{{ musicsError ? 'A temporary error occurred.' : 'No music available right now.' }}
+								{{
+									musicsError
+										? 'A temporary error occurred.'
+										: 'No music available right now.'
+								}}
 							</p>
 							<UButton
 								label="Retry"
 								variant="soft"
 								size="sm"
-								class="mt-3 bg-cb-quinary-900 hover:bg-cb-quinary-900/80 text-white"
+								class="bg-cb-quinary-900 hover:bg-cb-quinary-900/80 mt-3 text-white"
 								icon="i-material-symbols-refresh"
 								@click="reloadDiscoverMusic"
 							/>

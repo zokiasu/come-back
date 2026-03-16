@@ -37,7 +37,9 @@
 </script>
 
 <template>
-	<div class="cb-safe-area bg-cb-secondary-950 text-cb-tertiary-200 flex min-h-screen w-full flex-col">
+	<div
+		class="cb-safe-area bg-cb-secondary-950 text-cb-tertiary-200 flex min-h-screen w-full flex-col"
+	>
 		<Navigation class="hidden lg:block" />
 		<div class="inset-x-0 z-50 py-3 lg:hidden">
 			<img
@@ -52,8 +54,8 @@
 			<slot />
 		</main>
 		<LazyFooter v-if="displayingFooter" class="hidden lg:block" />
-		<div v-if="displayingFooter" class="lg:hidden h-24" />
-		<div v-if="displayingFooter" ref="mobileNavSentinel" class="lg:hidden h-px w-full" />
+		<div v-if="displayingFooter" class="h-24 lg:hidden" />
+		<div v-if="displayingFooter" ref="mobileNavSentinel" class="h-px w-full lg:hidden" />
 		<LazyMobileNavigation class="lg:hidden" />
 		<LazyYoutubePlayer
 			v-if="isPlayingVideo"

@@ -239,11 +239,14 @@
 		debouncedFetch()
 	})
 
-	watch([typeFilter, genderFilter, onlyWithStyles, sortColumn, sortDirection, pageSizeValue], () => {
-		isFilterChange.value = true
-		currentPage.value = 1
-		fetchArtists()
-	})
+	watch(
+		[typeFilter, genderFilter, onlyWithStyles, sortColumn, sortDirection, pageSizeValue],
+		() => {
+			isFilterChange.value = true
+			currentPage.value = 1
+			fetchArtists()
+		},
+	)
 
 	// Watch page changes from pagination
 	watch(currentPage, () => {
@@ -346,11 +349,7 @@
 					:ui="{ base: 'bg-cb-quinary-900' }"
 				/>
 
-				<UCheckbox
-					v-model="onlyWithStyles"
-					label="Has styles only"
-					class="shrink-0"
-				/>
+				<UCheckbox v-model="onlyWithStyles" label="Has styles only" class="shrink-0" />
 
 				<div class="flex items-center gap-2">
 					<USelectMenu
@@ -516,6 +515,25 @@
 							</span>
 						</div>
 
+						<div
+							v-if="artist.nationalities && artist.nationalities.length"
+							class="mt-1 flex flex-wrap gap-1"
+						>
+							<span
+								v-for="nationality in artist.nationalities.slice(0, 3)"
+								:key="nationality"
+								class="rounded bg-amber-900/30 px-1.5 py-0.5 text-xs text-amber-200"
+							>
+								{{ nationality }}
+							</span>
+							<span
+								v-if="artist.nationalities.length > 3"
+								class="text-cb-tertiary-500 text-xs"
+							>
+								+{{ artist.nationalities.length - 3 }}
+							</span>
+						</div>
+
 						<!-- Birth & Debut dates -->
 						<div class="mt-1 flex flex-wrap items-center gap-3 text-xs">
 							<span
@@ -587,7 +605,7 @@
 						</div>
 						<span
 							v-if="getMissingData(artist).length > 0"
-							class="mt-1 inline-flex rounded bg-gray-500/10 px-1.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-gray-300"
+							class="mt-1 inline-flex rounded bg-gray-500/10 px-1.5 py-0.5 text-[11px] font-semibold tracking-wide text-gray-300 uppercase"
 							:title="`Missing fields: ${getMissingLabels(artist).join(', ')}`"
 						>
 							Incomplete

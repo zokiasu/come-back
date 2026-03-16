@@ -146,8 +146,7 @@
 				errorMessage.value = 'Video restricted or unavailable in your region'
 				break
 			default:
-				errorMessage.value =
-					'YouTube playback error. Try disabling your ad blocker.'
+				errorMessage.value = 'YouTube playback error. Try disabling your ad blocker.'
 		}
 	}
 
@@ -231,8 +230,7 @@
 		if (detectAdBlocker()) {
 			console.warn('⚠️ Bloqueur de publicités détecté')
 			errorDetected.value = true
-			errorMessage.value =
-				'Ad blocker detected. The player may not work properly.'
+			errorMessage.value = 'Ad blocker detected. The player may not work properly.'
 		}
 
 		if (window.YT && window.YT.Player) {
@@ -258,8 +256,7 @@
 			tag.onerror = (error) => {
 				console.error("❌ Erreur lors du chargement de l'API YouTube:", error)
 				errorDetected.value = true
-				errorMessage.value =
-					'Unable to load YouTube. Check your ad blocker.'
+				errorMessage.value = 'Unable to load YouTube. Check your ad blocker.'
 			}
 
 			const firstScriptTag = document.getElementsByTagName('script')[0]
@@ -506,9 +503,7 @@
 
 	const playerWrapperClass = computed(() => {
 		if (isMobile.value) {
-			return isMinimized.value
-				? 'bottom-24 right-4 w-16'
-				: 'bottom-24 inset-x-0 px-4'
+			return isMinimized.value ? 'bottom-24 right-4 w-16' : 'bottom-24 inset-x-0 px-4'
 		}
 		return isMinimized.value ? 'bottom-6 right-6 w-16' : 'bottom-6 inset-x-0 px-6'
 	})
@@ -537,10 +532,14 @@
 
 		<div
 			v-if="!isMinimized"
-			class="bg-cb-secondary-950/95 border border-cb-quinary-900/70 shadow-black/40 relative w-full overflow-hidden rounded-3xl shadow-lg"
+			class="bg-cb-secondary-950/95 border-cb-quinary-900/70 relative w-full overflow-hidden rounded-3xl border shadow-lg shadow-black/40"
 		>
-			<div class="flex items-center gap-3 px-4 py-2 md:grid md:grid-cols-3 md:gap-4 md:py-3">
-				<div class="flex min-w-0 flex-1 items-center gap-3 md:col-start-1 md:row-start-1 md:flex-none">
+			<div
+				class="flex items-center gap-3 px-4 py-2 md:grid md:grid-cols-3 md:gap-4 md:py-3"
+			>
+				<div
+					class="flex min-w-0 flex-1 items-center gap-3 md:col-start-1 md:row-start-1 md:flex-none"
+				>
 					<div
 						class="bg-cb-quinary-900/70 text-cb-tertiary-200 hidden h-10 w-10 items-center justify-center rounded-xl md:flex"
 					>
@@ -584,7 +583,9 @@
 					</div>
 				</div>
 
-				<div class="flex items-center justify-center gap-1 md:gap-2 md:col-start-2 md:row-start-1">
+				<div
+					class="flex items-center justify-center gap-1 md:col-start-2 md:row-start-1 md:gap-2"
+				>
 					<UButton
 						variant="ghost"
 						class="hidden lg:block"
@@ -651,7 +652,9 @@
 					/>
 				</div>
 
-				<div class="ml-auto flex items-center gap-2 md:ml-0 md:justify-end md:gap-2 md:col-start-3 md:row-start-1">
+				<div
+					class="ml-auto flex items-center gap-2 md:col-start-3 md:row-start-1 md:ml-0 md:justify-end md:gap-2"
+				>
 					<UButton
 						v-if="canOpenCurrentVideoPreview"
 						variant="ghost"
@@ -700,7 +703,9 @@
 					@mousedown="onSeekStart"
 					@touchstart="onSeekStart"
 				/>
-				<div class="text-cb-tertiary-400 mt-1 flex items-center justify-between text-[11px]">
+				<div
+					class="text-cb-tertiary-400 mt-1 flex items-center justify-between text-[11px]"
+				>
 					<div class="flex items-center gap-1">
 						<span>{{ convertDuration(currentTime) }}</span>
 						<span>/</span>
@@ -717,14 +722,14 @@
 			v-else
 			role="button"
 			tabindex="0"
-			class="bg-cb-secondary-950/95 border border-cb-quinary-900/70 relative flex h-16 w-16 cursor-pointer items-center justify-center overflow-hidden rounded-2xl shadow-lg"
+			class="bg-cb-secondary-950/95 border-cb-quinary-900/70 relative flex h-16 w-16 cursor-pointer items-center justify-center overflow-hidden rounded-2xl border shadow-lg"
 			@click="toggleMinimize"
 			@keydown.enter="toggleMinimize"
 		>
 			<UIcon name="i-material-symbols-music-note" class="h-6 w-6 text-white" />
 			<button
 				type="button"
-				class="absolute right-1 top-1 rounded-full bg-black/60 p-1"
+				class="absolute top-1 right-1 rounded-full bg-black/60 p-1"
 				@click.stop="togglePlayPause"
 			>
 				<UIcon
@@ -735,13 +740,3 @@
 		</div>
 	</div>
 </template>
-
-
-
-
-
-
-
-
-
-

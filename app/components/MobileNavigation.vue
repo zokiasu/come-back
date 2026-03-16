@@ -49,15 +49,11 @@
 	>
 		<div
 			class="bg-cb-secondary-950/95 flex w-full items-center justify-between border border-zinc-700/80 shadow-lg shadow-black/30 backdrop-blur transition-all duration-300"
-			:class="
-				isMobileNavDocked
-					? 'rounded-none border-x-0 border-b-0'
-					: 'rounded-3xl'
-			"
+			:class="isMobileNavDocked ? 'rounded-none border-x-0 border-b-0' : 'rounded-3xl'"
 		>
 			<NuxtLink
 				to="/"
-				class="cb-no-select flex flex-1 flex-col items-center justify-center gap-1 py-3 text-cb-tertiary-200 transition-all duration-300 ease-in-out hover:text-white"
+				class="cb-no-select text-cb-tertiary-200 flex flex-1 flex-col items-center justify-center gap-1 py-3 transition-all duration-300 ease-in-out hover:text-white"
 				active-class="text-white"
 			>
 				<IconHome class="h-5 w-5" />
@@ -66,7 +62,7 @@
 
 			<NuxtLink
 				to="/calendar"
-				class="cb-no-select flex flex-1 flex-col items-center justify-center gap-1 py-3 text-cb-tertiary-200 transition-all duration-300 ease-in-out hover:text-white"
+				class="cb-no-select text-cb-tertiary-200 flex flex-1 flex-col items-center justify-center gap-1 py-3 transition-all duration-300 ease-in-out hover:text-white"
 				active-class="text-white"
 			>
 				<IconCalendar class="h-5 w-5" />
@@ -74,7 +70,7 @@
 			</NuxtLink>
 
 			<button
-				class="cb-no-select flex flex-1 flex-col items-center justify-center gap-1 py-3 text-cb-tertiary-200 transition-all duration-300 ease-in-out hover:text-white"
+				class="cb-no-select text-cb-tertiary-200 flex flex-1 flex-col items-center justify-center gap-1 py-3 transition-all duration-300 ease-in-out hover:text-white"
 				type="button"
 				aria-label="Search"
 				@click="isSearchOpen = true"
@@ -84,7 +80,7 @@
 			</button>
 
 			<button
-				class="cb-no-select flex flex-1 flex-col items-center justify-center gap-1 py-3 text-cb-tertiary-200 transition-all duration-300 ease-in-out hover:text-white"
+				class="cb-no-select text-cb-tertiary-200 flex flex-1 flex-col items-center justify-center gap-1 py-3 transition-all duration-300 ease-in-out hover:text-white"
 				type="button"
 				aria-label="More"
 				@click="isMoreOpen = true"
@@ -130,7 +126,7 @@
 					<div class="flex flex-col gap-2">
 						<NuxtLink
 							to="/ranking/explore"
-							class="cb-no-select flex items-center gap-3 rounded-xl border border-cb-quinary-900 bg-cb-quinary-950/70 px-4 py-3 text-sm font-semibold text-white transition hover:bg-cb-quinary-900"
+							class="cb-no-select border-cb-quinary-900 bg-cb-quinary-950/70 hover:bg-cb-quinary-900 flex items-center gap-3 rounded-xl border px-4 py-3 text-sm font-semibold text-white transition"
 							@click="isMoreOpen = false"
 						>
 							<UIcon name="i-heroicons-musical-note" class="h-5 w-5" />
@@ -139,7 +135,7 @@
 
 						<NuxtLink
 							to="/music"
-							class="cb-no-select flex items-center gap-3 rounded-xl border border-cb-quinary-900 bg-cb-quinary-950/70 px-4 py-3 text-sm font-semibold text-white transition hover:bg-cb-quinary-900"
+							class="cb-no-select border-cb-quinary-900 bg-cb-quinary-950/70 hover:bg-cb-quinary-900 flex items-center gap-3 rounded-xl border px-4 py-3 text-sm font-semibold text-white transition"
 							@click="isMoreOpen = false"
 						>
 							<UIcon name="i-heroicons-play-circle" class="h-5 w-5" />
@@ -148,7 +144,7 @@
 
 						<NuxtLink
 							to="/settings"
-							class="cb-no-select flex items-center gap-3 rounded-xl border border-cb-quinary-900 bg-cb-quinary-950/70 px-4 py-3 text-sm font-semibold text-white transition hover:bg-cb-quinary-900"
+							class="cb-no-select border-cb-quinary-900 bg-cb-quinary-950/70 hover:bg-cb-quinary-900 flex items-center gap-3 rounded-xl border px-4 py-3 text-sm font-semibold text-white transition"
 							@click="isMoreOpen = false"
 						>
 							<UIcon name="i-heroicons-cog-6-tooth" class="h-5 w-5" />
@@ -157,7 +153,7 @@
 
 						<button
 							v-if="!isUserLoggedIn && isClient"
-							class="cb-no-select flex items-center gap-3 rounded-xl border border-cb-quinary-900 bg-cb-quinary-950/70 px-4 py-3 text-sm font-semibold text-white transition hover:bg-cb-quinary-900"
+							class="cb-no-select border-cb-quinary-900 bg-cb-quinary-950/70 hover:bg-cb-quinary-900 flex items-center gap-3 rounded-xl border px-4 py-3 text-sm font-semibold text-white transition"
 							@click="handleLoginClick"
 						>
 							<IconAccount class="h-5 w-5" />
@@ -167,7 +163,7 @@
 						<NuxtLink
 							v-if="isAdminStore && isClient"
 							to="/dashboard/artist"
-							class="cb-no-select flex items-center gap-3 rounded-xl border border-cb-quinary-900 bg-cb-quinary-950/70 px-4 py-3 text-sm font-semibold text-white transition hover:bg-cb-quinary-900"
+							class="cb-no-select border-cb-quinary-900 bg-cb-quinary-950/70 hover:bg-cb-quinary-900 flex items-center gap-3 rounded-xl border px-4 py-3 text-sm font-semibold text-white transition"
 							@click="isMoreOpen = false"
 						>
 							<IconEdit class="h-5 w-5" />
@@ -177,7 +173,7 @@
 						<button
 							v-if="isUserLoggedIn"
 							type="button"
-							class="cb-no-select flex items-center gap-3 rounded-xl border border-cb-quinary-900 bg-cb-primary-700/10 px-4 py-3 text-sm font-semibold text-white transition hover:bg-cb-primary-900/70"
+							class="cb-no-select border-cb-quinary-900 bg-cb-primary-700/10 hover:bg-cb-primary-900/70 flex items-center gap-3 rounded-xl border px-4 py-3 text-sm font-semibold text-white transition"
 							@click="openNewsCreationModal"
 						>
 							<IconComeback class="h-5 w-5" />

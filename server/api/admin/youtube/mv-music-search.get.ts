@@ -29,7 +29,8 @@ export default defineEventHandler(async (event) => {
 	const query = getQuery(event)
 	const searchQuery = String(query.query ?? '').trim()
 	const contextTitle = String(query.contextTitle ?? '').trim()
-	const publishedAt = typeof query.publishedAt === 'string' ? query.publishedAt : undefined
+	const publishedAt =
+		typeof query.publishedAt === 'string' ? query.publishedAt : undefined
 	const limit = clampInteger(Number(query.limit ?? 8), 1, 12, 8)
 
 	if (searchQuery.length < 2) {
@@ -53,7 +54,10 @@ export default defineEventHandler(async (event) => {
 
 	return {
 		musics: musics
-			.map((music) => scoreMusicMatch(targetTitle, publishedAt, music) ?? toFallbackSuggestion(music))
+			.map(
+				(music) =>
+					scoreMusicMatch(targetTitle, publishedAt, music) ?? toFallbackSuggestion(music),
+			)
 			.sort((left, right) => right.score - left.score)
 			.slice(0, limit),
 	}

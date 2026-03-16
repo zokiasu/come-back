@@ -214,6 +214,7 @@ export type Database = {
 					id_youtube_music: string | null
 					image: string | null
 					name: string
+					nationalities: string[] | null
 					styles: string[] | null
 					type: Database['public']['Enums']['artist_type'] | null
 					updated_at: string | null
@@ -231,6 +232,7 @@ export type Database = {
 					id_youtube_music?: string | null
 					image?: string | null
 					name: string
+					nationalities?: string[] | null
 					styles?: string[] | null
 					type?: Database['public']['Enums']['artist_type'] | null
 					updated_at?: string | null
@@ -248,6 +250,7 @@ export type Database = {
 					id_youtube_music?: string | null
 					image?: string | null
 					name?: string
+					nationalities?: string[] | null
 					styles?: string[] | null
 					type?: Database['public']['Enums']['artist_type'] | null
 					updated_at?: string | null
@@ -327,6 +330,27 @@ export type Database = {
 				]
 			}
 			general_tags: {
+				Row: {
+					created_at: string | null
+					id: string
+					name: string
+					updated_at: string | null
+				}
+				Insert: {
+					created_at?: string | null
+					id?: string
+					name: string
+					updated_at?: string | null
+				}
+				Update: {
+					created_at?: string | null
+					id?: string
+					name?: string
+					updated_at?: string | null
+				}
+				Relationships: []
+			}
+			nationalities: {
 				Row: {
 					created_at: string | null
 					id: string

@@ -8,9 +8,7 @@ export default defineEventHandler(async (event) => {
 	const limit = validateLimitParam(Number(query.limit), 10)
 	const typeParam = typeof query.type === 'string' ? query.type.toUpperCase() : undefined
 	const artistType =
-		typeParam === 'GROUP' || typeParam === 'SOLO'
-			? (typeParam as ArtistType)
-			: undefined
+		typeParam === 'GROUP' || typeParam === 'SOLO' ? (typeParam as ArtistType) : undefined
 	const normalizedSearch = search?.trim().replace(/\s+/g, ' ') || ''
 
 	if (!normalizedSearch || normalizedSearch.length < 2) {
@@ -19,11 +17,14 @@ export default defineEventHandler(async (event) => {
 
 	const supabase = useServerSupabase()
 
-	const { data: rpcData, error: rpcError } = await supabase.rpc('search_artists_fulltext', {
-		search_query: normalizedSearch,
-		result_limit: limit,
-		artist_type: artistType,
-	})
+	const { data: rpcData, error: rpcError } = await supabase.rpc(
+		'search_artists_fulltext',
+		{
+			search_query: normalizedSearch,
+			result_limit: limit,
+			artist_type: artistType,
+		},
+	)
 
 	if (rpcError) {
 		console.warn('Artist search RPC failed, falling back to ILIKE:', rpcError.message)

@@ -277,15 +277,17 @@
 	// Transformer les options de musique pour le menu (null -> undefined)
 	const musicOptionsForMenu = computed((): MusicMenuItem[] => {
 		const options = musicOptions.value as MusicOption[]
-		return options.map((music): MusicMenuItem => ({
-			id: music.id,
-			label: music.name,
-			name: music.name,
-			description: music.description ?? undefined,
-			duration: music.duration,
-			musicType: music.type ?? undefined,
-			artists: music.artists,
-		}))
+		return options.map(
+			(music): MusicMenuItem => ({
+				id: music.id,
+				label: music.name,
+				name: music.name,
+				description: music.description ?? undefined,
+				duration: music.duration,
+				musicType: music.type ?? undefined,
+				artists: music.artists,
+			}),
+		)
 	})
 
 	// Formulaire de création de musique
@@ -346,14 +348,16 @@
 				orderDirection: 'asc',
 			})
 
-			musicOptions.value = musics.map((music): MusicOption => ({
-				id: music.id,
-				name: music.name,
-				description: music.description,
-				duration: music.duration,
-				type: music.type,
-				artists: music.artists,
-			}))
+			musicOptions.value = musics.map(
+				(music): MusicOption => ({
+					id: music.id,
+					name: music.name,
+					description: music.description,
+					duration: music.duration,
+					type: music.type,
+					artists: music.artists,
+				}),
+			)
 		} catch (error) {
 			console.error('Error searching for music:', error)
 			musicOptions.value = []

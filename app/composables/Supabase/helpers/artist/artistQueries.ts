@@ -11,6 +11,7 @@ export interface ArtistPageOptions {
 	orderBy?: keyof Artist
 	orderDirection?: 'asc' | 'desc'
 	general_tags?: string[]
+	nationalities?: string[]
 	styles?: string[]
 	gender?: string
 	isActive?: boolean
@@ -270,6 +271,10 @@ export async function fetchArtistsByPage(
 		query = query.overlaps('general_tags', options.general_tags)
 	}
 
+	if (options?.nationalities?.length) {
+		query = query.overlaps('nationalities', options.nationalities)
+	}
+
 	if (options?.styles?.length) {
 		query = query.overlaps('styles', options.styles)
 	}
@@ -337,12 +342,14 @@ export async function fetchArtistsByPage(
 		platform_links: artist.platform_links || [],
 		companies: artist.companies || [],
 		groups:
-			artist.groups?.map((g) => {
-				if (typeof g === 'object' && g !== null && 'group' in g) {
-					return (g as { group?: Artist | null }).group
-				}
-				return g as Artist
-			}).filter(Boolean) || [],
+			artist.groups
+				?.map((g) => {
+					if (typeof g === 'object' && g !== null && 'group' in g) {
+						return (g as { group?: Artist | null }).group
+					}
+					return g as Artist
+				})
+				.filter(Boolean) || [],
 	}))
 
 	// Filtrage côté client pour les relations

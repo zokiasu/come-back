@@ -128,7 +128,7 @@
 					</ClientOnly>
 				</div>
 
-				<div class="flex items-center justify-center gap-3 w-full max-w-lg">
+				<div class="flex w-full max-w-lg items-center justify-center gap-3">
 					<SearchInline
 						placeholder="Search artists, releases, musics..."
 						container-class="w-full"

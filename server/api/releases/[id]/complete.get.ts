@@ -45,10 +45,9 @@ export default defineEventHandler(async (event) => {
 		if (musicsError) throw musicsError
 
 		// Récupérer des releases suggérées (même artiste, excluant le release actuel)
-		const artistIds = transformJunction(
-			finalReleaseArtists,
-			'artist',
-		).map((artist) => artist.id)
+		const artistIds = transformJunction(finalReleaseArtists, 'artist').map(
+			(artist) => artist.id,
+		)
 		const suggestedReleases: Array<
 			Tables<'releases'> & { artists: Tables<'artists'>[] }
 		> = []
@@ -118,4 +117,3 @@ export default defineEventHandler(async (event) => {
 		throw handleSupabaseError(error as PostgrestError, 'releases.complete')
 	}
 })
-

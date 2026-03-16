@@ -156,15 +156,18 @@
 		resetTransientState()
 
 		try {
-			const response = await $fetch<CandidateScanResponse>('/api/admin/youtube/mv-candidates', {
-				headers: requireAuthHeaders(),
-				query: {
-					startDate: startDate.value,
-					endDate: endDate.value,
-					keywords: parsedKeywords.value.join(','),
-					limit: limit.value,
+			const response = await $fetch<CandidateScanResponse>(
+				'/api/admin/youtube/mv-candidates',
+				{
+					headers: requireAuthHeaders(),
+					query: {
+						startDate: startDate.value,
+						endDate: endDate.value,
+						keywords: parsedKeywords.value.join(','),
+						limit: limit.value,
+					},
 				},
-			})
+			)
 
 			candidates.value = response.candidates ?? []
 			scannedVideos.value = response.scannedVideos ?? 0
@@ -299,7 +302,9 @@
 			</div>
 
 			<section class="bg-cb-quinary-900 rounded-2xl border border-white/5 p-4 md:p-5">
-				<div class="grid grid-cols-1 gap-3 lg:grid-cols-[1fr_1fr_2fr_auto_auto] lg:items-end">
+				<div
+					class="grid grid-cols-1 gap-3 lg:grid-cols-[1fr_1fr_2fr_auto_auto] lg:items-end"
+				>
 					<UFormField label="Start">
 						<UInput v-model="startDate" type="date" class="w-full" />
 					</UFormField>
@@ -408,7 +413,11 @@
 
 							<div class="space-y-2">
 								<div class="flex flex-wrap items-center gap-2">
-									<UBadge v-if="candidate.matchedKeyword" color="primary" variant="subtle">
+									<UBadge
+										v-if="candidate.matchedKeyword"
+										color="primary"
+										variant="subtle"
+									>
 										{{ candidate.matchedKeyword }}
 									</UBadge>
 									<UBadge color="neutral" variant="subtle">
@@ -419,13 +428,21 @@
 									{{ candidate.title }}
 								</h2>
 								<p class="text-cb-tertiary-400 text-sm">{{ candidate.channelTitle }}</p>
-								<p v-if="candidate.description" class="text-cb-tertiary-500 line-clamp-3 text-xs">
+								<p
+									v-if="candidate.description"
+									class="text-cb-tertiary-500 line-clamp-3 text-xs"
+								>
 									{{ candidate.description }}
 								</p>
 							</div>
 
 							<div class="flex flex-wrap gap-2">
-								<UButton color="primary" variant="outline" size="sm" @click="openPreview(candidate)">
+								<UButton
+									color="primary"
+									variant="outline"
+									size="sm"
+									@click="openPreview(candidate)"
+								>
 									Preview
 								</UButton>
 								<UButton
@@ -437,7 +454,12 @@
 								>
 									YouTube
 								</UButton>
-								<UButton color="neutral" variant="ghost" size="sm" @click="ignoreCandidate(candidate.videoId)">
+								<UButton
+									color="neutral"
+									variant="ghost"
+									size="sm"
+									@click="ignoreCandidate(candidate.videoId)"
+								>
 									Ignore
 								</UButton>
 							</div>
@@ -452,7 +474,10 @@
 									</UBadge>
 								</div>
 
-								<div v-if="candidate.suggestions.length > 0" class="grid grid-cols-1 gap-3 xl:grid-cols-2">
+								<div
+									v-if="candidate.suggestions.length > 0"
+									class="grid grid-cols-1 gap-3 xl:grid-cols-2"
+								>
 									<div
 										v-for="suggestion in candidate.suggestions"
 										:key="`${candidate.videoId}-${suggestion.musicId}`"
@@ -505,7 +530,10 @@
 									</div>
 								</div>
 
-								<p v-else class="text-cb-tertiary-500 rounded-xl border border-dashed border-white/10 p-4 text-sm">
+								<p
+									v-else
+									class="text-cb-tertiary-500 rounded-xl border border-dashed border-white/10 p-4 text-sm"
+								>
 									No reliable automatic suggestion found for this video.
 								</p>
 							</section>

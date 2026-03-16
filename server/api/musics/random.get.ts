@@ -29,8 +29,7 @@ export default defineEventHandler(async (event) => {
 
 		// 2. Générer un offset aléatoire
 		const maxOffset = Math.max(0, count - limit * 3)
-		const randomOffset =
-			maxOffset > 0 ? Math.floor(Math.random() * (maxOffset + 1)) : 0
+		const randomOffset = maxOffset > 0 ? Math.floor(Math.random() * (maxOffset + 1)) : 0
 
 		const fetchChunk = async (offset: number) => {
 			const { data, error } = await supabase

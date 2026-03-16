@@ -25,7 +25,9 @@
 		return playlist.value.filter((item) => {
 			const title = item.title?.toLowerCase() ?? ''
 			const artist = item.artist?.toLowerCase() ?? ''
-			return title.includes(normalizedSearch.value) || artist.includes(normalizedSearch.value)
+			return (
+				title.includes(normalizedSearch.value) || artist.includes(normalizedSearch.value)
+			)
 		})
 	})
 
@@ -64,7 +66,7 @@
 <template>
 	<div v-if="isOpen" class="w-full" @click="isOpen = false">
 		<div
-			class="bg-cb-secondary-950/95 border border-cb-quinary-900/70 shadow-black/40 mx-auto flex h-full w-full flex-col overflow-hidden rounded-3xl shadow-xl backdrop-blur sm:h-3/4 sm:max-h-[600px] sm:max-w-md"
+			class="bg-cb-secondary-950/95 border-cb-quinary-900/70 mx-auto flex h-full w-full flex-col overflow-hidden rounded-3xl border shadow-xl shadow-black/40 backdrop-blur sm:h-3/4 sm:max-h-[600px] sm:max-w-md"
 			@click.stop
 		>
 			<!-- Header -->
@@ -83,7 +85,7 @@
 						v-if="playlist.length > 0"
 						type="button"
 						aria-label="Clear playlist"
-						class="text-cb-tertiary-400 hover:text-white rounded px-2 py-1 text-xs"
+						class="text-cb-tertiary-400 rounded px-2 py-1 text-xs hover:text-white"
 						@click="handleClearPlaylist"
 					>
 						Clear
@@ -91,7 +93,7 @@
 					<button
 						type="button"
 						aria-label="Close playlist panel"
-						class="text-cb-tertiary-400 hover:text-white rounded p-1"
+						class="text-cb-tertiary-400 rounded p-1 hover:text-white"
 						@click="isOpen = false"
 					>
 						<IconClose class="h-5 w-5" />
@@ -149,7 +151,7 @@
 					>
 						<template #item="{ element: item, index }">
 							<div
-								class="group flex items-center gap-3 border-b border-cb-quinary-900/60 px-4 py-3 transition-colors duration-200"
+								class="group border-cb-quinary-900/60 flex items-center gap-3 border-b px-4 py-3 transition-colors duration-200"
 								:class="{
 									'bg-cb-quinary-900/80': index === currentIndex,
 									'hover:bg-cb-quinary-900/60': index !== currentIndex,
@@ -157,7 +159,7 @@
 							>
 								<button
 									type="button"
-									class="cb-drag-handle text-cb-tertiary-500 hover:text-white hidden sm:block"
+									class="cb-drag-handle text-cb-tertiary-500 hidden hover:text-white sm:block"
 									aria-label="Reorder"
 								>
 									<UIcon name="i-heroicons-bars-3" class="h-4 w-4" />
@@ -165,16 +167,14 @@
 
 								<button
 									type="button"
-									class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-cb-quinary-900/60 transition-colors"
+									class="border-cb-quinary-900/60 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border transition-colors"
 									:class="{
 										'bg-cb-quinary-900 text-white': index === currentIndex,
 										'bg-cb-secondary-950 hover:bg-cb-quinary-900 group-hover:text-white':
 											index !== currentIndex,
 									}"
 									:aria-label="
-										index === currentIndex
-											? `Pause ${item.title}`
-											: `Play ${item.title}`
+										index === currentIndex ? `Pause ${item.title}` : `Play ${item.title}`
 									"
 									@click="handlePlayItem(item)"
 								>
@@ -223,7 +223,7 @@
 								>
 									<button
 										type="button"
-										class="text-cb-tertiary-500 hover:text-white rounded p-1"
+										class="text-cb-tertiary-500 rounded p-1 hover:text-white"
 										:aria-label="`Remove ${item.title} from playlist`"
 										@click="handleRemoveItem(item)"
 									>
@@ -243,11 +243,11 @@
 						v-for="item in filteredPlaylist"
 						v-else
 						:key="item.uid"
-						class="group flex items-center gap-3 border-b border-cb-quinary-900/60 px-4 py-3 transition-colors duration-200 hover:bg-cb-quinary-900/60"
+						class="group border-cb-quinary-900/60 hover:bg-cb-quinary-900/60 flex items-center gap-3 border-b px-4 py-3 transition-colors duration-200"
 					>
 						<button
 							type="button"
-							class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-cb-quinary-900/60 transition-colors bg-cb-secondary-950 hover:bg-cb-quinary-900 group-hover:text-white"
+							class="border-cb-quinary-900/60 bg-cb-secondary-950 hover:bg-cb-quinary-900 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border transition-colors group-hover:text-white"
 							:aria-label="`Play ${item.title}`"
 							@click="handlePlayItem(item)"
 						>
@@ -284,7 +284,7 @@
 						<div class="flex shrink-0 items-center gap-1">
 							<button
 								type="button"
-								class="text-cb-tertiary-500 hover:text-white rounded p-1"
+								class="text-cb-tertiary-500 rounded p-1 hover:text-white"
 								:aria-label="`Remove ${item.title} from playlist`"
 								@click="handleRemoveItem(item)"
 							>

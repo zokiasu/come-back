@@ -6,12 +6,14 @@ export default defineEventHandler(async (event) => {
 
 	const supabase = useServerSupabase()
 
-	const [artistsResult, stylesResult, tagsResult, companiesResult] = await Promise.all([
-		supabase.from('artists').select('*').order('name', { ascending: true }),
-		supabase.from('music_styles').select('*').order('name', { ascending: true }),
-		supabase.from('general_tags').select('*').order('name', { ascending: true }),
-		supabase.from('companies').select('*').order('name', { ascending: true }).limit(1000),
-	])
+	const [artistsResult, stylesResult, tagsResult, nationalitiesResult, companiesResult] =
+		await Promise.all([
+			supabase.from('artists').select('*').order('name', { ascending: true }),
+			supabase.from('music_styles').select('*').order('name', { ascending: true }),
+			supabase.from('general_tags').select('*').order('name', { ascending: true }),
+			supabase.from('nationalities').select('*').order('name', { ascending: true }),
+			supabase.from('companies').select('*').order('name', { ascending: true }).limit(1000),
+		])
 
 	if (artistsResult.error) {
 		throw createError({
@@ -37,6 +39,14 @@ export default defineEventHandler(async (event) => {
 		})
 	}
 
+	if (nationalitiesResult.error) {
+		throw createError({
+			statusCode: 500,
+			statusMessage: 'Failed to load nationalities',
+			message: nationalitiesResult.error.message,
+		})
+	}
+
 	if (companiesResult.error) {
 		throw createError({
 			statusCode: 500,
@@ -51,6 +61,7 @@ export default defineEventHandler(async (event) => {
 		artists: artistsResult.data || [],
 		styles: stylesResult.data || [],
 		tags: tagsResult.data || [],
+		nationalities: nationalitiesResult.data || [],
 		companies: companiesResult.data || [],
 	}
 })

@@ -79,23 +79,24 @@
 <template>
 	<div
 		v-if="canShowPrompt"
-		class="fixed inset-x-4 bottom-20 z-50 rounded-2xl border border-cb-secondary-800 bg-cb-secondary-950/95 p-4 shadow-lg backdrop-blur"
+		class="border-cb-secondary-800 bg-cb-secondary-950/95 fixed inset-x-4 bottom-20 z-50 rounded-2xl border p-4 shadow-lg backdrop-blur"
 	>
 		<div class="flex items-start justify-between gap-4">
 			<div class="space-y-1">
 				<p class="text-sm font-semibold text-white">Install Comeback</p>
-				<p class="text-xs text-cb-tertiary-200">
+				<p class="text-cb-tertiary-200 text-xs">
 					<span v-if="isIos">
-						On iOS, tap <span class="font-semibold text-white">Share</span> then
-						<span class="font-semibold text-white">Add to Home Screen</span>.
+						On iOS, tap
+						<span class="font-semibold text-white">Share</span>
+						then
+						<span class="font-semibold text-white">Add to Home Screen</span>
+						.
 					</span>
-					<span v-else>
-						Access Comeback in one tap, even from your home screen.
-					</span>
+					<span v-else>Access Comeback in one tap, even from your home screen.</span>
 				</p>
 			</div>
 			<button
-				class="cb-no-select text-xs font-semibold text-cb-tertiary-200 hover:text-white"
+				class="cb-no-select text-cb-tertiary-200 text-xs font-semibold hover:text-white"
 				@click="dismissPrompt"
 			>
 				Later
@@ -103,13 +104,13 @@
 		</div>
 		<div v-if="!isIos" class="mt-3 flex gap-3">
 			<button
-				class="cb-no-select bg-cb-primary-900 hover:bg-cb-primary-800 text-xs font-semibold text-white px-4 py-2 rounded-full"
+				class="cb-no-select bg-cb-primary-900 hover:bg-cb-primary-800 rounded-full px-4 py-2 text-xs font-semibold text-white"
 				@click="installApp"
 			>
 				Install
 			</button>
 			<button
-				class="cb-no-select text-xs font-semibold text-cb-tertiary-200 hover:text-white"
+				class="cb-no-select text-cb-tertiary-200 text-xs font-semibold hover:text-white"
 				@click="dismissPrompt"
 			>
 				No thanks

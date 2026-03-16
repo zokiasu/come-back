@@ -308,15 +308,15 @@
 					musics.length ||
 					searchInput.length >= 2)
 			"
-			class="scrollBarLight absolute left-0 right-0 top-full z-50 mt-2 max-h-72 overflow-y-auto rounded-xl border border-cb-quinary-900/70 bg-cb-secondary-950/95 p-2 shadow-lg"
+			class="scrollBarLight border-cb-quinary-900/70 bg-cb-secondary-950/95 absolute top-full right-0 left-0 z-50 mt-2 max-h-72 overflow-y-auto rounded-xl border p-2 shadow-lg"
 			:class="dropdownClass"
 		>
-			<div v-if="isLoading" class="px-3 py-2 text-xs text-cb-tertiary-400">
+			<div v-if="isLoading" class="text-cb-tertiary-400 px-3 py-2 text-xs">
 				Searching...
 			</div>
 			<div v-if="artists.length" class="space-y-1">
 				<div class="flex items-center justify-between px-3 pt-2">
-					<p class="text-[11px] uppercase text-cb-tertiary-500">Artists</p>
+					<p class="text-cb-tertiary-500 text-[11px] uppercase">Artists</p>
 					<UButton
 						variant="ghost"
 						color="neutral"
@@ -327,34 +327,34 @@
 					/>
 				</div>
 				<div v-if="openArtists">
-				<div
-					v-for="(artist, index) in artists"
-					:key="artist.id"
-					type="button"
-					role="button"
-					tabindex="0"
-					class="flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-white hover:bg-cb-quinary-900/80"
-					:class="activeIndex === index ? 'bg-cb-quinary-900/80' : ''"
-					@click="handleSelect(artist.id)"
-					@keydown.enter.prevent="handleSelect(artist.id)"
-				>
-					<div class="h-8 w-8 overflow-hidden rounded-full bg-cb-quinary-900">
-						<NuxtImg
-							v-if="artist.image"
-							:src="artist.image"
-							:alt="artist.name"
-							format="webp"
-							class="h-full w-full object-cover"
-						/>
+					<div
+						v-for="(artist, index) in artists"
+						:key="artist.id"
+						type="button"
+						role="button"
+						tabindex="0"
+						class="hover:bg-cb-quinary-900/80 flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-white"
+						:class="activeIndex === index ? 'bg-cb-quinary-900/80' : ''"
+						@click="handleSelect(artist.id)"
+						@keydown.enter.prevent="handleSelect(artist.id)"
+					>
+						<div class="bg-cb-quinary-900 h-8 w-8 overflow-hidden rounded-full">
+							<NuxtImg
+								v-if="artist.image"
+								:src="artist.image"
+								:alt="artist.name"
+								format="webp"
+								class="h-full w-full object-cover"
+							/>
+						</div>
+						<span class="truncate">{{ artist.name }}</span>
 					</div>
-					<span class="truncate">{{ artist.name }}</span>
-				</div>
 				</div>
 			</div>
 
 			<div v-if="releases.length" class="space-y-1">
 				<div class="flex items-center justify-between px-3 pt-2">
-					<p class="text-[11px] uppercase text-cb-tertiary-500">Releases</p>
+					<p class="text-cb-tertiary-500 text-[11px] uppercase">Releases</p>
 					<UButton
 						variant="ghost"
 						color="neutral"
@@ -365,78 +365,76 @@
 					/>
 				</div>
 				<div v-if="openReleases">
-				<div
-					v-for="(release, index) in releases"
-					:key="release.id"
-					type="button"
-					role="button"
-					tabindex="0"
-					class="flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-white hover:bg-cb-quinary-900/80"
-					:class="
-						activeIndex === index + releaseOffset ? 'bg-cb-quinary-900/80' : ''
-					"
-					@click="handleSelectRelease(release.id)"
-					@keydown.enter.prevent="handleSelectRelease(release.id)"
-					@mouseenter="
-						() => {
-							const preview = getReleasePreview(release)
-							if (preview.id) startPreview(preview.id, preview.name, preview.artist)
-						}
-					"
-					@mouseleave="
-						() => {
-							const preview = getReleasePreview(release)
-							if (preview.id) stopPreview(preview.id)
-						}
-					"
-				>
-					<div class="h-8 w-8 overflow-hidden rounded bg-cb-quinary-900">
-						<NuxtImg
-							v-if="release.image"
-							:src="release.image"
-							:alt="release.name"
-							format="webp"
-							class="h-full w-full object-cover"
-						/>
-					</div>
-					<div class="min-w-0">
-						<p class="truncate">{{ release.name }}</p>
-						<p class="text-cb-tertiary-500 truncate text-xs">
-							{{ release.artists?.map((a) => a.name).join(', ') || 'Unknown artist' }}
-						</p>
-					</div>
-					<UButton
-						v-if="getReleasePreview(release).id"
-						variant="ghost"
-						color="neutral"
-						size="xs"
-						class="ml-auto text-cb-tertiary-300"
-						:icon="
-							isPreviewing(getReleasePreview(release).id)
-								? 'i-heroicons-stop-circle'
-								: 'i-heroicons-play-circle'
-						"
-						@click.stop="
+					<div
+						v-for="(release, index) in releases"
+						:key="release.id"
+						type="button"
+						role="button"
+						tabindex="0"
+						class="hover:bg-cb-quinary-900/80 flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-white"
+						:class="activeIndex === index + releaseOffset ? 'bg-cb-quinary-900/80' : ''"
+						@click="handleSelectRelease(release.id)"
+						@keydown.enter.prevent="handleSelectRelease(release.id)"
+						@mouseenter="
 							() => {
 								const preview = getReleasePreview(release)
-								if (preview.id)
-									startTimedPreview(preview.id, preview.name, preview.artist)
+								if (preview.id) startPreview(preview.id, preview.name, preview.artist)
 							}
 						"
-					/>
-					<span
-						v-if="previewingId && getReleasePreview(release).id === previewingId"
-						class="text-[11px] text-cb-tertiary-400"
+						@mouseleave="
+							() => {
+								const preview = getReleasePreview(release)
+								if (preview.id) stopPreview(preview.id)
+							}
+						"
 					>
-						Previewing
-					</span>
-				</div>
+						<div class="bg-cb-quinary-900 h-8 w-8 overflow-hidden rounded">
+							<NuxtImg
+								v-if="release.image"
+								:src="release.image"
+								:alt="release.name"
+								format="webp"
+								class="h-full w-full object-cover"
+							/>
+						</div>
+						<div class="min-w-0">
+							<p class="truncate">{{ release.name }}</p>
+							<p class="text-cb-tertiary-500 truncate text-xs">
+								{{ release.artists?.map((a) => a.name).join(', ') || 'Unknown artist' }}
+							</p>
+						</div>
+						<UButton
+							v-if="getReleasePreview(release).id"
+							variant="ghost"
+							color="neutral"
+							size="xs"
+							class="text-cb-tertiary-300 ml-auto"
+							:icon="
+								isPreviewing(getReleasePreview(release).id)
+									? 'i-heroicons-stop-circle'
+									: 'i-heroicons-play-circle'
+							"
+							@click.stop="
+								() => {
+									const preview = getReleasePreview(release)
+									if (preview.id)
+										startTimedPreview(preview.id, preview.name, preview.artist)
+								}
+							"
+						/>
+						<span
+							v-if="previewingId && getReleasePreview(release).id === previewingId"
+							class="text-cb-tertiary-400 text-[11px]"
+						>
+							Previewing
+						</span>
+					</div>
 				</div>
 			</div>
 
 			<div v-if="musics.length" class="space-y-1">
 				<div class="flex items-center justify-between px-3 pt-2">
-					<p class="text-[11px] uppercase text-cb-tertiary-500">Musics</p>
+					<p class="text-cb-tertiary-500 text-[11px] uppercase">Musics</p>
 					<UButton
 						variant="ghost"
 						color="neutral"
@@ -447,84 +445,84 @@
 					/>
 				</div>
 				<div v-if="openMusics">
-				<div
-					v-for="(music, index) in musics"
-					:key="music.id"
-					type="button"
-					role="button"
-					tabindex="0"
-					class="flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-white hover:bg-cb-quinary-900/80"
-					:class="
-						activeIndex === index + musicOffset
-							? 'bg-cb-quinary-900/80'
-							: ''
-					"
-					@click="handleSelectMusic(music)"
-					@keydown.enter.prevent="handleSelectMusic(music)"
-					@mouseenter="
-						() => {
-							if (music.id_youtube_music) {
-								startPreview(
+					<div
+						v-for="(music, index) in musics"
+						:key="music.id"
+						type="button"
+						role="button"
+						tabindex="0"
+						class="hover:bg-cb-quinary-900/80 flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-white"
+						:class="activeIndex === index + musicOffset ? 'bg-cb-quinary-900/80' : ''"
+						@click="handleSelectMusic(music)"
+						@keydown.enter.prevent="handleSelectMusic(music)"
+						@mouseenter="
+							() => {
+								if (music.id_youtube_music) {
+									startPreview(
+										music.id_youtube_music,
+										music.name,
+										music.artists?.[0]?.name || 'Unknown artist',
+									)
+								}
+							}
+						"
+						@mouseleave="
+							() => {
+								if (music.id_youtube_music) stopPreview(music.id_youtube_music)
+							}
+						"
+					>
+						<div class="bg-cb-quinary-900 h-8 w-8 overflow-hidden rounded">
+							<NuxtImg
+								v-if="
+									music.thumbnails &&
+									Array.isArray(music.thumbnails) &&
+									music.thumbnails[0]
+								"
+								:src="(music.thumbnails[0] as { url?: string }).url"
+								:alt="music.name"
+								format="webp"
+								class="h-full w-full object-cover"
+							/>
+						</div>
+						<div class="min-w-0">
+							<p class="truncate">{{ music.name }}</p>
+							<p class="text-cb-tertiary-500 truncate text-xs">
+								{{ music.artists?.[0]?.name || 'Unknown artist' }}
+							</p>
+						</div>
+						<UButton
+							v-if="music.id_youtube_music"
+							variant="ghost"
+							color="neutral"
+							size="xs"
+							class="text-cb-tertiary-300 ml-auto"
+							:icon="
+								isPreviewing(music.id_youtube_music)
+									? 'i-heroicons-stop-circle'
+									: 'i-heroicons-play-circle'
+							"
+							@click.stop="
+								startTimedPreview(
 									music.id_youtube_music,
 									music.name,
 									music.artists?.[0]?.name || 'Unknown artist',
 								)
-							}
-						}
-					"
-					@mouseleave="
-						() => {
-							if (music.id_youtube_music) stopPreview(music.id_youtube_music)
-						}
-					"
-				>
-					<div class="h-8 w-8 overflow-hidden rounded bg-cb-quinary-900">
-						<NuxtImg
-							v-if="music.thumbnails && Array.isArray(music.thumbnails) && music.thumbnails[0]"
-							:src="(music.thumbnails[0] as { url?: string }).url"
-							:alt="music.name"
-							format="webp"
-							class="h-full w-full object-cover"
+							"
 						/>
+						<span
+							v-if="previewingId === music.id_youtube_music"
+							class="text-cb-tertiary-400 text-[11px]"
+						>
+							Previewing
+						</span>
 					</div>
-					<div class="min-w-0">
-						<p class="truncate">{{ music.name }}</p>
-						<p class="text-cb-tertiary-500 truncate text-xs">
-							{{ music.artists?.[0]?.name || 'Unknown artist' }}
-						</p>
-					</div>
-					<UButton
-						v-if="music.id_youtube_music"
-						variant="ghost"
-						color="neutral"
-						size="xs"
-						class="ml-auto text-cb-tertiary-300"
-						:icon="
-							isPreviewing(music.id_youtube_music)
-								? 'i-heroicons-stop-circle'
-								: 'i-heroicons-play-circle'
-						"
-						@click.stop="
-							startTimedPreview(
-								music.id_youtube_music,
-								music.name,
-								music.artists?.[0]?.name || 'Unknown artist',
-							)
-						"
-					/>
-					<span
-						v-if="previewingId === music.id_youtube_music"
-						class="text-[11px] text-cb-tertiary-400"
-					>
-						Previewing
-					</span>
-				</div>
 				</div>
 			</div>
 
 			<div
 				v-if="!isLoading && !artists.length && !releases.length && !musics.length"
-				class="px-3 py-2 text-xs text-cb-tertiary-500"
+				class="text-cb-tertiary-500 px-3 py-2 text-xs"
 			>
 				No results found.
 			</div>

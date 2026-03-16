@@ -1,7 +1,4 @@
-import {
-	applyReleaseFilters,
-	applyVerifiedArtistFilter,
-} from '../../utils/queryFilters'
+import { applyReleaseFilters, applyVerifiedArtistFilter } from '../../utils/queryFilters'
 
 const ALLOWED_ORDER_COLUMNS = [
 	'date',
@@ -49,10 +46,8 @@ export default defineEventHandler(async (event) => {
 		)
 
 		// Build base query for data
-		let dataQuery = supabase
-			.from('releases')
-			.select(
-				`
+		let dataQuery = supabase.from('releases').select(
+			`
 				*,
 				artists:artist_releases!inner(
 					artist:artists!inner(*)
@@ -62,7 +57,7 @@ export default defineEventHandler(async (event) => {
 				),
 				platform_links:release_platform_links(*)
 			`,
-			)
+		)
 		dataQuery = applyVerifiedArtistFilter(dataQuery)
 		countQuery = applyVerifiedArtistFilter(countQuery)
 
@@ -141,4 +136,3 @@ export default defineEventHandler(async (event) => {
 		throw createInternalError('Failed to fetch paginated releases', error)
 	}
 })
-

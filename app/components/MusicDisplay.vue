@@ -82,7 +82,13 @@
 		const mainArtistName =
 			artists && artists.length > 0 ? artists[0]?.name : artistName || ''
 
-		addToPlaylist(videoId, musicName, mainArtistName ?? '', resolvedMusicImage.value, ismv)
+		addToPlaylist(
+			videoId,
+			musicName,
+			mainArtistName ?? '',
+			resolvedMusicImage.value,
+			ismv,
+		)
 	}
 
 	const onMusicImageError = () => {
@@ -241,12 +247,6 @@
 			<p class="lg:hidden">M/V</p>
 		</button>
 
-		<ModalMvPreview
-			v-model:open="displayVideo"
-			:video-id="musicId"
-			:title="musicName"
-		/>
+		<ModalMvPreview v-model:open="displayVideo" :video-id="musicId" :title="musicName" />
 	</div>
 </template>
-
-

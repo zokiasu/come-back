@@ -1,170 +1,244 @@
 <template>
 	<div class="container mx-auto space-y-6 p-5">
-		<p class="text-center text-2xl font-bold">Artists List</p>
-		<!-- Search bar -->
-		<div class="flex items-center gap-2">
-			<UInput
-				v-model="search"
-				type="text"
-				placeholder="Search for an artist..."
-				size="lg"
-				icon="i-heroicons-magnifying-glass"
-				class="w-full"
-			/>
-			<UButton
-				label="Filters"
-				:trailing-icon="
-					filtersExpanded ? 'i-heroicons-chevron-up' : 'i-heroicons-chevron-down'
-				"
-				class="bg-cb-primary-700/10 lg:bg-cb-primary-900 lg:hover:bg-cb-primary-900/90 h-full w-fit items-center justify-center rounded text-white lg:cursor-pointer lg:px-5"
-				@click="toggleFilters"
-			/>
+		<div class="space-y-1 text-center">
+			<h1 class="text-2xl font-bold">Artists List</h1>
+			<p class="text-cb-tertiary-500 text-sm">
+				Discover artists and refine the list with focused filters.
+			</p>
 		</div>
 
-		<!-- Section des filtres -->
-		<Transition
-			enter-active-class="transition-all duration-300 ease-out"
-			enter-from-class="opacity-0 max-h-0 overflow-hidden"
-			enter-to-class="opacity-100 max-h-96 overflow-visible"
-			leave-active-class="transition-all duration-300 ease-in"
-			leave-from-class="opacity-100 max-h-96 overflow-visible"
-			leave-to-class="opacity-0 max-h-0 overflow-hidden"
-		>
-			<UCard v-show="filtersExpanded">
-				<div class="space-y-6">
-					<!-- Filters by type and genre on the same line -->
-					<div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-						<!-- Artist type -->
-						<div>
-							<label class="mb-3 block text-sm font-medium text-gray-300">
-								Artist type
-							</label>
-							<div class="flex flex-wrap gap-2">
-								<UButton
-									v-for="type in artistTypes"
-									:key="type"
-									:variant="selectedType === type ? 'solid' : 'outline'"
-									:color="selectedType === type ? 'primary' : 'neutral'"
-									size="sm"
-									:disabled="isLoading"
-									:class="{ 'text-white': selectedType === type }"
-									@click="selectedType = selectedType === type ? null : type"
-								>
-									{{ type === 'SOLO' ? 'Solo' : 'Group' }}
-								</UButton>
-							</div>
-						</div>
+		<div class="space-y-4">
+			<div class="bg-cb-quinary-900/70 space-y-4 rounded-xl border border-white/5 p-4">
+				<div class="flex flex-col gap-3 lg:flex-row lg:items-center">
+					<UInput
+						v-model="search"
+						type="text"
+						placeholder="Search for an artist..."
+						size="xl"
+						icon="i-heroicons-magnifying-glass"
+						class="w-full lg:flex-1"
+					/>
 
-						<!-- Gender -->
-						<div>
-							<label class="mb-3 block text-sm font-medium text-gray-300">Gender</label>
-							<div class="flex flex-wrap gap-2">
-								<UButton
-									v-for="gender in artistGenders"
-									:key="gender"
-									:variant="selectedGender === gender ? 'solid' : 'outline'"
-									:color="selectedGender === gender ? 'primary' : 'neutral'"
-									size="sm"
-									:disabled="isLoading"
-									:class="{ 'text-white': selectedGender === gender }"
-									@click="toggleGender(gender)"
-								>
-									{{ formatGenderLabel(gender) }}
-								</UButton>
-							</div>
-						</div>
-
-						<!-- Activity -->
-						<div>
-							<label class="mb-3 block text-sm font-medium text-gray-300">Activity</label>
-							<div class="flex flex-wrap gap-2">
-								<UButton
-									:variant="selectedActivity === true ? 'solid' : 'outline'"
-									:color="selectedActivity === true ? 'primary' : 'neutral'"
-									size="sm"
-									:disabled="isLoading"
-									:class="{ 'text-white': selectedActivity === true }"
-									@click="toggleActivity(true)"
-								>
-									Active
-								</UButton>
-								<UButton
-									:variant="selectedActivity === false ? 'solid' : 'outline'"
-									:color="selectedActivity === false ? 'primary' : 'neutral'"
-									size="sm"
-									:disabled="isLoading"
-									:class="{ 'text-white': selectedActivity === false }"
-									@click="toggleActivity(false)"
-								>
-									Inactive
-								</UButton>
-							</div>
-						</div>
-					</div>
-
-					<!-- Tags -->
-					<div v-if="tagsList.length > 0">
-						<label class="mb-3 block text-sm font-medium text-gray-300">
-							Tags
-							<span v-if="selectedTags.length > 0" class="text-xs text-gray-400">
-								({{ selectedTags.length }} selected)
-							</span>
-						</label>
-						<div class="flex max-h-32 flex-wrap gap-2 overflow-y-auto">
-							<UBadge
-								v-for="tag in tagsList"
-								:key="tag.id"
-								:variant="selectedTags.includes(tag.name) ? 'solid' : 'soft'"
-								:color="selectedTags.includes(tag.name) ? 'primary' : 'neutral'"
-								class="cursor-pointer transition-all hover:scale-105"
-								:class="{
-									'cursor-not-allowed opacity-50': isLoading,
-									'text-white': selectedTags.includes(tag.name),
-								}"
-								@click="toggleTag(tag.name)"
-							>
-								{{ tag.name }}
-							</UBadge>
-						</div>
-					</div>
-
-					<!-- Styles musicaux -->
-					<div v-if="stylesList.length > 0">
-						<label class="mb-3 block text-sm font-medium text-gray-300">
-							Music styles
-							<span v-if="selectedStyles.length > 0" class="text-xs text-gray-400">
-								({{ selectedStyles.length }} selected)
-							</span>
-						</label>
-						<div class="flex max-h-32 flex-wrap gap-2 overflow-y-auto">
-							<UBadge
-								v-for="style in stylesList"
-								:key="style.id"
-								:variant="selectedStyles.includes(style.name) ? 'solid' : 'soft'"
-								:color="selectedStyles.includes(style.name) ? 'primary' : 'neutral'"
-								class="cursor-pointer transition-all hover:scale-105"
-								:class="{
-									'cursor-not-allowed opacity-50': isLoading,
-									'text-white': selectedStyles.includes(style.name),
-								}"
-								@click="toggleStyle(style.name)"
-							>
-								{{ style.name }}
-							</UBadge>
-						</div>
-					</div>
-
-					<div v-if="hasActiveFilters" class="flex w-full justify-center">
+					<div class="flex items-center gap-2">
 						<UButton
-							label="Clear filters"
+							type="button"
+							color="neutral"
+							:variant="shouldShowDetailedFilters ? 'solid' : 'outline'"
+							class="min-w-[8.5rem] justify-center"
+							@click="toggleFilters"
+						>
+							<UIcon name="material-symbols-light:tune-rounded" class="size-4" />
+							More filters
+						</UButton>
+						<UButton
+							v-if="hasActiveFilters"
+							type="button"
+							color="secondary"
+							variant="outline"
+							@click="clearAllFilters"
+						>
+							Reset
+						</UButton>
+					</div>
+				</div>
+
+				<div class="space-y-2">
+					<div class="flex items-center justify-between gap-3">
+						<p
+							class="text-cb-tertiary-400 text-[11px] font-semibold tracking-[0.18em] uppercase"
+						>
+							Quick filters
+						</p>
+						<span class="text-cb-tertiary-500 text-xs">
+							{{ artists.length }} / {{ totalArtists }} results
+						</span>
+					</div>
+
+					<div class="flex flex-wrap gap-2">
+						<UButton
+							v-for="type in artistTypes"
+							:key="type"
+							type="button"
+							:color="selectedType === type ? 'primary' : 'neutral'"
+							:variant="selectedType === type ? 'solid' : 'outline'"
+							size="sm"
+							:disabled="isLoading"
+							:class="{ 'text-white': selectedType === type }"
+							@click="selectedType = selectedType === type ? null : type"
+						>
+							{{ type === 'SOLO' ? 'Solo' : 'Group' }}
+						</UButton>
+
+						<UButton
+							v-for="gender in artistGenders"
+							:key="gender"
+							type="button"
+							:color="selectedGender === gender ? 'primary' : 'neutral'"
+							:variant="selectedGender === gender ? 'solid' : 'outline'"
+							size="sm"
+							:disabled="isLoading"
+							:class="{ 'text-white': selectedGender === gender }"
+							@click="toggleGender(gender)"
+						>
+							{{ formatGenderLabel(gender) }}
+						</UButton>
+
+						<UButton
+							type="button"
+							:color="selectedActivity === true ? 'primary' : 'neutral'"
+							:variant="selectedActivity === true ? 'solid' : 'outline'"
+							size="sm"
+							:disabled="isLoading"
+							:class="{ 'text-white': selectedActivity === true }"
+							@click="toggleActivity(true)"
+						>
+							Active
+						</UButton>
+						<UButton
+							type="button"
+							:color="selectedActivity === false ? 'primary' : 'neutral'"
+							:variant="selectedActivity === false ? 'solid' : 'outline'"
+							size="sm"
+							:disabled="isLoading"
+							:class="{ 'text-white': selectedActivity === false }"
+							@click="toggleActivity(false)"
+						>
+							Inactive
+						</UButton>
+					</div>
+				</div>
+
+				<div class="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+					<div class="text-cb-tertiary-500 text-xs">
+						Use the quick filters for common cases, then open the detailed filters for
+						nationalities, styles and tags.
+					</div>
+
+					<div class="flex flex-wrap items-center gap-2">
+						<UButton
+							type="button"
+							color="neutral"
 							variant="outline"
 							size="sm"
-							@click="clearAllFilters"
+							class="min-w-[8rem] justify-center"
+							@click="toggleFilters"
+						>
+							<UIcon name="i-heroicons-flag" class="size-4" />
+							{{ nationalitiesSummary }}
+						</UButton>
+						<UButton
+							type="button"
+							color="neutral"
+							variant="outline"
+							size="sm"
+							class="min-w-[8rem] justify-center"
+							@click="toggleFilters"
+						>
+							<UIcon name="i-heroicons-musical-note" class="size-4" />
+							{{ stylesSummary }}
+						</UButton>
+						<UButton
+							type="button"
+							color="neutral"
+							variant="outline"
+							size="sm"
+							class="min-w-[8rem] justify-center"
+							@click="toggleFilters"
+						>
+							<UIcon name="i-heroicons-tag" class="size-4" />
+							{{ tagsSummary }}
+						</UButton>
+					</div>
+				</div>
+
+				<div
+					v-if="shouldShowDetailedFilters"
+					class="grid gap-3 border-t border-white/5 pt-4 lg:grid-cols-3"
+				>
+					<div v-if="nationalitiesList.length > 0" class="space-y-2">
+						<p
+							class="text-cb-tertiary-400 text-[11px] font-semibold tracking-[0.18em] uppercase"
+						>
+							Nationalities
+						</p>
+						<UInputMenu
+							v-model="selectedNationalitiesForMenu"
+							:items="nationalitiesForMenu"
+							by="value"
+							multiple
+							placeholder="Filter by nationality..."
+							searchable
+							searchable-placeholder="Search for a nationality..."
+							class="bg-cb-quaternary-950 text-tertiary w-full cursor-pointer ring-transparent"
+							:ui="{
+								content: 'bg-cb-quaternary-950',
+								item: 'rounded cursor-pointer data-highlighted:before:bg-cb-primary-900/30 hover:bg-cb-primary-900',
+							}"
+						/>
+					</div>
+
+					<div v-if="stylesList.length > 0" class="space-y-2">
+						<p
+							class="text-cb-tertiary-400 text-[11px] font-semibold tracking-[0.18em] uppercase"
+						>
+							Styles
+						</p>
+						<UInputMenu
+							v-model="selectedStylesForMenu"
+							:items="stylesForMenu"
+							by="value"
+							multiple
+							placeholder="Filter by style..."
+							searchable
+							searchable-placeholder="Search for a style..."
+							class="bg-cb-quaternary-950 text-tertiary w-full cursor-pointer ring-transparent"
+							:ui="{
+								content: 'bg-cb-quaternary-950',
+								item: 'rounded cursor-pointer data-highlighted:before:bg-cb-primary-900/30 hover:bg-cb-primary-900',
+							}"
+						/>
+					</div>
+
+					<div v-if="tagsList.length > 0" class="space-y-2">
+						<p
+							class="text-cb-tertiary-400 text-[11px] font-semibold tracking-[0.18em] uppercase"
+						>
+							Tags
+						</p>
+						<UInputMenu
+							v-model="selectedTagsForMenu"
+							:items="tagsForMenu"
+							by="value"
+							multiple
+							placeholder="Filter by tag..."
+							searchable
+							searchable-placeholder="Search for a tag..."
+							class="bg-cb-quaternary-950 text-tertiary w-full cursor-pointer ring-transparent"
+							:ui="{
+								content: 'bg-cb-quaternary-950',
+								item: 'rounded cursor-pointer data-highlighted:before:bg-cb-primary-900/30 hover:bg-cb-primary-900',
+							}"
 						/>
 					</div>
 				</div>
-			</UCard>
-		</Transition>
+			</div>
+
+			<div v-if="activeFilterChips.length > 0" class="flex flex-wrap gap-2">
+				<UButton
+					v-for="chip in activeFilterChips"
+					:key="`${chip.key}-${chip.label}`"
+					type="button"
+					color="neutral"
+					variant="outline"
+					size="xs"
+					class="rounded-full"
+					@click="removeActiveFilter(chip)"
+				>
+					{{ chip.label }}
+					<UIcon name="i-heroicons-x-mark" class="size-3" />
+				</UButton>
+			</div>
+		</div>
 
 		<transition-group
 			tag="div"
@@ -188,15 +262,9 @@
 		</transition-group>
 		<div ref="loadMoreSentinel" class="h-px w-full" />
 
-		<LoadingIndicator
-			:show="isLoading && firstLoad"
-			message="Loading artists..."
-		/>
+		<LoadingIndicator :show="isLoading && firstLoad" message="Loading artists..." />
 
-		<LoadingIndicator
-			:show="isLoading && !firstLoad"
-			message="Loading more artists..."
-		/>
+		<LoadingIndicator :show="isLoading && !firstLoad" message="Loading more artists..." />
 		<div v-if="!hasMore && artists.length > 0" class="py-4 text-center text-gray-400">
 			All artists are displayed.
 		</div>
@@ -206,12 +274,28 @@
 <script setup lang="ts">
 	import { useSupabaseArtist } from '@/composables/Supabase/useSupabaseArtist'
 	import { useSupabaseGeneralTags } from '@/composables/Supabase/useSupabaseGeneralTags'
+	import { useSupabaseNationalities } from '@/composables/Supabase/useSupabaseNationalities'
 	import { useSupabaseMusicStyles } from '@/composables/Supabase/useSupabaseMusicStyles'
-	import { useEventListener, useIntersectionObserver } from '@vueuse/core'
-	import type { Artist, ArtistType, ArtistGender, GeneralTag, MusicStyle } from '~/types'
+	import {
+		useDebounceFn,
+		useEventListener,
+		useIntersectionObserver,
+		useMediaQuery,
+	} from '@vueuse/core'
+	import type {
+		Artist,
+		ArtistType,
+		ArtistGender,
+		GeneralTag,
+		MusicStyle,
+		Nationality,
+	} from '~/types'
+
+	type FilterMenuItem = { value: string; label: string }
 
 	const { getArtistsByPage } = useSupabaseArtist()
 	const { getAllGeneralTags } = useSupabaseGeneralTags()
+	const { getAllNationalities } = useSupabaseNationalities()
 	const { getAllMusicStyles } = useSupabaseMusicStyles()
 
 	// Enum values for template usage
@@ -222,6 +306,7 @@
 	const search = ref('')
 	const page = ref(1)
 	const limit = ref(48)
+	const totalArtists = ref(0)
 	const totalPages = ref(1)
 	const isLoading = ref(false)
 	const hasMore = ref(true)
@@ -232,6 +317,8 @@
 
 	const tagsList = ref<GeneralTag[]>([])
 	const selectedTags = ref<string[]>([])
+	const nationalitiesList = ref<Nationality[]>([])
+	const selectedNationalities = ref<string[]>([])
 	const selectedType = ref<ArtistType | null>(null)
 	const stylesList = ref<MusicStyle[]>([])
 	const selectedStyles = ref<string[]>([])
@@ -240,6 +327,62 @@
 
 	// State for filter expansion
 	const filtersExpanded = ref(false)
+	const hasManuallyToggledFilters = ref(false)
+	const isDesktopViewport = useMediaQuery('(min-width: 1280px)')
+
+	const nationalitiesForMenu = computed((): FilterMenuItem[] =>
+		nationalitiesList.value.map((nationality) => ({
+			value: nationality.name,
+			label: nationality.name,
+		})),
+	)
+
+	const stylesForMenu = computed((): FilterMenuItem[] =>
+		stylesList.value.map((style) => ({
+			value: style.name,
+			label: style.name,
+		})),
+	)
+
+	const tagsForMenu = computed((): FilterMenuItem[] =>
+		tagsList.value.map((tag) => ({
+			value: tag.name,
+			label: tag.name,
+		})),
+	)
+
+	const selectedNationalitiesForMenu = computed<FilterMenuItem[]>({
+		get: () =>
+			selectedNationalities.value.map((nationality) => ({
+				value: nationality,
+				label: nationality,
+			})),
+		set: (nextNationalities) => {
+			selectedNationalities.value = nextNationalities.map((nationality) => nationality.value)
+		},
+	})
+
+	const selectedStylesForMenu = computed<FilterMenuItem[]>({
+		get: () =>
+			selectedStyles.value.map((style) => ({
+				value: style,
+				label: style,
+			})),
+		set: (nextStyles) => {
+			selectedStyles.value = nextStyles.map((style) => style.value)
+		},
+	})
+
+	const selectedTagsForMenu = computed<FilterMenuItem[]>({
+		get: () =>
+			selectedTags.value.map((tag) => ({
+				value: tag,
+				label: tag,
+			})),
+		set: (nextTags) => {
+			selectedTags.value = nextTags.map((tag) => tag.value)
+		},
+	})
 
 	const fetchArtists = async (reset = false) => {
 		if (isLoading.value || (!hasMore.value && !reset)) return
@@ -254,6 +397,8 @@
 		const result = await getArtistsByPage(page.value, limit.value, {
 			search: search.value,
 			general_tags: selectedTags.value.length > 0 ? selectedTags.value : undefined,
+			nationalities:
+				selectedNationalities.value.length > 0 ? selectedNationalities.value : undefined,
 			type: selectedType.value || undefined,
 			styles: selectedStyles.value.length > 0 ? selectedStyles.value : undefined,
 			gender: selectedGender.value || undefined,
@@ -264,6 +409,7 @@
 		})
 
 		const artistsArray = Array.isArray(result.artists) ? result.artists : []
+		totalArtists.value = result.total
 		totalPages.value = Math.max(result.totalPages || 1, 1)
 
 		if (reset) {
@@ -276,24 +422,34 @@
 		isLoading.value = false
 	}
 
+	const resetPagination = () => {
+		page.value = 1
+		totalPages.value = 1
+		hasMore.value = true
+	}
+
+	const debouncedSearchFetch = useDebounceFn(() => {
+		fetchArtists(true)
+	}, 300)
+
+	watch(search, () => {
+		if (!isInitialized.value) return
+		resetPagination()
+		debouncedSearchFetch()
+	})
+
 	watch(
 		[
-			search,
 			selectedTags,
+			selectedNationalities,
 			selectedType,
 			selectedStyles,
 			selectedGender,
 			selectedActivity,
 		],
 		() => {
-			// Éviter les appels pendant l'initialisation
-			if (!isInitialized.value) {
-				return
-			}
-
-			page.value = 1
-			totalPages.value = 1
-			hasMore.value = true
+			if (!isInitialized.value) return
+			resetPagination()
 			fetchArtists(true)
 		},
 	)
@@ -306,6 +462,7 @@
 
 	onMounted(async () => {
 		tagsList.value = await getAllGeneralTags()
+		nationalitiesList.value = await getAllNationalities()
 		stylesList.value = await getAllMusicStyles()
 		await fetchArtists(true)
 		// Marquer comme initialisé après le premier chargement
@@ -328,22 +485,6 @@
 		hasUserInteractedForPagination.value = true
 	})
 
-	const toggleTag = (tagName: string) => {
-		if (selectedTags.value.includes(tagName)) {
-			selectedTags.value = selectedTags.value.filter((t) => t !== tagName)
-		} else {
-			selectedTags.value = [...selectedTags.value, tagName]
-		}
-	}
-
-	const toggleStyle = (styleName: string) => {
-		if (selectedStyles.value.includes(styleName)) {
-			selectedStyles.value = selectedStyles.value.filter((s) => s !== styleName)
-		} else {
-			selectedStyles.value = [...selectedStyles.value, styleName]
-		}
-	}
-
 	const toggleGender = (gender: ArtistGender) => {
 		if (selectedGender.value === gender) {
 			selectedGender.value = null
@@ -363,16 +504,32 @@
 	// Function to clear all filters
 	const clearAllFilters = () => {
 		selectedTags.value = []
+		selectedNationalities.value = []
 		selectedType.value = null
 		selectedStyles.value = []
 		selectedGender.value = null
 		selectedActivity.value = null
 	}
 
-	// Computed to check if there are active filters
+	const hasDetailedFilters = computed(() => {
+		return (
+			selectedNationalities.value.length > 0 ||
+			selectedStyles.value.length > 0 ||
+			selectedTags.value.length > 0
+		)
+	})
+
+	const shouldShowDetailedFilters = computed(() => {
+		if (hasDetailedFilters.value) return true
+		if (hasManuallyToggledFilters.value) return filtersExpanded.value
+		return isDesktopViewport.value
+	})
+
 	const hasActiveFilters = computed(() => {
 		return (
+			search.value.trim().length > 0 ||
 			selectedTags.value.length > 0 ||
+			selectedNationalities.value.length > 0 ||
 			selectedType.value !== null ||
 			selectedStyles.value.length > 0 ||
 			selectedGender.value !== null ||
@@ -380,7 +537,106 @@
 		)
 	})
 
-	// Function to format gender labels
+	const nationalitiesSummary = computed(() => {
+		if (selectedNationalities.value.length === 0) return 'Nationalities'
+		if (selectedNationalities.value.length === 1) return selectedNationalities.value[0]
+		return `${selectedNationalities.value.length} nationalities`
+	})
+
+	const stylesSummary = computed(() => {
+		if (selectedStyles.value.length === 0) return 'Styles'
+		if (selectedStyles.value.length === 1) return selectedStyles.value[0]
+		return `${selectedStyles.value.length} styles`
+	})
+
+	const tagsSummary = computed(() => {
+		if (selectedTags.value.length === 0) return 'Tags'
+		if (selectedTags.value.length === 1) return selectedTags.value[0]
+		return `${selectedTags.value.length} tags`
+	})
+
+	type ActiveFilterChip =
+		| { key: 'search'; label: string }
+		| { key: 'type'; label: string }
+		| { key: 'gender'; label: string }
+		| { key: 'activity'; value: boolean; label: string }
+		| { key: 'nationality'; value: string; label: string }
+		| { key: 'style'; value: string; label: string }
+		| { key: 'tag'; value: string; label: string }
+
+	const activeFilterChips = computed((): ActiveFilterChip[] => {
+		const chips: ActiveFilterChip[] = []
+		const trimmedSearch = search.value.trim()
+
+		if (trimmedSearch) {
+			chips.push({ key: 'search', label: `Search: ${trimmedSearch}` })
+		}
+
+		if (selectedType.value) {
+			chips.push({
+				key: 'type',
+				label: selectedType.value === 'SOLO' ? 'Solo' : 'Group',
+			})
+		}
+
+		if (selectedGender.value) {
+			chips.push({
+				key: 'gender',
+				label: formatGenderLabel(selectedGender.value),
+			})
+		}
+
+		if (selectedActivity.value !== null) {
+			chips.push({
+				key: 'activity',
+				value: selectedActivity.value,
+				label: selectedActivity.value ? 'Active' : 'Inactive',
+			})
+		}
+
+		for (const nationality of selectedNationalities.value) {
+			chips.push({ key: 'nationality', value: nationality, label: nationality })
+		}
+
+		for (const style of selectedStyles.value) {
+			chips.push({ key: 'style', value: style, label: style })
+		}
+
+		for (const tag of selectedTags.value) {
+			chips.push({ key: 'tag', value: tag, label: tag })
+		}
+
+		return chips
+	})
+
+	const removeActiveFilter = (chip: ActiveFilterChip) => {
+		switch (chip.key) {
+			case 'search':
+				search.value = ''
+				break
+			case 'type':
+				selectedType.value = null
+				break
+			case 'gender':
+				selectedGender.value = null
+				break
+			case 'activity':
+				selectedActivity.value = null
+				break
+			case 'nationality':
+				selectedNationalities.value = selectedNationalities.value.filter(
+					(nationality) => nationality !== chip.value,
+				)
+				break
+			case 'style':
+				selectedStyles.value = selectedStyles.value.filter((style) => style !== chip.value)
+				break
+			case 'tag':
+				selectedTags.value = selectedTags.value.filter((tag) => tag !== chip.value)
+				break
+		}
+	}
+
 	const formatGenderLabel = (gender: string) => {
 		const labels: Record<string, string> = {
 			MALE: 'Male',
@@ -391,8 +647,8 @@
 		return labels[gender] || gender
 	}
 
-	// Function to toggle filter display
 	const toggleFilters = () => {
-		filtersExpanded.value = !filtersExpanded.value
+		hasManuallyToggledFilters.value = true
+		filtersExpanded.value = !shouldShowDetailedFilters.value
 	}
 </script>

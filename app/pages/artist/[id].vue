@@ -19,18 +19,18 @@
 	const { open: openAuthModal } = useAuthModal()
 
 	// SSR-compatible data fetching avec API complète
-	const {
-		data: artistData,
-		pending: isFetchingArtist,
-	} = await useFetch(`/api/artists/${route.params.id}/complete`, {
-		server: true,
-		default: () => ({
-			artist: null,
-			social_links: [],
-			platform_links: [],
-			random_musics: [],
-		}),
-	})
+	const { data: artistData, pending: isFetchingArtist } = await useFetch(
+		`/api/artists/${route.params.id}/complete`,
+		{
+			server: true,
+			default: () => ({
+				artist: null,
+				social_links: [],
+				platform_links: [],
+				random_musics: [],
+			}),
+		},
+	)
 
 	// Réactivité des données
 	const artist = computed(() => artistData.value.artist)
@@ -57,7 +57,9 @@
 	)
 
 	const heroBackgroundSrc = computed(
-		() => (imageBackError.value ? fallbackBackground : imageBackground.value) || fallbackBackground,
+		() =>
+			(imageBackError.value ? fallbackBackground : imageBackground.value) ||
+			fallbackBackground,
 	)
 
 	function onHeroImageLoad() {
@@ -220,6 +222,13 @@
 						</p>
 					</div>
 					<div v-if="!isFetchingArtist" class="flex flex-wrap gap-2">
+						<p
+							v-for="nationality in artist.nationalities"
+							:key="nationality"
+							class="bg-cb-quaternary-950 w-fit rounded px-3 py-1 text-xs font-semibold whitespace-nowrap uppercase"
+							>
+							{{ nationality }}
+						</p>
 						<p
 							v-for="style in artist.styles"
 							:key="style"

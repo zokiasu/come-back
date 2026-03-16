@@ -189,13 +189,17 @@ export function useSupabaseSearch() {
 			...release,
 			artists:
 				release.artists
-					?.map((a: { artist: Pick<Artist, 'id' | 'name' | 'image' | 'verified'> }) => a.artist)
+					?.map(
+						(a: { artist: Pick<Artist, 'id' | 'name' | 'image' | 'verified'> }) =>
+							a.artist,
+					)
 					.filter(Boolean) || [],
 			musics:
 				release.musics
 					?.map(
-						(m: { music: { id_youtube_music?: string | null; name?: string | null } | null }) =>
-							m.music,
+						(m: {
+							music: { id_youtube_music?: string | null; name?: string | null } | null
+						}) => m.music,
 					)
 					.filter(Boolean) || [],
 		}))
@@ -253,7 +257,10 @@ export function useSupabaseSearch() {
 			...music,
 			artists:
 				music.artists
-					?.map((a: { artist: Pick<Artist, 'id' | 'name' | 'image' | 'verified'> }) => a.artist)
+					?.map(
+						(a: { artist: Pick<Artist, 'id' | 'name' | 'image' | 'verified'> }) =>
+							a.artist,
+					)
 					.filter(Boolean) || [],
 			releases:
 				music.releases

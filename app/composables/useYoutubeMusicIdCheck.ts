@@ -1,6 +1,12 @@
 import { useDebounce } from '~/composables/useDebounce'
 
-export type YtmIdStatus = 'idle' | 'checking' | 'available' | 'exists' | 'blacklisted' | 'error'
+export type YtmIdStatus =
+	| 'idle'
+	| 'checking'
+	| 'available'
+	| 'exists'
+	| 'blacklisted'
+	| 'error'
 
 interface CheckYtmIdResponse {
 	status: 'available' | 'exists' | 'blacklisted'
@@ -15,7 +21,9 @@ export function useYoutubeMusicIdCheck() {
 	const status = ref<YtmIdStatus>('idle')
 	const message = ref<string | null>(null)
 
-	const isBlocked = computed(() => status.value === 'exists' || status.value === 'blacklisted')
+	const isBlocked = computed(
+		() => status.value === 'exists' || status.value === 'blacklisted',
+	)
 
 	const reset = () => {
 		status.value = 'idle'

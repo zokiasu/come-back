@@ -51,7 +51,8 @@ export default defineEventHandler(async (event) => {
 
 	let releaseQuery = supabase
 		.from('releases')
-		.select(`
+		.select(
+			`
 			id,
 			name,
 			image,
@@ -59,7 +60,8 @@ export default defineEventHandler(async (event) => {
 			artists:artist_releases(
 				artist:artists(id, name, image, verified)
 			)
-		`)
+		`,
+		)
 		.ilike('name', `%${search}%`)
 		.order('date', { ascending: false })
 		.limit(limit)
@@ -87,8 +89,12 @@ export default defineEventHandler(async (event) => {
 					.filter(
 						(
 							artist,
-						): artist is { id: string; name: string; image: string | null; verified: boolean } =>
-							Boolean(artist) && artist.verified,
+						): artist is {
+							id: string
+							name: string
+							image: string | null
+							verified: boolean | null
+						} => Boolean(artist) && Boolean(artist.verified),
 					) || [],
 		})),
 	}

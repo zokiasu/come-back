@@ -131,4 +131,3 @@ export default defineEventHandler(async () => {
 		throw createInternalError('Failed to fetch dashboard overview', error)
 	}
 })
-

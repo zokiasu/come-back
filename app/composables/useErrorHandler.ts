@@ -10,7 +10,7 @@ export function useErrorHandler() {
 
 	const handleError = (error: unknown, context?: string): AppError => {
 		const appError: AppError = {
-		message: 'An error occurred',
+			message: 'An error occurred',
 			originalError: error,
 		}
 
@@ -29,7 +29,7 @@ export function useErrorHandler() {
 		}
 
 		toast.add({
-		title: 'Error',
+			title: 'Error',
 			description: appError.message,
 			color: 'error',
 		})

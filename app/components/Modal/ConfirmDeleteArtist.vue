@@ -81,7 +81,6 @@
 		impact.value = null
 		isModalOpen.value = false
 	}
-
 </script>
 
 <template>
@@ -123,9 +122,7 @@
 					<div
 						class="bg-cb-primary-900/10 border-cb-primary-900/30 rounded-lg border p-4"
 					>
-						<p class="text-sm text-zinc-400">
-							You are about to delete this artist:
-						</p>
+						<p class="text-sm text-zinc-400">You are about to delete this artist:</p>
 						<p class="mt-1 text-xl font-bold text-white">{{ artistName }}</p>
 					</div>
 

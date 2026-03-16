@@ -83,9 +83,7 @@
 		<!-- En-tête -->
 		<div>
 			<h1 class="text-3xl font-bold text-white">Dashboard</h1>
-			<p class="text-cb-tertiary-200 mt-1 text-sm">
-				Welcome to your Comeback dashboard
-			</p>
+			<p class="text-cb-tertiary-200 mt-1 text-sm">Welcome to your Comeback dashboard</p>
 		</div>
 
 		<!-- Indicateur de chargement -->

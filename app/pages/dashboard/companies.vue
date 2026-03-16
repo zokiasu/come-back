@@ -327,7 +327,7 @@
 		ref="scrollContainer"
 		class="scrollBarLight relative h-full space-y-3 overflow-hidden overflow-y-scroll p-6"
 	>
-			<!-- Statistics header -->
+		<!-- Statistics header -->
 		<section class="bg-cb-secondary-950 sticky top-0 z-20 w-full space-y-4 pb-4">
 			<div class="grid grid-cols-2 gap-2 md:grid-cols-4">
 				<div class="bg-cb-quinary-900 rounded p-3 text-center">

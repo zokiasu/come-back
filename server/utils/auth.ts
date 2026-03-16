@@ -24,11 +24,9 @@ export const getAuthenticatedUser = async (
 
 	// Get authorization header
 	const authHeader = getHeader(event, 'authorization')
-	let authUser:
-		| {
-				id: string
-		  }
-		| null = null
+	let authUser: {
+		id: string
+	} | null = null
 
 	if (authHeader?.startsWith('Bearer ')) {
 		const token = authHeader.substring(7)
@@ -45,7 +43,8 @@ export const getAuthenticatedUser = async (
 
 		authUser = user
 	} else {
-		authUser = await serverSupabaseUser(event)
+		const supabaseUser = await serverSupabaseUser(event)
+		authUser = supabaseUser ? { id: supabaseUser.id } : null
 
 		if (!authUser) {
 			return null

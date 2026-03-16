@@ -34,7 +34,7 @@
 			<section v-if="newsToday.length > 0" class="absolute inset-0">
 				<div class="absolute top-10 z-10">
 					<p
-						class="w-fit bg-cb-quinary-900/90 py-1 pr-5 pl-8 text-xs font-semibold uppercase drop-shadow-lg lg:text-xl xl:text-2xl"
+						class="bg-cb-quinary-900/90 w-fit py-1 pr-5 pl-8 text-xs font-semibold uppercase drop-shadow-lg lg:text-xl xl:text-2xl"
 					>
 						Comeback Today
 					</p>

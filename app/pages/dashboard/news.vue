@@ -381,11 +381,11 @@
 				</div>
 				<div class="rounded-lg bg-green-900/30 px-4 py-2 text-center">
 					<p class="text-2xl font-bold text-green-400">{{ stats.verified }}</p>
-										<p class="text-xs text-green-400/70">Verified</p>
+					<p class="text-xs text-green-400/70">Verified</p>
 				</div>
 				<div class="rounded-lg bg-yellow-900/30 px-4 py-2 text-center">
 					<p class="text-2xl font-bold text-yellow-400">{{ stats.pending }}</p>
-										<p class="text-xs text-yellow-400/70">Pending</p>
+					<p class="text-xs text-yellow-400/70">Pending</p>
 				</div>
 			</div>
 		</div>
@@ -525,7 +525,7 @@
 						variant="subtle"
 						size="sm"
 					>
-								{{ row.original.verified ? 'Verified' : 'Pending' }}
+						{{ row.original.verified ? 'Verified' : 'Pending' }}
 					</UBadge>
 				</template>
 
@@ -721,12 +721,7 @@
 							class="flex-1"
 							@click="isDeleteModalOpen = false"
 						/>
-						<UButton
-							label="Delete"
-							color="error"
-							class="flex-1"
-							@click="confirmDelete"
-						/>
+						<UButton label="Delete" color="error" class="flex-1" @click="confirmDelete" />
 					</div>
 				</div>
 			</template>

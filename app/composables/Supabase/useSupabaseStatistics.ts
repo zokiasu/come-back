@@ -384,7 +384,9 @@ export function useSupabaseStatistics() {
 					imageRate:
 						totalArtists > 0 ? Math.round((withImageCount / totalArtists) * 100) : 0,
 					completionRate:
-						totalArtists > 0 ? Math.round((completeProfilesCount / totalArtists) * 100) : 0,
+						totalArtists > 0
+							? Math.round((completeProfilesCount / totalArtists) * 100)
+							: 0,
 					totalArtists,
 					verifiedArtists: verifiedCount,
 					artistsWithImages: withImageCount,
@@ -507,7 +509,9 @@ export function useSupabaseStatistics() {
 	}
 
 	const getCompanyStats = async () => {
-		const { data: companyArtistsData } = (await supabase.from('artist_companies').select('company_id, relationship_type, companies(name)')) as {
+		const { data: companyArtistsData } = (await supabase
+			.from('artist_companies')
+			.select('company_id, relationship_type, companies(name)')) as {
 			data: Array<{
 				company_id: string
 				relationship_type: string | null
@@ -547,7 +551,9 @@ export function useSupabaseStatistics() {
 	const getMusicAdvancedStats = async () => {
 		const { data: releasesData } = await supabase.from('releases').select('type')
 
-		const { data: musicDurationData } = (await supabase.from('music_releases').select('release_id, musics(duration), releases(type)')) as {
+		const { data: musicDurationData } = (await supabase
+			.from('music_releases')
+			.select('release_id, musics(duration), releases(type)')) as {
 			data: Array<{
 				release_id: string
 				musics: { duration: number } | null
@@ -626,7 +632,11 @@ export function useSupabaseStatistics() {
 	const getStatistics = async (filters: StatsFilters): Promise<DashboardStats> => {
 		try {
 			const isMonthlyView =
-				filters.period === 'month' && filters.month !== null && filters.month !== undefined && filters.year !== null && filters.year !== undefined
+				filters.period === 'month' &&
+				filters.month !== null &&
+				filters.month !== undefined &&
+				filters.year !== null &&
+				filters.year !== undefined
 			const matchesTemporalFilters = createTemporalMatcher(filters)
 
 			const [artistGeneral, companyRelationsData, releasesData, musicsData] =
@@ -747,7 +757,10 @@ export function useSupabaseStatistics() {
 				}))
 				.sort((a, b) => b.artist_count - a.artist_count)
 
-			const releasesTemporalChart = buildTemporalChartData(filteredReleases, isMonthlyView)
+			const releasesTemporalChart = buildTemporalChartData(
+				filteredReleases,
+				isMonthlyView,
+			)
 			const musicsTemporalChart = buildTemporalChartData(filteredMusics, isMonthlyView)
 			const totalVerifiedArtists = artistGeneral.qualityStats.totalArtists
 
@@ -972,4 +985,3 @@ export function useSupabaseStatistics() {
 		getMusicAdvancedStats,
 	}
 }
-

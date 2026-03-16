@@ -119,10 +119,7 @@
 						<div
 							class="flex h-10 w-10 items-center justify-center rounded-full bg-amber-500/20"
 						>
-							<UIcon
-								name="i-heroicons-no-symbol"
-								class="h-5 w-5 text-amber-500"
-							/>
+							<UIcon name="i-heroicons-no-symbol" class="h-5 w-5 text-amber-500" />
 						</div>
 						<h3 class="text-lg font-semibold text-white">Ban artist</h3>
 					</div>
@@ -139,9 +136,7 @@
 				<div class="space-y-4 p-4">
 					<!-- Artist info card -->
 					<div class="rounded-lg border border-amber-500/30 bg-amber-500/10 p-4">
-						<p class="text-sm text-zinc-400">
-							You are about to ban this artist:
-						</p>
+						<p class="text-sm text-zinc-400">You are about to ban this artist:</p>
 						<p class="mt-1 text-xl font-bold text-white">{{ artistName }}</p>
 						<p class="mt-1 text-sm text-zinc-400">
 							YouTube Music ID :

@@ -34,15 +34,9 @@ export const changelog: ChangelogEntry[] = [
 		version: '2.2.0',
 		date: '2026-02-22',
 		title: 'Artist Verification + Type Stabilization',
-		added: [
-			'Artist verification workflow and admin management.',
-		],
-		changed: [
-			'TypeScript and lint hardening across app and server.',
-		],
-		fixed: [
-			'Server API typings and pagination consistency.',
-		],
+		added: ['Artist verification workflow and admin management.'],
+		changed: ['TypeScript and lint hardening across app and server.'],
+		fixed: ['Server API typings and pagination consistency.'],
 	},
 	{
 		version: '2.1.0',
@@ -70,12 +64,8 @@ export const changelog: ChangelogEntry[] = [
 			'Supabase migration and server infrastructure.',
 			'Artist management, releases, calendar, and rankings foundation.',
 		],
-		changed: [
-			'Authentication middleware and session handling.',
-		],
-		fixed: [
-			'API validation, SSRF protections, and XSS guardrails.',
-		],
+		changed: ['Authentication middleware and session handling.'],
+		fixed: ['API validation, SSRF protections, and XSS guardrails.'],
 	},
 	{
 		version: '1.0.0',
@@ -85,12 +75,8 @@ export const changelog: ChangelogEntry[] = [
 			'YouTube player improvements and external link handling.',
 			'Realtime artist updates and news creation upgrades.',
 		],
-		changed: [
-			'Component layouts and music player refinements.',
-		],
-		fixed: [
-			'Multiple UI and data consistency issues across home and artist pages.',
-		],
+		changed: ['Component layouts and music player refinements.'],
+		fixed: ['Multiple UI and data consistency issues across home and artist pages.'],
 	},
 	{
 		version: '0.2.0',
