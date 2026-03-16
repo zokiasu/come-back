@@ -11,7 +11,12 @@ export const useSupabaseAuth = () => {
 			// Utiliser le client Supabase global
 			const supabase = useSupabaseClient()
 			const origin = import.meta.client ? window.location.origin : useRequestURL().origin
-			const { ensureUserProfile, syncUserProfileFromAuthUser, syncError } = useAuth()
+			const {
+				ensureUserProfile,
+				getTrustedAuthUser,
+				syncUserProfileFromAuthUser,
+				syncError,
+			} = useAuth()
 			const { close: closeAuthModal } = useAuthModal()
 
 			const { data, error: authError } = await supabase.auth.signInWithOAuth({
@@ -37,8 +42,7 @@ export const useSupabaseAuth = () => {
 				if (!popup) {
 					toast.add({
 						title: 'Popup blocked',
-						description:
-							'Allow popups to sign in with Google.',
+						description: 'Allow popups to sign in with Google.',
 						color: 'warning',
 						duration: 4000,
 					})
@@ -64,8 +68,8 @@ export const useSupabaseAuth = () => {
 					const startedAt = Date.now()
 					while (Date.now() - startedAt < maxWaitMs) {
 						if (supabaseUser.value?.id) return true
-						const { data: sessionData } = await supabase.auth.getSession()
-						if (sessionData?.session?.user?.id) return true
+						const authUser = await getTrustedAuthUser()
+						if (authUser?.id) return true
 						await new Promise((resolve) => setTimeout(resolve, 400))
 					}
 					return false
@@ -125,8 +129,8 @@ export const useSupabaseAuth = () => {
 				}
 
 				const checkSessionAndSync = async () => {
-					const { data: sessionData } = await supabase.auth.getSession()
-					if (sessionData?.session?.user?.id) {
+					const authUser = await getTrustedAuthUser()
+					if (authUser?.id) {
 						await handleAuthSuccess()
 						return true
 					}

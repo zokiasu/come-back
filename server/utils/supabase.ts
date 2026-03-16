@@ -37,9 +37,10 @@ export const useServerSupabase = (): SupabaseClient<Database> => {
 	}
 
 	const config = useRuntimeConfig()
+	const serverKey = config.supabase?.secretKey || config.supabase?.serviceKey
 
 	// Validate required configuration
-	if (!config.public.supabase?.url || !config.supabase?.serviceKey) {
+	if (!config.public.supabase?.url || !serverKey) {
 		throw createError({
 			statusCode: 500,
 			statusMessage: 'Supabase configuration is missing',
@@ -51,7 +52,7 @@ export const useServerSupabase = (): SupabaseClient<Database> => {
 	// Create and cache the client
 	_supabaseClient = createClient<Database>(
 		config.public.supabase.url,
-		config.supabase.serviceKey,
+		serverKey,
 		{
 			auth: {
 				persistSession: false,

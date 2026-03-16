@@ -1,6 +1,10 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 import tailwindcss from '@tailwindcss/vite'
 
+const isDev = process.env.NODE_ENV === 'development'
+const supabaseSecretKey =
+	process.env.SUPABASE_SECRET_KEY ?? process.env.NUXT_PUBLIC_SUPABASE_SECRET_KEY ?? ''
+
 export default defineNuxtConfig({
 	compatibilityDate: '2025-05-27',
 
@@ -39,15 +43,13 @@ export default defineNuxtConfig({
 			SUPABASE_KEY: process.env.NUXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
 			SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY,
 		},
-		// Supabase v2: SUPABASE_SERVICE_KEY renamed to SUPABASE_SECRET_KEY
-		SUPABASE_SECRET_KEY: process.env.NUXT_PUBLIC_SUPABASE_SECRET_KEY,
+		SUPABASE_SECRET_KEY: supabaseSecretKey,
 	},
 
 	supabase: {
 		url: process.env.SUPABASE_URL,
 		key: process.env.NUXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
-		// Supabase v2: serviceKey uses SUPABASE_SECRET_KEY (JWT signing key)
-		serviceKey: process.env.NUXT_PUBLIC_SUPABASE_SECRET_KEY,
+		secretKey: supabaseSecretKey,
 		redirect: false,
 		types: '~/types/supabase.ts',
 		// Active la gestion des cookies SSR pour persister la session
@@ -66,11 +68,15 @@ export default defineNuxtConfig({
 	},
 
 	routeRules: {
-		// Page d'accueil : ISR avec cache de 1 heure
-		'/': { isr: 3600 },
+		...(!isDev
+			? {
+					// Page d'accueil : ISR avec cache de 1 heure
+					'/': { isr: 3600 },
 
-		// Calendrier : SSG (peu de changements)
-		'/calendar': { prerender: true },
+					// Calendrier : SSG (peu de changements)
+					'/calendar': { prerender: true },
+				}
+			: {}),
 
 		// Pages d'authentification : SPA
 		'/auth/callback': { ssr: false },

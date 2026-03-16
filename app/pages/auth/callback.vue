@@ -28,6 +28,15 @@
 		console.warn(`[Callback] [${timestamp}] ${message}`)
 	}
 
+	const getTrustedSessionUser = async () => {
+		const { data, error } = await supabase.auth.getUser()
+
+		return {
+			error,
+			user: data.user ?? undefined,
+		}
+	}
+
 	const handleAuthCallback = async () => {
 		try {
 			log('Starting OAuth callback processing...')
@@ -71,12 +80,12 @@
 
 			// Check current session first
 			log('Checking existing session...')
-			const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
+			const { user: existingUser, error: sessionError } = await getTrustedSessionUser()
 			log(
-				`Current session: ${sessionData?.session ? 'exists' : 'none'}, error: ${sessionError?.message || 'none'}`,
+				`Current session: ${existingUser ? 'exists' : 'none'}, error: ${sessionError?.message || 'none'}`,
 			)
 
-			let sessionUser: SupabaseUser | undefined = sessionData?.session?.user
+			let sessionUser: SupabaseUser | undefined = existingUser
 
 			if (sessionUser?.id) {
 				log(`Session already exists! User ID: ${sessionUser.id}, skipping code exchange`)
@@ -113,9 +122,9 @@
 			}
 
 			// Get the final session to ensure we have the user
-			const { data: finalSession } = await supabase.auth.getSession()
-			sessionUser = finalSession?.session?.user ?? undefined
-			log(`Final session check: ${finalSession?.session ? 'exists' : 'none'}`)
+			const { user: finalUser } = await getTrustedSessionUser()
+			sessionUser = finalUser
+			log(`Final session check: ${finalUser ? 'exists' : 'none'}`)
 			if (sessionUser) {
 				log(`User from session: id=${sessionUser.id}, email=${sessionUser.email}`)
 			}
@@ -334,4 +343,3 @@
 		await handleAuthCallback()
 	})
 </script>
-

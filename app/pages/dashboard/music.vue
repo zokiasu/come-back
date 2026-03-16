@@ -177,14 +177,15 @@
 		try {
 			const result = await getMusicsByPage(currentPage.value, pageSizeValue.value, {
 				search: search.value || undefined,
-				artistIds: selectedArtistFilter.value ? [selectedArtistFilter.value.id] : undefined,
+				artistIds: selectedArtistFilter.value
+					? [selectedArtistFilter.value.id]
+					: undefined,
 				years: yearFilter.value ? [Number(yearFilter.value)] : undefined,
 				verified:
 					verifiedFilter.value === 'all'
 						? undefined
 						: verifiedFilter.value === 'verified',
-				ismv:
-					mvFilter.value === 'all' ? undefined : mvFilter.value === 'mv',
+				ismv: mvFilter.value === 'all' ? undefined : mvFilter.value === 'mv',
 				orderBy: sortColumn.value,
 				orderDirection: sortDirection.value,
 			})
@@ -500,9 +501,9 @@
 					<p class="text-lg font-bold">{{ stats.total }}</p>
 					<p class="text-cb-tertiary-500 text-xs">Total</p>
 				</div>
-				<div class="rounded-lg bg-cb-primary-900/20 px-3 py-1.5 text-center">
-					<p class="text-lg font-bold text-cb-primary-900">{{ stats.mvCount }}</p>
-					<p class="text-xs text-cb-primary-900/70">MVs</p>
+				<div class="bg-cb-primary-900/20 rounded-lg px-3 py-1.5 text-center">
+					<p class="text-cb-primary-900 text-lg font-bold">{{ stats.mvCount }}</p>
+					<p class="text-cb-primary-900/70 text-xs">MVs</p>
 				</div>
 				<div
 					v-if="stats.pendingCount > 0"
@@ -604,7 +605,13 @@
 				<UBadge color="neutral" variant="subtle">
 					Artist: {{ selectedArtistLabel }}
 				</UBadge>
-				<UButton label="Clear artist" color="error" variant="ghost" size="sm" @click="clearArtistFilter" />
+				<UButton
+					label="Clear artist"
+					color="error"
+					variant="ghost"
+					size="sm"
+					@click="clearArtistFilter"
+				/>
 			</div>
 		</div>
 
@@ -663,7 +670,9 @@
 							{{ formatArtists(music.artists) }}
 						</p>
 
-						<div class="text-cb-tertiary-500 mt-1 flex flex-wrap items-center gap-3 text-xs">
+						<div
+							class="text-cb-tertiary-500 mt-1 flex flex-wrap items-center gap-3 text-xs"
+						>
 							<template v-if="music.releases[0]?.id">
 								<NuxtLink
 									:to="`/release/${music.releases[0].id}`"
@@ -671,10 +680,7 @@
 								>
 									{{ music.releases[0].name }}
 								</NuxtLink>
-								<span
-									v-if="music.releases.length > 1"
-									class="text-cb-tertiary-400"
-								>
+								<span v-if="music.releases.length > 1" class="text-cb-tertiary-400">
 									+{{ music.releases.length - 1 }} more
 								</span>
 							</template>
@@ -748,8 +754,13 @@
 			}"
 		>
 			<template #content>
-				<div v-if="editingMusic" class="bg-cb-secondary-950 flex max-h-[90vh] flex-col overflow-hidden">
-					<div class="border-cb-quinary-900/70 flex items-start justify-between gap-6 border-b px-6 py-5">
+				<div
+					v-if="editingMusic"
+					class="bg-cb-secondary-950 flex max-h-[90vh] flex-col overflow-hidden"
+				>
+					<div
+						class="border-cb-quinary-900/70 flex items-start justify-between gap-6 border-b px-6 py-5"
+					>
 						<div class="flex min-w-0 items-start gap-4">
 							<div
 								v-if="editingMusicImage"
@@ -791,7 +802,9 @@
 								<p class="text-cb-tertiary-500 text-sm">
 									{{ formatArtists(editingMusic.artists) }}
 								</p>
-								<div class="text-cb-tertiary-500 flex flex-wrap items-center gap-3 text-xs">
+								<div
+									class="text-cb-tertiary-500 flex flex-wrap items-center gap-3 text-xs"
+								>
 									<span>{{ selectedReleaseItems.length }} linked release(s)</span>
 									<span v-if="editingMusic.id_youtube_music">
 										YouTube: {{ editingMusic.id_youtube_music }}
@@ -812,7 +825,9 @@
 					<div class="scrollBarLight flex-1 overflow-y-auto px-6 py-6">
 						<div class="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1.2fr)_25rem]">
 							<div class="space-y-6">
-								<div class="bg-cb-quaternary-950 rounded-2xl border border-cb-quinary-900/70 p-5">
+								<div
+									class="bg-cb-quaternary-950 border-cb-quinary-900/70 rounded-2xl border p-5"
+								>
 									<div class="mb-4 flex items-center justify-between gap-3">
 										<div>
 											<h4 class="font-semibold">Track details</h4>
@@ -886,7 +901,9 @@
 									</div>
 								</div>
 
-								<div class="bg-cb-quaternary-950 rounded-2xl border border-cb-quinary-900/70 p-5">
+								<div
+									class="bg-cb-quaternary-950 border-cb-quinary-900/70 rounded-2xl border p-5"
+								>
 									<h4 class="font-semibold">Artists</h4>
 									<p class="text-cb-tertiary-500 mb-4 text-sm">
 										Artists remain read-only here. Use the release editor when you need to
@@ -911,7 +928,9 @@
 									</div>
 								</div>
 
-								<div class="bg-cb-quaternary-950 rounded-2xl border border-cb-quinary-900/70 p-5">
+								<div
+									class="bg-cb-quaternary-950 border-cb-quinary-900/70 rounded-2xl border p-5"
+								>
 									<h4 class="font-semibold">Flags</h4>
 									<p class="text-cb-tertiary-500 mb-4 text-sm">
 										Control how this track is surfaced across the app.
@@ -925,7 +944,9 @@
 							</div>
 
 							<div class="space-y-4 xl:sticky xl:top-0 xl:self-start">
-								<div class="bg-cb-quaternary-950 rounded-2xl border border-cb-quinary-900/70 p-5">
+								<div
+									class="bg-cb-quaternary-950 border-cb-quinary-900/70 rounded-2xl border p-5"
+								>
 									<div class="mb-4 flex items-center justify-between gap-3">
 										<div>
 											<h4 class="font-semibold">Linked releases</h4>
@@ -963,7 +984,9 @@
 									</div>
 
 									<div class="mt-4 space-y-3">
-										<div class="bg-cb-secondary-950 rounded-xl border border-cb-quinary-900/70">
+										<div
+											class="bg-cb-secondary-950 border-cb-quinary-900/70 rounded-xl border"
+										>
 											<div class="border-cb-quinary-900/70 border-b px-4 py-3">
 												<p class="text-sm font-medium">Selected releases</p>
 											</div>
@@ -971,7 +994,7 @@
 												<div
 													v-for="release in selectedReleaseItems"
 													:key="release.id"
-													class="bg-cb-quaternary-950 flex items-center gap-3 rounded-xl border border-cb-quinary-900/70 p-3"
+													class="bg-cb-quaternary-950 border-cb-quinary-900/70 flex items-center gap-3 rounded-xl border p-3"
 												>
 													<div
 														class="bg-cb-quinary-900 h-12 w-12 shrink-0 overflow-hidden rounded-lg"
@@ -1028,7 +1051,9 @@
 											</div>
 										</div>
 
-										<div class="bg-cb-secondary-950 rounded-xl border border-cb-quinary-900/70">
+										<div
+											class="bg-cb-secondary-950 border-cb-quinary-900/70 rounded-xl border"
+										>
 											<div class="border-cb-quinary-900/70 border-b px-4 py-3">
 												<p class="text-sm font-medium">Search results</p>
 											</div>
@@ -1040,7 +1065,10 @@
 													Searching releases...
 												</div>
 												<div
-													v-else-if="releaseSearch.trim().length >= 2 && releaseSearchResults.length === 0"
+													v-else-if="
+														releaseSearch.trim().length >= 2 &&
+														releaseSearchResults.length === 0
+													"
 													class="text-cb-tertiary-500 px-4 py-4 text-sm"
 												>
 													No release found for this search.

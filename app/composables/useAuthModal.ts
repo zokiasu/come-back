@@ -12,17 +12,11 @@ export const useAuthModal = () => {
 
 		try {
 			if (import.meta.client) {
-				const supabase = useSupabaseClient()
-				const { data: sessionData } = await supabase.auth.getSession()
-				const sessionUser = sessionData.session?.user
+				const { getTrustedAuthUser, syncUserProfileFromAuthUser } = useAuth()
+				const sessionUser = await getTrustedAuthUser()
 
 				if (sessionUser?.id) {
-					const { syncUserProfileFromAuthUser } = useAuth()
-					await syncUserProfileFromAuthUser({
-						id: sessionUser.id,
-						email: sessionUser.email,
-						user_metadata: sessionUser.user_metadata ?? {},
-					})
+					await syncUserProfileFromAuthUser(sessionUser)
 					isOpen.value = false
 				}
 			}

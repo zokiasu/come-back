@@ -2,6 +2,8 @@
 	import type { Release, ReleaseType } from '~/types'
 	import { useSupabaseRelease } from '~/composables/Supabase/useSupabaseRelease'
 
+	type ReleaseFormType = NonNullable<ReleaseType> | 'COMPILATION'
+
 	interface Props {
 		id: string
 		name: string
@@ -26,7 +28,7 @@
 	const currentYear = new Date().getFullYear()
 
 	// Release types
-	const releaseTypes = [
+	const releaseTypes: Array<{ label: string; value: ReleaseFormType }> = [
 		{ label: 'Album', value: 'ALBUM' },
 		{ label: 'Single', value: 'SINGLE' },
 		{ label: 'EP', value: 'EP' },
@@ -147,11 +149,14 @@
 		<div class="scrollBarLight flex-1 overflow-y-auto px-6 py-6">
 			<div class="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1.2fr)_22rem]">
 				<div class="space-y-6">
-					<section class="bg-cb-quaternary-950 rounded-2xl border border-cb-quinary-900/70 p-5">
+					<section
+						class="bg-cb-quaternary-950 border-cb-quinary-900/70 rounded-2xl border p-5"
+					>
 						<div class="mb-4">
 							<h4 class="font-semibold">Release details</h4>
 							<p class="text-cb-tertiary-500 text-sm">
-								Update the core metadata used in cards, release pages and dashboard listings.
+								Update the core metadata used in cards, release pages and dashboard
+								listings.
 							</p>
 						</div>
 
@@ -218,11 +223,14 @@
 						</div>
 					</section>
 
-					<section class="bg-cb-quaternary-950 rounded-2xl border border-cb-quinary-900/70 p-5">
+					<section
+						class="bg-cb-quaternary-950 border-cb-quinary-900/70 rounded-2xl border p-5"
+					>
 						<div class="mb-4">
 							<h4 class="font-semibold">Visibility flags</h4>
 							<p class="text-cb-tertiary-500 text-sm">
-								Control whether the release is considered ready for normal discovery flows.
+								Control whether the release is considered ready for normal discovery
+								flows.
 							</p>
 						</div>
 
@@ -237,7 +245,9 @@
 				</div>
 
 				<div class="space-y-4 xl:sticky xl:top-0 xl:self-start">
-					<section class="bg-cb-quaternary-950 rounded-2xl border border-cb-quinary-900/70 p-5">
+					<section
+						class="bg-cb-quaternary-950 border-cb-quinary-900/70 rounded-2xl border p-5"
+					>
 						<div class="mb-4">
 							<h4 class="font-semibold">Current snapshot</h4>
 							<p class="text-cb-tertiary-500 text-sm">
@@ -246,8 +256,12 @@
 						</div>
 
 						<div class="space-y-3">
-							<div class="bg-cb-secondary-950 rounded-xl border border-cb-quinary-900/70 px-4 py-3">
-								<p class="text-cb-quinary-700 text-xs font-semibold uppercase tracking-[0.2em]">
+							<div
+								class="bg-cb-secondary-950 border-cb-quinary-900/70 rounded-xl border px-4 py-3"
+							>
+								<p
+									class="text-cb-quinary-700 text-xs font-semibold tracking-[0.2em] uppercase"
+								>
 									Type
 								</p>
 								<p class="mt-1 font-medium">
@@ -258,15 +272,25 @@
 								</p>
 							</div>
 
-							<div class="bg-cb-secondary-950 rounded-xl border border-cb-quinary-900/70 px-4 py-3">
-								<p class="text-cb-quinary-700 text-xs font-semibold uppercase tracking-[0.2em]">
+							<div
+								class="bg-cb-secondary-950 border-cb-quinary-900/70 rounded-xl border px-4 py-3"
+							>
+								<p
+									class="text-cb-quinary-700 text-xs font-semibold tracking-[0.2em] uppercase"
+								>
 									Date
 								</p>
-								<p class="mt-1 font-medium">{{ formatDisplayDate(formData.date) }}</p>
+								<p class="mt-1 font-medium">
+									{{ formatDisplayDate(formData.date ?? '') }}
+								</p>
 							</div>
 
-							<div class="bg-cb-secondary-950 rounded-xl border border-cb-quinary-900/70 px-4 py-3">
-								<p class="text-cb-quinary-700 text-xs font-semibold uppercase tracking-[0.2em]">
+							<div
+								class="bg-cb-secondary-950 border-cb-quinary-900/70 rounded-xl border px-4 py-3"
+							>
+								<p
+									class="text-cb-quinary-700 text-xs font-semibold tracking-[0.2em] uppercase"
+								>
 									Verification
 								</p>
 								<p class="mt-1 font-medium">

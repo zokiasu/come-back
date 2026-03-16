@@ -4,7 +4,7 @@ import type { SupabaseAuthUser, UserInsertData, UserUpdateData } from '~/types/a
 let authWatcherBound = false
 let authInitialized = false
 let sharedInitPromise: Promise<boolean> | null = null
-let sharedSessionAuthUserPromise: Promise<SupabaseAuthUser | null> | null = null
+let sharedTrustedAuthUserPromise: Promise<SupabaseAuthUser | null> | null = null
 let sharedIsLoggingOutFlag = false
 
 export const useAuth = () => {
@@ -26,17 +26,17 @@ export const useAuth = () => {
 		return undefined
 	}
 
-	const getSessionAuthUser = async (): Promise<SupabaseAuthUser | null> => {
-		if (sharedSessionAuthUserPromise) {
-			return await sharedSessionAuthUserPromise
+	const getTrustedAuthUser = async (): Promise<SupabaseAuthUser | null> => {
+		if (sharedTrustedAuthUserPromise) {
+			return await sharedTrustedAuthUserPromise
 		}
 
-		sharedSessionAuthUserPromise = (async () => {
+		sharedTrustedAuthUserPromise = (async () => {
 			try {
-				const { data: sessionData } = await supabase.auth.getSession()
-				const sessionUser = sessionData.session?.user
+				const { data: userData, error } = await supabase.auth.getUser()
+				const sessionUser = userData.user
 
-				if (!sessionUser?.id) return null
+				if (error || !sessionUser?.id) return null
 
 				return {
 					id: sessionUser.id,
@@ -47,11 +47,11 @@ export const useAuth = () => {
 				console.warn('Unable to read auth session safely:', error)
 				return null
 			} finally {
-				sharedSessionAuthUserPromise = null
+				sharedTrustedAuthUserPromise = null
 			}
 		})()
 
-		return await sharedSessionAuthUserPromise
+		return await sharedTrustedAuthUserPromise
 	}
 
 	// Fonction pour créer ou mettre à jour un utilisateur (intégrée depuis useSupabaseUserManager)
@@ -201,7 +201,7 @@ export const useAuth = () => {
 		// Attendre que l'utilisateur soit complètement initialisé (avec id)
 		// Supabase v2 peut avoir un user.value sans id pendant l'initialisation OAuth
 		if (!user.value?.id) {
-			const authUser = await getSessionAuthUser()
+			const authUser = await getTrustedAuthUser()
 
 			if (authUser?.id) {
 				preserveAuthenticatedState(authUser)
@@ -240,7 +240,8 @@ export const useAuth = () => {
 
 				return true
 			} catch (error: unknown) {
-				const errorMessage = error instanceof Error ? error.message : 'Erreur de synchronisation'
+				const errorMessage =
+					error instanceof Error ? error.message : 'Erreur de synchronisation'
 				console.error('❌ Erreur lors de la synchronisation:', error)
 				syncError.value = errorMessage
 				preserveAuthenticatedState(authUser)
@@ -268,7 +269,8 @@ export const useAuth = () => {
 			await syncUserProfile(authUser, userData)
 			return true
 		} catch (error: unknown) {
-			const errorMessage = error instanceof Error ? error.message : 'Erreur de synchronisation'
+			const errorMessage =
+				error instanceof Error ? error.message : 'Erreur de synchronisation'
 			console.error('❌ Erreur lors de la synchronisation (auth user):', error)
 			syncError.value = errorMessage
 			preserveAuthenticatedState(authUser)
@@ -321,7 +323,7 @@ export const useAuth = () => {
 			return await ensureUserProfile()
 		}
 
-		const sessionAuthUser = await getSessionAuthUser()
+		const sessionAuthUser = await getTrustedAuthUser()
 		if (sessionAuthUser?.id) {
 			preserveAuthenticatedState(sessionAuthUser)
 			return await syncUserProfileFromAuthUser(sessionAuthUser)
@@ -420,6 +422,7 @@ export const useAuth = () => {
 		syncUserProfileFromAuthUser,
 		initializeAuth,
 		ensureAuthInitialized,
+		getTrustedAuthUser,
 		logout,
 	}
 }

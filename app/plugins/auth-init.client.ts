@@ -38,8 +38,8 @@ export default defineNuxtPlugin(async () => {
 
 				if (event === 'SIGNED_OUT') {
 					await new Promise((resolve) => setTimeout(resolve, 300))
-					const { data: sessionData } = await supabase.auth.getSession()
-					if (sessionData.session?.user?.id) {
+					const { data: userData } = await supabase.auth.getUser()
+					if (userData.user?.id) {
 						await ensureUserProfile()
 						return
 					}
