@@ -11,16 +11,16 @@
 	const { open: openAuthModal } = useAuthModal()
 
 	// SSR-compatible data fetching avec API complète
-	const {
-		data: companyData,
-		pending: isFetchingCompany,
-	} = await useFetch(`/api/companies/${route.params.id}/complete`, {
-		server: true,
-		default: () => ({
-			company: null,
-			company_artists: [],
-		}),
-	})
+	const { data: companyData, pending: isFetchingCompany } = await useFetch(
+		`/api/companies/${route.params.id}/complete`,
+		{
+			server: true,
+			default: () => ({
+				company: null,
+				company_artists: [],
+			}),
+		},
+	)
 
 	// Réactivité des données
 	const company = computed(() => companyData.value.company)
@@ -246,7 +246,7 @@
 							:key="`current_artist_${relation.artist?.id}`"
 							is-artist
 							:artist-id="String(relation.artist?.id ?? '')"
-								:main-title="relation.artist?.name ?? 'Unknown artist'"
+							:main-title="relation.artist?.name ?? 'Unknown artist'"
 							:sub-title="
 								relation.relationship_type
 									? getCompanyTypeLabel(relation.relationship_type)
@@ -271,7 +271,7 @@
 							:key="`past_artist_${relation.artist?.id}`"
 							is-artist
 							:artist-id="String(relation.artist?.id ?? '')"
-								:main-title="relation.artist?.name ?? 'Unknown artist'"
+							:main-title="relation.artist?.name ?? 'Unknown artist'"
 							:sub-title="
 								relation.relationship_type
 									? getCompanyTypeLabel(relation.relationship_type)

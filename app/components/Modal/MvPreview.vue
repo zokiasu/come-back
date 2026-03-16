@@ -60,7 +60,7 @@
 					</p>
 					<button
 						type="button"
-						class="text-cb-tertiary-200 hover:text-white cursor-pointer text-sm"
+						class="text-cb-tertiary-200 cursor-pointer text-sm hover:text-white"
 						@click="close"
 					>
 						Close M/V
@@ -72,7 +72,15 @@
 					:src="embedUrl"
 					:title="`${resolvedTitle} M/V`"
 					frameborder="0"
-					allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+					allow="
+						accelerometer;
+						autoplay;
+						clipboard-write;
+						encrypted-media;
+						gyroscope;
+						picture-in-picture;
+						web-share;
+					"
 					referrerpolicy="strict-origin-when-cross-origin"
 					allowfullscreen
 				></iframe>

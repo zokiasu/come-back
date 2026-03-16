@@ -135,4 +135,3 @@ export default defineEventHandler(async (event) => {
 		throw createInternalError('Failed to fetch complete artist data', error)
 	}
 })
-

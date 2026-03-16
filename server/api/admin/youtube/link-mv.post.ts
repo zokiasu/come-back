@@ -4,7 +4,10 @@ import {
 	createInternalError,
 	handleSupabaseError,
 } from '../../../utils/errorHandler'
-import { mapYouTubeThumbnails, parseYouTubeDuration } from '../../../utils/youtubeMvMatcher'
+import {
+	mapYouTubeThumbnails,
+	parseYouTubeDuration,
+} from '../../../utils/youtubeMvMatcher'
 
 type LinkMvBody = {
 	musicId?: string
@@ -14,7 +17,10 @@ type LinkMvBody = {
 type YouTubeVideoDetailsResponse = {
 	items?: Array<{
 		snippet?: {
-			thumbnails?: Record<string, { url: string; width?: number; height?: number } | undefined>
+			thumbnails?: Record<
+				string,
+				{ url: string; width?: number; height?: number } | undefined
+			>
 		}
 		contentDetails?: {
 			duration?: string
@@ -86,13 +92,16 @@ export default defineEventHandler(async (event) => {
 
 	if (apiKey) {
 		try {
-			const response = await $fetch<YouTubeVideoDetailsResponse>('https://www.googleapis.com/youtube/v3/videos', {
-				query: {
-					part: 'snippet,contentDetails',
-					id: videoId,
-					key: apiKey,
+			const response = await $fetch<YouTubeVideoDetailsResponse>(
+				'https://www.googleapis.com/youtube/v3/videos',
+				{
+					query: {
+						part: 'snippet,contentDetails',
+						id: videoId,
+						key: apiKey,
+					},
 				},
-			})
+			)
 
 			const video = response.items?.[0]
 			const thumbnails = mapYouTubeThumbnails(video?.snippet?.thumbnails)

@@ -47,12 +47,13 @@ export default defineEventHandler(async (event) => {
 		let styleMatchedArtistIds: string[] | undefined
 
 		if (styles && styles.length > 0) {
-			const { data: styleMatchedArtists, error: styleMatchedArtistsError } = await supabase
-				.from('artists')
-				.select('id')
-				.eq('verified', true)
-				.eq('active_career', true)
-				.overlaps('styles', styles)
+			const { data: styleMatchedArtists, error: styleMatchedArtistsError } =
+				await supabase
+					.from('artists')
+					.select('id')
+					.eq('verified', true)
+					.eq('active_career', true)
+					.overlaps('styles', styles)
 
 			if (styleMatchedArtistsError) {
 				throw styleMatchedArtistsError
@@ -82,9 +83,7 @@ export default defineEventHandler(async (event) => {
 		}
 
 		const isBroadArtistOnlyQuery =
-			!search &&
-			ismv === undefined &&
-			(!years || years.length === 0)
+			!search && ismv === undefined && (!years || years.length === 0)
 
 		if (isBroadArtistOnlyQuery) {
 			let artistsQuery = supabase
@@ -153,7 +152,7 @@ export default defineEventHandler(async (event) => {
 								index * ARTIST_ID_BATCH_SIZE,
 								(index + 1) * ARTIST_ID_BATCH_SIZE,
 							),
-				  )
+					)
 				: [undefined]
 
 		for (const artistIdBatch of musicArtistIdBatches) {

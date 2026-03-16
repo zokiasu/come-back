@@ -521,4 +521,3 @@ export function useSupabaseRanking() {
 		getPublicRankings,
 	}
 }
-

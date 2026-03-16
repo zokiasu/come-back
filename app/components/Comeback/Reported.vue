@@ -33,12 +33,11 @@
 
 <template>
 	<div class="space-y-4">
-		<p v-if="props.showTitle" class="text-sm font-semibold uppercase">Comeback reported</p>
+		<p v-if="props.showTitle" class="text-sm font-semibold uppercase">
+			Comeback reported
+		</p>
 
-		<div
-			v-if="props.comebackList.length"
-			class="space-y-3"
-		>
+		<div v-if="props.comebackList.length" class="space-y-3">
 			<div class="grid grid-cols-1 gap-3 md:grid-cols-2 2xl:grid-cols-3">
 				<CardNews
 					v-for="comeback in comebackToDisplay"
@@ -64,7 +63,7 @@
 		>
 			<button
 				type="button"
-				class="group border-cb-quinary-900 flex w-fit items-center gap-2 rounded-full border bg-cb-quinary-900/70 px-3 py-1.5 text-xs font-semibold transition hover:border-cb-tertiary-300/70 hover:bg-cb-quinary-900"
+				class="group border-cb-quinary-900 bg-cb-quinary-900/70 hover:border-cb-tertiary-300/70 hover:bg-cb-quinary-900 flex w-fit items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition"
 				@click="toggleDisplayAll"
 			>
 				<span v-if="displayAll">Show less</span>

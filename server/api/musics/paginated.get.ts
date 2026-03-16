@@ -51,8 +51,10 @@ const sortTransformedMusics = (
 					: rightPrimary - leftPrimary
 			}
 
-			const primaryComparison =
-				String(leftPrimary).localeCompare(String(rightPrimary), 'fr-FR')
+			const primaryComparison = String(leftPrimary).localeCompare(
+				String(rightPrimary),
+				'fr-FR',
+			)
 			return orderDirection === 'asc' ? primaryComparison : -primaryComparison
 		}
 
@@ -137,7 +139,11 @@ export default defineEventHandler(async (event) => {
 				filteredArtistIds = styleMatchedArtistIds
 			}
 
-			if (artistIds && artistIds.length > 0 && (!filteredArtistIds || filteredArtistIds.length === 0)) {
+			if (
+				artistIds &&
+				artistIds.length > 0 &&
+				(!filteredArtistIds || filteredArtistIds.length === 0)
+			) {
 				return {
 					musics: [],
 					total: 0,
@@ -173,10 +179,8 @@ export default defineEventHandler(async (event) => {
 				// Fetch full music data with relations for the filtered IDs
 				let musicsWithRelations: MusicWithRelations[] = []
 				if (musicIds.length > 0) {
-					let dataQuery = supabase
-						.from('musics')
-						.select(
-							`
+					let dataQuery = supabase.from('musics').select(
+						`
 							*,
 							artists:music_artists!inner(
 								artist:artists!inner(*)
@@ -185,7 +189,7 @@ export default defineEventHandler(async (event) => {
 								release:releases(*)
 							)
 						`,
-						)
+					)
 					dataQuery = applyVerifiedArtistFilter(dataQuery)
 					const { data: fullData, error: fullError } = await dataQuery.in('id', musicIds)
 
@@ -248,8 +252,14 @@ export default defineEventHandler(async (event) => {
 			if (musicIdsToFilter !== undefined) {
 				nextQuery =
 					musicIdsToFilter.length > 0
-						? ((nextQuery as T & { in: (column: string, values: string[]) => T }).in('id', musicIdsToFilter) as T)
-						: ((nextQuery as T & { eq: (column: string, value: string) => T }).eq('id', '00000000-0000-0000-0000-000000000000') as T)
+						? ((nextQuery as T & { in: (column: string, values: string[]) => T }).in(
+								'id',
+								musicIdsToFilter,
+							) as T)
+						: ((nextQuery as T & { eq: (column: string, value: string) => T }).eq(
+								'id',
+								'00000000-0000-0000-0000-000000000000',
+							) as T)
 			}
 
 			nextQuery = applyMusicFilters(nextQuery, { search, years, ismv })
@@ -406,5 +416,3 @@ export default defineEventHandler(async (event) => {
 		throw createInternalError('Failed to fetch paginated musics', error)
 	}
 })
-
-

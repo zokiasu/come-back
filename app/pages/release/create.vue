@@ -159,7 +159,9 @@
 
 					<!-- Liste des musiques ajoutées -->
 					<div v-if="musics.length > 0" class="mb-6">
-						<h4 class="mb-3 text-sm font-medium text-gray-700">Tracks in this release:</h4>
+						<h4 class="mb-3 text-sm font-medium text-gray-700">
+							Tracks in this release:
+						</h4>
 						<div class="space-y-3">
 							<div
 								v-for="(music, index) in musics"

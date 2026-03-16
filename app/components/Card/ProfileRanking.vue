@@ -31,7 +31,8 @@
 			v-if="(ranking.musics || []).length > 3"
 			class="text-cb-tertiary-200/50 p-2 pt-0 text-start text-xs italic"
 		>
-			And {{ (ranking.musics || []).length - 3 }} more songs, click to see the full ranking
+			And {{ (ranking.musics || []).length - 3 }} more songs, click to see the full
+			ranking
 		</p>
 	</div>
 	<Modal

@@ -271,8 +271,9 @@ export function useSupabaseNews() {
 		const transformedData = data?.map((news) => ({
 			...news,
 			artists:
-				news.artists?.map((artistJunction: NewsArtistJunction) => artistJunction.artists) ||
-				[],
+				news.artists?.map(
+					(artistJunction: NewsArtistJunction) => artistJunction.artists,
+				) || [],
 			user: news.contributions?.[0]?.user || null,
 		}))
 
@@ -362,8 +363,9 @@ export function useSupabaseNews() {
 			data?.map((news) => ({
 				...news,
 				artists:
-					news.artists?.map((artistJunction: NewsArtistJunction) => artistJunction.artists) ||
-					[],
+					news.artists?.map(
+						(artistJunction: NewsArtistJunction) => artistJunction.artists,
+					) || [],
 			})) || []
 
 		// Appeler le callback avec les données transformées
@@ -402,8 +404,7 @@ export function useSupabaseNews() {
 								artists:
 									news.artists?.map(
 										(artistJunction: NewsArtistJunction) => artistJunction.artists,
-									) ||
-									[],
+									) || [],
 							})) || []
 
 						callback(transformedUpdatedData as News[])
@@ -428,4 +429,3 @@ export function useSupabaseNews() {
 		getRealtimeLatestNewsAdded,
 	}
 }
-

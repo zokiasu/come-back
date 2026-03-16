@@ -123,14 +123,14 @@ npm run check        # Lint + Typecheck (CI)
 ## Stratégie de Rendu
 
 | Route               | Mode | Cache |
-| -------------------- | ---- | ----- |
-| `/`                  | ISR  | 1h    |
-| `/calendar`          | SSG  | 24h   |
-| `/dashboard/*`       | SPA  | -     |
-| `/release/create`    | SPA  | -     |
-| `/authentification`  | SPA  | -     |
-| `/settings/*`        | SSR  | -     |
-| `/api/**`            | API  | 5min  |
+| ------------------- | ---- | ----- |
+| `/`                 | ISR  | 1h    |
+| `/calendar`         | SSG  | 24h   |
+| `/dashboard/*`      | SPA  | -     |
+| `/release/create`   | SPA  | -     |
+| `/authentification` | SPA  | -     |
+| `/settings/*`       | SSR  | -     |
+| `/api/**`           | API  | 5min  |
 
 ## Licence
 

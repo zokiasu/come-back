@@ -68,7 +68,7 @@
 		@close="close"
 	>
 		<template #content>
-			<div class="px-6 pb-6 pt-5">
+			<div class="px-6 pt-5 pb-6">
 				<div class="flex items-center justify-between">
 					<div>
 						<p class="text-cb-tertiary-500 text-xs uppercase">Authentication</p>
@@ -90,13 +90,13 @@
 						:disabled="!option.enabled || isLoading"
 						color="neutral"
 						variant="soft"
-						class="w-full justify-start gap-3 rounded-xl bg-cb-quinary-900/60 px-4 py-3 text-left text-sm font-semibold text-white disabled:opacity-50"
+						class="bg-cb-quinary-900/60 w-full justify-start gap-3 rounded-xl px-4 py-3 text-left text-sm font-semibold text-white disabled:opacity-50"
 						@click="option.enabled ? option.action?.() : undefined"
 					>
 						<IconGoogle v-if="option.id === 'google'" class="h-5 w-5" />
 						<UIcon v-else :name="option.icon" class="h-5 w-5" />
 						<span>{{ option.label }}</span>
-						<span v-if="!option.enabled" class="ml-auto text-xs text-cb-tertiary-500">
+						<span v-if="!option.enabled" class="text-cb-tertiary-500 ml-auto text-xs">
 							Coming soon
 						</span>
 						<span v-else-if="option.id === 'google' && isLoading" class="ml-auto text-xs">

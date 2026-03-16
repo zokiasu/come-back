@@ -82,13 +82,19 @@ Les requêtes Supabase renvoient les relations many-to-many sous forme de joncti
 
 import { transformJunction } from '~/server/utils/transformers'
 
-const releases = transformJunction(raw.artists, 'artist')  // extrait la clé 'artist'
-const musics = transformJunction(raw.musics, 'music')       // extrait la clé 'music'
+const releases = transformJunction(raw.artists, 'artist') // extrait la clé 'artist'
+const musics = transformJunction(raw.musics, 'music') // extrait la clé 'music'
 
 // Types de jonction côté client (~/types/index.ts) :
-interface JunctionWithArtist { artist: Tables<'artists'> | null }
-interface JunctionWithRelease { release: Tables<'releases'> | null }
-interface JunctionWithMusic { music: Tables<'musics'> | null }
+interface JunctionWithArtist {
+	artist: Tables<'artists'> | null
+}
+interface JunctionWithRelease {
+	release: Tables<'releases'> | null
+}
+interface JunctionWithMusic {
+	music: Tables<'musics'> | null
+}
 ```
 
 ### Pattern composable : Helpers modulaires
@@ -106,11 +112,13 @@ useSupabaseArtist.ts → helpers/artist/artistQueries.ts  (fetch)
 L'auth fonctionne en couches avec synchronisation entre Supabase, Pinia et localStorage :
 
 **Côté client** :
+
 - `useAuth.ts` — orchestrateur principal (session, profil, sync). Expose `ensureAuthInitialized()` qui résout quand la session Supabase et les données utilisateur sont prêtes.
 - `useAuthModal.ts` — gestion de l'état du modal d'authentification
 - `auth/supabase-auth.composable.ts` — logique OAuth spécifique (popup, message passing, session polling)
 
 **Middleware** : `auth.ts` et `admin.ts` utilisent un pattern retry avec timeout pour attendre l'initialisation asynchrone de l'auth (constantes dans `app/constants/auth.ts`) :
+
 - `AUTH_INIT_TIMEOUT_MS: 5000` — timeout pour `ensureAuthInitialized()`
 - `AUTH_MAX_RETRY_ATTEMPTS: 30` × `AUTH_RETRY_DELAY_MS: 100` = 3s max d'attente pour `userData`
 - Le middleware vérifie `user.value?.id` (Supabase) OU `userStore.userDataStore + isLoginStore` (localStorage)
@@ -212,15 +220,15 @@ const { data } = await useFetch('/api/releases/paginated', {
 
 ## Stratégie de Rendu
 
-| Route                          | Mode | Détails            |
-| ------------------------------ | ---- | ------------------ |
-| `/`                            | ISR  | 3600s revalidation |
-| `/calendar`                    | SSG  | Prerender          |
-| `/authentification`, `/auth/`  | SPA  | Client-side only   |
-| `/dashboard/**`, `/newdashboard/**` | SPA  | Client-side only   |
-| `/release/create`, `/music`    | SPA  | Client-side only   |
-| `/settings/**`                 | SSR  | Hybride            |
-| `/api/**`                      | —    | CORS activé + cache headers |
+| Route                               | Mode | Détails                     |
+| ----------------------------------- | ---- | --------------------------- |
+| `/`                                 | ISR  | 3600s revalidation          |
+| `/calendar`                         | SSG  | Prerender                   |
+| `/authentification`, `/auth/`       | SPA  | Client-side only            |
+| `/dashboard/**`, `/newdashboard/**` | SPA  | Client-side only            |
+| `/release/create`, `/music`         | SPA  | Client-side only            |
+| `/settings/**`                      | SSR  | Hybride                     |
+| `/api/**`                           | —    | CORS activé + cache headers |
 
 ## Formatage & Linting
 
@@ -231,6 +239,7 @@ Tabs, `printWidth: 90`, single quotes, no semicolons, trailing commas, `vueInden
 ### ESLint
 
 Règles notables (eslint.config.mjs) :
+
 - `@typescript-eslint/no-explicit-any`: warn
 - `no-console`: warn (autorise `console.error` et `console.warn`)
 - `@typescript-eslint/no-unused-vars`: warn (ignore `_` prefix et `YT`)
@@ -242,9 +251,9 @@ Règles notables (eslint.config.mjs) :
 ### Endpoints Protégés
 
 ```typescript
-await requireAuth(event)        // 401 si non connecté
+await requireAuth(event) // 401 si non connecté
 await requireContributor(event) // 403 si ni CONTRIBUTOR ni ADMIN
-await requireAdmin(event)       // 403 si non-admin
+await requireAdmin(event) // 403 si non-admin
 ```
 
 ### Validation des Inputs

@@ -19,18 +19,18 @@
 	const { open: openAuthModal } = useAuthModal()
 
 	// SSR-compatible data fetching avec API complète
-	const {
-		data: artistData,
-		pending: isFetchingArtist,
-	} = await useFetch(`/api/artists/${route.params.id}/complete`, {
-		server: true,
-		default: () => ({
-			artist: null,
-			social_links: [],
-			platform_links: [],
-			random_musics: [],
-		}),
-	})
+	const { data: artistData, pending: isFetchingArtist } = await useFetch(
+		`/api/artists/${route.params.id}/complete`,
+		{
+			server: true,
+			default: () => ({
+				artist: null,
+				social_links: [],
+				platform_links: [],
+				random_musics: [],
+			}),
+		},
+	)
 
 	// Réactivité des données
 	const artist = computed(() => artistData.value.artist)
@@ -57,7 +57,9 @@
 	)
 
 	const heroBackgroundSrc = computed(
-		() => (imageBackError.value ? fallbackBackground : imageBackground.value) || fallbackBackground,
+		() =>
+			(imageBackError.value ? fallbackBackground : imageBackground.value) ||
+			fallbackBackground,
 	)
 
 	function onHeroImageLoad() {

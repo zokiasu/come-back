@@ -290,7 +290,7 @@
 			class="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 md:gap-3.5 lg:grid-cols-6 xl:grid-cols-8"
 		>
 			<CardObject
-						v-for="release in getDisplayedReleases()"
+				v-for="release in getDisplayedReleases()"
 				:key="release.id_youtube_music ?? ''"
 				:artist-id="release.artists?.[0]?.id ?? ''"
 				:main-title="release.name"

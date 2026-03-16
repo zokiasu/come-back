@@ -71,19 +71,22 @@ const fetchKeywordCandidates = async (
 	limit: number,
 ): Promise<CandidateVideo[]> => {
 	try {
-		const response = await $fetch<YouTubeSearchResponse>('https://www.googleapis.com/youtube/v3/search', {
-			query: {
-				part: 'snippet',
-				type: 'video',
-				order: 'date',
-				maxResults: limit,
-				publishedAfter,
-				publishedBefore,
-				videoCategoryId: '10',
-				q: keyword,
-				key: apiKey,
+		const response = await $fetch<YouTubeSearchResponse>(
+			'https://www.googleapis.com/youtube/v3/search',
+			{
+				query: {
+					part: 'snippet',
+					type: 'video',
+					order: 'date',
+					maxResults: limit,
+					publishedAfter,
+					publishedBefore,
+					videoCategoryId: '10',
+					q: keyword,
+					key: apiKey,
+				},
 			},
-		})
+		)
 
 		return (response.items ?? [])
 			.map((item) => {
@@ -95,7 +98,8 @@ const fetchKeywordCandidates = async (
 					description: decodeHtmlEntities(item.snippet?.description),
 					publishedAt: item.snippet?.publishedAt ?? '',
 					channelId: item.snippet?.channelId ?? '',
-					channelTitle: decodeHtmlEntities(item.snippet?.channelTitle) || 'Unknown channel',
+					channelTitle:
+						decodeHtmlEntities(item.snippet?.channelTitle) || 'Unknown channel',
 					thumbnailUrl: thumbnailList?.[2]?.url ?? thumbnailList?.[0]?.url ?? null,
 					matchedKeywords: [keyword],
 				}
@@ -108,7 +112,10 @@ const fetchKeywordCandidates = async (
 					isEligibleMvCandidate(item.title),
 			)
 	} catch (error) {
-		throw createInternalError(`Failed to fetch YouTube MV candidates for keyword "${keyword}"`, error)
+		throw createInternalError(
+			`Failed to fetch YouTube MV candidates for keyword "${keyword}"`,
+			error,
+		)
 	}
 }
 
@@ -161,7 +168,10 @@ export default defineEventHandler(async (event) => {
 	const { start, end } = parseDateRange(startDate, endDate)
 	const keywords = parseMvKeywords(query.keywords as string | string[] | undefined)
 	const limit = clampInteger(Number(query.limit ?? 24), 5, 40, 24)
-	const perKeywordLimit = Math.min(20, Math.max(6, Math.ceil(limit / keywords.length) + 3))
+	const perKeywordLimit = Math.min(
+		20,
+		Math.max(6, Math.ceil(limit / keywords.length) + 3),
+	)
 
 	const config = useRuntimeConfig()
 	const apiKey = config.public.YOUTUBE_API_KEY
@@ -228,7 +238,9 @@ export default defineEventHandler(async (event) => {
 		}
 	}
 
-	const unmatchedCandidates = dedupedCandidates.filter((candidate) => !existingIds.has(candidate.videoId))
+	const unmatchedCandidates = dedupedCandidates.filter(
+		(candidate) => !existingIds.has(candidate.videoId),
+	)
 	const eligibleDurationIds = await fetchEligibleDurationIds(
 		apiKey,
 		unmatchedCandidates.map((candidate) => candidate.videoId),
@@ -258,7 +270,9 @@ export default defineEventHandler(async (event) => {
 			matchedKeyword: candidate.matchedKeywords[0] ?? null,
 			suggestions: musicPool
 				.map((music) => scoreMusicMatch(candidate.title, candidate.publishedAt, music))
-				.filter((suggestion): suggestion is NonNullable<typeof suggestion> => Boolean(suggestion))
+				.filter((suggestion): suggestion is NonNullable<typeof suggestion> =>
+					Boolean(suggestion),
+				)
 				.sort((left, right) => right.score - left.score)
 				.slice(0, 6),
 		})),

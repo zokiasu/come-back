@@ -5,12 +5,7 @@
 	import { useUserStore } from '~/stores/user'
 
 	// Internal Types
-	import type {
-		Artist,
-		MusicStyle,
-		GeneralTag,
-		Company,
-	} from '~/types'
+	import type { Artist, MusicStyle, GeneralTag, Company } from '~/types'
 	import type { TablesInsert } from '~/types/supabase'
 
 	// Creates a generic type that adds 'label' to an existing type T
@@ -240,7 +235,7 @@
 
 	const buildArtistRefs = (items: ArtistMenuItem[]): Artist[] => {
 		const uniqueIds = new Set(items.map((item) => item.id))
-		return Array.from(uniqueIds).map((id) => ({ id } as Artist))
+		return Array.from(uniqueIds).map((id) => ({ id }) as Artist)
 	}
 
 	const groupsForMenu = computed((): ArtistMenuItem[] => {
@@ -368,7 +363,7 @@
 		}
 	}
 
-	const withTimeout = async <T>(
+	const withTimeout = async <T,>(
 		promise: Promise<T>,
 		timeoutMs: number,
 		errorMessage: string,
@@ -658,14 +653,14 @@
 		class="mx-auto min-h-[calc(100vh-60px)] max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8"
 	>
 		<section
-			class="bg-cb-secondary-950 overflow-hidden rounded-[28px] border border-cb-quinary-900/70 shadow-2xl"
+			class="bg-cb-secondary-950 border-cb-quinary-900/70 overflow-hidden rounded-[28px] border shadow-2xl"
 		>
 			<div
 				class="border-cb-quinary-900/70 flex flex-col gap-6 border-b px-6 py-6 xl:flex-row xl:items-start xl:justify-between"
 			>
 				<div class="flex flex-col gap-5 sm:flex-row sm:items-start">
 					<div
-						class="bg-cb-quinary-900 flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-3xl border border-cb-quinary-900/70"
+						class="bg-cb-quinary-900 border-cb-quinary-900/70 flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-3xl border"
 					>
 						<NuxtImg
 							v-if="heroImageSrc"
@@ -680,7 +675,9 @@
 
 					<div class="space-y-4">
 						<div class="space-y-2">
-							<p class="text-cb-quinary-700 text-xs font-semibold uppercase tracking-[0.35em]">
+							<p
+								class="text-cb-quinary-700 text-xs font-semibold tracking-[0.35em] uppercase"
+							>
 								Artist editor
 							</p>
 							<div class="space-y-1">
@@ -707,17 +704,17 @@
 
 						<div class="flex flex-wrap gap-2 text-sm text-gray-300">
 							<div
-								class="bg-cb-quaternary-950 rounded-full border border-cb-quinary-900/70 px-3 py-1.5"
+								class="bg-cb-quaternary-950 border-cb-quinary-900/70 rounded-full border px-3 py-1.5"
 							>
-								<span class="text-cb-quinary-700 mr-2 text-xs uppercase tracking-[0.2em]">
+								<span class="text-cb-quinary-700 mr-2 text-xs tracking-[0.2em] uppercase">
 									Artist ID
 								</span>
 								<span class="font-medium">{{ artistToEdit.id }}</span>
 							</div>
 							<div
-								class="bg-cb-quaternary-950 rounded-full border border-cb-quinary-900/70 px-3 py-1.5"
+								class="bg-cb-quaternary-950 border-cb-quinary-900/70 rounded-full border px-3 py-1.5"
 							>
-								<span class="text-cb-quinary-700 mr-2 text-xs uppercase tracking-[0.2em]">
+								<span class="text-cb-quinary-700 mr-2 text-xs tracking-[0.2em] uppercase">
 									YouTube
 								</span>
 								<span class="font-medium">
@@ -742,7 +739,7 @@
 						icon="i-lucide-save"
 						color="primary"
 						:loading="isUploadingEdit"
-						class="w-full cursor-pointer justify-center !bg-cb-primary-900 !text-white hover:!bg-cb-primary-800 hover:!text-white disabled:!bg-cb-primary-900 disabled:!text-white"
+						class="!bg-cb-primary-900 hover:!bg-cb-primary-800 disabled:!bg-cb-primary-900 w-full cursor-pointer justify-center !text-white hover:!text-white disabled:!text-white"
 						@click="sendUpdateArtist"
 					/>
 					<p class="text-xs leading-5 text-gray-500">
@@ -755,9 +752,11 @@
 				<div
 					v-for="stat in overviewStats"
 					:key="stat.label"
-					class="bg-cb-quaternary-950 rounded-2xl border border-cb-quinary-900/70 p-4"
+					class="bg-cb-quaternary-950 border-cb-quinary-900/70 rounded-2xl border p-4"
 				>
-					<p class="text-cb-quinary-700 text-xs font-semibold uppercase tracking-[0.25em]">
+					<p
+						class="text-cb-quinary-700 text-xs font-semibold tracking-[0.25em] uppercase"
+					>
 						{{ stat.label }}
 					</p>
 					<p class="mt-3 text-2xl font-bold">{{ stat.value }}</p>
@@ -769,7 +768,7 @@
 		<div class="grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(320px,0.95fr)]">
 			<div class="space-y-6">
 				<section
-					class="bg-cb-secondary-950 rounded-[28px] border border-cb-quinary-900/70 p-6 shadow-xl"
+					class="bg-cb-secondary-950 border-cb-quinary-900/70 rounded-[28px] border p-6 shadow-xl"
 				>
 					<div class="mb-5 space-y-2">
 						<h2 class="text-xl font-semibold">Identity details</h2>
@@ -808,12 +807,13 @@
 				</section>
 
 				<section
-					class="bg-cb-secondary-950 rounded-[28px] border border-cb-quinary-900/70 p-6 shadow-xl"
+					class="bg-cb-secondary-950 border-cb-quinary-900/70 rounded-[28px] border p-6 shadow-xl"
 				>
 					<div class="mb-5 space-y-2">
 						<h2 class="text-xl font-semibold">Timeline and status</h2>
 						<p class="text-sm leading-6 text-gray-400">
-							Define how the artist should be classified and when the project became active.
+							Define how the artist should be classified and when the project became
+							active.
 						</p>
 					</div>
 
@@ -829,7 +829,9 @@
 								:min-value="new CalendarDate(1900, 1, 1)"
 								locale="en-GB"
 								class="w-full"
-								:ui="{ base: 'bg-cb-quaternary-950 border border-cb-quinary-900/70 rounded-xl' }"
+								:ui="{
+									base: 'bg-cb-quaternary-950 border border-cb-quinary-900/70 rounded-xl',
+								}"
 							>
 								<template #trailing>
 									<UPopover
@@ -868,7 +870,9 @@
 								:min-value="new CalendarDate(2000, 1, 1)"
 								locale="en-GB"
 								class="w-full"
-								:ui="{ base: 'bg-cb-quaternary-950 border border-cb-quinary-900/70 rounded-xl' }"
+								:ui="{
+									base: 'bg-cb-quaternary-950 border border-cb-quinary-900/70 rounded-xl',
+								}"
 							>
 								<template #trailing>
 									<UPopover
@@ -947,8 +951,12 @@
 									:key="option.label"
 									type="button"
 									size="sm"
-									:color="artistToEdit.active_career === option.value ? 'primary' : 'neutral'"
-									:variant="artistToEdit.active_career === option.value ? 'solid' : 'soft'"
+									:color="
+										artistToEdit.active_career === option.value ? 'primary' : 'neutral'
+									"
+									:variant="
+										artistToEdit.active_career === option.value ? 'solid' : 'soft'
+									"
 									class="cursor-pointer rounded-full"
 									:aria-pressed="artistToEdit.active_career === option.value"
 									@click="artistToEdit.active_career = option.value"
@@ -961,7 +969,7 @@
 				</section>
 
 				<section
-					class="bg-cb-secondary-950 rounded-[28px] border border-cb-quinary-900/70 p-6 shadow-xl"
+					class="bg-cb-secondary-950 border-cb-quinary-900/70 rounded-[28px] border p-6 shadow-xl"
 				>
 					<div class="mb-5 space-y-2">
 						<h2 class="text-xl font-semibold">Taxonomy</h2>
@@ -1050,7 +1058,7 @@
 				</section>
 
 				<section
-					class="bg-cb-secondary-950 rounded-[28px] border border-cb-quinary-900/70 p-6 shadow-xl"
+					class="bg-cb-secondary-950 border-cb-quinary-900/70 rounded-[28px] border p-6 shadow-xl"
 				>
 					<div class="mb-5 space-y-2">
 						<h2 class="text-xl font-semibold">Editorial description</h2>
@@ -1062,20 +1070,23 @@
 
 					<textarea
 						v-model="artistToEdit.description"
-						:placeholder="artistToEdit.description || 'Write a concise artist description...'"
-						class="bg-cb-quaternary-950 min-h-[220px] w-full rounded-2xl border border-cb-quinary-900/70 p-4 text-sm leading-6 text-white outline-none transition focus:border-cb-primary-900/60 focus:ring-2 focus:ring-cb-primary-900/20"
+						:placeholder="
+							artistToEdit.description || 'Write a concise artist description...'
+						"
+						class="bg-cb-quaternary-950 border-cb-quinary-900/70 focus:border-cb-primary-900/60 focus:ring-cb-primary-900/20 min-h-[220px] w-full rounded-2xl border p-4 text-sm leading-6 text-white transition outline-none focus:ring-2"
 						@input="adjustTextareaDirect($event.target as HTMLTextAreaElement)"
 					/>
 				</section>
 
 				<section
-					class="bg-cb-secondary-950 rounded-[28px] border border-cb-quinary-900/70 p-6 shadow-xl"
+					class="bg-cb-secondary-950 border-cb-quinary-900/70 rounded-[28px] border p-6 shadow-xl"
 				>
 					<div class="mb-5 flex flex-wrap items-start justify-between gap-3">
 						<div class="space-y-2">
 							<h2 class="text-xl font-semibold">Artist relationships</h2>
 							<p class="text-sm leading-6 text-gray-400">
-								Link soloists to their groups or manage the full roster for group profiles.
+								Link soloists to their groups or manage the full roster for group
+								profiles.
 							</p>
 						</div>
 						<UModal
@@ -1103,9 +1114,14 @@
 						</UModal>
 					</div>
 
-					<div class="grid gap-5" :class="artistToEdit.type === 'GROUP' ? 'xl:grid-cols-2' : ''">
+					<div
+						class="grid gap-5"
+						:class="artistToEdit.type === 'GROUP' ? 'xl:grid-cols-2' : ''"
+					>
 						<div v-if="groupList" class="space-y-3">
-							<ComebackLabel :label="artistToEdit.type === 'GROUP' ? 'Related groups' : 'Groups'" />
+							<ComebackLabel
+								:label="artistToEdit.type === 'GROUP' ? 'Related groups' : 'Groups'"
+							/>
 							<UInputMenu
 								v-model="artistGroups"
 								:search-term="groupSearchTerm"
@@ -1126,10 +1142,7 @@
 							/>
 						</div>
 
-						<div
-							v-if="artistsList && artistToEdit.type === 'GROUP'"
-							class="space-y-3"
-						>
+						<div v-if="artistsList && artistToEdit.type === 'GROUP'" class="space-y-3">
 							<ComebackLabel label="Members" />
 							<UInputMenu
 								v-model="artistMembers"
@@ -1154,13 +1167,14 @@
 				</section>
 
 				<section
-					class="bg-cb-secondary-950 rounded-[28px] border border-cb-quinary-900/70 p-6 shadow-xl"
+					class="bg-cb-secondary-950 border-cb-quinary-900/70 rounded-[28px] border p-6 shadow-xl"
 				>
 					<div class="mb-5 flex flex-wrap items-start justify-between gap-3">
 						<div class="space-y-2">
 							<h2 class="text-xl font-semibold">Company relations</h2>
 							<p class="text-sm leading-6 text-gray-400">
-								Track labels, agencies and other business links tied to the artist profile.
+								Track labels, agencies and other business links tied to the artist
+								profile.
 							</p>
 						</div>
 						<div class="flex flex-wrap gap-2">
@@ -1203,12 +1217,14 @@
 						<div
 							v-for="(relation, index) in artistCompanies"
 							:key="index"
-							class="bg-cb-quaternary-950 rounded-2xl border border-cb-quinary-900/70 p-4"
+							class="bg-cb-quaternary-950 border-cb-quinary-900/70 rounded-2xl border p-4"
 						>
 							<div class="flex items-start justify-between gap-4">
 								<div class="min-w-0 flex-1 space-y-4">
 									<div class="space-y-2">
-										<label class="text-cb-quinary-700 block text-xs font-semibold uppercase tracking-[0.2em]">
+										<label
+											class="text-cb-quinary-700 block text-xs font-semibold tracking-[0.2em] uppercase"
+										>
 											Company
 										</label>
 										<UInputMenu
@@ -1233,18 +1249,16 @@
 									</div>
 
 									<div class="space-y-2">
-										<label class="text-cb-quinary-700 block text-xs font-semibold uppercase tracking-[0.2em]">
+										<label
+											class="text-cb-quinary-700 block text-xs font-semibold tracking-[0.2em] uppercase"
+										>
 											Relationship type
 										</label>
 										<select
 											v-model="relation.relationship_type"
-											class="bg-cb-secondary-950 w-full rounded-xl border border-cb-quinary-900/70 px-3 py-2.5 text-sm outline-none transition focus:border-cb-primary-900/60 focus:ring-2 focus:ring-cb-primary-900/20"
+											class="bg-cb-secondary-950 border-cb-quinary-900/70 focus:border-cb-primary-900/60 focus:ring-cb-primary-900/20 w-full rounded-xl border px-3 py-2.5 text-sm transition outline-none focus:ring-2"
 										>
-											<option
-												v-for="type in relationshipTypes"
-												:key="type"
-												:value="type"
-											>
+											<option v-for="type in relationshipTypes" :key="type" :value="type">
 												{{ type }}
 											</option>
 										</select>
@@ -1252,7 +1266,7 @@
 
 									<label
 										:for="`current-${index}`"
-										class="flex cursor-pointer items-center gap-3 rounded-xl border border-cb-quinary-900/70 px-3 py-2 text-sm text-gray-300"
+										class="border-cb-quinary-900/70 flex cursor-pointer items-center gap-3 rounded-xl border px-3 py-2 text-sm text-gray-300"
 									>
 										<input
 											:id="`current-${index}`"
@@ -1279,15 +1293,15 @@
 
 					<div
 						v-else
-						class="bg-cb-quaternary-950 rounded-2xl border border-dashed border-cb-quinary-900/70 px-4 py-10 text-center text-sm text-gray-400"
+						class="bg-cb-quaternary-950 border-cb-quinary-900/70 rounded-2xl border border-dashed px-4 py-10 text-center text-sm text-gray-400"
 					>
-						No company relations yet. Add one when the artist is tied to a label,
-						agency or distributor.
+						No company relations yet. Add one when the artist is tied to a label, agency
+						or distributor.
 					</div>
 				</section>
 
 				<section
-					class="bg-cb-secondary-950 rounded-[28px] border border-cb-quinary-900/70 p-6 shadow-xl"
+					class="bg-cb-secondary-950 border-cb-quinary-900/70 rounded-[28px] border p-6 shadow-xl"
 				>
 					<div class="mb-5 space-y-2">
 						<h2 class="text-xl font-semibold">Platforms and socials</h2>
@@ -1326,7 +1340,7 @@
 
 			<div class="space-y-6 xl:sticky xl:top-24 xl:self-start">
 				<section
-					class="bg-cb-secondary-950 rounded-[28px] border border-cb-quinary-900/70 p-6 shadow-xl"
+					class="bg-cb-secondary-950 border-cb-quinary-900/70 rounded-[28px] border p-6 shadow-xl"
 				>
 					<div class="mb-4 space-y-2">
 						<h2 class="text-xl font-semibold">Visuals and sync</h2>
@@ -1337,7 +1351,7 @@
 					</div>
 
 					<div
-						class="bg-cb-quaternary-950 mb-4 overflow-hidden rounded-3xl border border-cb-quinary-900/70"
+						class="bg-cb-quaternary-950 border-cb-quinary-900/70 mb-4 overflow-hidden rounded-3xl border"
 					>
 						<NuxtImg
 							v-if="heroImageSrc"
@@ -1386,7 +1400,7 @@
 
 					<div
 						v-else
-						class="bg-cb-quaternary-950 rounded-2xl border border-cb-quinary-900/70 p-4 text-sm leading-6 text-gray-400"
+						class="bg-cb-quaternary-950 border-cb-quinary-900/70 rounded-2xl border p-4 text-sm leading-6 text-gray-400"
 					>
 						Image updates are synchronized automatically from YouTube Music for non-admin
 						users.
@@ -1394,7 +1408,7 @@
 				</section>
 
 				<section
-					class="bg-cb-secondary-950 rounded-[28px] border border-cb-quinary-900/70 p-6 shadow-xl"
+					class="bg-cb-secondary-950 border-cb-quinary-900/70 rounded-[28px] border p-6 shadow-xl"
 				>
 					<div class="mb-4 space-y-2">
 						<h2 class="text-xl font-semibold">Quick overview</h2>
@@ -1405,10 +1419,12 @@
 
 					<div class="space-y-3">
 						<div
-							class="bg-cb-quaternary-950 flex items-center justify-between rounded-2xl border border-cb-quinary-900/70 px-4 py-3"
+							class="bg-cb-quaternary-950 border-cb-quinary-900/70 flex items-center justify-between rounded-2xl border px-4 py-3"
 						>
 							<div>
-								<p class="text-cb-quinary-700 text-xs font-semibold uppercase tracking-[0.2em]">
+								<p
+									class="text-cb-quinary-700 text-xs font-semibold tracking-[0.2em] uppercase"
+								>
 									{{ artistToEdit.type === 'GROUP' ? 'Profile mode' : 'Birthday' }}
 								</p>
 								<p class="mt-1 font-medium">
@@ -1422,10 +1438,12 @@
 						</div>
 
 						<div
-							class="bg-cb-quaternary-950 flex items-center justify-between rounded-2xl border border-cb-quinary-900/70 px-4 py-3"
+							class="bg-cb-quaternary-950 border-cb-quinary-900/70 flex items-center justify-between rounded-2xl border px-4 py-3"
 						>
 							<div>
-								<p class="text-cb-quinary-700 text-xs font-semibold uppercase tracking-[0.2em]">
+								<p
+									class="text-cb-quinary-700 text-xs font-semibold tracking-[0.2em] uppercase"
+								>
 									Debut date
 								</p>
 								<p class="mt-1 font-medium">{{ formatDisplayDate(debutDateToDate) }}</p>
@@ -1433,10 +1451,12 @@
 						</div>
 
 						<div
-							class="bg-cb-quaternary-950 flex items-center justify-between rounded-2xl border border-cb-quinary-900/70 px-4 py-3"
+							class="bg-cb-quaternary-950 border-cb-quinary-900/70 flex items-center justify-between rounded-2xl border px-4 py-3"
 						>
 							<div>
-								<p class="text-cb-quinary-700 text-xs font-semibold uppercase tracking-[0.2em]">
+								<p
+									class="text-cb-quinary-700 text-xs font-semibold tracking-[0.2em] uppercase"
+								>
 									General tags
 								</p>
 								<p class="mt-1 font-medium">{{ artistTags.length }}</p>
@@ -1446,7 +1466,7 @@
 				</section>
 
 				<section
-					class="bg-cb-secondary-950 rounded-[28px] border border-cb-quinary-900/70 p-6 shadow-xl"
+					class="bg-cb-secondary-950 border-cb-quinary-900/70 rounded-[28px] border p-6 shadow-xl"
 				>
 					<div class="mb-4 space-y-2">
 						<h2 class="text-xl font-semibold">Save panel</h2>
@@ -1462,7 +1482,7 @@
 							color="primary"
 							size="xl"
 							:loading="isUploadingEdit"
-							class="w-full cursor-pointer justify-center !bg-cb-primary-900 !text-white hover:!bg-cb-primary-800 hover:!text-white disabled:!bg-cb-primary-900 disabled:!text-white"
+							class="!bg-cb-primary-900 hover:!bg-cb-primary-800 disabled:!bg-cb-primary-900 w-full cursor-pointer justify-center !text-white hover:!text-white disabled:!text-white"
 							@click="sendUpdateArtist"
 						/>
 						<UButton

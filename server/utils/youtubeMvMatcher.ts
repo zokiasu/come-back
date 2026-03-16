@@ -105,9 +105,7 @@ export const parseMvKeywords = (input?: string | string[]): string[] => {
 	if (!input) return [...DEFAULT_MV_KEYWORDS]
 
 	const values = Array.isArray(input) ? input : input.split(',')
-	const parsed = values
-		.map((value) => value.trim())
-		.filter(Boolean)
+	const parsed = values.map((value) => value.trim()).filter(Boolean)
 
 	return parsed.length > 0 ? parsed : [...DEFAULT_MV_KEYWORDS]
 }
@@ -128,7 +126,12 @@ export const decodeHtmlEntities = (text: string | null | undefined): string => {
 	return text.replace(/&[a-zA-Z0-9#]+;/g, (entity) => entities[entity] || entity)
 }
 
-export const clampInteger = (value: number, min: number, max: number, fallback: number): number => {
+export const clampInteger = (
+	value: number,
+	min: number,
+	max: number,
+	fallback: number,
+): number => {
 	if (!Number.isFinite(value)) return fallback
 	return Math.min(Math.max(Math.trunc(value), min), max)
 }
@@ -167,7 +170,11 @@ export const parseDateRange = (
 	return { start, end }
 }
 
-export const createMusicPoolWindow = (start: Date, end: Date, paddingDays: number = 45) => {
+export const createMusicPoolWindow = (
+	start: Date,
+	end: Date,
+	paddingDays: number = 45,
+) => {
 	const startWindow = new Date(start)
 	const endWindow = new Date(end)
 	startWindow.setUTCDate(startWindow.getUTCDate() - paddingDays)
@@ -190,10 +197,8 @@ export const toMatchMusicRecord = (music: RawMatchMusicRow): MatchMusicRecord =>
 		artists:
 			music.artists
 				?.map((item) => item.artist)
-				.filter(
-					(
-						artist,
-					): artist is Pick<Tables<'artists'>, 'id' | 'name' | 'image'> => Boolean(artist?.id),
+				.filter((artist): artist is Pick<Tables<'artists'>, 'id' | 'name' | 'image'> =>
+					Boolean(artist?.id),
 				)
 				.map((artist) => ({
 					id: artist.id,
@@ -270,7 +275,10 @@ const calculateTokenOverlap = (left: string[], right: string[]): number => {
 	return common / Math.max(leftSet.size, rightSet.size)
 }
 
-const getDaysDifference = (left: string | null | undefined, right: string | null | undefined) => {
+const getDaysDifference = (
+	left: string | null | undefined,
+	right: string | null | undefined,
+) => {
 	if (!left || !right) return null
 
 	const leftDate = new Date(left)
@@ -401,7 +409,9 @@ export const mapYouTubeThumbnails = (
 	return mapped.length > 0 ? mapped : null
 }
 
-export const parseYouTubeDuration = (isoDuration: string | null | undefined): number | null => {
+export const parseYouTubeDuration = (
+	isoDuration: string | null | undefined,
+): number | null => {
 	if (!isoDuration) return null
 
 	const match = isoDuration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/u)

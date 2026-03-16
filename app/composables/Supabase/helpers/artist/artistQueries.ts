@@ -337,12 +337,14 @@ export async function fetchArtistsByPage(
 		platform_links: artist.platform_links || [],
 		companies: artist.companies || [],
 		groups:
-			artist.groups?.map((g) => {
-				if (typeof g === 'object' && g !== null && 'group' in g) {
-					return (g as { group?: Artist | null }).group
-				}
-				return g as Artist
-			}).filter(Boolean) || [],
+			artist.groups
+				?.map((g) => {
+					if (typeof g === 'object' && g !== null && 'group' in g) {
+						return (g as { group?: Artist | null }).group
+					}
+					return g as Artist
+				})
+				.filter(Boolean) || [],
 	}))
 
 	// Filtrage côté client pour les relations

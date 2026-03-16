@@ -1,10 +1,5 @@
 <script setup lang="ts">
-	import type {
-		Release,
-		Artist,
-		ReleaseType,
-		ArtistMenuItem,
-	} from '~/types'
+	import type { Release, Artist, ReleaseType, ArtistMenuItem } from '~/types'
 	import { useSupabaseRelease } from '~/composables/Supabase/useSupabaseRelease'
 	import { useSupabaseArtist } from '~/composables/Supabase/useSupabaseArtist'
 	import { useUserStore } from '~/stores/user'
@@ -715,7 +710,9 @@
 								<p class="text-cb-tertiary-500 text-sm">
 									{{ formatArtists(editingRelease.artists) }}
 								</p>
-								<div class="text-cb-tertiary-500 flex flex-wrap items-center gap-3 text-xs">
+								<div
+									class="text-cb-tertiary-500 flex flex-wrap items-center gap-3 text-xs"
+								>
 									<span>{{ editingRelease.musics.length }} linked track(s)</span>
 									<span v-if="editingRelease.id_youtube_music">
 										YouTube: {{ editingRelease.id_youtube_music }}
@@ -771,16 +768,10 @@
 							class="flex-1"
 							@click="isDeleteModalOpen = false"
 						/>
-						<UButton
-							label="Delete"
-							color="error"
-							class="flex-1"
-							@click="confirmDelete"
-						/>
+						<UButton label="Delete" color="error" class="flex-1" @click="confirmDelete" />
 					</div>
 				</div>
 			</template>
 		</UModal>
 	</div>
 </template>
-

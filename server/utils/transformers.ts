@@ -218,11 +218,7 @@ export const transformMusicWithRelations = (
 		includeReleases?: boolean
 	},
 ): MusicWithRelations => {
-	const {
-		artists: _artists,
-		releases: _releases,
-		...musicBase
-	} = rawMusic
+	const { artists: _artists, releases: _releases, ...musicBase } = rawMusic
 	const music = { ...musicBase } as MusicWithRelations
 
 	// Transform artists
@@ -259,4 +255,3 @@ export const batchTransform = <T, R>(
 	if (!items || items.length === 0) return []
 	return items.map(transformer)
 }
-

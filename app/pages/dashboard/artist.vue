@@ -646,7 +646,7 @@
 						</div>
 						<span
 							v-if="getMissingData(artist).length > 0"
-							class="mt-1 inline-flex rounded bg-gray-500/10 px-1.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-gray-300"
+							class="mt-1 inline-flex rounded bg-gray-500/10 px-1.5 py-0.5 text-[11px] font-semibold tracking-wide text-gray-300 uppercase"
 							:title="`Missing fields: ${getMissingLabels(artist).join(', ')}`"
 						>
 							Incomplete

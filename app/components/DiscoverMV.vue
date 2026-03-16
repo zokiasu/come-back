@@ -395,15 +395,15 @@
 		<!-- MV Info -->
 		<div
 			v-if="displayedMV"
-			class="space-y-1 text-center transition-all duration-200 min-h-[5.5rem]"
+			class="min-h-[5.5rem] space-y-1 text-center transition-all duration-200"
 		>
-			<p class="text-cb-tertiary-400 text-sm min-h-[1.25rem]">
+			<p class="text-cb-tertiary-400 min-h-[1.25rem] text-sm">
 				{{ formatArtists(displayedMV.artists || []) }}
 			</p>
-			<h4 class="text-lg font-semibold min-h-[1.75rem]">
+			<h4 class="min-h-[1.75rem] text-lg font-semibold">
 				{{ displayedMV.name }}
 			</h4>
-			<p v-if="displayedMV.date" class="text-cb-tertiary-500 text-xs min-h-[1rem]">
+			<p v-if="displayedMV.date" class="text-cb-tertiary-500 min-h-[1rem] text-xs">
 				Released: {{ new Date(displayedMV.date).toLocaleDateString('sv-SE') }}
 			</p>
 			<!-- Indicateur de survol -->
@@ -436,4 +436,3 @@
 		</div>
 	</div>
 </template>
-

@@ -21,11 +21,7 @@
 			<!-- Filters -->
 			<div class="mb-4 space-y-2">
 				<div class="grid grid-cols-2 gap-2 lg:grid-cols-4">
-					<UInput
-						v-model="search"
-						placeholder="Search music..."
-						class="w-full"
-					/>
+					<UInput v-model="search" placeholder="Search music..." class="w-full" />
 					<UInputMenu
 						v-model="selectedArtistsWithLabel"
 						:items="artistsForMenu"
@@ -382,7 +378,6 @@
 				</div>
 			</div>
 		</div>
-
 
 		<ModalMvPreview
 			:open="isMvPreviewOpen"
@@ -794,7 +789,6 @@
 		)
 	}
 
-
 	const openMvPreview = (music: Music) => {
 		if (!music.id_youtube_music) return
 		mvPreview.value = {
@@ -940,15 +934,3 @@
 		middleware: ['auth'],
 	})
 </script>
-
-
-
-
-
-
-
-
-
-
-
-

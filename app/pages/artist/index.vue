@@ -188,15 +188,9 @@
 		</transition-group>
 		<div ref="loadMoreSentinel" class="h-px w-full" />
 
-		<LoadingIndicator
-			:show="isLoading && firstLoad"
-			message="Loading artists..."
-		/>
+		<LoadingIndicator :show="isLoading && firstLoad" message="Loading artists..." />
 
-		<LoadingIndicator
-			:show="isLoading && !firstLoad"
-			message="Loading more artists..."
-		/>
+		<LoadingIndicator :show="isLoading && !firstLoad" message="Loading more artists..." />
 		<div v-if="!hasMore && artists.length > 0" class="py-4 text-center text-gray-400">
 			All artists are displayed.
 		</div>

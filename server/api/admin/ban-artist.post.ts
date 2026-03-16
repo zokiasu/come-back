@@ -48,9 +48,12 @@ export default defineEventHandler(async (event) => {
 	}
 
 	// Delete the artist and all connected elements via RPC
-	const { data: deleteResult, error: deleteError } = await supabase.rpc('delete_artist_safely', {
-		artist_id_param: artistId,
-	})
+	const { data: deleteResult, error: deleteError } = await supabase.rpc(
+		'delete_artist_safely',
+		{
+			artist_id_param: artistId,
+		},
+	)
 
 	if (deleteError) {
 		throw handleSupabaseError(deleteError, 'ban-artist.delete')

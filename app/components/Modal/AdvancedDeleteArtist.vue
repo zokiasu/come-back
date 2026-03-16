@@ -173,8 +173,8 @@
 					<p class="text-sm text-orange-800">
 						⚠️
 						<strong>Quick mode:</strong>
-						Only artist relations will be deleted. Content (tracks, albums, news)
-						will remain in the database.
+						Only artist relations will be deleted. Content (tracks, albums, news) will
+						remain in the database.
 					</p>
 				</div>
 			</div>

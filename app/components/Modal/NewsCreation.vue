@@ -101,8 +101,7 @@
 		} catch (error) {
 			toast.add({
 				title: 'Error creating news',
-				description:
-					error instanceof Error ? error.message : 'Error creating news',
+				description: error instanceof Error ? error.message : 'Error creating news',
 				icon: 'i-lucide-x-circle',
 				color: 'error',
 			})
@@ -174,7 +173,7 @@
 
 		<template #body>
 			<div
-				class="scrollBarLight bg-cb-secondary-950 max-h-[70vh] space-y-3 overflow-y-auto overflow-x-hidden pr-1"
+				class="scrollBarLight bg-cb-secondary-950 max-h-[70vh] space-y-3 overflow-x-hidden overflow-y-auto pr-1"
 			>
 				<div class="space-y-1">
 					<ComebackLabel label="Select artist(s)" />
@@ -193,7 +192,7 @@
 				<div class="flex flex-col gap-1">
 					<ComebackLabel label="Artist(s)" />
 					<div
-						class="bg-cb-quinary-900 min-h-20 rounded border border-cb-quinary-900/80 p-3"
+						class="bg-cb-quinary-900 border-cb-quinary-900/80 min-h-20 rounded border p-3"
 					>
 						<p
 							v-if="artistListSelected.length === 0"

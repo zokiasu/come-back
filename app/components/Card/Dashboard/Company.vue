@@ -30,7 +30,7 @@
 
 	const formattedDate = computed(() => {
 		if (props.createdAt) {
-		return new Date(props.createdAt).toLocaleDateString('sv-SE')
+			return new Date(props.createdAt).toLocaleDateString('sv-SE')
 		}
 		return 'Unavailable'
 	})

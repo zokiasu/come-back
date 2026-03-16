@@ -10,7 +10,9 @@
 				</div>
 
 				<div class="mb-6 space-y-4">
-					<div class="bg-cb-quinary-900/70 space-y-4 rounded-xl border border-white/5 p-4">
+					<div
+						class="bg-cb-quinary-900/70 space-y-4 rounded-xl border border-white/5 p-4"
+					>
 						<div class="flex flex-col gap-3 lg:flex-row lg:items-center">
 							<UInput
 								v-model="search"
@@ -44,7 +46,9 @@
 
 						<div class="space-y-2">
 							<div class="flex items-center justify-between gap-3">
-								<p class="text-cb-tertiary-400 text-[11px] font-semibold uppercase tracking-[0.18em]">
+								<p
+									class="text-cb-tertiary-400 text-[11px] font-semibold tracking-[0.18em] uppercase"
+								>
 									Quick filters
 								</p>
 								<span class="text-cb-tertiary-500 text-xs">
@@ -59,7 +63,9 @@
 									type="button"
 									color="neutral"
 									:variant="selectedYears.includes(year) ? 'solid' : 'outline'"
-									:class="selectedYears.includes(year) ? 'bg-cb-primary-900 text-white' : ''"
+									:class="
+										selectedYears.includes(year) ? 'bg-cb-primary-900 text-white' : ''
+									"
 									size="sm"
 									@click="toggleYear(year)"
 								>
@@ -68,7 +74,9 @@
 							</div>
 						</div>
 
-						<div class="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+						<div
+							class="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between"
+						>
 							<div class="flex flex-wrap items-center gap-2">
 								<UButton
 									type="button"
@@ -77,7 +85,10 @@
 									size="sm"
 									@click="isMv = !isMv"
 								>
-									<UIcon name="material-symbols-light:smart-display-outline-rounded" class="size-4" />
+									<UIcon
+										name="material-symbols-light:smart-display-outline-rounded"
+										class="size-4"
+									/>
 									MVs only
 								</UButton>
 
@@ -112,7 +123,10 @@
 									class="min-w-[8rem] justify-center"
 									@click="toggleAdvancedFilters"
 								>
-									<UIcon name="material-symbols-light:person-search-outline" class="size-4" />
+									<UIcon
+										name="material-symbols-light:person-search-outline"
+										class="size-4"
+									/>
 									{{ artistsSummary }}
 								</UButton>
 								<UButton
@@ -123,7 +137,10 @@
 									class="min-w-[8rem] justify-center"
 									@click="toggleAdvancedFilters"
 								>
-									<UIcon name="material-symbols-light:category-outline-rounded" class="size-4" />
+									<UIcon
+										name="material-symbols-light:category-outline-rounded"
+										class="size-4"
+									/>
 									{{ stylesSummary }}
 								</UButton>
 							</div>
@@ -134,7 +151,9 @@
 							class="grid gap-3 border-t border-white/5 pt-4 lg:grid-cols-2"
 						>
 							<div class="space-y-2">
-								<p class="text-cb-tertiary-400 text-[11px] font-semibold uppercase tracking-[0.18em]">
+								<p
+									class="text-cb-tertiary-400 text-[11px] font-semibold tracking-[0.18em] uppercase"
+								>
 									Artists
 								</p>
 								<ArtistSearchSelect
@@ -152,7 +171,9 @@
 							</div>
 
 							<div class="space-y-2">
-								<p class="text-cb-tertiary-400 text-[11px] font-semibold uppercase tracking-[0.18em]">
+								<p
+									class="text-cb-tertiary-400 text-[11px] font-semibold tracking-[0.18em] uppercase"
+								>
 									Styles
 								</p>
 								<UInputMenu
@@ -426,7 +447,8 @@
 
 	const artistsSummary = computed(() => {
 		if (selectedArtists.value.length === 0) return 'Artists'
-		if (selectedArtists.value.length === 1) return selectedArtistsWithLabel.value[0]?.label || '1 artist'
+		if (selectedArtists.value.length === 1)
+			return selectedArtistsWithLabel.value[0]?.label || '1 artist'
 		return `${selectedArtists.value.length} artists`
 	})
 
@@ -495,7 +517,11 @@
 
 	const loadAvailableArtists = async (options?: { force?: boolean }): Promise<void> => {
 		const requestKey = buildArtistRequestKey()
-		if (!options?.force && requestKey === lastArtistsRequestKey.value && artistsList.value.length > 0) {
+		if (
+			!options?.force &&
+			requestKey === lastArtistsRequestKey.value &&
+			artistsList.value.length > 0
+		) {
 			syncSelectedLabelsFromValues()
 			return
 		}
@@ -505,7 +531,8 @@
 			const result = await $fetch<{ artists: Artist[] }>('/api/musics/filter-artists', {
 				params: {
 					search: search.value || undefined,
-					years: selectedYears.value.length > 0 ? selectedYears.value.join(',') : undefined,
+					years:
+						selectedYears.value.length > 0 ? selectedYears.value.join(',') : undefined,
 					styles:
 						selectedStyles.value.length > 0 ? selectedStyles.value.join(',') : undefined,
 					ismv: isMv.value === true ? 'true' : undefined,
@@ -526,7 +553,9 @@
 		}
 	}
 
-	const parseQueryList = (value: LocationQueryValue | LocationQueryValue[] | undefined): string[] => {
+	const parseQueryList = (
+		value: LocationQueryValue | LocationQueryValue[] | undefined,
+	): string[] => {
 		if (!value) return []
 
 		const rawValues = Array.isArray(value) ? value : [value]
@@ -570,7 +599,9 @@
 		stringifyQuery({
 			search: search.value.trim(),
 			years: [...selectedYears.value].sort((left, right) => left - right).join(','),
-			styles: [...selectedStyles.value].sort((left, right) => left.localeCompare(right)).join(','),
+			styles: [...selectedStyles.value]
+				.sort((left, right) => left.localeCompare(right))
+				.join(','),
 			ismv: isMv.value ? 'true' : '',
 			selectedArtistIds: [...selectedArtists.value]
 				.sort((left, right) => left.localeCompare(right))
@@ -585,11 +616,12 @@
 				.sort((left, right) => left.localeCompare(right))
 				.join(','),
 			years: [...selectedYears.value].sort((left, right) => left - right).join(','),
-			styles: [...selectedStyles.value].sort((left, right) => left.localeCompare(right)).join(','),
+			styles: [...selectedStyles.value]
+				.sort((left, right) => left.localeCompare(right))
+				.join(','),
 			orderDirection: orderDirection.value,
 			ismv: isMv.value ? 'true' : '',
 		})
-
 
 	const syncSelectedLabelsFromValues = () => {
 		const knownArtists = new Map<string, ArtistMenuItem>()
@@ -822,7 +854,9 @@
 		return ''
 	}
 
-	const getMusicThumbnailFromList = (music: Music & { artists: { name: string }[] }): string => {
+	const getMusicThumbnailFromList = (
+		music: Music & { artists: { name: string }[] },
+	): string => {
 		if (music.thumbnails && Array.isArray(music.thumbnails)) {
 			const thumbs = music.thumbnails as Array<{ url?: string | null }>
 			return thumbs[2]?.url || thumbs[0]?.url || ''
@@ -857,7 +891,6 @@
 			music.ismv === true,
 		)
 	}
-
 
 	const openMvPreview = (music: Music) => {
 		if (!music.id_youtube_music) return
@@ -905,32 +938,41 @@
 	}
 
 	const removeActiveFilter = async (chip: ActiveFilterChip) => {
-		await runFilterBatch(() => {
-			switch (chip.key) {
-				case 'search':
-					search.value = ''
-					break
-				case 'artist':
-					selectedArtists.value = selectedArtists.value.filter((artistId) => artistId !== chip.value)
-					break
-				case 'year':
-					selectedYears.value = selectedYears.value.filter((year) => year !== chip.value)
-					break
-				case 'style':
-					selectedStyles.value = selectedStyles.value.filter((style) => style !== chip.value)
-					break
-				case 'ismv':
-					isMv.value = false
-					break
-				case 'order':
-					orderDirection.value = 'desc'
-					break
-			}
+		await runFilterBatch(
+			() => {
+				switch (chip.key) {
+					case 'search':
+						search.value = ''
+						break
+					case 'artist':
+						selectedArtists.value = selectedArtists.value.filter(
+							(artistId) => artistId !== chip.value,
+						)
+						break
+					case 'year':
+						selectedYears.value = selectedYears.value.filter(
+							(year) => year !== chip.value,
+						)
+						break
+					case 'style':
+						selectedStyles.value = selectedStyles.value.filter(
+							(style) => style !== chip.value,
+						)
+						break
+					case 'ismv':
+						isMv.value = false
+						break
+					case 'order':
+						orderDirection.value = 'desc'
+						break
+				}
 
-			syncSelectedLabelsFromValues()
-		}, {
-			reloadArtists: !['artist', 'order'].includes(chip.key),
-		})
+				syncSelectedLabelsFromValues()
+			},
+			{
+				reloadArtists: !['artist', 'order'].includes(chip.key),
+			},
+		)
 	}
 
 	watch([selectedYears, selectedStyles, isMv], async () => {
@@ -1003,18 +1045,3 @@
 		],
 	})
 </script>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

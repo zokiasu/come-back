@@ -62,8 +62,7 @@
 				:class="{
 					'bg-cb-quinary-900 font-semibold text-white':
 						routeN.name === 'settings-changelog',
-					'hover:bg-cb-quinary-900 text-zinc-500':
-						routeN.name !== 'settings-changelog',
+					'hover:bg-cb-quinary-900 text-zinc-500': routeN.name !== 'settings-changelog',
 				}"
 			>
 				<p>Changelog</p>

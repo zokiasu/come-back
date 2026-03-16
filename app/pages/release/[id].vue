@@ -18,16 +18,16 @@
 	const description = ref<string>('Release')
 
 	// SSR-compatible data fetching avec API complète
-	const {
-		data: releaseData,
-		pending: isFetchingRelease,
-	} = await useFetch(`/api/releases/${route.params.id}/complete`, {
-		server: true,
-		default: () => ({
-			release: null,
-			suggested_releases: [],
-		}),
-	})
+	const { data: releaseData, pending: isFetchingRelease } = await useFetch(
+		`/api/releases/${route.params.id}/complete`,
+		{
+			server: true,
+			default: () => ({
+				release: null,
+				suggested_releases: [],
+			}),
+		},
+	)
 
 	// Réactivité des données
 	const release = ref<Release | null>(null)
@@ -274,11 +274,11 @@
 														<option value="SINGLE">SINGLE</option>
 													</select>
 												</div>
-													<ComebackInput
-														:model-value="release.year ?? undefined"
-														label="Year"
-														@update:model-value="updateReleaseYear"
-													/>
+												<ComebackInput
+													:model-value="release.year ?? undefined"
+													label="Year"
+													@update:model-value="updateReleaseYear"
+												/>
 											</div>
 
 											<div class="flex flex-col gap-1">
@@ -314,13 +314,13 @@
 																<input v-model="music.ismv" type="checkbox" />
 															</div>
 														</div>
-															<ComebackInput
-																v-if="music.ismv"
-																:model-value="music.id_youtube_music ?? undefined"
-																@update:model-value="
-																	(value) => updateMusicYoutubeId(music, value)
-																"
-															/>
+														<ComebackInput
+															v-if="music.ismv"
+															:model-value="music.id_youtube_music ?? undefined"
+															@update:model-value="
+																(value) => updateMusicYoutubeId(music, value)
+															"
+														/>
 													</div>
 												</div>
 											</div>

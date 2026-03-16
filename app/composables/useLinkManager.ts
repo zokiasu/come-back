@@ -219,4 +219,3 @@ export const useLinkManager = () => {
 		FAVICON_SERVICES,
 	}
 }
-
