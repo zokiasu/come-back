@@ -32,6 +32,7 @@
 			<div class="flex items-center justify-between">
 				<h2 class="text-xl font-semibold">Rankings</h2>
 				<NuxtLink
+					v-if="isProfile"
 					to="/ranking/create"
 					class="bg-cb-secondary-950 rounded px-2 py-1 text-xs font-semibold uppercase"
 				>
@@ -39,7 +40,22 @@
 				</NuxtLink>
 			</div>
 			<div
-				v-if="rankings"
+				v-if="rankingsError"
+				class="rounded-lg border border-red-400/20 bg-red-500/10 p-4 text-sm text-red-100"
+			>
+				{{ rankingsError }}
+			</div>
+			<div
+				v-else-if="isLoadingRankings"
+				class="flex items-center justify-center py-10"
+			>
+				<UIcon
+					name="line-md:loading-twotone-loop"
+					class="text-cb-primary-900 size-6 animate-spin"
+				/>
+			</div>
+			<div
+				v-else-if="rankings.length > 0"
 				class="remove-scrollbar relative flex gap-2 overflow-x-auto xl:gap-5"
 			>
 				<CardProfileRanking
@@ -50,7 +66,28 @@
 					@delete="deleteRanking(ranking.id)"
 				/>
 			</div>
+			<div
+				v-else
+				class="rounded-lg border border-white/5 bg-black/10 p-6 text-center"
+			>
+				<p class="font-medium">
+					{{ isProfile ? 'No rankings yet' : 'No public rankings yet' }}
+				</p>
+				<p class="text-cb-tertiary-500 mt-1 text-sm">
+					{{
+						isProfile
+							? 'Create your first ranking to share your top tracks.'
+							: 'This user has not published any ranking for now.'
+					}}
+				</p>
+			</div>
 		</div>
+	</div>
+	<div
+		v-else-if="pageError"
+		class="min-h-dvh-wo-nav max-h-dvh-wo-nav flex items-center justify-center p-5"
+	>
+		<p class="text-center font-semibold text-red-200/80">{{ pageError }}</p>
 	</div>
 	<div
 		v-else
@@ -64,24 +101,29 @@
 	import { storeToRefs } from 'pinia'
 	import { useUserStore } from '@/stores/user'
 	import { useSupabaseFunction } from '~/composables/useSupabaseFunction'
-	import type { User } from '~/types'
-
-	type UserRankingPreview = { id: string; [key: string]: unknown }
+	import type { User, UserRankingWithPreview } from '~/types'
 
 	const route = useRoute()
 	const { userDataStore } = storeToRefs(useUserStore())
 	const { getUserData } = useSupabaseFunction()
+	const { getRankingsByUserId, deleteRanking: deleteRankingFromSupabase } =
+		useSupabaseRanking()
+	const profileUserId = computed(() => String(route.params.id))
 
 	const createdAt = ref<string | null>(null)
-	const rankings = ref<UserRankingPreview[] | null>(null)
+	const rankings = ref<UserRankingWithPreview[]>([])
 	const profileData = ref<User | null>(null)
+	const isLoadingRankings = ref(false)
+	const rankingsError = ref<string | null>(null)
+	const pageError = ref<string | null>(null)
 
 	const isProfile = computed(() => {
-		return route.params.id === profileData.value?.id
+		return profileUserId.value === userDataStore.value?.id
 	})
 
-	onMounted(async () => {
-		profileData.value = await getUserData(String(route.params.id))
+	const loadProfileData = async () => {
+		profileData.value = await getUserData(profileUserId.value)
+
 		if (profileData.value?.created_at) {
 			createdAt.value = new Date(profileData.value.created_at).toLocaleDateString(
 				'fr-FR',
@@ -92,11 +134,45 @@
 				},
 			)
 		}
+	}
+
+	const loadRankings = async () => {
+		isLoadingRankings.value = true
+		rankingsError.value = null
+
+		try {
+			rankings.value = await getRankingsByUserId(profileUserId.value, {
+				publicOnly: !isProfile.value,
+			})
+		} catch (error) {
+			console.error('[Profile] Failed to load rankings', error)
+			rankings.value = []
+			rankingsError.value = 'Unable to load rankings for this profile.'
+		} finally {
+			isLoadingRankings.value = false
+		}
+	}
+
+	const loadProfilePage = async () => {
+		pageError.value = null
+
+		try {
+			await Promise.all([loadProfileData(), loadRankings()])
+		} catch (error) {
+			console.error('[Profile] Failed to load profile page', error)
+			pageError.value = 'Unable to load this profile.'
+		}
+	}
+
+	onMounted(async () => {
+		await loadProfilePage()
 	})
 
-	const deleteRanking = (id: string) => {
-		// TODO: Implement ranking deletion
-		console.warn('Delete ranking:', id)
+	const deleteRanking = async (id: string) => {
+		const success = await deleteRankingFromSupabase(id)
+		if (!success) return
+
+		rankings.value = rankings.value.filter((ranking) => ranking.id !== id)
 	}
 
 	definePageMeta({

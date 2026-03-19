@@ -12,6 +12,35 @@ export function useSupabaseRanking() {
 	const userStore = useUserStore()
 	const toast = useToast()
 
+	const buildRankingPreviews = async (
+		rankings: UserRanking[],
+	): Promise<UserRankingWithPreview[]> => {
+		return await Promise.all(
+			rankings.map(async (ranking) => {
+				const { data: items, count } = await supabase
+					.from('user_ranking_items')
+					.select('music_id, musics(thumbnails)', { count: 'exact' })
+					.eq('ranking_id', ranking.id)
+					.order('position', { ascending: true })
+					.limit(4)
+
+				const thumbnails = (items || []).map((item: any) => {
+					const music = item.musics
+					if (music?.thumbnails && Array.isArray(music.thumbnails)) {
+						return music.thumbnails[2]?.url || music.thumbnails[0]?.url || null
+					}
+					return null
+				})
+
+				return {
+					...ranking,
+					item_count: count || 0,
+					preview_thumbnails: thumbnails,
+				}
+			}),
+		)
+	}
+
 	/**
 	 * Récupère tous les rankings de l'utilisateur connecté
 	 */
@@ -42,32 +71,45 @@ export function useSupabaseRanking() {
 		}
 
 		// Pour chaque ranking, récupérer le nombre d'items et les 4 premières thumbnails
-		const rankingsWithPreview: UserRankingWithPreview[] = await Promise.all(
-			(rankings as UserRanking[]).map(async (ranking) => {
-				const { data: items, count } = await supabase
-					.from('user_ranking_items')
-					.select('music_id, musics(thumbnails)', { count: 'exact' })
-					.eq('ranking_id', ranking.id)
-					.order('position', { ascending: true })
-					.limit(4)
-
-				const thumbnails = (items || []).map((item: any) => {
-					const music = item.musics
-					if (music?.thumbnails && Array.isArray(music.thumbnails)) {
-						return music.thumbnails[2]?.url || music.thumbnails[0]?.url || null
-					}
-					return null
-				})
-
-				return {
-					...ranking,
-					item_count: count || 0,
-					preview_thumbnails: thumbnails,
-				}
-			}),
-		)
+		const rankingsWithPreview = await buildRankingPreviews(rankings as UserRanking[])
 
 		return rankingsWithPreview
+	}
+
+	/**
+	 * Récupère les rankings d'un utilisateur donné
+	 */
+	const getRankingsByUserId = async (
+		userId: string,
+		options?: { publicOnly?: boolean },
+	): Promise<UserRankingWithPreview[]> => {
+		if (!userId) {
+			return []
+		}
+
+		let query = supabase
+			.from('user_rankings')
+			.select('*')
+			.eq('user_id', userId)
+			.order('updated_at', { ascending: false })
+
+		if (options?.publicOnly) {
+			query = query.eq('is_public', true)
+		}
+
+		const { data: rankings, error } = await query
+
+		if (error) {
+			console.error('Error while fetching rankings by user:', error)
+			toast.add({
+				title: 'Error',
+				description: 'Unable to load rankings for this profile',
+				color: 'error',
+			})
+			return []
+		}
+
+		return await buildRankingPreviews((rankings || []) as UserRanking[])
 	}
 
 	/**
@@ -509,6 +551,7 @@ export function useSupabaseRanking() {
 
 	return {
 		getUserRankings,
+		getRankingsByUserId,
 		getRankingById,
 		getPublicRankingById,
 		createRanking,
