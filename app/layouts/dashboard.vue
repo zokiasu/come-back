@@ -68,7 +68,12 @@
 			</template>
 
 			<template #default>
-				<UNavigationMenu :items="links" orientation="vertical" tooltip popover />
+				<UNavigationMenu
+					:items="links"
+					orientation="vertical"
+					:tooltip="!open"
+					:popover="!open"
+				/>
 			</template>
 
 			<template #footer>
