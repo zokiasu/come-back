@@ -26,6 +26,23 @@ export const useAuth = () => {
 		return undefined
 	}
 
+	const hasMeaningfulText = (value: string | null | undefined): value is string => {
+		return typeof value === 'string' && value.trim().length > 0
+	}
+
+	const getSessionAuthUser = async (): Promise<SupabaseAuthUser | null> => {
+		const { data } = await supabase.auth.getSession()
+		const sessionUser = data.session?.user
+
+		if (!sessionUser?.id) return null
+
+		return {
+			id: sessionUser.id,
+			email: sessionUser.email,
+			user_metadata: sessionUser.user_metadata ?? {},
+		}
+	}
+
 	const getTrustedAuthUser = async (): Promise<SupabaseAuthUser | null> => {
 		if (sharedTrustedAuthUserPromise) {
 			return await sharedTrustedAuthUserPromise
@@ -33,6 +50,9 @@ export const useAuth = () => {
 
 		sharedTrustedAuthUserPromise = (async () => {
 			try {
+				const sessionAuthUser = await getSessionAuthUser()
+				if (sessionAuthUser?.id) return sessionAuthUser
+
 				const { data: userData, error } = await supabase.auth.getUser()
 				const sessionUser = userData.user
 
@@ -135,22 +155,33 @@ export const useAuth = () => {
 
 				return newUser as User
 			} else {
-				// Mettre à jour l'utilisateur existant
-				const updateData: UserUpdateData = {
-					id: authUser.id,
-					email: authUser.email || existingUser.email,
-					name:
-						authUser.user_metadata?.full_name ||
-						authUser.user_metadata?.name ||
-						existingUser.name,
-					photo_url:
-						authUser.user_metadata?.avatar_url ||
-						authUser.user_metadata?.picture ||
-						existingUser.photo_url ||
-						'',
-					role: existingUser.role,
-					updated_at: new Date().toISOString(),
+				// Préserver les personnalisations du profil existant et ne compléter
+				// que les champs encore vides.
+				const nextEmail = hasMeaningfulText(authUser.email) ? authUser.email : null
+				const nextName =
+					authUser.user_metadata?.full_name || authUser.user_metadata?.name || null
+				const nextPhoto =
+					authUser.user_metadata?.avatar_url || authUser.user_metadata?.picture || null
+
+				const updateData: Partial<UserUpdateData> = {}
+
+				if (!hasMeaningfulText(existingUser.email) && nextEmail) {
+					updateData.email = nextEmail
 				}
+				if (!hasMeaningfulText(existingUser.name) && hasMeaningfulText(nextName)) {
+					updateData.name = nextName
+				}
+				if (!hasMeaningfulText(existingUser.photo_url) && hasMeaningfulText(nextPhoto)) {
+					updateData.photo_url = nextPhoto
+				}
+
+				if (!Object.keys(updateData).length) {
+					return existingUser as User
+				}
+
+				updateData.id = authUser.id
+				updateData.role = existingUser.role
+				updateData.updated_at = new Date().toISOString()
 
 				const { data: updatedUser, error: updateError } = await supabase
 					.from('users')
@@ -349,7 +380,15 @@ export const useAuth = () => {
 			return await sharedInitPromise
 		}
 
-		sharedInitPromise = runInitializeAuth()
+		sharedInitPromise = (async () => {
+			try {
+				return await runInitializeAuth()
+			} finally {
+				authInitialized = true
+				sharedInitPromise = null
+			}
+		})()
+
 		return await sharedInitPromise
 	}
 
@@ -361,7 +400,6 @@ export const useAuth = () => {
 			async (newUser, oldUser) => {
 				// Initialisation une seule fois au démarrage
 				if (!authInitialized) {
-					authInitialized = true
 					await initializeAuth()
 					return
 				}
@@ -391,14 +429,14 @@ export const useAuth = () => {
 
 	// Fonction pour s'assurer que l'auth est initialisée (pour les middlewares)
 	const ensureAuthInitialized = async (): Promise<boolean> => {
-		// Si déjà initialisé, retourner immédiatement
-		if (authInitialized) {
-			return true
-		}
-
 		// Si une initialisation est en cours, l'attendre
 		if (sharedInitPromise) {
 			await sharedInitPromise
+			return true
+		}
+
+		// Si déjà initialisé, retourner immédiatement
+		if (authInitialized) {
 			return true
 		}
 

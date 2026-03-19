@@ -290,11 +290,13 @@
 	<div ref="containerRef" class="relative w-full" :class="containerClass">
 		<UInput
 			v-model="searchInput"
+			name="site-search"
 			:placeholder="placeholder"
 			icon="i-heroicons-magnifying-glass"
 			class="w-full"
 			:class="inputClass"
 			:ui="{ base: 'bg-cb-quinary-900/70 text-white placeholder:text-cb-tertiary-500' }"
+			aria-label="Search artists, releases, and musics"
 			@focus="isOpen = true"
 			@keydown="handleKeydown"
 		/>

@@ -30,8 +30,10 @@
 	}
 
 	const supabase = useSupabaseClient<Database>()
+	const authUser = useSupabaseUser()
 	const userStore = useUserStore()
 	const toast = useToast()
+	const { ensureUserProfile } = useAuth()
 	const { updateUserData, getUserData } = useSupabaseFunction()
 
 	const userDetails = ref<User | null>(null)
@@ -254,18 +256,31 @@
 	}
 
 	const loadUserProfile = async () => {
-		const userId = userStore.userDataStore?.id
+		let userId = userStore.userDataStore?.id ?? authUser.value?.id
+
+		if (!userId) {
+			const { data } = await supabase.auth.getSession()
+			userId = data.session?.user?.id
+		}
+
 		if (!userId) {
 			throw new Error('Unable to determine which account should be edited.')
 		}
 
-		const profile = await getUserData(userId)
+		let profile = await getUserData(userId)
+		if (!profile) {
+			await ensureUserProfile()
+			profile = await getUserData(userId)
+		}
+
 		if (!profile) {
 			throw new Error('Profile settings could not be loaded.')
 		}
 
 		userDetails.value = { ...profile }
 		originalSnapshot.value = createProfileSnapshot(profile)
+		userStore.setUserData(profile)
+		userStore.setIsLogin(true)
 		syncSelectedPhotoArtist(artistPhotoOptions.value)
 	}
 
@@ -274,7 +289,9 @@
 		bootstrapError.value = null
 
 		try {
-			await Promise.all([loadUserProfile(), loadArtistPhotoGallery({ reset: true })])
+			const galleryPromise = loadArtistPhotoGallery({ reset: true })
+			await loadUserProfile()
+			void galleryPromise
 		} catch (error) {
 			console.error('[ProfileSettings] Bootstrap failed', error)
 			bootstrapError.value =
@@ -348,7 +365,7 @@
 		void loadArtistPhotoGallery({ reset: true })
 	}, 250)
 
-	watch(trimmedPhotoSearch, () => {
+	watch(activePhotoSearch, () => {
 		debouncedReloadPhotoGallery()
 	})
 
@@ -441,6 +458,7 @@
 							:alt="userDetails.name"
 							format="webp"
 							loading="lazy"
+							referrerpolicy="no-referrer"
 							class="h-full w-full object-cover"
 						/>
 					</div>
@@ -559,37 +577,58 @@
 
 					<div class="grid gap-4 lg:grid-cols-2">
 						<div class="space-y-2">
-							<p class="text-sm font-medium text-gray-200">Display name</p>
+							<label
+								for="profile-display-name"
+								class="text-sm font-medium text-gray-200"
+							>
+								Display name
+							</label>
 							<UInput
+								id="profile-display-name"
 								v-model="userDetails.name"
+								name="profile-display-name"
 								placeholder="Your public display name"
+								autocomplete="name"
 								class="w-full"
 								:ui="profileInputUi"
 							/>
 						</div>
 						<div class="space-y-2">
-							<p class="text-sm font-medium text-gray-200">Email</p>
+							<label for="profile-email" class="text-sm font-medium text-gray-200">
+								Email
+							</label>
 							<UInput
+								id="profile-email"
 								v-model="userDetails.email"
+								name="profile-email"
 								placeholder="Email address"
 								type="email"
+								autocomplete="email"
 								class="w-full"
 								:ui="profileInputUi"
 							/>
 						</div>
 						<div class="space-y-2">
-							<p class="text-sm font-medium text-gray-200">User ID</p>
+							<label for="profile-user-id" class="text-sm font-medium text-gray-200">
+								User ID
+							</label>
 							<UInput
+								id="profile-user-id"
 								:model-value="userDetails.id"
+								name="profile-user-id"
 								disabled
 								class="w-full"
 								:ui="profileInputUi"
 							/>
 						</div>
 						<div class="space-y-2">
-							<p class="text-sm font-medium text-gray-200">Role</p>
+							<label for="profile-role" class="text-sm font-medium text-gray-200">
+								Role
+							</label>
 							<UInput
+								id="profile-role"
 								:model-value="roleLabels[userDetails.role]"
+								name="profile-role"
 								disabled
 								class="w-full"
 								:ui="profileInputUi"
@@ -656,6 +695,7 @@
 								:src="currentPhotoUrl"
 								:alt="userDetails.name"
 								format="webp"
+								referrerpolicy="no-referrer"
 								class="aspect-[16/9] w-full object-cover"
 							/>
 						</div>
@@ -691,10 +731,17 @@
 						</div>
 
 						<div class="space-y-2">
-							<p class="text-sm font-medium text-gray-200">Search artist visuals</p>
+							<label
+								for="profile-photo-search"
+								class="text-sm font-medium text-gray-200"
+							>
+								Search artist visuals
+							</label>
 							<UInput
+								id="profile-photo-search"
 								v-model="photoSearchQuery"
 								icon="i-lucide-search"
+								name="profile-photo-search"
 								placeholder="Type at least 2 characters to search"
 								class="w-full"
 								:ui="profileInputUi"
@@ -738,6 +785,7 @@
 									:alt="artist.name"
 									format="webp"
 									loading="lazy"
+									referrerpolicy="no-referrer"
 									class="aspect-[4/3] w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
 								/>
 								<div

@@ -24,7 +24,7 @@ export const useErrorLogger = () => {
 
 	const logInfo = (message: string, data?: unknown) => {
 		if (isDevelopment) {
-			console.warn(`[INFO] ${message}`, data)
+			console.info(`[INFO] ${message}`, data)
 		}
 		// En production, on peut logger seulement les infos importantes
 	}
