@@ -98,8 +98,8 @@ export default defineNuxtConfig({
 			},
 		},
 
-		// Pages de création : SPA (formulaires complexes)
-		'/release/create': { ssr: false },
+		// Ancienne page client de creation de release : redirige vers l'admin
+		'/release/create': { redirect: '/dashboard/release' },
 	},
 
 	typescript: {

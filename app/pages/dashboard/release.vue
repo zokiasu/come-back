@@ -1,11 +1,9 @@
 <script setup lang="ts">
 	import type { Release, ReleaseType, ArtistMenuItem } from '~/types'
 	import { useSupabaseRelease } from '~/composables/Supabase/useSupabaseRelease'
-	import { useUserStore } from '~/stores/user'
 
 	const { deleteRelease: deleteReleaseFunction, getReleasesByPage } = useSupabaseRelease()
 	const toast = useToast()
-	const userStore = useUserStore()
 
 	type DashboardRelease = {
 		id: string
@@ -361,15 +359,6 @@
 						{{ stats.loaded }} / {{ stats.total }} releases loaded
 					</p>
 				</div>
-				<UButton
-					v-if="userStore?.isAdminStore"
-					to="/release/create"
-					icon="i-heroicons-plus"
-					size="sm"
-					class="bg-cb-primary-800 text-white"
-				>
-					New release
-				</UButton>
 			</div>
 
 			<!-- Stats cards -->
