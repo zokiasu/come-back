@@ -21,6 +21,17 @@ import { checkArtistExists } from './artistQueries'
 
 type SupabaseClientType = SupabaseClient<Database>
 
+const logArtistCreateTrace = (step: string, details?: Record<string, unknown>) => {
+	if (!import.meta.dev) return
+
+	if (details) {
+		console.warn(`[ArtistCreate][artistCrud] ${step}`, details)
+		return
+	}
+
+	console.warn(`[ArtistCreate][artistCrud] ${step}`)
+}
+
 export interface CreateArtistParams {
 	data: TablesInsert<'artists'>
 	socialLinks: TablesInsert<'artist_social_links'>[]
@@ -49,18 +60,41 @@ export async function createArtistRecord(
 	onError?: (message: string) => void,
 ): Promise<Artist> {
 	const { data, socialLinks, platformLinks, groups, members, companies } = params
+	const startedAt = Date.now()
+
+	logArtistCreateTrace('createArtistRecord start', {
+		name: data.name,
+		type: data.type,
+		hasYoutubeMusicId: Boolean(data.id_youtube_music),
+		socialLinksCount: socialLinks.length,
+		platformLinksCount: platformLinks.length,
+		groupsCount: groups.length,
+		membersCount: members.length,
+		companiesCount: companies?.length ?? 0,
+	})
 
 	// Vérifier si l'artiste existe déjà
-	if (
-		data.id_youtube_music &&
-		(await checkArtistExists(supabase, data.id_youtube_music))
-	) {
-		const message = 'Cet artiste existe déjà dans la base de données.'
-		onError?.(message)
-		throw new Error(message)
+	if (data.id_youtube_music) {
+		logArtistCreateTrace('checking duplicate YouTube Music ID', {
+			idYoutubeMusic: data.id_youtube_music,
+		})
+
+		if (await checkArtistExists(supabase, data.id_youtube_music)) {
+			const message = 'Cet artiste existe déjà dans la base de données.'
+			onError?.(message)
+			console.error('[ArtistCreate][artistCrud] duplicate artist detected', {
+				idYoutubeMusic: data.id_youtube_music,
+			})
+			throw new Error(message)
+		}
+
+		logArtistCreateTrace('duplicate check completed', {
+			idYoutubeMusic: data.id_youtube_music,
+		})
 	}
 
 	// Créer l'artiste
+	logArtistCreateTrace('inserting artist row')
 	const { data: artist, error } = await supabase
 		.from('artists')
 		.insert(data)
@@ -70,11 +104,28 @@ export async function createArtistRecord(
 	if (error) {
 		const message = "Erreur lors de la création de l'artiste"
 		onError?.(message)
-		console.error(message, error)
+		console.error('[ArtistCreate][artistCrud] artist insert failed', {
+			error,
+			elapsedMs: Date.now() - startedAt,
+		})
 		throw new Error(message)
 	}
 
+	logArtistCreateTrace('artist row inserted', {
+		artistId: artist.id,
+		elapsedMs: Date.now() - startedAt,
+	})
+
 	// Ajouter les relations en parallèle
+	logArtistCreateTrace('starting relation inserts', {
+		artistId: artist.id,
+		socialLinksCount: socialLinks.length,
+		platformLinksCount: platformLinks.length,
+		groupsCount: groups.length,
+		membersCount: members.length,
+		companiesCount: companies?.length ?? 0,
+	})
+
 	await Promise.all([
 		insertSocialLinks(supabase, artist.id, socialLinks),
 		insertPlatformLinks(supabase, artist.id, platformLinks),
@@ -88,6 +139,16 @@ export async function createArtistRecord(
 				)
 			: Promise.resolve(),
 	])
+
+	logArtistCreateTrace('relation inserts completed', {
+		artistId: artist.id,
+		elapsedMs: Date.now() - startedAt,
+	})
+
+	logArtistCreateTrace('createArtistRecord success', {
+		artistId: artist.id,
+		totalElapsedMs: Date.now() - startedAt,
+	})
 
 	return artist as Artist
 }

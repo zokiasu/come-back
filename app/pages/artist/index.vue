@@ -223,10 +223,10 @@
 				</div>
 			</div>
 
-			<div v-if="activeFilterChips.length > 0" class="flex flex-wrap gap-2">
-				<UButton
-					v-for="chip in activeFilterChips"
-					:key="`${chip.key}-${chip.label}`"
+		<div v-if="activeFilterChips.length > 0" class="flex flex-wrap gap-2">
+			<UButton
+				v-for="chip in activeFilterChips"
+				:key="`${chip.key}-${chip.label}`"
 					type="button"
 					color="neutral"
 					variant="outline"
@@ -236,6 +236,25 @@
 				>
 					{{ chip.label }}
 					<UIcon name="i-heroicons-x-mark" class="size-3" />
+				</UButton>
+			</div>
+
+			<div
+				v-if="pageError"
+				class="bg-red-500/10 text-red-100 flex flex-col gap-3 rounded-xl border border-red-400/20 p-4 sm:flex-row sm:items-center sm:justify-between"
+			>
+				<div class="space-y-1">
+					<p class="font-semibold">Unable to load the artists list</p>
+					<p class="text-sm text-red-100/80">{{ pageError }}</p>
+				</div>
+				<UButton
+					type="button"
+					color="error"
+					variant="soft"
+					:loading="isLoading"
+					@click="reloadArtists"
+				>
+					Try again
 				</UButton>
 			</div>
 		</div>
@@ -265,6 +284,16 @@
 		<LoadingIndicator :show="isLoading && firstLoad" message="Loading artists..." />
 
 		<LoadingIndicator :show="isLoading && !firstLoad" message="Loading more artists..." />
+		<div
+			v-if="!isLoading && !pageError && artists.length === 0"
+			class="bg-cb-quinary-900/40 rounded-xl border border-white/5 py-12 text-center"
+		>
+			<UIcon name="i-heroicons-user-group" class="text-cb-tertiary-500 mx-auto mb-3 size-10" />
+			<p class="font-medium">No artists found</p>
+			<p class="text-cb-tertiary-500 mt-1 text-sm">
+				Try removing a filter or broadening your search.
+			</p>
+		</div>
 		<div v-if="!hasMore && artists.length > 0" class="py-4 text-center text-gray-400">
 			All artists are displayed.
 		</div>
@@ -297,6 +326,18 @@
 	const { getAllGeneralTags } = useSupabaseGeneralTags()
 	const { getAllNationalities } = useSupabaseNationalities()
 	const { getAllMusicStyles } = useSupabaseMusicStyles()
+	const toast = useToast()
+
+	const logArtistIndexTrace = (step: string, details?: Record<string, unknown>) => {
+		if (!import.meta.dev) return
+
+		if (details) {
+			console.warn(`[ArtistIndex] ${step}`, details)
+			return
+		}
+
+		console.warn(`[ArtistIndex] ${step}`)
+	}
 
 	// Enum values for template usage
 	const artistTypes: ArtistType[] = ['SOLO', 'GROUP']
@@ -314,6 +355,7 @@
 	const firstLoad = ref(true)
 	const hasUserInteractedForPagination = ref(false)
 	const loadMoreSentinel = useTemplateRef<HTMLElement>('loadMoreSentinel')
+	const pageError = ref<string | null>(null)
 
 	const tagsList = ref<GeneralTag[]>([])
 	const selectedTags = ref<string[]>([])
@@ -384,9 +426,10 @@
 		},
 	})
 
-	const fetchArtists = async (reset = false) => {
-		if (isLoading.value || (!hasMore.value && !reset)) return
+	const fetchArtists = async (reset = false): Promise<boolean> => {
+		if (isLoading.value || (!hasMore.value && !reset)) return false
 		isLoading.value = true
+		pageError.value = null
 
 		if (reset) {
 			firstLoad.value = true
@@ -394,38 +437,92 @@
 			firstLoad.value = false
 		}
 
-		const result = await getArtistsByPage(page.value, limit.value, {
+		logArtistIndexTrace('fetchArtists started', {
+			reset,
+			page: page.value,
+			limit: limit.value,
 			search: search.value,
-			general_tags: selectedTags.value.length > 0 ? selectedTags.value : undefined,
-			nationalities:
-				selectedNationalities.value.length > 0 ? selectedNationalities.value : undefined,
-			type: selectedType.value || undefined,
-			styles: selectedStyles.value.length > 0 ? selectedStyles.value : undefined,
-			gender: selectedGender.value || undefined,
-			isActive: selectedActivity.value !== null ? selectedActivity.value : undefined,
-			verified: true,
-			orderBy: 'name',
-			orderDirection: 'asc',
+			selectedTagsCount: selectedTags.value.length,
+			selectedNationalitiesCount: selectedNationalities.value.length,
+			selectedStylesCount: selectedStyles.value.length,
+			selectedType: selectedType.value,
+			selectedGender: selectedGender.value,
+			selectedActivity: selectedActivity.value,
 		})
 
-		const artistsArray = Array.isArray(result.artists) ? result.artists : []
-		totalArtists.value = result.total
-		totalPages.value = Math.max(result.totalPages || 1, 1)
+		try {
+			const result = await getArtistsByPage(page.value, limit.value, {
+				search: search.value,
+				general_tags: selectedTags.value.length > 0 ? selectedTags.value : undefined,
+				nationalities:
+					selectedNationalities.value.length > 0 ? selectedNationalities.value : undefined,
+				type: selectedType.value || undefined,
+				styles: selectedStyles.value.length > 0 ? selectedStyles.value : undefined,
+				gender: selectedGender.value || undefined,
+				isActive: selectedActivity.value !== null ? selectedActivity.value : undefined,
+				verified: true,
+				skipYoutubeMusicFilter: true,
+				orderBy: 'name',
+				orderDirection: 'asc',
+			})
 
-		if (reset) {
-			artists.value = artistsArray
-		} else {
-			artists.value = [...artists.value, ...artistsArray]
+			const artistsArray = Array.isArray(result.artists) ? result.artists : []
+			totalArtists.value = result.total
+			totalPages.value = Math.max(result.totalPages || 1, 1)
+
+			if (reset) {
+				artists.value = artistsArray
+			} else {
+				artists.value = [...artists.value, ...artistsArray]
+			}
+
+			hasMore.value = page.value < totalPages.value
+
+			logArtistIndexTrace('fetchArtists resolved', {
+				reset,
+				page: page.value,
+				received: artistsArray.length,
+				total: result.total,
+				totalPages: totalPages.value,
+				hasMore: hasMore.value,
+			})
+
+			return true
+		} catch (error) {
+			const description =
+				error instanceof Error ? error.message : 'Unknown error while loading artists.'
+
+			pageError.value = description
+
+			console.error('[ArtistIndex] fetchArtists failed', {
+				error,
+				reset,
+				page: page.value,
+				search: search.value,
+			})
+
+			if (reset) {
+				artists.value = []
+				totalArtists.value = 0
+				totalPages.value = 1
+				hasMore.value = false
+			}
+
+			return false
+		} finally {
+			isLoading.value = false
 		}
-
-		hasMore.value = page.value < totalPages.value
-		isLoading.value = false
 	}
 
 	const resetPagination = () => {
 		page.value = 1
 		totalPages.value = 1
 		hasMore.value = true
+	}
+
+	const reloadArtists = async () => {
+		resetPagination()
+		await fetchArtists(true)
 	}
 
 	const debouncedSearchFetch = useDebounceFn(() => {
@@ -457,16 +554,78 @@
 	const loadMore = async () => {
 		if (isLoading.value || !hasMore.value) return
 		page.value++
-		await fetchArtists()
+		const hasLoadedNextPage = await fetchArtists()
+		if (!hasLoadedNextPage) {
+			page.value = Math.max(page.value - 1, 1)
+		}
+	}
+
+	const bootstrapFilters = async () => {
+		logArtistIndexTrace('bootstrapFilters started')
+
+		const [tagsResult, nationalitiesResult, stylesResult] = await Promise.allSettled([
+			getAllGeneralTags(),
+			getAllNationalities(),
+			getAllMusicStyles(),
+		])
+
+		if (tagsResult.status === 'fulfilled') {
+			tagsList.value = tagsResult.value
+		} else {
+			console.error('[ArtistIndex] Failed to load general tags', tagsResult.reason)
+		}
+
+		if (nationalitiesResult.status === 'fulfilled') {
+			nationalitiesList.value = nationalitiesResult.value
+		} else {
+			console.error(
+				'[ArtistIndex] Failed to load nationalities',
+				nationalitiesResult.reason,
+			)
+		}
+
+		if (stylesResult.status === 'fulfilled') {
+			stylesList.value = stylesResult.value
+		} else {
+			console.error('[ArtistIndex] Failed to load music styles', stylesResult.reason)
+		}
+
+		const failedFilterLoads = [
+			tagsResult,
+			nationalitiesResult,
+			stylesResult,
+		].filter((result) => result.status === 'rejected').length
+
+		logArtistIndexTrace('bootstrapFilters completed', {
+			tagsCount: tagsList.value.length,
+			nationalitiesCount: nationalitiesList.value.length,
+			stylesCount: stylesList.value.length,
+			failedFilterLoads,
+		})
+
+		if (failedFilterLoads > 0) {
+			toast.add({
+				title: 'Filters partially unavailable',
+				description: 'The artists list is still available, but some filter options failed to load.',
+				color: 'warning',
+			})
+		}
 	}
 
 	onMounted(async () => {
-		tagsList.value = await getAllGeneralTags()
-		nationalitiesList.value = await getAllNationalities()
-		stylesList.value = await getAllMusicStyles()
-		await fetchArtists(true)
-		// Marquer comme initialisé après le premier chargement
-		isInitialized.value = true
+		logArtistIndexTrace('page mounted')
+
+		try {
+			await bootstrapFilters()
+			await fetchArtists(true)
+		} finally {
+			isInitialized.value = true
+			logArtistIndexTrace('page initialized', {
+				artistsLoaded: artists.value.length,
+				totalArtists: totalArtists.value,
+				hasError: Boolean(pageError.value),
+			})
+		}
 	})
 
 	useIntersectionObserver(loadMoreSentinel, ([entry]) => {
@@ -477,13 +636,14 @@
 		loadMore()
 	})
 
-	useEventListener(window, 'wheel', () => {
+	const markUserInteractedForPagination = () => {
 		hasUserInteractedForPagination.value = true
-	})
+	}
 
-	useEventListener(window, 'touchmove', () => {
-		hasUserInteractedForPagination.value = true
-	})
+	if (import.meta.client) {
+		useEventListener(window, 'wheel', markUserInteractedForPagination, { passive: true })
+		useEventListener(window, 'touchmove', markUserInteractedForPagination, { passive: true })
+	}
 
 	const toggleGender = (gender: ArtistGender) => {
 		if (selectedGender.value === gender) {

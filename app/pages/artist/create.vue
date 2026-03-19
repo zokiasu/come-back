@@ -8,6 +8,7 @@
 		Nationality,
 		ArtistGender,
 		ArtistType,
+		ArtistMenuItem,
 		Company,
 	} from '~/types'
 
@@ -17,7 +18,6 @@
 	import { useUserStore } from '~/stores/user'
 
 	type MenuItem<T> = T & { label: string }
-	type ArtistMenuItem = { id: string; label: string; description?: string }
 	type CompanyMenuItem = {
 		id: string
 		name: string
@@ -25,19 +25,17 @@
 		label: string
 	}
 	type ArtistCreateOptionsPayload = {
-		artists: Artist[]
 		styles: MusicStyle[]
 		tags: GeneralTag[]
 		nationalities: Nationality[]
-		companies: Company[]
 	}
 
 	const toast = useToast()
 	const { getAuthHeaders } = useApiAuthHeaders()
 	const userStore = useUserStore()
 	const { isAdminStore } = storeToRefs(userStore)
-	const { createArtist } = useSupabaseArtist()
-	const { relationshipTypes } = useSupabaseCompanies()
+	const { createArtist, getAllArtists } = useSupabaseArtist()
+	const { getAllCompanies, relationshipTypes } = useSupabaseCompanies()
 	const {
 		status: ytmIdStatus,
 		message: ytmIdMessage,
@@ -45,6 +43,17 @@
 		checkId: checkYtmId,
 		reset: resetYtmCheck,
 	} = useYoutubeMusicIdCheck()
+
+	const logArtistCreateTrace = (step: string, details?: Record<string, unknown>) => {
+		if (!import.meta.dev) return
+
+		if (details) {
+			console.warn(`[ArtistCreate][Page] ${step}`, details)
+			return
+		}
+
+		console.warn(`[ArtistCreate][Page] ${step}`)
+	}
 
 	const title = ref('Create Artist Page')
 	const description = ref('Create Artist Page')
@@ -56,9 +65,6 @@
 	const stylesList = ref<MusicStyle[]>([])
 	const tagsList = ref<GeneralTag[]>([])
 	const nationalitiesList = ref<Nationality[]>([])
-	const groupList = ref<Artist[]>([])
-	const artistsList = ref<Artist[]>([])
-	const companiesList = ref<Company[]>([])
 
 	const artistImage = ref('https://i.ibb.co/wLhbFZx/Frame-255.png')
 	const artistName = ref('')
@@ -92,6 +98,9 @@
 	const memberSearchResults = ref<Artist[]>([])
 	const isSearchingGroups = ref(false)
 	const isSearchingMembers = ref(false)
+	const companySearchTerm = ref('')
+	const companySearchResults = ref<Company[]>([])
+	const isSearchingCompanies = ref(false)
 
 	const { createLinkListManager } = useLinkManager()
 	const platformLinkManager = createLinkListManager()
@@ -100,8 +109,6 @@
 	const artistSocialList = socialLinkManager.links
 
 	const { adjustTextareaDirect } = useTextareaAutoResize()
-
-	const companiesMenuKey = ref(0)
 
 	const validGenders = ['MALE', 'FEMALE', 'MIXTE', 'UNKNOWN'] as const
 	const artistTypes = ['SOLO', 'GROUP'] as const
@@ -236,20 +243,18 @@
 	})
 
 	const companiesForMenu = computed((): CompanyMenuItem[] => {
-		return companiesList.value.map(
-			(company): CompanyMenuItem => ({
-				id: company.id,
-				name: company.name,
-				label: company.name,
-				description: company.description ?? undefined,
-			}),
+		return mergeCompanyMenuItems(
+			companySearchResults.value.map(mapCompanyToMenuItem),
+			selectedCompanyItems.value,
 		)
 	})
 
 	const mapArtistToMenuItem = (artist: Artist): ArtistMenuItem => ({
 		id: artist.id,
 		label: artist.name,
+		name: artist.name,
 		description: artist.description ?? undefined,
+		image: artist.image,
 	})
 
 	const mergeMenuItems = (base: ArtistMenuItem[], selected: ArtistMenuItem[]) => {
@@ -259,16 +264,41 @@
 		return Array.from(merged.values())
 	}
 
+	const mapCompanyToMenuItem = (company: Company): CompanyMenuItem => ({
+		id: company.id,
+		name: company.name,
+		label: company.name,
+		description: company.description ?? undefined,
+	})
+
+	const mergeCompanyMenuItems = (
+		base: CompanyMenuItem[],
+		selected: CompanyMenuItem[],
+	) => {
+		const merged = new Map<string, CompanyMenuItem>()
+		for (const item of base) merged.set(item.id, item)
+		for (const item of selected) merged.set(item.id, item)
+		return Array.from(merged.values())
+	}
+
+	const selectedCompanyItems = computed(() => {
+		return artistCompanies.value
+			.map((relation) => relation.company)
+			.filter((company): company is CompanyMenuItem => Boolean(company))
+	})
+
 	const groupsForMenu = computed((): ArtistMenuItem[] => {
-		const base =
-			groupSearchTerm.value.length >= 2 ? groupSearchResults.value : groupList.value
-		return mergeMenuItems(base.map(mapArtistToMenuItem), artistGroups.value)
+		return mergeMenuItems(
+			groupSearchResults.value.map(mapArtistToMenuItem),
+			artistGroups.value,
+		)
 	})
 
 	const membersForMenu = computed((): ArtistMenuItem[] => {
-		const base =
-			memberSearchTerm.value.length >= 2 ? memberSearchResults.value : artistsList.value
-		return mergeMenuItems(base.map(mapArtistToMenuItem), artistMembers.value)
+		return mergeMenuItems(
+			memberSearchResults.value.map(mapArtistToMenuItem),
+			artistMembers.value,
+		)
 	})
 
 	const formatDisplayDate = (value: Date | string | null | undefined) => {
@@ -322,15 +352,17 @@
 		}
 
 		isSearchingGroups.value = true
+		logArtistCreateTrace('group search started', { query: query.trim() })
 		try {
-			const result = await $fetch<{ artists: Artist[] }>('/api/artists/search', {
-				query: {
-					search: query,
-					limit: 15,
-					type: 'GROUP',
-				},
+			groupSearchResults.value = await getAllArtists({
+				search: query.trim(),
+				limit: 15,
+				type: 'GROUP',
 			})
-			groupSearchResults.value = result.artists || []
+			logArtistCreateTrace('group search resolved', {
+				query: query.trim(),
+				resultsCount: groupSearchResults.value.length,
+			})
 		} catch (error) {
 			console.error('Group search error:', error)
 			groupSearchResults.value = []
@@ -347,14 +379,16 @@
 		}
 
 		isSearchingMembers.value = true
+		logArtistCreateTrace('member search started', { query: query.trim() })
 		try {
-			const result = await $fetch<{ artists: Artist[] }>('/api/artists/search', {
-				query: {
-					search: query,
-					limit: 15,
-				},
+			memberSearchResults.value = await getAllArtists({
+				search: query.trim(),
+				limit: 15,
 			})
-			memberSearchResults.value = result.artists || []
+			logArtistCreateTrace('member search resolved', {
+				query: query.trim(),
+				resultsCount: memberSearchResults.value.length,
+			})
 		} catch (error) {
 			console.error('Member search error:', error)
 			memberSearchResults.value = []
@@ -373,16 +407,43 @@
 		debouncedMemberSearch(query)
 	}
 
+	const debouncedCompanySearch = useDebounce(async (query: string) => {
+		if (!query || query.trim().length < 2) {
+			companySearchResults.value = []
+			isSearchingCompanies.value = false
+			return
+		}
+
+		isSearchingCompanies.value = true
+		logArtistCreateTrace('company search started', { query: query.trim() })
+		try {
+			const { companies } = await getAllCompanies({
+				search: query.trim(),
+				limit: 15,
+			})
+			companySearchResults.value = companies
+			logArtistCreateTrace('company search resolved', {
+				query: query.trim(),
+				resultsCount: companySearchResults.value.length,
+			})
+		} catch (error) {
+			console.error('Company search error:', error)
+			companySearchResults.value = []
+		} finally {
+			isSearchingCompanies.value = false
+		}
+	}, 300)
+
+	const onCompanySearchTermChange = (query: string) => {
+		companySearchTerm.value = query
+		debouncedCompanySearch(query)
+	}
+
 	const loadCreateOptions = async () => {
+		logArtistCreateTrace('loadCreateOptions request started')
 		return $fetch<ArtistCreateOptionsPayload>('/api/admin/artist-create-options', {
 			headers: getAuthHeaders(),
 		})
-	}
-
-	const refreshArtistOptions = async () => {
-		const payload = await loadCreateOptions()
-		artistsList.value = payload.artists
-		groupList.value = payload.artists.filter((artist) => artist.type === 'GROUP')
 	}
 
 	const refreshNationalities = async () => {
@@ -391,31 +452,45 @@
 	}
 
 	const applyBootstrapPayload = (payload: ArtistCreateOptionsPayload) => {
-		artistsList.value = payload.artists
-		groupList.value = payload.artists.filter((artist) => artist.type === 'GROUP')
 		stylesList.value = payload.styles
 		tagsList.value = payload.tags
 		nationalitiesList.value = payload.nationalities
-		companiesList.value = payload.companies
 	}
 
 	const bootstrapPage = async () => {
 		isBootstrapping.value = true
 		bootstrapError.value = null
+		const startedAt = Date.now()
+		logArtistCreateTrace('bootstrap started')
 
 		try {
 			const payload = await loadCreateOptions()
 			applyBootstrapPayload(payload)
+			logArtistCreateTrace('bootstrap resolved', {
+				stylesCount: stylesList.value.length,
+				tagsCount: tagsList.value.length,
+				nationalitiesCount: nationalitiesList.value.length,
+				elapsedMs: Date.now() - startedAt,
+			})
 		} catch (error) {
 			console.error('Error while bootstrapping artist creation page:', error)
 			bootstrapError.value =
 				'Unable to load the required artist creation data. Please retry.'
+			console.error('[ArtistCreate][Page] bootstrap failed', {
+				error,
+				elapsedMs: Date.now() - startedAt,
+			})
 		} finally {
 			isBootstrapping.value = false
+			logArtistCreateTrace('bootstrap finished', {
+				hasError: Boolean(bootstrapError.value),
+				elapsedMs: Date.now() - startedAt,
+			})
 		}
 	}
 
 	const resetForm = () => {
+		logArtistCreateTrace('resetForm called')
 		artistImage.value = 'https://i.ibb.co/wLhbFZx/Frame-255.png'
 		artistName.value = ''
 		artistIdYoutubeMusic.value = ''
@@ -435,43 +510,28 @@
 		memberSearchTerm.value = ''
 		groupSearchResults.value = []
 		memberSearchResults.value = []
+		companySearchTerm.value = ''
+		companySearchResults.value = []
 		platformLinkManager.reset()
 		socialLinkManager.reset()
 		resetYtmCheck()
 	}
 
-	const resolveSelectedArtists = (
-		selectedItems: ArtistMenuItem[],
-		source: Artist[],
-		fallbackType: ArtistType,
-	): Artist[] => {
-		return selectedItems.map((item) => {
-			const existingArtist = source.find((artist) => artist.id === item.id)
-			if (existingArtist) return existingArtist
-
-			return {
-				id: item.id,
-				name: item.label,
-				image: '',
-				description: item.description ?? null,
-				id_youtube_music: null,
-				type: fallbackType,
-				gender: 'UNKNOWN',
-				active_career: true,
-				verified: true,
-				general_tags: [],
-				nationalities: [],
-				styles: [],
-				birth_date: null,
-				debut_date: null,
-				created_at: null,
-				updated_at: null,
-			} as Artist
-		})
+	const buildArtistRefs = (items: ArtistMenuItem[]): Artist[] => {
+		const uniqueIds = new Set(items.map((item) => item.id))
+		return Array.from(uniqueIds).map((id) => ({ id }) as Artist)
 	}
 
 	const creationArtist = async () => {
+		const startedAt = Date.now()
+		logArtistCreateTrace('create button clicked', {
+			name: artistName.value,
+			type: artistType.value,
+			hasYoutubeMusicId: Boolean(artistIdYoutubeMusic.value),
+		})
+
 		if (!artistName.value.trim()) {
+			logArtistCreateTrace('creation blocked: missing name')
 			toast.add({
 				title: 'Please fill the required fields',
 				description: 'Artist name is required before you can create the profile.',
@@ -481,6 +541,9 @@
 		}
 
 		if (ytmIdBlocked.value) {
+			logArtistCreateTrace('creation blocked: youtube music id invalid', {
+				message: ytmIdMessage.value,
+			})
 			toast.add({
 				title: 'YouTube Music ID is not valid',
 				description: ytmIdMessage.value || 'This ID cannot be used',
@@ -492,16 +555,8 @@
 		isUploadingEdit.value = true
 
 		try {
-			const selectedGroups = resolveSelectedArtists(
-				artistGroups.value,
-				groupList.value,
-				'GROUP',
-			)
-			const selectedMembers = resolveSelectedArtists(
-				artistMembers.value,
-				artistsList.value,
-				'SOLO',
-			)
+			const selectedGroups = buildArtistRefs(artistGroups.value)
+			const selectedMembers = buildArtistRefs(artistMembers.value)
 			const selectedCompanies = artistCompanies.value
 				.filter((relation) => Boolean(relation.company))
 				.map((relation) => ({
@@ -537,6 +592,18 @@
 
 			const validPlatformLinks = platformLinkManager.getValidLinks()
 			const validSocialLinks = socialLinkManager.getValidLinks()
+			logArtistCreateTrace('create payload prepared', {
+				name: artist.name,
+				type: artist.type,
+				stylesCount: artist.styles?.length ?? 0,
+				tagsCount: artist.general_tags?.length ?? 0,
+				nationalitiesCount: artist.nationalities?.length ?? 0,
+				groupsCount: selectedGroups.length,
+				membersCount: selectedMembers.length,
+				companiesCount: selectedCompanies.length,
+				platformLinksCount: validPlatformLinks.length,
+				socialLinksCount: validSocialLinks.length,
+			})
 
 			await createArtist(
 				artist,
@@ -546,8 +613,10 @@
 				selectedMembers,
 				selectedCompanies as Parameters<typeof createArtist>[5],
 			)
+			logArtistCreateTrace('createArtist resolved on page', {
+				elapsedMs: Date.now() - startedAt,
+			})
 
-			await refreshArtistOptions()
 			resetForm()
 			toast.add({
 				title: 'Artist created successfully',
@@ -557,6 +626,11 @@
 			})
 		} catch (error: unknown) {
 			const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+			console.error('[ArtistCreate][Page] creationArtist failed', {
+				error,
+				errorMessage,
+				elapsedMs: Date.now() - startedAt,
+			})
 			toast.add({
 				title: 'Failed to create artist',
 				description: errorMessage,
@@ -564,31 +638,29 @@
 			})
 		} finally {
 			isUploadingEdit.value = false
-		}
-	}
-
-	const closeModalCreateArtist = async () => {
-		await refreshArtistOptions()
-	}
-
-	const handleCompanyUpdated = async () => {
-		try {
-			const payload = await loadCreateOptions()
-			companiesList.value = payload.companies
-			companiesMenuKey.value = companiesMenuKey.value + 1
-			isCompanyModalOpen.value = false
-		} catch (error) {
-			console.error('Error updating companies list:', error)
-			isCompanyModalOpen.value = false
-			toast.add({
-				title: 'Warning',
-				description: 'Company created but list update failed',
-				color: 'warning',
+			logArtistCreateTrace('creationArtist finished', {
+				elapsedMs: Date.now() - startedAt,
 			})
 		}
 	}
 
+	const closeModalCreateArtist = () => {
+		groupSearchTerm.value = ''
+		memberSearchTerm.value = ''
+		groupSearchResults.value = []
+		memberSearchResults.value = []
+	}
+
+	const handleCompanyUpdated = () => {
+		companySearchTerm.value = ''
+		companySearchResults.value = []
+		isCompanyModalOpen.value = false
+	}
+
 	const addCompanyRelation = () => {
+		logArtistCreateTrace('company relation added', {
+			previousCount: artistCompanies.value.length,
+		})
 		artistCompanies.value.push({
 			company: undefined,
 			relationship_type: 'LABEL',
@@ -597,6 +669,10 @@
 	}
 
 	const removeCompanyRelation = (index: number) => {
+		logArtistCreateTrace('company relation removed', {
+			index,
+			previousCount: artistCompanies.value.length,
+		})
 		artistCompanies.value.splice(index, 1)
 	}
 
@@ -604,21 +680,47 @@
 		index: number,
 		company: CompanyMenuItem | null | undefined,
 	) => {
+		logArtistCreateTrace('company relation updated', {
+			index,
+			companyId: company?.id ?? null,
+			companyName: company?.name ?? null,
+		})
 		if (artistCompanies.value[index]) {
 			artistCompanies.value[index].company = company ?? undefined
 		}
+		companySearchTerm.value = ''
+		companySearchResults.value = []
 	}
 
 	watch(artistIdYoutubeMusic, (newValue) => {
 		if (!newValue || newValue.trim().length < 6) {
+			logArtistCreateTrace('youtube music id reset', {
+				value: newValue,
+			})
 			resetYtmCheck()
 			return
 		}
+		logArtistCreateTrace('youtube music id check started', {
+			value: newValue,
+		})
 		checkYtmId(newValue)
 	})
 
 	onMounted(async () => {
+		logArtistCreateTrace('page mounted')
 		await bootstrapPage()
+	})
+
+	watch(isUploadingEdit, (value) => {
+		logArtistCreateTrace('isUploadingEdit changed', { value })
+	})
+
+	watch(ytmIdStatus, (value) => {
+		logArtistCreateTrace('ytmIdStatus changed', {
+			value,
+			message: ytmIdMessage.value,
+			blocked: ytmIdBlocked.value,
+		})
 	})
 
 	definePageMeta({
@@ -657,8 +759,8 @@
 					<div class="space-y-2">
 						<h1 class="text-2xl font-semibold">Loading artist creator</h1>
 						<p class="mx-auto max-w-xl text-sm leading-6 text-gray-400">
-							We are preparing artists, groups, styles, tags and companies before opening
-							the form.
+							We are preparing the taxonomy now. Artist and company relations will be
+							searched on demand as you type.
 						</p>
 					</div>
 				</div>
@@ -746,10 +848,7 @@
 								</span>
 							</div>
 
-							<div
-								v-if="overviewTaxonomyBadges.length > 0"
-								class="flex flex-wrap gap-2"
-							>
+							<div v-if="overviewTaxonomyBadges.length > 0" class="flex flex-wrap gap-2">
 								<span
 									v-for="badge in overviewTaxonomyBadges"
 									:key="badge.label"
@@ -1196,8 +1295,6 @@
 										:styles-list="stylesList"
 										:nationalities-list="nationalitiesList"
 										:tags-list="tagsList"
-										:group-list="groupList"
-										:members-list="artistsList"
 										@close-modal="closeModalCreateArtist"
 									/>
 								</template>
@@ -1208,7 +1305,7 @@
 							class="grid gap-5"
 							:class="artistType === 'GROUP' ? 'xl:grid-cols-2' : ''"
 						>
-							<div v-if="groupList" class="space-y-3">
+							<div class="space-y-3">
 								<ComebackLabel
 									:label="artistType === 'GROUP' ? 'Related groups' : 'Groups'"
 								/>
@@ -1232,7 +1329,7 @@
 								/>
 							</div>
 
-							<div v-if="artistsList && artistType === 'GROUP'" class="space-y-3">
+							<div v-if="artistType === 'GROUP'" class="space-y-3">
 								<ComebackLabel label="Members" />
 								<UInputMenu
 									v-model="artistMembers"
@@ -1318,13 +1415,14 @@
 												Company
 											</label>
 											<UInputMenu
-												:key="`company-menu-${index}-${companiesMenuKey}`"
 												:model-value="relation.company ?? undefined"
+												:search-term="companySearchTerm"
 												:items="companiesForMenu"
 												by="id"
 												placeholder="Select a company"
 												searchable
 												searchable-placeholder="Search company..."
+												:loading="isSearchingCompanies"
 												class="w-full"
 												:ui="{
 													base: 'bg-cb-secondary-950 border border-cb-quinary-900/70 rounded-xl',
@@ -1335,6 +1433,7 @@
 													(company: unknown) =>
 														updateCompanyInRelation(index, company as CompanyMenuItem)
 												"
+												@update:search-term="onCompanySearchTermChange"
 											/>
 										</div>
 

@@ -5,12 +5,18 @@
 	import { useUserStore } from '~/stores/user'
 
 	// Internal Types
-	import type { Artist, MusicStyle, GeneralTag, Nationality, Company } from '~/types'
+	import type {
+		Artist,
+		MusicStyle,
+		GeneralTag,
+		Nationality,
+		ArtistMenuItem,
+		Company,
+	} from '~/types'
 	import type { TablesInsert } from '~/types/supabase'
 
 	// Creates a generic type that adds 'label' to an existing type T
 	type MenuItem<T> = T & { label: string }
-	type ArtistMenuItem = { id: string; label: string; description?: string }
 	type CompanyMenuItem = {
 		id: string
 		name: string
@@ -41,21 +47,18 @@
 	const { getAllGeneralTags } = useSupabaseGeneralTags()
 	const { getAllNationalities } = useSupabaseNationalities()
 	const { getAllCompanies, relationshipTypes } = useSupabaseCompanies()
-	const { searchArtistsFullText } = useSupabaseSearch()
 
 	const title = ref('Edit Artist Page')
 	const description = ref('Edit Artist Page')
 
 	const isUploadingEdit = ref<boolean>(false)
+	const isBootstrapping = ref(true)
+	const bootstrapError = ref<string | null>(null)
 
 	const artist = ref<ArtistWithRelations | null>(null)
-	const groupList = ref<Artist[]>([]) // Garde les groupes potentiels
-	const membersList = ref<Artist[]>([]) // Garde les membres potentiels (tous les artistes)
-	const artistsList = ref<Artist[]>([]) // Liste complète des artistes
 	const stylesList = ref<MusicStyle[]>([])
 	const tagsList = ref<GeneralTag[]>([])
 	const nationalitiesList = ref<Nationality[]>([])
-	const companiesList = ref<Company[]>([])
 	// Refs pour les v-model des UInputMenu - contiennent les objets sélectionnés
 	const artistStyles = ref<MenuItem<MusicStyle>[]>([])
 	const artistTags = ref<MenuItem<GeneralTag>[]>([])
@@ -77,6 +80,9 @@
 	const memberSearchResults = ref<Artist[]>([])
 	const isSearchingGroups = ref(false)
 	const isSearchingMembers = ref(false)
+	const companySearchTerm = ref('')
+	const companySearchResults = ref<Company[]>([])
+	const isSearchingCompanies = ref(false)
 
 	const validGenders = ['MALE', 'FEMALE', 'MIXTE', 'UNKNOWN'] as const
 	const artistTypes = ['SOLO', 'GROUP'] as const
@@ -105,8 +111,6 @@
 
 	// État de la modal de création de company
 	const isCompanyModalOpen = ref(false)
-	// Clé pour forcer la re-render des UInputMenu des companies
-	const companiesMenuKey = ref(0)
 
 	const birthdayToDate = ref<Date | null>(null)
 	const debutDateToDate = ref<Date | null>(null)
@@ -230,20 +234,18 @@
 	})
 
 	const companiesForMenu = computed((): CompanyMenuItem[] => {
-		return companiesList.value.map(
-			(company): CompanyMenuItem => ({
-				id: company.id,
-				name: company.name,
-				label: company.name,
-				description: company.description ?? undefined,
-			}),
+		return mergeCompanyMenuItems(
+			companySearchResults.value.map(mapCompanyToMenuItem),
+			selectedCompanyItems.value,
 		)
 	})
 
 	const mapArtistToMenuItem = (artist: Artist): ArtistMenuItem => ({
 		id: artist.id,
 		label: artist.name,
+		name: artist.name,
 		description: artist.description ?? undefined,
+		image: artist.image,
 	})
 
 	const mergeMenuItems = (base: ArtistMenuItem[], selected: ArtistMenuItem[]) => {
@@ -253,21 +255,46 @@
 		return Array.from(merged.values())
 	}
 
+	const mapCompanyToMenuItem = (company: Company): CompanyMenuItem => ({
+		id: company.id,
+		name: company.name,
+		label: company.name,
+		description: company.description ?? undefined,
+	})
+
+	const mergeCompanyMenuItems = (
+		base: CompanyMenuItem[],
+		selected: CompanyMenuItem[],
+	) => {
+		const merged = new Map<string, CompanyMenuItem>()
+		for (const item of base) merged.set(item.id, item)
+		for (const item of selected) merged.set(item.id, item)
+		return Array.from(merged.values())
+	}
+
+	const selectedCompanyItems = computed(() => {
+		return artistCompanies.value
+			.map((relation) => relation.company)
+			.filter((company): company is CompanyMenuItem => Boolean(company))
+	})
+
 	const buildArtistRefs = (items: ArtistMenuItem[]): Artist[] => {
 		const uniqueIds = new Set(items.map((item) => item.id))
 		return Array.from(uniqueIds).map((id) => ({ id }) as Artist)
 	}
 
 	const groupsForMenu = computed((): ArtistMenuItem[] => {
-		const base =
-			groupSearchTerm.value.length >= 2 ? groupSearchResults.value : groupList.value
-		return mergeMenuItems(base.map(mapArtistToMenuItem), artistGroups.value)
+		return mergeMenuItems(
+			groupSearchResults.value.map(mapArtistToMenuItem),
+			artistGroups.value,
+		)
 	})
 
 	const membersForMenu = computed((): ArtistMenuItem[] => {
-		const base =
-			memberSearchTerm.value.length >= 2 ? memberSearchResults.value : artistsList.value
-		return mergeMenuItems(base.map(mapArtistToMenuItem), artistMembers.value)
+		return mergeMenuItems(
+			memberSearchResults.value.map(mapArtistToMenuItem),
+			artistMembers.value,
+		)
 	})
 
 	// --- Helper to parse date string ---
@@ -310,12 +337,11 @@
 
 		isSearchingGroups.value = true
 		try {
-			const result = await searchArtistsFullText({
-				query,
+			groupSearchResults.value = await getAllArtists({
+				search: query.trim(),
 				limit: 15,
 				type: 'GROUP',
 			})
-			groupSearchResults.value = result.artists
 		} catch (error) {
 			console.error('Group search error:', error)
 			groupSearchResults.value = []
@@ -333,11 +359,10 @@
 
 		isSearchingMembers.value = true
 		try {
-			const result = await searchArtistsFullText({
-				query,
+			memberSearchResults.value = await getAllArtists({
+				search: query.trim(),
 				limit: 15,
 			})
-			memberSearchResults.value = result.artists
 		} catch (error) {
 			console.error('Member search error:', error)
 			memberSearchResults.value = []
@@ -354,6 +379,33 @@
 	const onMemberSearchTermChange = (query: string) => {
 		memberSearchTerm.value = query
 		debouncedMemberSearch(query)
+	}
+
+	const debouncedCompanySearch = useDebounce(async (query: string) => {
+		if (!query || query.trim().length < 2) {
+			companySearchResults.value = []
+			isSearchingCompanies.value = false
+			return
+		}
+
+		isSearchingCompanies.value = true
+		try {
+			const { companies } = await getAllCompanies({
+				search: query.trim(),
+				limit: 15,
+			})
+			companySearchResults.value = companies
+		} catch (error) {
+			console.error('Company search error:', error)
+			companySearchResults.value = []
+		} finally {
+			isSearchingCompanies.value = false
+		}
+	}, 300)
+
+	const onCompanySearchTermChange = (query: string) => {
+		companySearchTerm.value = query
+		debouncedCompanySearch(query)
 	}
 
 	function onFileChange(e: Event) {
@@ -510,53 +562,51 @@
 		if (artistCompanies.value[index]) {
 			artistCompanies.value[index].company = company ?? undefined
 		}
+		companySearchTerm.value = ''
+		companySearchResults.value = []
 	}
 
 	// Fonction pour gérer la mise à jour après création de company
-	const handleCompanyUpdated = async () => {
-		try {
-			// Récupérer toutes les companies sans limite
-			const companiesResponse = await getAllCompanies({ limit: 1000 })
-			// Companies updated successfully
-			companiesList.value = companiesResponse.companies
-
-			// Force re-render des UInputMenu
-			companiesMenuKey.value = companiesMenuKey.value + 1
-
-			// Fermer la modal via v-model:open
-			isCompanyModalOpen.value = false
-		} catch {
-			// Error updating companies list
-			// Fermer la modal même en cas d'erreur
-			isCompanyModalOpen.value = false
-			// Seule notification en cas d'erreur de mise à jour
-			toast.add({
-				title: 'Warning',
-				description: 'Company created but list update failed',
-				color: 'warning',
-			})
-		}
+	const handleCompanyUpdated = () => {
+		companySearchTerm.value = ''
+		companySearchResults.value = []
+		isCompanyModalOpen.value = false
 	}
 
 	const handleNationalitiesUpdated = async () => {
 		nationalitiesList.value = await getAllNationalities()
 	}
 
-	onMounted(async () => {
+	const bootstrapEditor = async () => {
+		isBootstrapping.value = true
+		bootstrapError.value = null
+
 		try {
-			artist.value = await getFullArtistById(route.params.id as string)
-			stylesList.value = await getAllMusicStyles()
-			tagsList.value = await getAllGeneralTags()
-			nationalitiesList.value = await getAllNationalities()
-			const companiesResponse = await getAllCompanies({ limit: 1000 })
-			companiesList.value = companiesResponse.companies
+			const [fullArtist, styles, tags, nationalities] = await withTimeout(
+				Promise.all([
+					getFullArtistById(route.params.id as string),
+					getAllMusicStyles(),
+					getAllGeneralTags(),
+					getAllNationalities(),
+				]),
+				15000,
+				'Artist editor loading timed out. Please try again.',
+			)
+
+			artist.value = fullArtist
+			stylesList.value = styles
+			tagsList.value = tags
+			nationalitiesList.value = nationalities
 
 			if (artist.value) {
 				artistToEdit.value = { ...artist.value }
 
 				try {
-					const { socialLinks, platformLinks } =
-						await getSocialAndPlatformLinksByArtistId(artist.value.id)
+					const { socialLinks, platformLinks } = await withTimeout(
+						getSocialAndPlatformLinksByArtistId(artist.value.id),
+						10000,
+						'Artist links loading timed out. Please try again.',
+					)
 
 					// S'assurer que les tableaux ne sont jamais undefined
 					platformLinkManager.reset(
@@ -580,18 +630,18 @@
 					artist.value.groups?.map((group) => ({
 						id: group.id,
 						label: group.name,
+						name: group.name,
 						description: group.description ?? undefined,
+						image: group.image,
 					})) || []
 				artistMembers.value =
 					artist.value.members?.map((member) => ({
 						id: member.id,
 						label: member.name,
+						name: member.name,
 						description: member.description ?? undefined,
+						image: member.image,
 					})) || []
-
-				artistsList.value = await getAllArtists()
-				groupList.value = artistsList.value.filter((artist) => artist.type === 'GROUP')
-				membersList.value = artistsList.value
 
 				artistStyles.value =
 					artist.value.styles
@@ -661,12 +711,19 @@
 		} catch (error: unknown) {
 			const errorMessage = error instanceof Error ? error.message : 'Unknown error'
 			console.error('Error loading artist:', error)
+			bootstrapError.value = errorMessage
 			toast.add({
 				title: 'Error loading artist',
 				description: errorMessage,
 				color: 'error',
 			})
+		} finally {
+			isBootstrapping.value = false
 		}
+	}
+
+	onMounted(async () => {
+		await bootstrapEditor()
 	})
 
 	useHead({
@@ -686,7 +743,64 @@
 
 <template>
 	<div
-		v-if="artistToEdit && artist"
+		v-if="isBootstrapping"
+		class="flex min-h-[calc(100vh-140px)] items-center justify-center px-4 py-6"
+	>
+		<div
+			class="bg-cb-secondary-950 border-cb-quinary-900/70 w-full max-w-2xl rounded-[28px] border p-10 shadow-2xl"
+		>
+			<div class="flex flex-col items-center gap-5 text-center">
+				<div
+					class="bg-cb-quaternary-950 border-cb-quinary-900/70 flex h-16 w-16 items-center justify-center rounded-2xl border"
+				>
+					<UIcon
+						name="i-lucide-loader-circle"
+						class="text-cb-primary-900 h-8 w-8 animate-spin"
+					/>
+				</div>
+				<div class="space-y-2">
+					<h1 class="text-2xl font-semibold">Loading artist editor</h1>
+					<p class="mx-auto max-w-xl text-sm leading-6 text-gray-400">
+						We are preparing the artist profile and taxonomy. Companies and relations will
+						be searched on demand as you type.
+					</p>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div
+		v-else-if="bootstrapError"
+		class="flex min-h-[calc(100vh-140px)] items-center justify-center px-4 py-6"
+	>
+		<div
+			class="bg-cb-secondary-950 border-cb-quinary-900/70 w-full max-w-2xl rounded-[28px] border p-10 shadow-2xl"
+		>
+			<div class="flex flex-col items-center gap-5 text-center">
+				<div
+					class="bg-cb-primary-900/15 text-cb-primary-300 ring-cb-primary-900/30 rounded-2xl px-4 py-2 text-sm font-medium ring-1"
+				>
+					Editor loading failed
+				</div>
+				<div class="space-y-2">
+					<h1 class="text-2xl font-semibold">Artist editor is not ready yet</h1>
+					<p class="mx-auto max-w-xl text-sm leading-6 text-gray-400">
+						{{ bootstrapError }}
+					</p>
+				</div>
+				<UButton
+					label="Retry loading"
+					icon="i-lucide-refresh-cw"
+					color="primary"
+					class="!bg-cb-primary-900 hover:!bg-cb-primary-800 cursor-pointer justify-center !text-white hover:!text-white"
+					@click="bootstrapEditor"
+				/>
+			</div>
+		</div>
+	</div>
+
+	<div
+		v-else-if="artistToEdit && artist"
 		class="mx-auto min-h-[calc(100vh-60px)] max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8"
 	>
 		<section
@@ -1198,8 +1312,6 @@
 									:styles-list="stylesList"
 									:nationalities-list="nationalitiesList"
 									:tags-list="tagsList"
-									:group-list="groupList"
-									:members-list="membersList"
 								/>
 							</template>
 						</UModal>
@@ -1209,7 +1321,7 @@
 						class="grid gap-5"
 						:class="artistToEdit.type === 'GROUP' ? 'xl:grid-cols-2' : ''"
 					>
-						<div v-if="groupList" class="space-y-3">
+						<div class="space-y-3">
 							<ComebackLabel
 								:label="artistToEdit.type === 'GROUP' ? 'Related groups' : 'Groups'"
 							/>
@@ -1233,7 +1345,7 @@
 							/>
 						</div>
 
-						<div v-if="artistsList && artistToEdit.type === 'GROUP'" class="space-y-3">
+						<div v-if="artistToEdit.type === 'GROUP'" class="space-y-3">
 							<ComebackLabel label="Members" />
 							<UInputMenu
 								v-model="artistMembers"
@@ -1319,13 +1431,14 @@
 											Company
 										</label>
 										<UInputMenu
-											:key="`company-menu-${index}-${companiesMenuKey}`"
 											:model-value="relation.company ?? undefined"
+											:search-term="companySearchTerm"
 											:items="companiesForMenu"
 											by="id"
 											placeholder="Select a company"
 											searchable
 											searchable-placeholder="Search company..."
+											:loading="isSearchingCompanies"
 											class="w-full"
 											:ui="{
 												base: 'bg-cb-secondary-950 border border-cb-quinary-900/70 rounded-xl',
@@ -1336,6 +1449,7 @@
 												(company: unknown) =>
 													updateCompanyInRelation(index, company as CompanyMenuItem)
 											"
+											@update:search-term="onCompanySearchTermChange"
 										/>
 									</div>
 

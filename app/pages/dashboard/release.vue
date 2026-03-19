@@ -1,11 +1,9 @@
 <script setup lang="ts">
-	import type { Release, Artist, ReleaseType, ArtistMenuItem } from '~/types'
+	import type { Release, ReleaseType, ArtistMenuItem } from '~/types'
 	import { useSupabaseRelease } from '~/composables/Supabase/useSupabaseRelease'
-	import { useSupabaseArtist } from '~/composables/Supabase/useSupabaseArtist'
 	import { useUserStore } from '~/stores/user'
 
 	const { deleteRelease: deleteReleaseFunction, getReleasesByPage } = useSupabaseRelease()
-	const { getAllArtists } = useSupabaseArtist()
 	const toast = useToast()
 	const userStore = useUserStore()
 
@@ -28,7 +26,6 @@
 	const releasesList = ref<DashboardRelease[]>([])
 	const isLoading = ref(false)
 	const totalReleases = ref(0)
-	const artistsList = ref<Artist[]>([])
 
 	// Filters state
 	const search = ref('')
@@ -81,17 +78,6 @@
 		{ label: '50 per page', id: 50 },
 		{ label: '100 per page', id: 100 },
 	]
-
-	// Artists menu for filter
-	const artistsForMenu = computed((): ArtistMenuItem[] => {
-		return artistsList.value.map((artist) => ({
-			id: artist.id,
-			label: artist.name,
-			name: artist.name,
-			description: artist.description ?? undefined,
-			image: artist.image,
-		}))
-	})
 
 	// Statistics
 	const stats = computed(() => {
@@ -355,11 +341,6 @@
 
 	// Initial load
 	onMounted(async () => {
-		try {
-			artistsList.value = await getAllArtists()
-		} catch (error) {
-			console.error('Erreur lors du chargement des artistes:', error)
-		}
 		fetchReleases()
 	})
 
@@ -486,18 +467,17 @@
 
 			<!-- Row 2: Artist filter -->
 			<div class="flex items-center gap-3">
-				<UInputMenu
+				<ArtistSearchSelect
 					v-model="selectedArtistsWithLabel"
-					:items="artistsForMenu"
-					by="id"
 					multiple
 					placeholder="Filter by artists..."
-					searchable
-					searchable-placeholder="Search artist..."
-					class="bg-cb-quinary-900 flex-1"
+					search-placeholder="Search artist..."
+					loading-text="Searching artists..."
+					idle-text="Type at least 2 characters to search artists."
+					empty-text="No artists match your search."
+					class="flex-1"
 					:ui="{
-						content: 'bg-cb-quaternary-950',
-						item: 'rounded cursor-pointer data-highlighted:before:bg-cb-primary-900/30 hover:bg-cb-primary-900',
+						base: 'bg-cb-quinary-900',
 					}"
 				/>
 				<UButton

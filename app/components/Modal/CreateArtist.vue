@@ -14,7 +14,7 @@
 	import { useYoutubeMusicIdCheck } from '~/composables/useYoutubeMusicIdCheck'
 
 	const toast = useToast()
-	const { createArtist } = useSupabaseArtist()
+	const { createArtist, getAllArtists } = useSupabaseArtist()
 	const {
 		status: ytmIdStatus,
 		message: ytmIdMessage,
@@ -22,6 +22,17 @@
 		checkId: checkYtmId,
 		reset: resetYtmCheck,
 	} = useYoutubeMusicIdCheck()
+
+	const logArtistCreateTrace = (step: string, details?: Record<string, unknown>) => {
+		if (!import.meta.dev) return
+
+		if (details) {
+			console.warn(`[ArtistCreate][Modal] ${step}`, details)
+			return
+		}
+
+		console.warn(`[ArtistCreate][Modal] ${step}`)
+	}
 
 	const ytmInputStatus = computed(() => {
 		switch (ytmIdStatus.value) {
@@ -43,12 +54,9 @@
 		stylesList: MusicStyle[]
 		nationalitiesList: Nationality[]
 		tagsList: GeneralTag[]
-		groupList: Artist[]
-		membersList: Artist[]
 	}
 
-	const { stylesList, nationalitiesList, tagsList, groupList, membersList } =
-		defineProps<Props>()
+	const { stylesList, nationalitiesList, tagsList } = defineProps<Props>()
 
 	interface Emits {
 		(e: 'closeModal'): void
@@ -80,6 +88,12 @@
 	const artistStyles = ref<MenuItem<MusicStyle>[]>([])
 	const artistNationalities = ref<MenuItem<Nationality>[]>([])
 	const artistTags = ref<MenuItem<GeneralTag>[]>([])
+	const groupSearchTerm = ref('')
+	const memberSearchTerm = ref('')
+	const groupSearchResults = ref<Artist[]>([])
+	const memberSearchResults = ref<Artist[]>([])
+	const isSearchingGroups = ref(false)
+	const isSearchingMembers = ref(false)
 
 	const isUploadingEdit = ref(false)
 
@@ -111,36 +125,118 @@
 		)
 	})
 
+	const mapArtistToMenuItem = (artist: Artist): ArtistMenuItem => ({
+		id: artist.id,
+		label: artist.name,
+		name: artist.name,
+		description: artist.description ?? undefined,
+		image: artist.image,
+	})
+
+	const mergeMenuItems = (base: ArtistMenuItem[], selected: ArtistMenuItem[]) => {
+		const merged = new Map<string, ArtistMenuItem>()
+		for (const item of base) merged.set(item.id, item)
+		for (const item of selected) merged.set(item.id, item)
+		return Array.from(merged.values())
+	}
+
 	const groupsForMenu = computed((): ArtistMenuItem[] => {
-		return groupList.map((artist) => ({
-			id: artist.id,
-			label: artist.name,
-			name: artist.name,
-			description: artist.description ?? undefined,
-			image: artist.image,
-		}))
+		return mergeMenuItems(
+			groupSearchResults.value.map(mapArtistToMenuItem),
+			selectedGroups.value,
+		)
 	})
 
 	const membersForMenu = computed((): ArtistMenuItem[] => {
-		return membersList.map((artist) => ({
-			id: artist.id,
-			label: artist.name,
-			name: artist.name,
-			description: artist.description ?? undefined,
-			image: artist.image,
-		}))
+		return mergeMenuItems(
+			memberSearchResults.value.map(mapArtistToMenuItem),
+			selectedMembers.value,
+		)
 	})
 
+	const debouncedGroupSearch = useDebounce(async (query: string) => {
+		if (!query || query.trim().length < 2) {
+			groupSearchResults.value = []
+			isSearchingGroups.value = false
+			return
+		}
+
+		isSearchingGroups.value = true
+		logArtistCreateTrace('group search started', { query: query.trim() })
+		try {
+			groupSearchResults.value = await getAllArtists({
+				search: query.trim(),
+				limit: 15,
+				type: 'GROUP',
+			})
+			logArtistCreateTrace('group search resolved', {
+				query: query.trim(),
+				resultsCount: groupSearchResults.value.length,
+			})
+		} catch (error) {
+			console.error('Group search error:', error)
+			groupSearchResults.value = []
+		} finally {
+			isSearchingGroups.value = false
+		}
+	}, 300)
+
+	const debouncedMemberSearch = useDebounce(async (query: string) => {
+		if (!query || query.trim().length < 2) {
+			memberSearchResults.value = []
+			isSearchingMembers.value = false
+			return
+		}
+
+		isSearchingMembers.value = true
+		logArtistCreateTrace('member search started', { query: query.trim() })
+		try {
+			memberSearchResults.value = await getAllArtists({
+				search: query.trim(),
+				limit: 15,
+			})
+			logArtistCreateTrace('member search resolved', {
+				query: query.trim(),
+				resultsCount: memberSearchResults.value.length,
+			})
+		} catch (error) {
+			console.error('Member search error:', error)
+			memberSearchResults.value = []
+		} finally {
+			isSearchingMembers.value = false
+		}
+	}, 300)
+
+	const onGroupSearchTermChange = (query: string) => {
+		groupSearchTerm.value = query
+		debouncedGroupSearch(query)
+	}
+
+	const onMemberSearchTermChange = (query: string) => {
+		memberSearchTerm.value = query
+		debouncedMemberSearch(query)
+	}
+
 	const sendCreateArtist = async () => {
+		const startedAt = Date.now()
 		isUploadingEdit.value = true
+		logArtistCreateTrace('modal create clicked', {
+			name: artist.value.name,
+			type: artist.value.type,
+			hasYoutubeMusicId: Boolean(artist.value.id_youtube_music),
+		})
 
 		if (artist.value.name === '') {
+			logArtistCreateTrace('creation blocked: missing name')
 			toast.add({ title: 'Please fill the required fields', color: 'error' })
 			isUploadingEdit.value = false
 			return
 		}
 
 		if (ytmIdBlocked.value) {
+			logArtistCreateTrace('creation blocked: youtube music id invalid', {
+				message: ytmIdMessage.value,
+			})
 			toast.add({
 				title: 'YouTube Music ID is not valid',
 				description: ytmIdMessage.value || 'This ID cannot be used',
@@ -164,6 +260,16 @@
 				type: 'SOLO' as ArtistType,
 			})) as Artist[]
 
+			logArtistCreateTrace('modal payload prepared', {
+				stylesCount: artistStyles.value.length,
+				tagsCount: artistTags.value.length,
+				nationalitiesCount: artistNationalities.value.length,
+				groupsCount: groups.length,
+				membersCount: members.length,
+				platformLinksCount: platformList.value.length,
+				socialLinksCount: socialList.value.length,
+			})
+
 			await createArtist(
 				{
 					...artist.value,
@@ -176,17 +282,29 @@
 				groups,
 				members,
 			)
+			logArtistCreateTrace('modal create resolved', {
+				elapsedMs: Date.now() - startedAt,
+			})
 			toast.add({ title: 'Artist created successfully', color: 'success' })
 			isUploadingEdit.value = false
 			emit('closeModal')
 		} catch (error: unknown) {
 			const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+			console.error('[ArtistCreate][Modal] sendCreateArtist failed', {
+				error,
+				errorMessage,
+				elapsedMs: Date.now() - startedAt,
+			})
 			toast.add({
 				title: 'Error creating artist',
 				description: errorMessage,
 				color: 'error',
 			})
 			isUploadingEdit.value = false
+		} finally {
+			logArtistCreateTrace('modal create finished', {
+				elapsedMs: Date.now() - startedAt,
+			})
 		}
 	}
 
@@ -196,12 +314,26 @@
 		() => artist.value.id_youtube_music,
 		(newValue) => {
 			if (!newValue || newValue.trim().length < 6) {
+				logArtistCreateTrace('youtube music id reset', {
+					value: newValue,
+				})
 				resetYtmCheck()
 				return
 			}
+			logArtistCreateTrace('youtube music id check started', {
+				value: newValue,
+			})
 			checkYtmId(newValue)
 		},
 	)
+
+	watch(ytmIdStatus, (value) => {
+		logArtistCreateTrace('ytmIdStatus changed', {
+			value,
+			message: ytmIdMessage.value,
+			blocked: ytmIdBlocked.value,
+		})
+	})
 </script>
 
 <template>
@@ -319,39 +451,45 @@
 			/>
 		</div>
 		<!-- Group -->
-		<div v-if="groupList" class="flex flex-col gap-1">
+		<div class="flex flex-col gap-1">
 			<ComebackLabel label="Group" />
 			<UInputMenu
 				v-model="selectedGroups"
+				:search-term="groupSearchTerm"
 				:items="groupsForMenu"
 				by="id"
 				multiple
 				placeholder="Search a group"
 				searchable
 				searchable-placeholder="Search a group..."
+				:loading="isSearchingGroups"
 				class="bg-cb-quaternary-950 text-tertiary w-full cursor-pointer ring-transparent"
 				:ui="{
 					content: 'bg-cb-quaternary-950',
 					item: 'rounded cursor-pointer data-highlighted:before:bg-cb-primary-900/30 hover:bg-cb-primary-900',
 				}"
+				@update:search-term="onGroupSearchTermChange"
 			/>
 		</div>
 		<!-- Members -->
-		<div v-if="membersList && artist.type !== 'SOLO'" class="flex flex-col gap-1">
+		<div v-if="artist.type !== 'SOLO'" class="flex flex-col gap-1">
 			<ComebackLabel label="Members" />
 			<UInputMenu
 				v-model="selectedMembers"
+				:search-term="memberSearchTerm"
 				:items="membersForMenu"
 				by="id"
 				multiple
 				placeholder="Search a member"
 				searchable
 				searchable-placeholder="Search a member..."
+				:loading="isSearchingMembers"
 				class="bg-cb-quaternary-950 text-tertiary w-full cursor-pointer ring-transparent"
 				:ui="{
 					content: 'bg-cb-quaternary-950',
 					item: 'rounded cursor-pointer data-highlighted:before:bg-cb-primary-900/30 hover:bg-cb-primary-900',
 				}"
+				@update:search-term="onMemberSearchTermChange"
 			/>
 		</div>
 		<!-- Platforms & Socials -->

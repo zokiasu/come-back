@@ -74,13 +74,19 @@
 		query: { limit: 14 },
 	})
 
+	const getUtcDayTimestamp = (dateValue: string | Date) => {
+		const date = dateValue instanceof Date ? dateValue : new Date(dateValue)
+		if (isNaN(date.getTime())) return null
+		return Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
+	}
+
+	const getTodayUtcTimestamp = () => getUtcDayTimestamp(new Date())
+
 	const isTodayOrFuture = (dateValue: string) => {
-		const date = new Date(dateValue)
-		if (isNaN(date.getTime())) return false
-		const today = new Date()
-		const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate())
-		const dateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate())
-		return dateOnly.getTime() >= todayOnly.getTime()
+		const dateTimestamp = getUtcDayTimestamp(dateValue)
+		const todayTimestamp = getTodayUtcTimestamp()
+		if (dateTimestamp === null || todayTimestamp === null) return false
+		return dateTimestamp >= todayTimestamp
 	}
 
 	const upcomingComebacks = computed<News[]>(() => {
@@ -92,14 +98,11 @@
 
 	const comebacksToday = computed<News[]>(() => {
 		if (!upcomingComebacks.value) return []
+		const todayTimestamp = getTodayUtcTimestamp()
+		if (todayTimestamp === null) return []
+
 		return upcomingComebacks.value.filter((comeback) => {
-			const comebacksDate = new Date(comeback.date)
-			const today = new Date()
-			return (
-				comebacksDate.getDate() === today.getDate() &&
-				comebacksDate.getMonth() === today.getMonth() &&
-				comebacksDate.getFullYear() === today.getFullYear()
-			)
+			return getUtcDayTimestamp(comeback.date) === todayTimestamp
 		})
 	})
 

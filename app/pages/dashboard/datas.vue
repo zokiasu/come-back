@@ -12,6 +12,17 @@
 	const { createNationality, getAllNationalities, deleteNationality } =
 		useSupabaseNationalities()
 
+	const logDashboardDatasTrace = (step: string, details?: Record<string, unknown>) => {
+		if (!import.meta.dev) return
+
+		if (details) {
+			console.warn(`[DashboardDatas] ${step}`, details)
+			return
+		}
+
+		console.warn(`[DashboardDatas] ${step}`)
+	}
+
 	const styleFetch = ref<MusicStyle[]>([])
 	const newStyle = ref('')
 
@@ -20,11 +31,7 @@
 	const nationalityFetch = ref<Nationality[]>([])
 	const newNationality = ref('')
 
-	onMounted(async () => {
-		styleFetch.value = await getAllMusicStyles()
-		generalTagFetch.value = await getAllGeneralTags()
-		nationalityFetch.value = await getAllNationalities()
-
+	const sortFetchedData = () => {
 		styleFetch.value.sort((a, b) => {
 			return a.name.localeCompare(b.name)
 		})
@@ -36,6 +43,62 @@
 		nationalityFetch.value.sort((a, b) => {
 			return a.name.localeCompare(b.name)
 		})
+	}
+
+	const bootstrapDatas = async () => {
+		logDashboardDatasTrace('bootstrap started')
+
+		const [stylesResult, tagsResult, nationalitiesResult] = await Promise.allSettled([
+			getAllMusicStyles(),
+			getAllGeneralTags(),
+			getAllNationalities(),
+		])
+
+		if (stylesResult.status === 'fulfilled') {
+			styleFetch.value = stylesResult.value
+		} else {
+			console.error('[DashboardDatas] Failed to load music styles', stylesResult.reason)
+		}
+
+		if (tagsResult.status === 'fulfilled') {
+			generalTagFetch.value = tagsResult.value
+		} else {
+			console.error('[DashboardDatas] Failed to load general tags', tagsResult.reason)
+		}
+
+		if (nationalitiesResult.status === 'fulfilled') {
+			nationalityFetch.value = nationalitiesResult.value
+		} else {
+			console.error(
+				'[DashboardDatas] Failed to load nationalities',
+				nationalitiesResult.reason,
+			)
+		}
+
+		sortFetchedData()
+
+		const failedLoads = [stylesResult, tagsResult, nationalitiesResult].filter(
+			(result) => result.status === 'rejected',
+		).length
+
+		logDashboardDatasTrace('bootstrap completed', {
+			stylesCount: styleFetch.value.length,
+			tagsCount: generalTagFetch.value.length,
+			nationalitiesCount: nationalityFetch.value.length,
+			failedLoads,
+		})
+
+		if (failedLoads > 0) {
+			toast.add({
+				title: 'Partial loading issue',
+				description: 'Some admin data lists could not be loaded.',
+				color: 'warning',
+			})
+		}
+	}
+
+	onMounted(async () => {
+		await bootstrapDatas()
 	})
 
 	const creationStyle = async () => {

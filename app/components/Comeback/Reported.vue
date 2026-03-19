@@ -13,8 +13,12 @@
 	)
 
 	const displayAll = ref(false)
+	const hasMounted = ref(false)
 	const isDesktop = useMediaQuery('(min-width: 768px)')
-	const collapsedDisplayCount = computed(() => (isDesktop.value ? 6 : 3))
+	const collapsedDisplayCount = computed(() => {
+		if (!hasMounted.value) return 3
+		return isDesktop.value ? 6 : 3
+	})
 
 	const comebackToDisplay = computed(() => {
 		return displayAll.value
@@ -29,6 +33,10 @@
 	const remainingCount = computed(() =>
 		Math.max(props.comebackList.length - collapsedDisplayCount.value, 0),
 	)
+
+	onMounted(() => {
+		hasMounted.value = true
+	})
 </script>
 
 <template>

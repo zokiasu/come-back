@@ -19,6 +19,17 @@ import {
 	type UpdateArtistParams,
 } from './helpers/artist'
 
+const logArtistCreateTrace = (step: string, details?: Record<string, unknown>) => {
+	if (!import.meta.dev) return
+
+	if (details) {
+		console.warn(`[ArtistCreate][useSupabaseArtist] ${step}`, details)
+		return
+	}
+
+	console.warn(`[ArtistCreate][useSupabaseArtist] ${step}`)
+}
+
 export function useSupabaseArtist() {
 	const supabase = useSupabaseClient<Database>()
 	const toast = useToast()
@@ -46,9 +57,36 @@ export function useSupabaseArtist() {
 			companies: artistCompanies,
 		}
 
-		return createArtistRecord(supabase, params, (message) => {
-			toast.add({ title: message, color: 'error' })
+		const startedAt = Date.now()
+		logArtistCreateTrace('createArtist called', {
+			name: data.name,
+			type: data.type,
+			hasYoutubeMusicId: Boolean(data.id_youtube_music),
+			socialLinksCount: artistSocials.length,
+			platformLinksCount: artistPlatforms.length,
+			groupsCount: artistGroups.length,
+			membersCount: artistMembers.length,
+			companiesCount: artistCompanies?.length ?? 0,
 		})
+
+		try {
+			const artist = await createArtistRecord(supabase, params, (message) => {
+				toast.add({ title: message, color: 'error' })
+			})
+
+			logArtistCreateTrace('createArtist resolved', {
+				artistId: artist.id,
+				elapsedMs: Date.now() - startedAt,
+			})
+
+			return artist
+		} catch (error) {
+			console.error('[ArtistCreate][useSupabaseArtist] createArtist failed', {
+				error,
+				elapsedMs: Date.now() - startedAt,
+			})
+			throw error
+		}
 	}
 
 	// Met à jour un artiste

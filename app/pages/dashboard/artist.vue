@@ -7,6 +7,17 @@
 	const { getArtistsByPage } = useSupabaseArtist()
 	const { getAllNationalities } = useSupabaseNationalities()
 
+	const logDashboardArtistTrace = (step: string, details?: Record<string, unknown>) => {
+		if (!import.meta.dev) return
+
+		if (details) {
+			console.warn(`[DashboardArtist] ${step}`, details)
+			return
+		}
+
+		console.warn(`[DashboardArtist] ${step}`)
+	}
+
 	// Data state
 	const artistsList = ref<Artist[]>([])
 	const isLoading = ref(false)
@@ -147,6 +158,17 @@
 	// Fetch artists
 	const fetchArtists = async () => {
 		isLoading.value = true
+		logDashboardArtistTrace('fetchArtists started', {
+			page: currentPage.value,
+			pageSize: pageSizeValue.value,
+			search: search.value,
+			typeFilter: typeFilter.value,
+			genderFilter: genderFilter.value,
+			styleFilter: styleFilter.value,
+			nationalityFilter: nationalityFilter.value,
+			careerFilter: careerFilter.value,
+			missingFilter: missingFilter.value,
+		})
 
 		try {
 			const result = await getArtistsByPage(currentPage.value, pageSizeValue.value, {
@@ -163,14 +185,25 @@
 				onlyWithoutSocials: missingFilter.value === 'NO_SOCIALS',
 				onlyWithoutPlatforms: missingFilter.value === 'NO_PLATFORMS',
 				onlyWithoutStyles: missingFilter.value === 'NO_STYLES',
+				skipYoutubeMusicFilter: true,
 				orderBy: sortColumn.value,
 				orderDirection: sortDirection.value,
 			})
 
 			artistsList.value = result.artists
 			totalArtists.value = result.total
+			logDashboardArtistTrace('fetchArtists resolved', {
+				received: result.artists.length,
+				total: result.total,
+				page: currentPage.value,
+			})
 		} catch (error) {
 			console.error('Error while fetching artists:', error)
+			console.error('[DashboardArtist] fetchArtists failed', {
+				error,
+				page: currentPage.value,
+				search: search.value,
+			})
 			toast.add({
 				title: 'Error',
 				description: 'Error while loading artists',
@@ -178,6 +211,22 @@
 			})
 		} finally {
 			isLoading.value = false
+		}
+	}
+
+	const loadNationalities = async () => {
+		try {
+			nationalitiesList.value = await getAllNationalities()
+			logDashboardArtistTrace('nationalities loaded', {
+				count: nationalitiesList.value.length,
+			})
+		} catch (error) {
+			console.error('[DashboardArtist] Failed to load nationalities', error)
+			toast.add({
+				title: 'Warning',
+				description: 'Nationalities filters could not be loaded',
+				color: 'warning',
+			})
 		}
 	}
 
@@ -331,8 +380,8 @@
 
 	// Initial load
 	onMounted(async () => {
-		nationalitiesList.value = await getAllNationalities()
-		fetchArtists()
+		await loadNationalities()
+		await fetchArtists()
 		if (import.meta.client) {
 			window.addEventListener('keydown', onPageNavigationKeydown)
 		}

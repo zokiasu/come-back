@@ -12,16 +12,22 @@
 
 	const parsedDate = computed(() => new Date(props.date))
 	const hasValidDate = computed(() => !isNaN(parsedDate.value.getTime()))
+	const getUtcDayTimestamp = (date: Date) =>
+		Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
+	const formatUtcDate = (date: Date) => {
+		const year = date.getUTCFullYear()
+		const month = String(date.getUTCMonth() + 1).padStart(2, '0')
+		const day = String(date.getUTCDate()).padStart(2, '0')
+		return `${year}-${month}-${day}`
+	}
 
 	const dayDelta = computed(() => {
 		if (!hasValidDate.value) return null
 
-		const today = new Date()
-		const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate())
-		const target = parsedDate.value
-		const targetOnly = new Date(target.getFullYear(), target.getMonth(), target.getDate())
+		const today = getUtcDayTimestamp(new Date())
+		const target = getUtcDayTimestamp(parsedDate.value)
 
-		return Math.ceil((targetOnly.getTime() - todayOnly.getTime()) / (1000 * 3600 * 24))
+		return Math.ceil((target - today) / (1000 * 3600 * 24))
 	})
 
 	const statusLabel = computed(() => {
@@ -42,7 +48,7 @@
 
 	const formattedDate = computed(() => {
 		if (!hasValidDate.value) return 'Unknown date'
-		return parsedDate.value.toLocaleDateString('sv-SE')
+		return formatUtcDate(parsedDate.value)
 	})
 
 	const displayArtists = computed(() =>

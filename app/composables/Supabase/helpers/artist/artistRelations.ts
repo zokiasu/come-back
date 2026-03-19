@@ -4,6 +4,17 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 
 type SupabaseClientType = SupabaseClient<Database>
 
+const logArtistCreateTrace = (step: string, details?: Record<string, unknown>) => {
+	if (!import.meta.dev) return
+
+	if (details) {
+		console.warn(`[ArtistCreate][artistRelations] ${step}`, details)
+		return
+	}
+
+	console.warn(`[ArtistCreate][artistRelations] ${step}`)
+}
+
 /**
  * Insère les liens sociaux pour un artiste
  */
@@ -12,7 +23,15 @@ export async function insertSocialLinks(
 	artistId: string,
 	socialLinks: TablesInsert<'artist_social_links'>[],
 ): Promise<void> {
-	if (!socialLinks?.length) return
+	if (!socialLinks?.length) {
+		logArtistCreateTrace('insertSocialLinks skipped', { artistId, count: 0 })
+		return
+	}
+
+	logArtistCreateTrace('insertSocialLinks start', {
+		artistId,
+		count: socialLinks.length,
+	})
 
 	const linksWithArtistId = socialLinks.map((link) => ({
 		...link,
@@ -22,8 +41,18 @@ export async function insertSocialLinks(
 	const { error } = await supabase.from('artist_social_links').insert(linksWithArtistId)
 
 	if (error) {
-		console.error("Erreur lors de l'ajout des liens sociaux:", error)
+		console.error('[ArtistCreate][artistRelations] insertSocialLinks failed', {
+			artistId,
+			count: socialLinks.length,
+			error,
+		})
+		return
 	}
+
+	logArtistCreateTrace('insertSocialLinks success', {
+		artistId,
+		count: socialLinks.length,
+	})
 }
 
 /**
@@ -34,7 +63,15 @@ export async function insertPlatformLinks(
 	artistId: string,
 	platformLinks: TablesInsert<'artist_platform_links'>[],
 ): Promise<void> {
-	if (!platformLinks?.length) return
+	if (!platformLinks?.length) {
+		logArtistCreateTrace('insertPlatformLinks skipped', { artistId, count: 0 })
+		return
+	}
+
+	logArtistCreateTrace('insertPlatformLinks start', {
+		artistId,
+		count: platformLinks.length,
+	})
 
 	const linksWithArtistId = platformLinks.map((link) => ({
 		...link,
@@ -44,8 +81,18 @@ export async function insertPlatformLinks(
 	const { error } = await supabase.from('artist_platform_links').insert(linksWithArtistId)
 
 	if (error) {
-		console.error("Erreur lors de l'ajout des liens de plateformes:", error)
+		console.error('[ArtistCreate][artistRelations] insertPlatformLinks failed', {
+			artistId,
+			count: platformLinks.length,
+			error,
+		})
+		return
 	}
+
+	logArtistCreateTrace('insertPlatformLinks success', {
+		artistId,
+		count: platformLinks.length,
+	})
 }
 
 /**
@@ -56,7 +103,15 @@ export async function insertGroupRelations(
 	artistId: string,
 	groups: Artist[],
 ): Promise<void> {
-	if (!groups?.length) return
+	if (!groups?.length) {
+		logArtistCreateTrace('insertGroupRelations skipped', { artistId, count: 0 })
+		return
+	}
+
+	logArtistCreateTrace('insertGroupRelations start', {
+		artistId,
+		count: groups.length,
+	})
 
 	const relations: TablesInsert<'artist_relations'>[] = groups.map((group) => ({
 		group_id: group.id,
@@ -67,8 +122,18 @@ export async function insertGroupRelations(
 	const { error } = await supabase.from('artist_relations').insert(relations)
 
 	if (error) {
-		console.error("Erreur lors de l'ajout des relations de groupe:", error)
+		console.error('[ArtistCreate][artistRelations] insertGroupRelations failed', {
+			artistId,
+			count: groups.length,
+			error,
+		})
+		return
 	}
+
+	logArtistCreateTrace('insertGroupRelations success', {
+		artistId,
+		count: groups.length,
+	})
 }
 
 /**
@@ -79,7 +144,15 @@ export async function insertMemberRelations(
 	artistId: string,
 	members: Artist[],
 ): Promise<void> {
-	if (!members?.length) return
+	if (!members?.length) {
+		logArtistCreateTrace('insertMemberRelations skipped', { artistId, count: 0 })
+		return
+	}
+
+	logArtistCreateTrace('insertMemberRelations start', {
+		artistId,
+		count: members.length,
+	})
 
 	const relations: TablesInsert<'artist_relations'>[] = members.map((member) => ({
 		group_id: artistId,
@@ -90,8 +163,18 @@ export async function insertMemberRelations(
 	const { error } = await supabase.from('artist_relations').insert(relations)
 
 	if (error) {
-		console.error("Erreur lors de l'ajout des relations de membres:", error)
+		console.error('[ArtistCreate][artistRelations] insertMemberRelations failed', {
+			artistId,
+			count: members.length,
+			error,
+		})
+		return
 	}
+
+	logArtistCreateTrace('insertMemberRelations success', {
+		artistId,
+		count: members.length,
+	})
 }
 
 /**
@@ -102,7 +185,15 @@ export async function insertCompanyRelations(
 	artistId: string,
 	companies: TablesInsert<'artist_companies'>[],
 ): Promise<void> {
-	if (!companies?.length) return
+	if (!companies?.length) {
+		logArtistCreateTrace('insertCompanyRelations skipped', { artistId, count: 0 })
+		return
+	}
+
+	logArtistCreateTrace('insertCompanyRelations start', {
+		artistId,
+		count: companies.length,
+	})
 
 	const relations = companies.map((company) => ({
 		...company,
@@ -112,8 +203,18 @@ export async function insertCompanyRelations(
 	const { error } = await supabase.from('artist_companies').insert(relations)
 
 	if (error) {
-		console.error("Erreur lors de l'ajout des relations avec les compagnies:", error)
+		console.error('[ArtistCreate][artistRelations] insertCompanyRelations failed', {
+			artistId,
+			count: companies.length,
+			error,
+		})
+		return
 	}
+
+	logArtistCreateTrace('insertCompanyRelations success', {
+		artistId,
+		count: companies.length,
+	})
 }
 
 /**
