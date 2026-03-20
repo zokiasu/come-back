@@ -143,6 +143,10 @@
 			? 'Update the password used for direct sign-in on this account.'
 			: 'This account currently relies on OAuth. Add a password if you want a direct sign-in fallback.',
 	)
+	const publicProfileRoute = computed(() => {
+		const userId = accountProfile.value?.id ?? userDataStore.value?.id ?? authSnapshot.value?.id
+		return userId ? `/profile/${userId}` : undefined
+	})
 	const overviewBadges = computed(() => {
 		return [
 			{
@@ -452,9 +456,6 @@
 				>
 					Try again
 				</UButton>
-				<UButton to="/settings/profile" color="neutral" variant="outline">
-					Open profile settings
-				</UButton>
 			</div>
 		</section>
 
@@ -462,38 +463,36 @@
 			<section
 				class="bg-cb-secondary-950 border-cb-quinary-900/70 rounded-[28px] border p-6 shadow-xl"
 			>
-				<div class="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
-					<div class="space-y-4">
-						<div
-							class="bg-cb-primary-900/15 text-cb-primary-300 ring-cb-primary-900/30 inline-flex rounded-full px-3 py-1 text-xs font-semibold tracking-[0.2em] uppercase ring-1"
-						>
-							Security & privacy
-						</div>
-						<div class="space-y-2">
-							<h1 class="text-2xl font-semibold text-white sm:text-3xl">
-								Account access controls
-							</h1>
-							<p class="max-w-2xl text-sm leading-6 text-zinc-400">
-								Manage sign-in methods, password access, connected sessions, and a
-								portable snapshot of your account data from one place.
-							</p>
-						</div>
+				<div class="space-y-4">
+					<div
+						class="bg-cb-primary-900/15 text-cb-primary-300 ring-cb-primary-900/30 inline-flex rounded-full px-3 py-1 text-xs font-semibold tracking-[0.2em] uppercase ring-1"
+					>
+						Security & privacy
+					</div>
+					<div class="space-y-2">
+						<h1 class="text-2xl font-semibold text-white sm:text-3xl">
+							Account access controls
+						</h1>
+						<p class="max-w-2xl text-sm leading-6 text-zinc-400">
+							Manage sign-in methods, password access, connected sessions, and a portable
+							snapshot of your account data from one place.
+						</p>
+					</div>
 
-						<div class="flex flex-wrap gap-2">
-							<div
-								v-for="badge in overviewBadges"
-								:key="badge.label"
-								:class="[
-									'inline-flex rounded-full px-3 py-1 text-xs font-medium ring-1',
-									badge.class,
-								]"
-							>
-								{{ badge.label }}
-							</div>
+					<div class="flex flex-wrap gap-2">
+						<div
+							v-for="badge in overviewBadges"
+							:key="badge.label"
+							:class="[
+								'inline-flex rounded-full px-3 py-1 text-xs font-medium ring-1',
+								badge.class,
+							]"
+						>
+							{{ badge.label }}
 						</div>
 					</div>
 
-					<div class="grid gap-3 sm:grid-cols-2 xl:w-[24rem]">
+					<div class="grid gap-3 pt-2 sm:grid-cols-2 xl:grid-cols-4">
 						<div
 							class="bg-cb-quaternary-950 border-cb-quinary-900/70 rounded-2xl border p-4"
 						>
@@ -799,9 +798,6 @@
 						>
 							Download account snapshot
 						</UButton>
-						<UButton to="/settings/profile" color="neutral" variant="outline">
-							Open profile settings
-						</UButton>
 					</div>
 				</section>
 
@@ -826,30 +822,13 @@
 								are still managed from the Profile studio.
 							</p>
 							<UButton
-								to="/settings/profile"
+								:to="publicProfileRoute"
 								color="neutral"
 								variant="ghost"
 								class="mt-3"
+								:disabled="!publicProfileRoute"
 							>
-								Go to Profile
-							</UButton>
-						</div>
-
-						<div
-							class="bg-cb-quaternary-950 border-cb-quinary-900/70 rounded-2xl border p-4"
-						>
-							<p class="text-sm font-medium text-white">Alerts stay separate</p>
-							<p class="mt-2 text-sm leading-6 text-zinc-400">
-								Notification frequency and channel tuning keep living in their own area so
-								security actions remain focused here.
-							</p>
-							<UButton
-								to="/settings/notification"
-								color="neutral"
-								variant="ghost"
-								class="mt-3"
-							>
-								Open Notifications
+								Go to public profile
 							</UButton>
 						</div>
 
