@@ -292,7 +292,7 @@
 			v-model="searchInput"
 			name="site-search"
 			:placeholder="placeholder"
-			icon="i-heroicons-magnifying-glass"
+			icon="i-lucide-search"
 			class="w-full"
 			:class="inputClass"
 			:ui="{ base: 'bg-cb-quinary-900/70 text-white placeholder:text-cb-tertiary-500' }"
@@ -413,8 +413,8 @@
 							class="text-cb-tertiary-300 ml-auto"
 							:icon="
 								isPreviewing(getReleasePreview(release).id)
-									? 'i-heroicons-stop-circle'
-									: 'i-heroicons-play-circle'
+									? 'i-lucide-circle-stop'
+									: 'i-lucide-circle-play'
 							"
 							@click.stop="
 								() => {
@@ -501,8 +501,8 @@
 							class="text-cb-tertiary-300 ml-auto"
 							:icon="
 								isPreviewing(music.id_youtube_music)
-									? 'i-heroicons-stop-circle'
-									: 'i-heroicons-play-circle'
+									? 'i-lucide-circle-stop'
+									: 'i-lucide-circle-play'
 							"
 							@click.stop="
 								startTimedPreview(

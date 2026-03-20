@@ -96,7 +96,7 @@
 						class="text-cb-tertiary-400 rounded p-1 hover:text-white"
 						@click="isOpen = false"
 					>
-						<IconClose class="h-5 w-5" />
+						<UIcon name="i-lucide-x" class="h-5 w-5" />
 					</button>
 				</div>
 			</div>
@@ -106,7 +106,7 @@
 				<div class="border-cb-quinary-900/70 flex-shrink-0 border-b px-4 py-3">
 					<UInput
 						v-model="searchQuery"
-						icon="i-heroicons-magnifying-glass"
+						icon="i-lucide-search"
 						placeholder="Search in playlist..."
 						class="w-full"
 					/>
@@ -118,7 +118,7 @@
 					class="flex flex-1 flex-col items-center justify-center p-8 text-center"
 				>
 					<div class="text-cb-tertiary-500 bg-cb-quaternary-900 mb-4 rounded-full p-6">
-						<IconPlay class="h-8 w-8" />
+						<UIcon name="i-lucide-play" class="h-8 w-8" />
 					</div>
 					<h4 class="text-cb-tertiary-300 mb-2 text-lg font-medium">
 						No tracks in the playlist
@@ -162,7 +162,7 @@
 									class="cb-drag-handle text-cb-tertiary-500 hidden hover:text-white sm:block"
 									aria-label="Reorder"
 								>
-									<UIcon name="i-heroicons-bars-3" class="h-4 w-4" />
+									<UIcon name="i-lucide-menu" class="h-4 w-4" />
 								</button>
 
 								<button
@@ -178,8 +178,8 @@
 									"
 									@click="handlePlayItem(item)"
 								>
-									<IconPause v-if="index === currentIndex" class="h-4 w-4" />
-									<IconPlay v-else class="h-4 w-4" />
+									<UIcon v-if="index === currentIndex" name="i-lucide-pause" class="h-4 w-4" />
+									<UIcon v-else name="i-lucide-play" class="h-4 w-4" />
 								</button>
 
 								<div
@@ -227,7 +227,7 @@
 										:aria-label="`Remove ${item.title} from playlist`"
 										@click="handleRemoveItem(item)"
 									>
-										<IconDelete class="h-4 w-4" />
+										<UIcon name="i-lucide-trash-2" class="h-4 w-4" />
 									</button>
 								</div>
 
@@ -251,7 +251,7 @@
 							:aria-label="`Play ${item.title}`"
 							@click="handlePlayItem(item)"
 						>
-							<IconPlay class="h-4 w-4" />
+							<UIcon name="i-lucide-play" class="h-4 w-4" />
 						</button>
 
 						<div
@@ -288,7 +288,7 @@
 								:aria-label="`Remove ${item.title} from playlist`"
 								@click="handleRemoveItem(item)"
 							>
-								<IconDelete class="h-4 w-4" />
+								<UIcon name="i-lucide-trash-2" class="h-4 w-4" />
 							</button>
 						</div>
 					</div>

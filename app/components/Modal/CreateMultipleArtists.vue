@@ -39,14 +39,14 @@
 						<UButton
 							v-if="members.length > 1"
 							label="Remove"
-							icon="i-heroicons-minus"
+							icon="i-lucide-minus"
 							color="error"
 							variant="subtle"
 							@click.prevent="removeMember(idx)"
 						/>
 					</div>
 					<UButton
-						icon="i-heroicons-plus"
+						icon="i-lucide-plus"
 						color="primary"
 						variant="soft"
 						@click.prevent="addMember"

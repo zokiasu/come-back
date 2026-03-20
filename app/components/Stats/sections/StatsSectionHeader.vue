@@ -8,7 +8,7 @@
 		<div class="flex items-center space-x-3">
 			<div v-if="periodDisplay" class="bg-cb-primary-900 rounded px-3 py-1.5">
 				<div class="flex items-center space-x-2">
-					<UIcon name="i-heroicons-calendar-days" class="h-4 w-4 text-white" />
+					<UIcon name="i-lucide-calendar-days" class="h-4 w-4 text-white" />
 					<p class="text-sm text-white">
 						{{ periodDisplay }}
 					</p>

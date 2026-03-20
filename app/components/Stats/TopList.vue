@@ -59,7 +59,7 @@
 			>
 				{{ showingAll ? 'Show less' : `Show ${items.length - displayLimit} more` }}
 				<Icon
-					:name="showingAll ? 'i-heroicons-chevron-up' : 'i-heroicons-chevron-down'"
+					:name="showingAll ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down'"
 					class="ml-1 h-4 w-4"
 				/>
 			</UButton>
@@ -68,7 +68,7 @@
 		<!-- Empty State -->
 		<div v-if="items.length === 0" class="py-8 text-center">
 			<div class="text-cb-tertiary-200 mb-2">
-				<Icon name="i-heroicons-list-bullet" class="mx-auto h-8 w-8" />
+				<Icon name="i-lucide-list" class="mx-auto h-8 w-8" />
 			</div>
 			<p class="text-cb-tertiary-200 text-sm">No items to display</p>
 		</div>

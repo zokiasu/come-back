@@ -11,7 +11,7 @@
 			<ClientOnly>
 				<UButton
 					v-if="isUserLoggedIn"
-					icon="i-heroicons-queue-list"
+					icon="i-lucide-list-ordered"
 					label="My rankings"
 					to="/ranking"
 					class="cb_button"
@@ -35,7 +35,7 @@
 			v-else-if="rankings.length === 0"
 			class="bg-cb-quaternary-950 flex flex-col items-center justify-center rounded-lg py-20"
 		>
-			<UIcon name="i-heroicons-globe-alt" class="text-cb-tertiary-500 mb-4 size-16" />
+			<UIcon name="i-lucide-globe" class="text-cb-tertiary-500 mb-4 size-16" />
 			<h2 class="mb-2 text-lg font-semibold">No public ranking yet</h2>
 			<p class="text-cb-tertiary-500 text-sm">
 				Be the first to share a ranking with the community.
@@ -71,7 +71,7 @@
 							/>
 							<div v-else class="flex h-full w-full items-center justify-center">
 								<UIcon
-									name="i-heroicons-musical-note"
+									name="i-lucide-music"
 									class="text-cb-tertiary-500 size-8"
 								/>
 							</div>
@@ -106,7 +106,7 @@
 								v-else
 								class="bg-cb-quinary-900 flex size-5 shrink-0 items-center justify-center rounded-full"
 							>
-								<UIcon name="i-heroicons-user" class="text-cb-tertiary-500 size-3" />
+								<UIcon name="i-lucide-user" class="text-cb-tertiary-500 size-3" />
 							</div>
 							<span class="text-cb-tertiary-500 truncate text-xs">
 								{{ ranking.user?.name || 'User' }}
@@ -121,7 +121,7 @@
 							title="Edit this ranking"
 							@click.stop
 						>
-							<UIcon name="i-heroicons-pencil" class="size-4" />
+							<UIcon name="i-lucide-pencil" class="size-4" />
 						</NuxtLink>
 					</div>
 				</div>

@@ -137,10 +137,21 @@
 					<ClientOnly>
 						<ModalNewsCreation v-if="isUserLoggedIn" />
 						<UButton
+							v-if="isUserAdmin"
+							to="/artist/create"
+							size="sm"
+							variant="soft"
+							icon="i-lucide-user-round-plus"
+							title="Create Artist"
+							aria-label="Create Artist"
+							class="bg-cb-quaternary-950 hover:bg-cb-tertiary-200/20 h-full items-center justify-center text-xs text-white"
+						/>
+						<UButton
 							v-if="isUserLoggedIn"
 							to="/settings/profile"
+							size="sm"
 							variant="soft"
-							icon="material-symbols:settings-rounded"
+							icon="i-lucide-settings"
 							title="Settings"
 							aria-label="Settings"
 							class="bg-cb-quaternary-950 hover:bg-cb-tertiary-200/20 h-full items-center justify-center text-xs text-white"
@@ -148,14 +159,14 @@
 						<UButton
 							v-if="isUserLoggedIn"
 							type="button"
+							size="sm"
 							variant="soft"
+							icon="i-lucide-log-out"
 							title="Logout"
 							aria-label="Logout"
 							class="bg-cb-quaternary-950 hover:bg-cb-tertiary-200/20 h-full items-center justify-center text-xs text-white"
 							@click="handleLogoutClick"
-						>
-							<IconLogout class="h-4 w-4" />
-						</UButton>
+						/>
 						<UButton
 							v-else
 							variant="soft"

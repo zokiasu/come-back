@@ -77,7 +77,7 @@
 				<span v-if="displayAll">Show less</span>
 				<span v-else>Show {{ remainingCount }} more</span>
 				<UIcon
-					name="i-heroicons-chevron-down"
+					name="i-lucide-chevron-down"
 					class="h-3.5 w-3.5 transition-transform duration-300"
 					:class="displayAll ? 'rotate-180' : 'rotate-0'"
 				/>

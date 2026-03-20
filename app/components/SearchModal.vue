@@ -89,7 +89,7 @@
 					props.layout === 'row' ? 'flex-row' : 'flex-col',
 				]"
 			>
-				<UIcon name="material-symbols:search" class="h-5 w-5" />
+				<UIcon name="i-lucide-search" class="h-5 w-5" />
 				<span
 					v-if="props.showLabel"
 					:class="

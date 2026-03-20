@@ -9,7 +9,7 @@
 				</p>
 			</div>
 			<UButton
-				icon="i-heroicons-plus"
+				icon="i-lucide-plus"
 				label="New ranking"
 				color="primary"
 				@click="openCreateModal"
@@ -29,13 +29,13 @@
 			v-else-if="rankings.length === 0"
 			class="bg-cb-quaternary-950 flex flex-col items-center justify-center rounded-lg py-20"
 		>
-			<UIcon name="i-heroicons-queue-list" class="text-cb-tertiary-500 mb-4 size-16" />
+			<UIcon name="i-lucide-list-ordered" class="text-cb-tertiary-500 mb-4 size-16" />
 			<h2 class="mb-2 text-lg font-semibold">No ranking yet</h2>
 			<p class="text-cb-tertiary-500 mb-4 text-sm">
 				Start by creating your first music ranking
 			</p>
 			<UButton
-				icon="i-heroicons-plus"
+				icon="i-lucide-plus"
 				label="Create my first ranking"
 				color="primary"
 				@click="openCreateModal"
@@ -71,7 +71,7 @@
 							/>
 							<div v-else class="flex h-full w-full items-center justify-center">
 								<UIcon
-									name="i-heroicons-musical-note"
+									name="i-lucide-music"
 									class="text-cb-tertiary-500 size-8"
 								/>
 							</div>
@@ -91,13 +91,13 @@
 						<div class="flex items-center gap-1">
 							<UIcon
 								v-if="ranking.is_public"
-								name="i-heroicons-globe-alt"
+								name="i-lucide-globe"
 								class="text-cb-primary-900 size-4"
 								title="Public"
 							/>
 							<UIcon
 								v-else
-								name="i-heroicons-lock-closed"
+								name="i-lucide-lock"
 								class="text-cb-tertiary-500 size-4"
 								title="Private"
 							/>
@@ -116,7 +116,7 @@
 					class="absolute top-2 right-2 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100"
 				>
 					<UButton
-						icon="i-heroicons-pencil"
+						icon="i-lucide-pencil"
 						size="xs"
 						color="neutral"
 						variant="solid"
@@ -124,7 +124,7 @@
 						@click.prevent="openEditModal(ranking)"
 					/>
 					<UButton
-						icon="i-heroicons-trash"
+						icon="i-lucide-trash-2"
 						size="xs"
 						color="error"
 						variant="solid"

@@ -94,11 +94,12 @@
 					</div>
 				</div>
 				<div class="flex justify-end">
-					<IconPause
+					<UIcon
 						v-if="isPlayingVideo && idYoutubeVideo === music.id_youtube_music"
-						class="h-8 w-8 md:h-10 md:w-10"
+						name="i-lucide-pause"
+						class="h-6 w-6 md:h-7 md:w-7"
 					/>
-					<IconPlay v-else class="h-8 w-8 md:h-10 md:w-10" />
+					<UIcon v-else name="i-lucide-play" class="h-6 w-6 md:h-7 md:w-7" />
 				</div>
 			</div>
 		</UButton>

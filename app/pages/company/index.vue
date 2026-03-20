@@ -7,7 +7,7 @@
 				type="text"
 				placeholder="Search for a company..."
 				size="lg"
-				icon="i-heroicons-magnifying-glass"
+				icon="i-lucide-search"
 				class="w-full"
 			/>
 			<UButton
@@ -18,7 +18,7 @@
 			<UButton
 				label="Filters"
 				:trailing-icon="
-					filtersExpanded ? 'i-heroicons-chevron-up' : 'i-heroicons-chevron-down'
+					filtersExpanded ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down'
 				"
 				class="bg-cb-primary-700/10 lg:bg-cb-primary-900 lg:hover:bg-cb-primary-900/90 h-full w-fit items-center justify-center rounded text-white lg:cursor-pointer lg:px-5"
 				@click="toggleFilters"

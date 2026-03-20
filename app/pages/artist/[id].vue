@@ -398,7 +398,7 @@
 				</CardDefault>
 				<div v-if="artist.type === 'GROUP' && isAdminStore" class="mb-2 flex">
 					<UButton
-						icon="i-heroicons-plus"
+						icon="i-lucide-plus"
 						color="primary"
 						variant="soft"
 						@click="openMultipleArtistModal"

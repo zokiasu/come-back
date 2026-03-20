@@ -396,7 +396,7 @@
 			<UInput
 				v-model="search"
 				placeholder="Search..."
-				icon="i-heroicons-magnifying-glass"
+				icon="i-lucide-search"
 				class="w-full md:w-64"
 				:ui="{ base: 'bg-cb-quinary-900' }"
 			/>
@@ -430,7 +430,7 @@
 
 			<!-- Refresh button -->
 			<UButton
-				icon="i-heroicons-arrow-path"
+				icon="i-lucide-refresh-cw"
 				color="neutral"
 				variant="ghost"
 				:loading="isLoading"
@@ -464,8 +464,8 @@
 							v-if="sortColumn === 'artist'"
 							:name="
 								sortDirection === 'asc'
-									? 'i-heroicons-chevron-up'
-									: 'i-heroicons-chevron-down'
+									? 'i-lucide-chevron-up'
+									: 'i-lucide-chevron-down'
 							"
 							class="size-4"
 						/>
@@ -507,8 +507,8 @@
 							v-if="sortColumn === 'date'"
 							:name="
 								sortDirection === 'asc'
-									? 'i-heroicons-chevron-up'
-									: 'i-heroicons-chevron-down'
+									? 'i-lucide-chevron-up'
+									: 'i-lucide-chevron-down'
 							"
 							class="size-4"
 						/>
@@ -552,14 +552,14 @@
 				<template #id-cell="{ row }">
 					<div class="flex items-center gap-1">
 						<UButton
-							icon="i-heroicons-pencil-square"
+							icon="i-lucide-pencil"
 							color="neutral"
 							variant="ghost"
 							size="sm"
 							@click="openEditModal(row.original)"
 						/>
 						<UButton
-							icon="i-heroicons-trash"
+							icon="i-lucide-trash-2"
 							color="error"
 							variant="ghost"
 							size="sm"
@@ -572,7 +572,7 @@
 				<template #empty>
 					<div class="text-cb-tertiary-500 py-10 text-center">
 						<UIcon
-							name="i-heroicons-document-magnifying-glass"
+							name="i-lucide-file-search"
 							class="mx-auto size-12 opacity-50"
 						/>
 						<p class="mt-2">No news found</p>
@@ -603,7 +603,7 @@
 					<div class="flex items-center justify-between">
 						<h3 class="text-xl font-bold">Edit news</h3>
 						<UButton
-							icon="i-heroicons-x-mark"
+							icon="i-lucide-x"
 							color="neutral"
 							variant="ghost"
 							@click="closeEditModal"
@@ -616,7 +616,7 @@
 							v-model="searchArtist"
 							label="Search artist"
 							placeholder="Type to search..."
-							icon="i-heroicons-magnifying-glass"
+							icon="i-lucide-search"
 						/>
 						<div
 							v-if="artistListSearched.length"
@@ -651,7 +651,7 @@
 								@click="removeArtistFromNews(artist.id)"
 							>
 								{{ artist.name }}
-								<UIcon name="i-heroicons-x-mark" class="ml-1 size-3" />
+								<UIcon name="i-lucide-x" class="ml-1 size-3" />
 							</UBadge>
 						</div>
 					</div>
@@ -705,7 +705,7 @@
 				<div class="bg-cb-secondary-950 space-y-5 p-6">
 					<div class="text-center">
 						<UIcon
-							name="i-heroicons-exclamation-triangle"
+							name="i-lucide-triangle-alert"
 							class="mx-auto size-12 text-red-500"
 						/>
 						<h3 class="mt-4 text-lg font-bold">Confirm deletion</h3>

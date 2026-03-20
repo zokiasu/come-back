@@ -128,7 +128,7 @@
 							class="hover:bg-cb-quinary-900/60 flex items-center justify-between gap-2 rounded-xl px-3 py-2 text-zinc-300 transition-all duration-200"
 						>
 							<span>Create Artist</span>
-							<IconLinkexternal class="h-3.5 w-3.5" />
+							<UIcon name="i-lucide-square-arrow-out-up-right" class="h-3.5 w-3.5" />
 						</NuxtLink>
 						<button
 							type="button"
@@ -136,7 +136,7 @@
 							@click="signOut"
 						>
 							<span>Logout</span>
-							<IconLogout class="h-3.5 w-3.5" />
+							<UIcon name="i-lucide-log-out" class="h-3.5 w-3.5" />
 						</button>
 					</div>
 				</div>

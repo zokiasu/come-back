@@ -328,7 +328,7 @@
 				<UInput
 					v-model="search"
 					placeholder="Search..."
-					icon="i-heroicons-magnifying-glass"
+					icon="i-lucide-search"
 					class="w-full md:w-64"
 					:ui="{ base: 'bg-cb-quinary-900' }"
 				/>
@@ -362,8 +362,8 @@
 					<UButton
 						:icon="
 							sortDirection === 'asc'
-								? 'i-heroicons-bars-arrow-up'
-								: 'i-heroicons-bars-arrow-down'
+								? 'i-lucide-arrow-up-narrow-wide'
+								: 'i-lucide-arrow-down-wide-narrow'
 						"
 						color="neutral"
 						variant="ghost"
@@ -381,7 +381,7 @@
 				/>
 
 				<UButton
-					icon="i-heroicons-arrow-path"
+					icon="i-lucide-refresh-cw"
 					color="neutral"
 					variant="ghost"
 					class="cursor-pointer"
@@ -416,7 +416,7 @@
 			<!-- Empty state -->
 			<div v-else-if="!isLoading && artistsList.length === 0" class="py-16 text-center">
 				<UIcon
-					name="i-heroicons-check-badge"
+					name="i-lucide-badge-check"
 					class="text-cb-tertiary-500 mx-auto size-16 opacity-50"
 				/>
 				<p class="text-cb-tertiary-500 mt-4">No artist pending validation</p>
@@ -443,7 +443,7 @@
 							v-else
 							class="bg-cb-quinary-900 flex size-12 items-center justify-center rounded-full"
 						>
-							<UIcon name="i-heroicons-user" class="text-cb-tertiary-500 size-6" />
+							<UIcon name="i-lucide-user" class="text-cb-tertiary-500 size-6" />
 						</div>
 					</NuxtLink>
 
@@ -542,7 +542,7 @@
 									artist.birth_date ? 'text-cb-tertiary-300' : 'text-cb-tertiary-500'
 								"
 							>
-								<UIcon name="i-heroicons-cake" class="size-3.5" />
+								<UIcon name="i-lucide-cake" class="size-3.5" />
 								Birth: {{ formatProfileDate(artist.birth_date) }}
 							</span>
 							<span
@@ -551,7 +551,7 @@
 									artist.debut_date ? 'text-cb-tertiary-300' : 'text-cb-tertiary-500'
 								"
 							>
-								<UIcon name="i-heroicons-calendar-days" class="size-3.5" />
+								<UIcon name="i-lucide-calendar-days" class="size-3.5" />
 								Debut: {{ formatProfileDate(artist.debut_date) }}
 							</span>
 						</div>
@@ -564,7 +564,7 @@
 								class="text-xs text-gray-400"
 								title="No description"
 							>
-								<UIcon name="i-heroicons-document-text" class="size-3.5" />
+								<UIcon name="i-lucide-file-text" class="size-3.5" />
 								desc
 							</span>
 							<!-- Missing styles -->
@@ -573,7 +573,7 @@
 								class="text-xs text-gray-400"
 								title="No styles"
 							>
-								<UIcon name="i-heroicons-tag" class="size-3.5" />
+								<UIcon name="i-lucide-tag" class="size-3.5" />
 								styles
 							</span>
 							<!-- Socials count or missing -->
@@ -582,11 +582,11 @@
 								class="text-xs text-green-500"
 								title="Social links"
 							>
-								<UIcon name="i-heroicons-share" class="size-3.5" />
+								<UIcon name="i-lucide-share-2" class="size-3.5" />
 								{{ artist.social_links.length }} socials
 							</span>
 							<span v-else class="text-xs text-gray-400" title="No social links">
-								<UIcon name="i-heroicons-share" class="size-3.5" />
+								<UIcon name="i-lucide-share-2" class="size-3.5" />
 								socials
 							</span>
 							<!-- Platforms count or missing -->
@@ -595,11 +595,11 @@
 								class="text-xs text-green-500"
 								title="Platforms"
 							>
-								<UIcon name="i-heroicons-musical-note" class="size-3.5" />
+								<UIcon name="i-lucide-music" class="size-3.5" />
 								{{ artist.platform_links.length }} platforms
 							</span>
 							<span v-else class="text-xs text-gray-400" title="No platforms">
-								<UIcon name="i-heroicons-musical-note" class="size-3.5" />
+								<UIcon name="i-lucide-music" class="size-3.5" />
 								platforms
 							</span>
 						</div>
@@ -614,7 +614,7 @@
 						<!-- Creator info -->
 						<div class="mt-1 flex items-center gap-1.5">
 							<UIcon
-								name="i-heroicons-user-circle"
+								name="i-lucide-circle-user-round"
 								class="text-cb-tertiary-500 size-3.5"
 							/>
 							<span class="text-cb-tertiary-500 text-xs">
@@ -634,7 +634,7 @@
 					<!-- Actions -->
 					<div class="flex shrink-0 items-center gap-1">
 						<UButton
-							icon="i-heroicons-check"
+							icon="i-lucide-check"
 							color="success"
 							variant="soft"
 							size="sm"
@@ -646,7 +646,7 @@
 						/>
 						<UButton
 							v-if="artist.id_youtube_music"
-							icon="i-heroicons-no-symbol"
+							icon="i-lucide-ban"
 							color="warning"
 							variant="soft"
 							size="sm"
@@ -656,7 +656,7 @@
 							@click="openBanModal(artist)"
 						/>
 						<UButton
-							icon="i-heroicons-x-mark"
+							icon="i-lucide-x"
 							color="error"
 							variant="soft"
 							size="sm"
@@ -673,7 +673,7 @@
 						/>
 						<UButton
 							:to="`/artist/edit/${artist.id}`"
-							icon="i-heroicons-pencil-square"
+							icon="i-lucide-pencil"
 							color="neutral"
 							variant="ghost"
 							size="sm"
@@ -683,7 +683,7 @@
 						/>
 						<UButton
 							:to="`/artist/${artist.id}`"
-							icon="i-heroicons-arrow-top-right-on-square"
+							icon="i-lucide-square-arrow-out-up-right"
 							color="neutral"
 							variant="ghost"
 							size="sm"

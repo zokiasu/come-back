@@ -12,6 +12,22 @@ export default defineAppConfig({
 			slots: {
 				base: 'cursor-pointer',
 			},
+			variants: {
+				size: {
+					md: {
+						leadingIcon: 'size-4',
+						trailingIcon: 'size-4',
+					},
+					lg: {
+						leadingIcon: 'size-4',
+						trailingIcon: 'size-4',
+					},
+					xl: {
+						leadingIcon: 'size-5',
+						trailingIcon: 'size-5',
+					},
+				},
+			},
 		},
 	},
 })

@@ -100,11 +100,11 @@
 
 		switch (trend.direction) {
 			case 'up':
-				return 'i-heroicons-arrow-trending-up'
+				return 'i-lucide-trending-up'
 			case 'down':
-				return 'i-heroicons-arrow-trending-down'
+				return 'i-lucide-trending-down'
 			default:
-				return 'i-heroicons-minus'
+				return 'i-lucide-minus'
 		}
 	})
 

@@ -396,7 +396,7 @@
 				<UInput
 					v-model="search"
 					placeholder="Search..."
-					icon="i-heroicons-magnifying-glass"
+					icon="i-lucide-search"
 					class="w-full md:w-64"
 					:ui="{ base: 'bg-cb-quinary-900' }"
 				/>
@@ -428,8 +428,8 @@
 					<UButton
 						:icon="
 							sortDirection === 'asc'
-								? 'i-heroicons-bars-arrow-up'
-								: 'i-heroicons-bars-arrow-down'
+								? 'i-lucide-arrow-up-narrow-wide'
+								: 'i-lucide-arrow-down-wide-narrow'
 						"
 						color="neutral"
 						variant="ghost"
@@ -446,7 +446,7 @@
 				/>
 
 				<UButton
-					icon="i-heroicons-arrow-path"
+					icon="i-lucide-refresh-cw"
 					color="neutral"
 					variant="ghost"
 					:loading="isLoading"
@@ -490,7 +490,7 @@
 			<!-- Empty state -->
 			<div v-else-if="!isLoading && releasesList.length === 0" class="py-16 text-center">
 				<UIcon
-					name="i-heroicons-musical-note"
+					name="i-lucide-music"
 					class="text-cb-tertiary-500 mx-auto size-16 opacity-50"
 				/>
 				<p class="text-cb-tertiary-500 mt-4">No release found</p>
@@ -518,7 +518,7 @@
 							class="bg-cb-quinary-900 flex size-16 items-center justify-center rounded-lg"
 						>
 							<UIcon
-								name="i-heroicons-musical-note"
+								name="i-lucide-music"
 								class="text-cb-tertiary-500 size-8"
 							/>
 						</div>
@@ -574,14 +574,14 @@
 						class="flex shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100"
 					>
 						<UButton
-							icon="i-heroicons-pencil-square"
+							icon="i-lucide-pencil"
 							color="neutral"
 							variant="ghost"
 							size="sm"
 							@click="openEditModal(release)"
 						/>
 						<UButton
-							icon="i-heroicons-trash"
+							icon="i-lucide-trash-2"
 							color="error"
 							variant="ghost"
 							size="sm"
@@ -589,7 +589,7 @@
 						/>
 						<UButton
 							:to="`/release/${release.id}`"
-							icon="i-heroicons-arrow-top-right-on-square"
+							icon="i-lucide-square-arrow-out-up-right"
 							color="neutral"
 							variant="ghost"
 							size="sm"
@@ -650,7 +650,7 @@
 								class="bg-cb-quinary-900 flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl"
 							>
 								<UIcon
-									name="i-heroicons-musical-note"
+									name="i-lucide-music"
 									class="text-cb-tertiary-500 size-10"
 								/>
 							</div>
@@ -691,7 +691,7 @@
 						</div>
 
 						<UButton
-							icon="i-heroicons-x-mark"
+							icon="i-lucide-x"
 							color="neutral"
 							variant="ghost"
 							aria-label="Close edit release modal"
@@ -720,7 +720,7 @@
 				<div class="bg-cb-secondary-950 space-y-5 p-6">
 					<div class="text-center">
 						<UIcon
-							name="i-heroicons-exclamation-triangle"
+							name="i-lucide-triangle-alert"
 							class="mx-auto size-12 text-red-500"
 						/>
 						<h3 class="mt-4 text-lg font-bold">Confirm deletion</h3>

@@ -229,11 +229,16 @@
 			</div>
 
 			<div class="flex w-10 shrink-0 justify-center">
-				<IconPlay
+				<UIcon
 					v-if="idYoutubeVideo != musicId"
-					class="h-10 w-10 transition-all duration-300 ease-in-out"
+					name="i-lucide-play"
+					class="h-6 w-6 transition-all duration-300 ease-in-out md:h-7 md:w-7"
 				/>
-				<IconPause v-else class="h-10 w-10 transition-all duration-300 ease-in-out" />
+				<UIcon
+					v-else
+					name="i-lucide-pause"
+					class="h-6 w-6 transition-all duration-300 ease-in-out md:h-7 md:w-7"
+				/>
 			</div>
 		</button>
 

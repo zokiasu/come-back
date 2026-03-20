@@ -20,25 +20,25 @@
 		{
 			id: 'discord',
 			label: 'Continue with Discord',
-			icon: 'i-heroicons-chat-bubble-left-right',
+			icon: 'i-lucide-messages-square',
 			enabled: false,
 		},
 		{
 			id: 'twitter',
 			label: 'Continue with Twitter',
-			icon: 'i-heroicons-hashtag',
+			icon: 'i-lucide-hash',
 			enabled: false,
 		},
 		{
 			id: 'apple',
 			label: 'Continue with Apple',
-			icon: 'i-heroicons-device-phone-mobile',
+			icon: 'i-lucide-smartphone',
 			enabled: false,
 		},
 		{
 			id: 'email',
 			label: 'Continue with Email',
-			icon: 'i-heroicons-envelope',
+			icon: 'i-lucide-mail',
 			enabled: false,
 		},
 	]
@@ -75,7 +75,7 @@
 						<h2 class="text-lg font-semibold">Sign in to Comeback</h2>
 					</div>
 					<UButton
-						icon="i-heroicons-x-mark"
+						icon="i-lucide-x"
 						variant="ghost"
 						color="neutral"
 						aria-label="Close"

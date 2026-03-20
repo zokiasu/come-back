@@ -247,7 +247,7 @@
 						class="bg-cb-quaternary-950 hover:bg-cb-primary-900 flex h-full cursor-pointer items-center justify-center rounded px-2.5"
 						@click="deleteStyle(style.name)"
 					>
-						<IconDelete class="h-4 w-4" />
+						<UIcon name="i-lucide-trash-2" class="h-4 w-4" />
 					</div>
 				</div>
 			</div>
@@ -295,7 +295,7 @@
 						class="bg-cb-quaternary-950 hover:bg-cb-primary-900 flex h-full cursor-pointer items-center justify-center rounded px-2.5"
 						@click="deleteTag(tag.name)"
 					>
-						<IconDelete class="h-4 w-4" />
+						<UIcon name="i-lucide-trash-2" class="h-4 w-4" />
 					</div>
 				</div>
 			</div>
@@ -343,7 +343,7 @@
 						class="bg-cb-quaternary-950 hover:bg-cb-primary-900 flex h-full cursor-pointer items-center justify-center rounded px-2.5"
 						@click="deleteNationalityItem(nationality.name)"
 					>
-						<IconDelete class="h-4 w-4" />
+						<UIcon name="i-lucide-trash-2" class="h-4 w-4" />
 					</div>
 				</div>
 			</div>

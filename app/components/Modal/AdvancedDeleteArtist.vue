@@ -96,7 +96,7 @@
 					<UButton
 						color="neutral"
 						variant="ghost"
-						icon="i-heroicons-x-mark-20-solid"
+						icon="i-lucide-x"
 						@click="close"
 					/>
 				</div>
@@ -138,7 +138,7 @@
 				<!-- Analyse d'impact (seulement en mode sécurisé) -->
 				<div v-if="deletionMode === 'safe'">
 					<div v-if="isLoading" class="flex justify-center py-6">
-						<UIcon name="i-heroicons-arrow-path" class="h-6 w-6 animate-spin" />
+						<UIcon name="i-lucide-refresh-cw" class="h-6 w-6 animate-spin" />
 						<span class="ml-2 text-sm text-gray-600">Analyzing consequences...</span>
 					</div>
 

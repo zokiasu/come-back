@@ -115,7 +115,7 @@
 			:class="props.hint || props.status === 'checking' ? 'bottom-7' : 'bottom-3'"
 			@click="clear"
 		>
-			<IconClose class="h-4 w-4" />
+			<UIcon name="i-lucide-x" class="h-4 w-4" />
 		</button>
 	</div>
 </template>

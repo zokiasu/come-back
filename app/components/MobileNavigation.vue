@@ -56,7 +56,7 @@
 				class="cb-no-select text-cb-tertiary-200 flex flex-1 flex-col items-center justify-center gap-1 py-3 transition-all duration-300 ease-in-out hover:text-white"
 				active-class="text-white"
 			>
-				<IconHome class="h-5 w-5" />
+				<UIcon name="i-lucide-house" class="h-5 w-5" />
 				<span class="text-[10px] font-semibold">Home</span>
 			</NuxtLink>
 
@@ -65,7 +65,7 @@
 				class="cb-no-select text-cb-tertiary-200 flex flex-1 flex-col items-center justify-center gap-1 py-3 transition-all duration-300 ease-in-out hover:text-white"
 				active-class="text-white"
 			>
-				<IconCalendar class="h-5 w-5" />
+				<UIcon name="i-lucide-calendar-days" class="h-5 w-5" />
 				<span class="text-[10px] font-semibold">Calendar</span>
 			</NuxtLink>
 
@@ -75,7 +75,7 @@
 				aria-label="Search"
 				@click="isSearchOpen = true"
 			>
-				<UIcon name="i-heroicons-magnifying-glass" class="h-5 w-5" />
+				<UIcon name="i-lucide-search" class="h-5 w-5" />
 				<span class="text-[10px] font-semibold">Search</span>
 			</button>
 
@@ -85,7 +85,7 @@
 				aria-label="More"
 				@click="isMoreOpen = true"
 			>
-				<UIcon name="i-heroicons-ellipsis-horizontal" class="h-5 w-5" />
+				<UIcon name="i-lucide-ellipsis" class="h-5 w-5" />
 				<span class="text-[10px] font-semibold">Plus</span>
 			</button>
 		</div>
@@ -129,7 +129,7 @@
 							class="cb-no-select border-cb-quinary-900 bg-cb-quinary-950/70 hover:bg-cb-quinary-900 flex items-center gap-3 rounded-xl border px-4 py-3 text-sm font-semibold text-white transition"
 							@click="isMoreOpen = false"
 						>
-							<UIcon name="i-heroicons-musical-note" class="h-5 w-5" />
+							<UIcon name="i-lucide-music" class="h-5 w-5" />
 							Explore rankings
 						</NuxtLink>
 
@@ -138,7 +138,7 @@
 							class="cb-no-select border-cb-quinary-900 bg-cb-quinary-950/70 hover:bg-cb-quinary-900 flex items-center gap-3 rounded-xl border px-4 py-3 text-sm font-semibold text-white transition"
 							@click="isMoreOpen = false"
 						>
-							<UIcon name="i-heroicons-play-circle" class="h-5 w-5" />
+							<UIcon name="i-lucide-circle-play" class="h-5 w-5" />
 							Explore music
 						</NuxtLink>
 
@@ -147,7 +147,7 @@
 							class="cb-no-select border-cb-quinary-900 bg-cb-quinary-950/70 hover:bg-cb-quinary-900 flex items-center gap-3 rounded-xl border px-4 py-3 text-sm font-semibold text-white transition"
 							@click="isMoreOpen = false"
 						>
-							<UIcon name="i-heroicons-cog-6-tooth" class="h-5 w-5" />
+							<UIcon name="i-lucide-settings" class="h-5 w-5" />
 							Settings
 						</NuxtLink>
 
@@ -156,7 +156,7 @@
 							class="cb-no-select border-cb-quinary-900 bg-cb-quinary-950/70 hover:bg-cb-quinary-900 flex items-center gap-3 rounded-xl border px-4 py-3 text-sm font-semibold text-white transition"
 							@click="handleLoginClick"
 						>
-							<IconAccount class="h-5 w-5" />
+							<UIcon name="i-lucide-circle-user-round" class="h-5 w-5" />
 							Sign in
 						</button>
 
@@ -166,7 +166,7 @@
 							class="cb-no-select border-cb-quinary-900 bg-cb-quinary-950/70 hover:bg-cb-quinary-900 flex items-center gap-3 rounded-xl border px-4 py-3 text-sm font-semibold text-white transition"
 							@click="isMoreOpen = false"
 						>
-							<IconEdit class="h-5 w-5" />
+							<UIcon name="i-lucide-pencil" class="h-5 w-5" />
 							Admin dashboard
 						</NuxtLink>
 

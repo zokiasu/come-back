@@ -326,7 +326,7 @@
 					</div>
 					<div class="flex justify-end">
 						<div class="bg-cb-quinary-900/80 rounded-full p-3 backdrop-blur-sm">
-							<IconPlay class="h-8 w-8 md:h-10 md:w-10" />
+							<UIcon name="i-lucide-play" class="h-8 w-8 md:h-10 md:w-10" />
 						</div>
 					</div>
 				</div>
@@ -344,7 +344,7 @@
 					title="Stop video"
 					@click="stopVideo"
 				>
-					<UIcon name="i-heroicons-x-mark-20-solid" class="h-4 w-4 text-white" />
+					<UIcon name="i-lucide-x" class="h-4 w-4 text-white" />
 				</button>
 			</div>
 		</div>
@@ -379,7 +379,7 @@
 						v-else
 						class="bg-cb-quinary-900 flex h-full w-full items-center justify-center"
 					>
-						<IconPlay class="text-cb-tertiary-400 h-4 w-4" />
+						<UIcon name="i-lucide-play" class="text-cb-tertiary-400 h-4 w-4" />
 					</div>
 				</div>
 				<!-- Overlay for active state -->
@@ -387,7 +387,7 @@
 					v-if="index !== currentMVIndex"
 					class="bg-cb-quinary-900/50 absolute inset-0 flex items-center justify-center"
 				>
-					<IconPlay class="h-3 w-3 text-white md:h-4 md:w-4" />
+					<UIcon name="i-lucide-play" class="h-3 w-3 text-white md:h-4 md:w-4" />
 				</div>
 			</button>
 		</div>

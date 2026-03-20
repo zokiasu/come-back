@@ -119,14 +119,14 @@
 						<div
 							class="flex h-10 w-10 items-center justify-center rounded-full bg-amber-500/20"
 						>
-							<UIcon name="i-heroicons-no-symbol" class="h-5 w-5 text-amber-500" />
+							<UIcon name="i-lucide-ban" class="h-5 w-5 text-amber-500" />
 						</div>
 						<h3 class="text-lg font-semibold text-white">Ban artist</h3>
 					</div>
 					<UButton
 						color="neutral"
 						variant="ghost"
-						icon="i-heroicons-x-mark-20-solid"
+						icon="i-lucide-x"
 						class="text-zinc-400 hover:text-white"
 						@click="close"
 					/>
@@ -161,7 +161,7 @@
 					<div class="rounded-lg border border-red-500/30 bg-red-500/10 p-3">
 						<div class="flex items-start gap-2">
 							<UIcon
-								name="i-heroicons-exclamation-triangle"
+								name="i-lucide-triangle-alert"
 								class="mt-0.5 h-4 w-4 shrink-0 text-red-400"
 							/>
 							<p class="text-sm text-red-300">
@@ -174,7 +174,7 @@
 					<!-- Loading state -->
 					<div v-if="isLoading" class="flex items-center justify-center gap-3 py-8">
 						<UIcon
-							name="i-heroicons-arrow-path"
+							name="i-lucide-refresh-cw"
 							class="text-cb-primary-900 h-5 w-5 animate-spin"
 						/>
 						<span class="text-sm text-zinc-400">Analyzing impact...</span>
@@ -184,7 +184,7 @@
 					<div v-else-if="impact" class="space-y-4">
 						<div class="bg-cb-quaternary-950 rounded-lg p-4">
 							<div class="mb-3 flex items-center gap-2">
-								<UIcon name="i-heroicons-chart-bar" class="h-5 w-5 text-amber-500" />
+								<UIcon name="i-lucide-chart-column" class="h-5 w-5 text-amber-500" />
 								<h4 class="font-semibold text-white">Deletion impact</h4>
 							</div>
 
@@ -193,7 +193,7 @@
 								<div class="flex items-center justify-between">
 									<div class="flex items-center gap-2">
 										<UIcon
-											name="i-heroicons-musical-note"
+											name="i-lucide-music"
 											class="h-4 w-4 text-zinc-500"
 										/>
 										<span class="text-sm text-zinc-300">Deleted releases</span>
@@ -228,7 +228,7 @@
 								<!-- Musics -->
 								<div class="flex items-center justify-between">
 									<div class="flex items-center gap-2">
-										<UIcon name="i-heroicons-play" class="h-4 w-4 text-zinc-500" />
+										<UIcon name="i-lucide-play" class="h-4 w-4 text-zinc-500" />
 										<span class="text-sm text-zinc-300">Deleted tracks</span>
 									</div>
 									<span
@@ -261,7 +261,7 @@
 								<!-- News -->
 								<div class="flex items-center justify-between">
 									<div class="flex items-center gap-2">
-										<UIcon name="i-heroicons-newspaper" class="h-4 w-4 text-zinc-500" />
+										<UIcon name="i-lucide-newspaper" class="h-4 w-4 text-zinc-500" />
 										<span class="text-sm text-zinc-300">Deleted news posts</span>
 									</div>
 									<span
@@ -315,7 +315,7 @@
 						@click="confirmBan"
 					>
 						<template #leading>
-							<UIcon v-if="!isBanning" name="i-heroicons-no-symbol" class="h-4 w-4" />
+							<UIcon v-if="!isBanning" name="i-lucide-ban" class="h-4 w-4" />
 						</template>
 						{{ isBanning ? 'Banning...' : 'Ban and delete' }}
 					</UButton>

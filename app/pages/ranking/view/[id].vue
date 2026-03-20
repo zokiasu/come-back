@@ -14,7 +14,7 @@
 			class="bg-cb-quaternary-950 flex flex-col items-center justify-center rounded-lg py-20"
 		>
 			<UIcon
-				name="i-heroicons-exclamation-circle"
+				name="i-lucide-circle-alert"
 				class="text-cb-tertiary-500 mb-4 size-16"
 			/>
 			<h2 class="mb-2 text-lg font-semibold">Ranking not found</h2>
@@ -30,7 +30,7 @@
 			<div class="mb-6">
 				<div class="flex items-start gap-4">
 					<UButton
-						icon="i-heroicons-arrow-left"
+						icon="i-lucide-arrow-left"
 						color="neutral"
 						variant="ghost"
 						to="/ranking/explore"
@@ -54,7 +54,7 @@
 								v-else
 								class="bg-cb-quinary-900 flex size-6 items-center justify-center rounded-full"
 							>
-								<UIcon name="i-heroicons-user" class="text-cb-tertiary-500 size-4" />
+								<UIcon name="i-lucide-user" class="text-cb-tertiary-500 size-4" />
 							</div>
 							<span class="text-cb-tertiary-500 text-sm">
 								Created by {{ ranking.user?.name || 'User' }}
@@ -71,7 +71,7 @@
 				<!-- Action buttons -->
 				<div class="mt-4 flex flex-wrap gap-2">
 					<UButton
-						icon="i-heroicons-play-solid"
+						icon="i-lucide-play"
 						label="Play all"
 						color="primary"
 						@click="playAllMusics"
@@ -106,7 +106,7 @@
 						/>
 						<div v-else class="flex h-full w-full items-center justify-center">
 							<UIcon
-								name="i-heroicons-musical-note"
+								name="i-lucide-music"
 								class="text-cb-tertiary-500 size-12"
 							/>
 						</div>
@@ -120,7 +120,7 @@
 				class="bg-cb-quaternary-950 flex flex-col items-center justify-center rounded-lg py-12"
 			>
 				<UIcon
-					name="i-heroicons-musical-note"
+					name="i-lucide-music"
 					class="text-cb-tertiary-500 mb-4 size-12"
 				/>
 				<p class="text-cb-tertiary-500 text-sm">This ranking is empty</p>
@@ -152,7 +152,7 @@
 						/>
 						<div v-else class="flex h-full w-full items-center justify-center">
 							<UIcon
-								name="i-heroicons-musical-note"
+								name="i-lucide-music"
 								class="text-cb-tertiary-500 size-6"
 							/>
 						</div>
@@ -222,8 +222,8 @@
 							<UIcon
 								:name="
 									isCurrentlyPlaying(item.music.id_youtube_music)
-										? 'i-heroicons-pause-solid'
-										: 'i-heroicons-play-solid'
+										? 'i-lucide-pause'
+										: 'i-lucide-play'
 								"
 								class="size-5 text-white"
 							/>

@@ -4,32 +4,32 @@
 	const links = [
 		{
 			label: 'Accueil',
-			icon: 'i-heroicons-home',
+			icon: 'i-lucide-house',
 			to: '/dashboard',
 		},
 		{
 			label: 'Artistes',
-			icon: 'i-heroicons-users',
+			icon: 'i-lucide-users',
 			to: '/dashboard/artist',
 		},
 		{
 			label: 'Validation',
-			icon: 'i-heroicons-check-badge',
+			icon: 'i-lucide-badge-check',
 			to: '/dashboard/validation',
 		},
 		{
 			label: 'Releases',
-			icon: 'i-heroicons-musical-note',
+			icon: 'i-lucide-music',
 			to: '/dashboard/release',
 		},
 		{
 			label: 'Music',
-			icon: 'i-heroicons-play-circle',
+			icon: 'i-lucide-circle-play',
 			to: '/dashboard/music',
 		},
 		{
 			label: 'News',
-			icon: 'i-heroicons-newspaper',
+			icon: 'i-lucide-newspaper',
 			to: '/dashboard/news',
 		},
 		{
@@ -39,17 +39,17 @@
 		},
 		{
 			label: 'Companies',
-			icon: 'i-heroicons-building-office',
+			icon: 'i-lucide-building-2',
 			to: '/dashboard/companies',
 		},
 		{
 			label: 'Statistiques',
-			icon: 'i-heroicons-chart-bar',
+			icon: 'i-lucide-chart-column',
 			to: '/dashboard/stats',
 		},
 		{
 			label: 'Données',
-			icon: 'i-heroicons-cog-6-tooth',
+			icon: 'i-lucide-settings',
 			to: '/dashboard/datas',
 		},
 	]
@@ -82,7 +82,7 @@
 						to="/"
 						class="bg-cb-quinary-900 text-cb-tertiary-200 hover:bg-cb-quinary-800 flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm transition-all hover:text-white"
 					>
-						<UIcon name="i-heroicons-arrow-left" class="h-4 w-4" />
+						<UIcon name="i-lucide-arrow-left" class="h-4 w-4" />
 						<span>Back to Comeback</span>
 					</NuxtLink>
 				</div>

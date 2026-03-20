@@ -150,8 +150,8 @@
 							({{ artist.social_links?.length || 0 }})
 						</span>
 					</p>
-					<IconPlus v-if="!showSocialLinks" class="h-4 w-4" />
-					<IconMinus v-else class="h-4 w-4" />
+					<UIcon v-if="!showSocialLinks" name="i-lucide-plus" class="h-4 w-4" />
+					<UIcon v-else name="i-lucide-minus" class="h-4 w-4" />
 				</div>
 
 				<transition
@@ -209,8 +209,8 @@
 							({{ artist.platform_links?.length || 0 }})
 						</span>
 					</p>
-					<IconPlus v-if="!showPlatformsLinks" class="h-4 w-4" />
-					<IconMinus v-else class="h-4 w-4" />
+					<UIcon v-if="!showPlatformsLinks" name="i-lucide-plus" class="h-4 w-4" />
+					<UIcon v-else name="i-lucide-minus" class="h-4 w-4" />
 				</div>
 
 				<transition

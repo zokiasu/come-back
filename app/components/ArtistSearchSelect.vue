@@ -290,7 +290,7 @@
 					</span>
 					<UIcon
 						v-if="selectedIds.has(normalizeArtist(artist).id)"
-						name="i-heroicons-check"
+						name="i-lucide-check"
 						class="text-cb-primary-900 size-4 shrink-0"
 					/>
 				</button>

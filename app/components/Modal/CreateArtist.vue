@@ -522,7 +522,7 @@
 						class="bg-cb-primary-900 rounded p-1 text-xs hover:bg-red-900"
 						@click="platformLinkManager.remove(index)"
 					>
-						<IconDelete class="h-5 w-5" />
+						<UIcon name="i-lucide-trash-2" class="h-5 w-5" />
 					</button>
 				</div>
 				<button
@@ -556,7 +556,7 @@
 						class="bg-cb-primary-900 rounded p-1 text-xs hover:bg-red-900"
 						@click="socialLinkManager.remove(index)"
 					>
-						<IconDelete class="h-5 w-5" />
+						<UIcon name="i-lucide-trash-2" class="h-5 w-5" />
 					</button>
 				</div>
 				<button

@@ -531,7 +531,7 @@
 							color="neutral"
 							class="text-cb-tertiary-300 hover:text-white"
 							size="sm"
-							icon="i-heroicons-calendar-days"
+							icon="i-lucide-calendar-days"
 							label="Calendar"
 						/>
 					</div>
@@ -564,7 +564,7 @@
 							color="neutral"
 							class="text-cb-tertiary-300 hover:text-white"
 							size="sm"
-							icon="i-heroicons-user-group"
+							icon="i-lucide-users"
 							label="All artists"
 						/>
 					</div>

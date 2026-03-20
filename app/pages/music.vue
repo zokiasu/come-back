@@ -206,7 +206,7 @@
 							@click="removeActiveFilter(chip)"
 						>
 							{{ chip.label }}
-							<UIcon name="i-heroicons-x-mark" class="size-3" />
+							<UIcon name="i-lucide-x" class="size-3" />
 						</UButton>
 					</div>
 				</div>
@@ -231,8 +231,8 @@
 							<UIcon
 								:name="
 									isCurrentlyPlaying(music.id_youtube_music)
-										? 'i-heroicons-pause-solid'
-										: 'i-heroicons-play-solid'
+										? 'i-lucide-pause'
+										: 'i-lucide-play'
 								"
 								class="size-5 text-white"
 							/>
@@ -277,7 +277,7 @@
 							aria-label="Add to playlist"
 							@click.stop="handleQueueMusic(music)"
 						>
-							<UIcon name="i-heroicons-plus-solid" class="size-4 text-white" />
+							<UIcon name="i-lucide-plus" class="size-4 text-white" />
 						</button>
 					</div>
 				</div>

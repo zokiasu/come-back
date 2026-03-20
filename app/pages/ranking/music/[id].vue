@@ -5,7 +5,7 @@
 			<!-- Header with back button -->
 			<div class="mb-4 flex items-center gap-3">
 				<UButton
-					icon="i-heroicons-arrow-left"
+					icon="i-lucide-arrow-left"
 					color="neutral"
 					variant="ghost"
 					to="/ranking"
@@ -112,8 +112,8 @@
 						<UIcon
 							:name="
 								isCurrentlyPlaying(music.id_youtube_music)
-									? 'i-heroicons-pause-solid'
-									: 'i-heroicons-play-solid'
+									? 'i-lucide-pause'
+									: 'i-lucide-play'
 							"
 							class="size-5 text-white"
 						/>
@@ -171,10 +171,10 @@
 						/>
 						<UIcon
 							v-else-if="isMusicInCurrentRanking(music.id)"
-							name="i-heroicons-check"
+							name="i-lucide-check"
 							class="size-4"
 						/>
-						<UIcon v-else name="i-heroicons-plus" class="size-4" />
+						<UIcon v-else name="i-lucide-plus" class="size-4" />
 					</button>
 				</div>
 			</div>
@@ -249,7 +249,7 @@
 					<div class="ml-2 flex items-center gap-1">
 						<UButton
 							:icon="
-								ranking?.is_public ? 'i-heroicons-globe-alt' : 'i-heroicons-lock-closed'
+								ranking?.is_public ? 'i-lucide-globe' : 'i-lucide-lock'
 							"
 							size="xs"
 							color="neutral"
@@ -258,7 +258,7 @@
 							@click="togglePublic"
 						/>
 						<UButton
-							icon="i-heroicons-cog-6-tooth"
+							icon="i-lucide-settings"
 							size="xs"
 							color="neutral"
 							variant="ghost"
@@ -281,7 +281,7 @@
 					v-else-if="rankingItems.length === 0"
 					class="text-cb-tertiary-500 py-10 text-center text-sm"
 				>
-					<UIcon name="i-heroicons-musical-note" class="mx-auto mb-2 size-10" />
+					<UIcon name="i-lucide-music" class="mx-auto mb-2 size-10" />
 					<p>No tracks yet</p>
 					<p class="text-xs">Add tracks from the list</p>
 				</div>
@@ -308,7 +308,7 @@
 
 							<!-- Drag handle -->
 							<UIcon
-								name="i-heroicons-bars-3"
+								name="i-lucide-menu"
 								class="drag-handle text-cb-tertiary-500 size-4 shrink-0 cursor-grab active:cursor-grabbing"
 							/>
 
@@ -326,8 +326,8 @@
 								<UIcon
 									:name="
 										isCurrentlyPlaying(item.music.id_youtube_music)
-											? 'i-heroicons-pause-solid'
-											: 'i-heroicons-play-solid'
+											? 'i-lucide-pause'
+											: 'i-lucide-play'
 									"
 									class="size-4 text-white"
 								/>
@@ -358,7 +358,7 @@
 								class="text-cb-tertiary-500 shrink-0 opacity-0 transition-opacity group-hover:opacity-100 hover:text-red-500"
 								@click="removeFromRanking(item.music_id)"
 							>
-								<UIcon name="i-heroicons-x-mark" class="size-4" />
+								<UIcon name="i-lucide-x" class="size-4" />
 							</button>
 						</div>
 					</template>

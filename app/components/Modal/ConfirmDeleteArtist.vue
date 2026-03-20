@@ -101,7 +101,7 @@
 							class="bg-cb-primary-900/20 flex h-10 w-10 items-center justify-center rounded-full"
 						>
 							<UIcon
-								name="i-heroicons-exclamation-triangle"
+								name="i-lucide-triangle-alert"
 								class="text-cb-primary-900 h-5 w-5"
 							/>
 						</div>
@@ -110,7 +110,7 @@
 					<UButton
 						color="neutral"
 						variant="ghost"
-						icon="i-heroicons-x-mark-20-solid"
+						icon="i-lucide-x"
 						class="text-zinc-400 hover:text-white"
 						@click="close"
 					/>
@@ -129,7 +129,7 @@
 					<!-- Loading state -->
 					<div v-if="isLoading" class="flex items-center justify-center gap-3 py-8">
 						<UIcon
-							name="i-heroicons-arrow-path"
+							name="i-lucide-refresh-cw"
 							class="text-cb-primary-900 h-5 w-5 animate-spin"
 						/>
 						<span class="text-sm text-zinc-400">Analyzing impact...</span>
@@ -140,7 +140,7 @@
 						<!-- Impact section -->
 						<div class="bg-cb-quaternary-950 rounded-lg p-4">
 							<div class="mb-3 flex items-center gap-2">
-								<UIcon name="i-heroicons-chart-bar" class="h-5 w-5 text-amber-500" />
+								<UIcon name="i-lucide-chart-column" class="h-5 w-5 text-amber-500" />
 								<h4 class="font-semibold text-white">Deletion impact</h4>
 							</div>
 
@@ -149,7 +149,7 @@
 								<div class="flex items-center justify-between">
 									<div class="flex items-center gap-2">
 										<UIcon
-											name="i-heroicons-musical-note"
+											name="i-lucide-music"
 											class="h-4 w-4 text-zinc-500"
 										/>
 										<span class="text-sm text-zinc-300">Deleted releases</span>
@@ -185,7 +185,7 @@
 								<!-- Musics -->
 								<div class="flex items-center justify-between">
 									<div class="flex items-center gap-2">
-										<UIcon name="i-heroicons-play" class="h-4 w-4 text-zinc-500" />
+										<UIcon name="i-lucide-play" class="h-4 w-4 text-zinc-500" />
 										<span class="text-sm text-zinc-300">Deleted tracks</span>
 									</div>
 									<span
@@ -219,7 +219,7 @@
 								<!-- News -->
 								<div class="flex items-center justify-between">
 									<div class="flex items-center gap-2">
-										<UIcon name="i-heroicons-newspaper" class="h-4 w-4 text-zinc-500" />
+										<UIcon name="i-lucide-newspaper" class="h-4 w-4 text-zinc-500" />
 										<span class="text-sm text-zinc-300">Deleted news posts</span>
 									</div>
 									<span
@@ -255,7 +255,7 @@
 								<div
 									class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-500/20"
 								>
-									<UIcon name="i-heroicons-check" class="h-4 w-4 text-emerald-500" />
+									<UIcon name="i-lucide-check" class="h-4 w-4 text-emerald-500" />
 								</div>
 								<div>
 									<h4 class="font-medium text-emerald-400">Preserved content</h4>
@@ -287,7 +287,7 @@
 						@click="confirmDelete"
 					>
 						<template #leading>
-							<UIcon v-if="!isDeleting" name="i-heroicons-trash" class="h-4 w-4" />
+							<UIcon v-if="!isDeleting" name="i-lucide-trash-2" class="h-4 w-4" />
 						</template>
 						{{ isDeleting ? 'Deleting...' : 'Delete' }}
 					</UButton>

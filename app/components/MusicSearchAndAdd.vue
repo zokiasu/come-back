@@ -31,7 +31,7 @@
 										<div
 											class="from-primary-400 to-primary-600 flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br"
 										>
-											<UIcon name="i-heroicons-musical-note" class="h-5 w-5 text-white" />
+											<UIcon name="i-lucide-music" class="h-5 w-5 text-white" />
 										</div>
 									</div>
 									<div class="min-w-0 flex-1">
@@ -56,7 +56,7 @@
 							<div
 								class="flex flex-col items-center justify-center py-6 text-sm text-gray-500 dark:text-gray-400"
 							>
-								<UIcon name="i-heroicons-magnifying-glass" class="mb-2 h-6 w-6" />
+								<UIcon name="i-lucide-search" class="mb-2 h-6 w-6" />
 								<span v-if="searchTerm">No music found for "{{ searchTerm }}"</span>
 								<span v-else>Type to search for music</span>
 							</div>
@@ -69,7 +69,7 @@
 					>
 						<div class="flex items-center justify-between">
 							<div class="flex items-center space-x-3">
-								<UIcon name="i-heroicons-check-circle" class="h-5 w-5 text-green-500" />
+								<UIcon name="i-lucide-circle-check" class="h-5 w-5 text-green-500" />
 								<div>
 									<p class="text-sm font-medium text-green-800 dark:text-green-200">
 										{{ selectedMusic.name }}
@@ -200,7 +200,7 @@
 						>
 							Reset
 						</UButton>
-						<UButton type="submit" :loading="loading" icon="i-heroicons-plus">
+						<UButton type="submit" :loading="loading" icon="i-lucide-plus">
 							Create and add
 						</UButton>
 					</div>

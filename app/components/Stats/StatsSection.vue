@@ -12,7 +12,7 @@
 				>
 					<div class="flex items-center space-x-2">
 						<UIcon
-							name="i-heroicons-calendar-days"
+							name="i-lucide-calendar-days"
 							class="h-4 w-4 text-blue-600 dark:text-blue-400"
 						/>
 						<p class="text-sm text-blue-700 dark:text-blue-300">
@@ -75,7 +75,7 @@
 		<!-- Empty State -->
 		<div v-if="isEmpty && !loading" class="py-12 text-center">
 			<div class="mb-2 text-gray-400 dark:text-gray-500">
-				<Icon name="i-heroicons-chart-bar" class="mx-auto h-12 w-12" />
+				<Icon name="i-lucide-chart-column" class="mx-auto h-12 w-12" />
 			</div>
 			<h3 class="mb-2 text-lg font-medium text-gray-900 dark:text-white">
 				No data available

@@ -39,7 +39,7 @@
 				class="bg-cb-primary-900 rounded px-3 py-2 text-xs transition-colors duration-200 hover:bg-red-900"
 				@click="removeItem(index)"
 			>
-				<Icon name="i-heroicons-trash" class="h-4 w-4" />
+				<Icon name="i-lucide-trash-2" class="h-4 w-4" />
 			</button>
 		</div>
 

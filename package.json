@@ -17,7 +17,7 @@
 		"check": "npm run lint:check && npm run typecheck"
 	},
 	"devDependencies": {
-		"@iconify-json/material-symbols": "^1.2.62",
+		"@iconify-json/lucide": "^1.2.98",
 		"@nuxt/devtools": "^3.2.3",
 		"@nuxt/eslint": "^1.15.2",
 		"@nuxt/hints": "^1.0.0",

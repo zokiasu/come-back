@@ -15,7 +15,7 @@
 						type="text"
 						placeholder="Search for an artist..."
 						size="xl"
-						icon="i-heroicons-magnifying-glass"
+						icon="i-lucide-search"
 						class="w-full lg:flex-1"
 					/>
 
@@ -123,7 +123,7 @@
 							class="min-w-[8rem] justify-center"
 							@click="toggleFilters"
 						>
-							<UIcon name="i-heroicons-flag" class="size-4" />
+							<UIcon name="i-lucide-flag" class="size-4" />
 							{{ nationalitiesSummary }}
 						</UButton>
 						<UButton
@@ -134,7 +134,7 @@
 							class="min-w-[8rem] justify-center"
 							@click="toggleFilters"
 						>
-							<UIcon name="i-heroicons-musical-note" class="size-4" />
+							<UIcon name="i-lucide-music" class="size-4" />
 							{{ stylesSummary }}
 						</UButton>
 						<UButton
@@ -145,7 +145,7 @@
 							class="min-w-[8rem] justify-center"
 							@click="toggleFilters"
 						>
-							<UIcon name="i-heroicons-tag" class="size-4" />
+							<UIcon name="i-lucide-tag" class="size-4" />
 							{{ tagsSummary }}
 						</UButton>
 					</div>
@@ -235,7 +235,7 @@
 					@click="removeActiveFilter(chip)"
 				>
 					{{ chip.label }}
-					<UIcon name="i-heroicons-x-mark" class="size-3" />
+					<UIcon name="i-lucide-x" class="size-3" />
 				</UButton>
 			</div>
 
@@ -288,7 +288,7 @@
 			v-if="!isLoading && !pageError && artists.length === 0"
 			class="bg-cb-quinary-900/40 rounded-xl border border-white/5 py-12 text-center"
 		>
-			<UIcon name="i-heroicons-user-group" class="text-cb-tertiary-500 mx-auto mb-3 size-10" />
+			<UIcon name="i-lucide-users" class="text-cb-tertiary-500 mx-auto mb-3 size-10" />
 			<p class="font-medium">No artists found</p>
 			<p class="text-cb-tertiary-500 mt-1 text-sm">
 				Try removing a filter or broadening your search.
