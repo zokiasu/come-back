@@ -20,19 +20,15 @@
 		</div>
 
 		<!-- Loading state -->
-		<div
-			v-if="isLoading && rankings.length === 0"
-			class="flex items-center justify-center py-20"
-		>
-			<UIcon
-				name="line-md:loading-twotone-loop"
-				class="text-cb-primary-900 size-8 animate-spin"
-			/>
-		</div>
+		<PageHeroLoader
+			v-if="showHeroLoader"
+			title="Loading rankings explorer"
+			description="We are preparing the latest public rankings for the community."
+		/>
 
 		<!-- Empty state -->
 		<div
-			v-else-if="rankings.length === 0"
+			v-else-if="isInitialized && rankings.length === 0"
 			class="bg-cb-quaternary-950 flex flex-col items-center justify-center rounded-lg py-20"
 		>
 			<UIcon name="i-lucide-globe" class="text-cb-tertiary-500 mb-4 size-16" />
@@ -152,19 +148,24 @@
 	// State
 	const rankings = ref<UserRankingWithPreview[]>([])
 	const isLoading = ref(true)
+	const isInitialized = ref(false)
 	const currentPage = ref(1)
 	const totalRankings = ref(0)
 	const limit = 20
 
 	const totalPages = computed(() => Math.ceil(totalRankings.value / limit))
+	const showHeroLoader = computed(() => !isInitialized.value)
 
 	// Load rankings
 	const loadRankings = async () => {
 		isLoading.value = true
-		const result = await getPublicRankings(currentPage.value, limit)
-		rankings.value = result.rankings
-		totalRankings.value = result.total
-		isLoading.value = false
+		try {
+			const result = await getPublicRankings(currentPage.value, limit)
+			rankings.value = result.rankings
+			totalRankings.value = result.total
+		} finally {
+			isLoading.value = false
+		}
 	}
 
 	// Get 4 thumbnails for cover
@@ -183,7 +184,11 @@
 	})
 
 	// Initial load
-	onMounted(() => {
-		loadRankings()
+	onMounted(async () => {
+		try {
+			await loadRankings()
+		} finally {
+			isInitialized.value = true
+		}
 	})
 </script>

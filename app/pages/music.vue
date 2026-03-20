@@ -211,7 +211,13 @@
 					</div>
 				</div>
 
-				<div class="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+				<PageHeroLoader
+					v-if="loading && firstLoad"
+					title="Loading music explorer"
+					description="We are preparing recent tracks and the current filter set now."
+				/>
+
+				<div v-else class="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
 					<div
 						v-for="music in musicsList"
 						:key="music.id"
@@ -283,11 +289,11 @@
 				</div>
 
 				<div
-					v-if="loading"
+					v-if="loading && !firstLoad"
 					class="text-cb-tertiary-500 flex items-center justify-center gap-2 py-4 text-xs"
 				>
 					<UIcon name="line-md:loading-twotone-loop" class="size-4 animate-spin" />
-					<p>{{ firstLoad ? 'Loading...' : 'Loading...' }}</p>
+					<p>Loading more tracks...</p>
 				</div>
 
 				<div

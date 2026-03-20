@@ -298,7 +298,11 @@
 				{{ pageError }}
 			</div>
 
-			<SkeletonDefault v-if="loading" text="Loading..." class="h-48 w-full rounded-lg" />
+			<PageHeroLoader
+				v-if="loading"
+				title="Loading calendar releases"
+				description="We are preparing releases for the selected period now."
+			/>
 
 			<div
 				v-else-if="displayedReleases.length === 0"

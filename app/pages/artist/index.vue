@@ -1,13 +1,13 @@
 <template>
-	<div class="container mx-auto space-y-6 p-5">
-		<div class="space-y-1 text-center">
-			<h1 class="text-2xl font-bold">Artists List</h1>
-			<p class="text-cb-tertiary-500 text-sm">
+	<div class="mx-auto w-full max-w-[95rem] space-y-6 p-5">
+		<div class="mb-4">
+			<h1 class="text-xl font-bold">Artists List</h1>
+			<p class="text-cb-tertiary-500 text-xs">
 				Discover artists and refine the list with focused filters.
 			</p>
 		</div>
 
-		<div class="space-y-4">
+		<div class="mb-6 space-y-4">
 			<div class="bg-cb-quinary-900/70 space-y-4 rounded-xl border border-white/5 p-4">
 				<div class="flex flex-col gap-3 lg:flex-row lg:items-center">
 					<UInput
@@ -259,33 +259,39 @@
 			</div>
 		</div>
 
-		<transition-group
-			tag="div"
-			leave-active-class="animate__bounceOut"
-			enter-active-class="animate__bounceIn"
-			class="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 md:gap-3.5 lg:grid-cols-6 xl:grid-cols-8"
-		>
-			<CardObject
-				v-for="artist in artists"
-				:key="artist.id"
-				is-artist
-				:artist-id="artist.id"
-				:main-title="artist.name"
-				:image="artist.image || ''"
-				:release-date="artist.debut_date || ''"
-				:release-type="artist.type || ''"
-				:object-link="`/artist/${artist.id}`"
-				date-always-display
-				class="!min-w-full"
-			/>
-		</transition-group>
-		<div ref="loadMoreSentinel" class="h-px w-full" />
+		<PageHeroLoader
+			v-if="showHeroLoader"
+			title="Loading artists directory"
+			description="We are preparing artists and the current filter set now."
+		/>
 
-		<LoadingIndicator :show="isLoading && firstLoad" message="Loading artists..." />
+		<template v-else>
+			<transition-group
+				tag="div"
+				leave-active-class="animate__bounceOut"
+				enter-active-class="animate__bounceIn"
+				class="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 md:gap-3.5 lg:grid-cols-6 xl:grid-cols-8"
+			>
+				<CardObject
+					v-for="artist in artists"
+					:key="artist.id"
+					is-artist
+					:artist-id="artist.id"
+					:main-title="artist.name"
+					:image="artist.image || ''"
+					:release-date="artist.debut_date || ''"
+					:release-type="artist.type || ''"
+					:object-link="`/artist/${artist.id}`"
+					date-always-display
+					class="!min-w-full"
+				/>
+			</transition-group>
+			<div ref="loadMoreSentinel" class="h-px w-full" />
+		</template>
 
 		<LoadingIndicator :show="isLoading && !firstLoad" message="Loading more artists..." />
 		<div
-			v-if="!isLoading && !pageError && artists.length === 0"
+			v-if="isInitialized && !isLoading && !pageError && artists.length === 0"
 			class="bg-cb-quinary-900/40 rounded-xl border border-white/5 py-12 text-center"
 		>
 			<UIcon name="i-lucide-users" class="text-cb-tertiary-500 mx-auto mb-3 size-10" />
@@ -713,6 +719,10 @@
 		if (selectedTags.value.length === 0) return 'Tags'
 		if (selectedTags.value.length === 1) return selectedTags.value[0]
 		return `${selectedTags.value.length} tags`
+	})
+
+	const showHeroLoader = computed(() => {
+		return !isInitialized.value || (isLoading.value && firstLoad.value)
 	})
 
 	type ActiveFilterChip =

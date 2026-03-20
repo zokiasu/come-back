@@ -740,32 +740,12 @@
 
 <template>
 	<div class="mx-auto min-h-[calc(100vh-60px)] max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-		<div
+		<PageHeroLoader
 			v-if="isBootstrapping"
-			class="flex min-h-[calc(100vh-140px)] items-center justify-center"
-		>
-			<div
-				class="bg-cb-secondary-950 border-cb-quinary-900/70 w-full max-w-2xl rounded-[28px] border p-10 shadow-2xl"
-			>
-				<div class="flex flex-col items-center gap-5 text-center">
-					<div
-						class="bg-cb-quaternary-950 border-cb-quinary-900/70 flex h-16 w-16 items-center justify-center rounded-2xl border"
-					>
-						<UIcon
-							name="i-lucide-loader-circle"
-							class="text-cb-primary-900 h-8 w-8 animate-spin"
-						/>
-					</div>
-					<div class="space-y-2">
-						<h1 class="text-2xl font-semibold">Loading artist creator</h1>
-						<p class="mx-auto max-w-xl text-sm leading-6 text-gray-400">
-							We are preparing the taxonomy now. Artist and company relations will be
-							searched on demand as you type.
-						</p>
-					</div>
-				</div>
-			</div>
-		</div>
+			variant="page"
+			title="Loading artist creator"
+			description="We are preparing the taxonomy now. Artist and company relations will be searched on demand as you type."
+		/>
 
 		<div
 			v-else-if="bootstrapError"
@@ -928,7 +908,7 @@
 				</div>
 			</section>
 
-			<div class="grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(320px,0.95fr)]">
+			<div class="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(320px,0.95fr)]">
 				<div class="space-y-6">
 					<section
 						class="bg-cb-secondary-950 border-cb-quinary-900/70 rounded-[28px] border p-6 shadow-xl"
