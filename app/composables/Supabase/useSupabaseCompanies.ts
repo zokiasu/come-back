@@ -12,6 +12,7 @@ interface CompaniesResponse {
 export function useSupabaseCompanies() {
 	const supabase = useSupabaseClient<Database>()
 	const toast = useToast()
+	const { runMutation } = useMutationTimeout()
 
 	// Types de companies disponibles (depuis les types Supabase constants)
 	const companyTypes = [
@@ -39,11 +40,10 @@ export function useSupabaseCompanies() {
 	const createCompany = async (
 		companyData: TablesInsert<'companies'>,
 	): Promise<Company> => {
-		const { data, error } = await supabase
-			.from('companies')
-			.insert(companyData)
-			.select()
-			.single()
+		const { data, error } = await runMutation(
+			supabase.from('companies').insert(companyData).select().single(),
+			'Creating the company timed out. Please try again.',
+		)
 
 		if (error) {
 			console.error('Erreur lors de la création de la company:', error)
@@ -72,12 +72,10 @@ export function useSupabaseCompanies() {
 		companyId: string,
 		companyData: TablesUpdate<'companies'>,
 	): Promise<Company> => {
-		const { data, error } = await supabase
-			.from('companies')
-			.update(companyData)
-			.eq('id', companyId)
-			.select()
-			.single()
+		const { data, error } = await runMutation(
+			supabase.from('companies').update(companyData).eq('id', companyId).select().single(),
+			'Updating the company timed out. Please try again.',
+		)
 
 		if (error) {
 			console.error('Erreur lors de la mise à jour de la company:', error)
@@ -116,7 +114,10 @@ export function useSupabaseCompanies() {
 			})
 		}
 
-		const { error } = await supabase.from('companies').delete().eq('id', companyId)
+		const { error } = await runMutation(
+			supabase.from('companies').delete().eq('id', companyId),
+			'Deleting the company timed out. Please try again.',
+		)
 
 		if (error) {
 			console.error('Erreur lors de la suppression de la company:', error)
@@ -263,17 +264,20 @@ export function useSupabaseCompanies() {
 			is_current: options?.isCurrent ?? true,
 		}
 
-		const { data, error } = await supabase
-			.from('artist_companies')
-			.insert(insertData)
-			.select(
-				`
+		const { data, error } = await runMutation(
+			supabase
+				.from('artist_companies')
+				.insert(insertData)
+				.select(
+					`
 				*,
 				company:companies(*),
 				artist:artists(id, name, image, type, verified)
 			`,
-			)
-			.single()
+				)
+				.single(),
+			'Linking the company to the artist timed out. Please try again.',
+		)
 
 		if (error) {
 			console.error('Erreur lors de la liaison company-artiste:', error)
@@ -299,10 +303,10 @@ export function useSupabaseCompanies() {
 
 	// Supprimer une liaison company-artiste
 	const unlinkCompanyFromArtist = async (relationId: string) => {
-		const { error } = await supabase
-			.from('artist_companies')
-			.delete()
-			.eq('id', relationId)
+		const { error } = await runMutation(
+			supabase.from('artist_companies').delete().eq('id', relationId),
+			'Deleting the company relation timed out. Please try again.',
+		)
 
 		if (error) {
 			console.error('Erreur lors de la suppression de la liaison:', error)
@@ -331,18 +335,21 @@ export function useSupabaseCompanies() {
 		relationId: string,
 		updates: TablesUpdate<'artist_companies'>,
 	): Promise<CompanyArtist> => {
-		const { data, error } = await supabase
-			.from('artist_companies')
-			.update(updates)
-			.eq('id', relationId)
-			.select(
-				`
+		const { data, error } = await runMutation(
+			supabase
+				.from('artist_companies')
+				.update(updates)
+				.eq('id', relationId)
+				.select(
+					`
 				*,
 				company:companies(*),
 				artist:artists(id, name, image, type, verified)
 			`,
-			)
-			.single()
+				)
+				.single(),
+			'Updating the company relation timed out. Please try again.',
+		)
 
 		if (error) {
 			console.error('Erreur lors de la mise à jour de la relation:', error)

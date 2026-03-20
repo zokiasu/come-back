@@ -1,4 +1,5 @@
 import { useDebounce } from '~/composables/useDebounce'
+import { useMutationTimeout } from '~/composables/useMutationTimeout'
 
 export type YtmIdStatus =
 	| 'idle'
@@ -18,6 +19,7 @@ const MIN_YTM_ID_LENGTH = 6
 
 export function useYoutubeMusicIdCheck() {
 	const { getAuthHeaders } = useApiAuthHeaders()
+	const { runMutation } = useMutationTimeout()
 	const status = ref<YtmIdStatus>('idle')
 	const message = ref<string | null>(null)
 
@@ -42,10 +44,15 @@ export function useYoutubeMusicIdCheck() {
 
 		try {
 			const headers = getAuthHeaders()
-			const result = await $fetch<CheckYtmIdResponse>('/api/artists/check-youtube-id', {
-				query: { id: trimmedId },
-				headers,
-			})
+			// This check runs while the user types.
+			// A timeout avoids blocking the field in "checking" state forever.
+			const result = await runMutation(
+				$fetch<CheckYtmIdResponse>('/api/artists/check-youtube-id', {
+					query: { id: trimmedId },
+					headers,
+				}),
+				'YouTube Music ID validation timed out. Please try again.',
+			)
 
 			if (result.status === 'blacklisted') {
 				status.value = 'blacklisted'

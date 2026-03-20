@@ -11,6 +11,7 @@ export function useSupabaseRanking() {
 	const supabase = useSupabaseClient<Database>()
 	const userStore = useUserStore()
 	const toast = useToast()
+	const { runMutation } = useMutationTimeout()
 
 	const buildRankingPreviews = async (
 		rankings: UserRanking[],
@@ -191,16 +192,19 @@ export function useSupabaseRanking() {
 			return null
 		}
 
-		const { data, error } = await supabase
-			.from('user_rankings')
-			.insert({
-				user_id: userStore.userDataStore.id,
-				name,
-				description: description || null,
-				is_public: false,
-			})
-			.select()
-			.single()
+		const { data, error } = await runMutation(
+			supabase
+				.from('user_rankings')
+				.insert({
+					user_id: userStore.userDataStore.id,
+					name,
+					description: description || null,
+					is_public: false,
+				})
+				.select()
+				.single(),
+			'Creating the ranking timed out. Please try again.',
+		)
 
 		console.warn('[createRanking] Result:', { data, error })
 
@@ -230,12 +234,10 @@ export function useSupabaseRanking() {
 		id: string,
 		updates: Partial<Pick<UserRanking, 'name' | 'description' | 'is_public'>>,
 	): Promise<UserRanking | null> => {
-		const { data, error } = await supabase
-			.from('user_rankings')
-			.update(updates)
-			.eq('id', id)
-			.select()
-			.single()
+		const { data, error } = await runMutation(
+			supabase.from('user_rankings').update(updates).eq('id', id).select().single(),
+			'Updating the ranking timed out. Please try again.',
+		)
 
 		if (error) {
 			console.error('Error while updating ranking:', error)
@@ -254,7 +256,10 @@ export function useSupabaseRanking() {
 	 * Supprime un ranking
 	 */
 	const deleteRanking = async (id: string): Promise<boolean> => {
-		const { error } = await supabase.from('user_rankings').delete().eq('id', id)
+		const { error } = await runMutation(
+			supabase.from('user_rankings').delete().eq('id', id),
+			'Deleting the ranking timed out. Please try again.',
+		)
 
 		if (error) {
 			console.error('Error while deleting ranking:', error)
@@ -302,15 +307,18 @@ export function useSupabaseRanking() {
 			return null
 		}
 
-		const { data, error } = await supabase
-			.from('user_ranking_items')
-			.insert({
-				ranking_id: rankingId,
-				music_id: musicId,
-				position: newPosition,
-			})
-			.select()
-			.single()
+		const { data, error } = await runMutation(
+			supabase
+				.from('user_ranking_items')
+				.insert({
+					ranking_id: rankingId,
+					music_id: musicId,
+					position: newPosition,
+				})
+				.select()
+				.single(),
+			'Adding the track to the ranking timed out. Please try again.',
+		)
 
 		if (error) {
 			if (error.code === '23505') {
@@ -332,10 +340,13 @@ export function useSupabaseRanking() {
 		}
 
 		// Mettre à jour updated_at du ranking parent
-		await supabase
-			.from('user_rankings')
-			.update({ updated_at: new Date().toISOString() })
-			.eq('id', rankingId)
+		await runMutation(
+			supabase
+				.from('user_rankings')
+				.update({ updated_at: new Date().toISOString() })
+				.eq('id', rankingId),
+			'Refreshing the ranking metadata timed out. Please try again.',
+		)
 
 		return data as UserRankingItem
 	}
@@ -358,11 +369,14 @@ export function useSupabaseRanking() {
 		if (!itemToDelete) return false
 
 		// Supprimer l'item
-		const { error } = await supabase
-			.from('user_ranking_items')
-			.delete()
-			.eq('ranking_id', rankingId)
-			.eq('music_id', musicId)
+		const { error } = await runMutation(
+			supabase
+				.from('user_ranking_items')
+				.delete()
+				.eq('ranking_id', rankingId)
+				.eq('music_id', musicId),
+			'Removing the track from the ranking timed out. Please try again.',
+		)
 
 		if (error) {
 			console.error('Error while removing track:', error)
@@ -375,16 +389,22 @@ export function useSupabaseRanking() {
 		}
 
 		// Réajuster les positions des items suivants
-		await supabase.rpc('reorder_ranking_items_after_delete', {
-			p_ranking_id: rankingId,
-			p_deleted_position: itemToDelete.position,
-		})
+		await runMutation(
+			supabase.rpc('reorder_ranking_items_after_delete', {
+				p_ranking_id: rankingId,
+				p_deleted_position: itemToDelete.position,
+			}),
+			'Reordering the ranking timed out after deleting the track. Please try again.',
+		)
 
 		// Mettre à jour updated_at du ranking parent
-		await supabase
-			.from('user_rankings')
-			.update({ updated_at: new Date().toISOString() })
-			.eq('id', rankingId)
+		await runMutation(
+			supabase
+				.from('user_rankings')
+				.update({ updated_at: new Date().toISOString() })
+				.eq('id', rankingId),
+			'Refreshing the ranking metadata timed out. Please try again.',
+		)
 
 		return true
 	}
@@ -398,10 +418,13 @@ export function useSupabaseRanking() {
 	): Promise<boolean> => {
 		try {
 			// Utiliser la fonction RPC atomique pour éviter les conflits 409
-			const { error } = await supabase.rpc('reorder_ranking_items_atomic', {
-				p_ranking_id: rankingId,
-				p_items: items,
-			})
+			const { error } = await runMutation(
+				supabase.rpc('reorder_ranking_items_atomic', {
+					p_ranking_id: rankingId,
+					p_items: items,
+				}),
+				'Reordering the ranking timed out. Please try again.',
+			)
 
 			if (error) {
 				throw error

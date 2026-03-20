@@ -44,6 +44,7 @@ export interface ErrorHandlerOptions {
 export const useSupabaseQueryBuilder = () => {
 	const supabase = useSupabaseClient<Database>()
 	const toast = useToast()
+	const { runMutation } = useMutationTimeout()
 
 	/**
 	 * Gestion centralisée des erreurs
@@ -151,17 +152,18 @@ export const useSupabaseQueryBuilder = () => {
 		childIds: string[],
 		additionalData?: Record<string, unknown>,
 	): Promise<void> => {
-		// Supprimer les anciennes relations
-		const { error: deleteError } = await supabase
-			.from(tableName)
-			.delete()
-			.eq(parentColumn as never, parentId)
+		// The relation update is destructive, so both the delete and re-insert
+		// are protected by the shared timeout helper.
+		const { error: deleteError } = await runMutation(
+			supabase.from(tableName).delete().eq(parentColumn as never, parentId),
+			`Updating ${String(tableName)} relations timed out while deleting previous links.`,
+		)
 
 		if (deleteError) {
 			handleError(deleteError, `la suppression des relations ${String(tableName)}`)
 		}
 
-		// Insérer les nouvelles relations si il y en a
+		// Recreate the full relation set only after the previous links are cleared.
 		if (childIds.length > 0) {
 			const insertData = childIds.map((childId) => ({
 				[parentColumn]: parentId,
@@ -169,9 +171,10 @@ export const useSupabaseQueryBuilder = () => {
 				...additionalData,
 			}))
 
-			const { error: insertError } = await supabase
-				.from(tableName)
-				.insert(insertData as never)
+			const { error: insertError } = await runMutation(
+				supabase.from(tableName).insert(insertData as never),
+				`Updating ${String(tableName)} relations timed out while inserting links.`,
+			)
 
 			if (insertError) {
 				handleError(insertError, `l'insertion des relations ${String(tableName)}`)
@@ -190,12 +193,17 @@ export const useSupabaseQueryBuilder = () => {
 	): Promise<void> => {
 		if (!items.length) return
 
+		// This helper is reused by several forms after the parent record exists.
+		// If the insert hangs, we want the caller to fail fast instead of waiting forever.
 		const itemsWithParentId = items.map((item) => ({
 			...item,
 			[parentColumn]: parentId,
 		}))
 
-		const { error } = await supabase.from(tableName).insert(itemsWithParentId as never)
+		const { error } = await runMutation(
+			supabase.from(tableName).insert(itemsWithParentId as never),
+			`Creating linked ${String(tableName)} items timed out. Please try again.`,
+		)
 
 		if (error) {
 			handleError(error, `l'insertion des éléments ${String(tableName)}`, {
@@ -254,10 +262,11 @@ export const useSupabaseQueryBuilder = () => {
 		column: string,
 		parentId: string,
 	): Promise<void> => {
-		const { error } = await supabase
-			.from(tableName)
-			.delete()
-			.eq(column as never, parentId)
+		// Same rule here: relation cleanup must not leave the UI in an endless loading state.
+		const { error } = await runMutation(
+			supabase.from(tableName).delete().eq(column as never, parentId),
+			`Deleting linked ${String(tableName)} items timed out. Please try again.`,
+		)
 
 		if (error) {
 			handleError(error, `la suppression des éléments liés ${String(tableName)}`, {

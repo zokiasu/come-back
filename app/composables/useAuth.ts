@@ -11,6 +11,7 @@ export const useAuth = () => {
 	const user = useSupabaseUser()
 	const supabase = useSupabaseClient()
 	const userStore = useUserStore()
+	const { runMutation } = useMutationTimeout()
 
 	// Utiliser storeToRefs pour préserver la réactivité
 	const { userDataStore, isLoginStore, isAdminStore, supabaseUserStore } =
@@ -121,7 +122,8 @@ export const useAuth = () => {
 			}
 
 			if (!existingUser) {
-				// Créer un nouvel utilisateur
+				// The local user profile creation is also a mutation flow:
+				// if Supabase does not answer, auth must fail clearly instead of hanging.
 				const insertData: UserInsertData = {
 					id: authUser.id,
 					email: authUser.email || '',
@@ -136,11 +138,10 @@ export const useAuth = () => {
 					updated_at: new Date().toISOString(),
 				}
 
-				const { data: newUser, error: createError } = await supabase
-					.from('users')
-					.insert([insertData])
-					.select()
-					.single()
+				const { data: newUser, error: createError } = await runMutation(
+					supabase.from('users').insert([insertData]).select().single(),
+					'Creating the user profile timed out. Please try again.',
+				)
 
 				if (createError) {
 					console.error("Erreur lors de la création de l'utilisateur:", createError)
@@ -155,8 +156,8 @@ export const useAuth = () => {
 
 				return newUser as User
 			} else {
-				// Préserver les personnalisations du profil existant et ne compléter
-				// que les champs encore vides.
+				// Same idea for profile hydration updates: timeout -> explicit error,
+				// no endless "logged in but not really ready" state.
 				const nextEmail = hasMeaningfulText(authUser.email) ? authUser.email : null
 				const nextName =
 					authUser.user_metadata?.full_name || authUser.user_metadata?.name || null
@@ -183,12 +184,15 @@ export const useAuth = () => {
 				updateData.role = existingUser.role
 				updateData.updated_at = new Date().toISOString()
 
-				const { data: updatedUser, error: updateError } = await supabase
-					.from('users')
-					.update(updateData)
-					.eq('id', authUser.id)
-					.select()
-					.single()
+				const { data: updatedUser, error: updateError } = await runMutation(
+					supabase
+						.from('users')
+						.update(updateData)
+						.eq('id', authUser.id)
+						.select()
+						.single(),
+					'Updating the user profile timed out. Please try again.',
+				)
 
 				if (updateError) {
 					console.error("Erreur lors de la mise à jour de l'utilisateur:", updateError)

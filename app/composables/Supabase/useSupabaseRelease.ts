@@ -22,6 +22,7 @@ export function useSupabaseRelease() {
 	const supabase = useSupabaseClient<Database>()
 	const toast = useToast()
 	const { requireAuthHeaders } = useApiAuthHeaders()
+	const { runMutation } = useMutationTimeout()
 
 	// Met à jour une release
 	const updateRelease = async (
@@ -29,12 +30,10 @@ export function useSupabaseRelease() {
 		updates: TablesUpdate<'releases'>,
 		platformLinks?: TablesInsert<'release_platform_links'>[],
 	): Promise<Release | null> => {
-		const { data, error } = await supabase
-			.from('releases')
-			.update(updates)
-			.eq('id', id)
-			.select()
-			.single()
+		const { data, error } = await runMutation(
+			supabase.from('releases').update(updates).eq('id', id).select().single(),
+			'Updating the release timed out. Please try again.',
+		)
 
 		if (error) {
 			console.error('Erreur lors de la mise à jour de la release:', error)
@@ -48,7 +47,10 @@ export function useSupabaseRelease() {
 		// Gestion des liens de plateformes si fournis
 		if (platformLinks !== undefined) {
 			// Supprimer les anciens liens de plateformes
-			await supabase.from('release_platform_links').delete().eq('release_id', id)
+			await runMutation(
+				supabase.from('release_platform_links').delete().eq('release_id', id),
+				'Refreshing release platform links timed out. Please try again.',
+			)
 
 			// Ajouter les nouveaux liens de plateformes
 			if (platformLinks?.length) {
@@ -57,9 +59,10 @@ export function useSupabaseRelease() {
 					release_id: id,
 				}))
 
-				const { error: platformError } = await supabase
-					.from('release_platform_links')
-					.insert(platformLinksWithReleaseId)
+				const { error: platformError } = await runMutation(
+					supabase.from('release_platform_links').insert(platformLinksWithReleaseId),
+					'Adding release platform links timed out. Please try again.',
+				)
 
 				if (platformError) {
 					console.error("Erreur lors de l'ajout des liens de plateformes:", platformError)
@@ -73,10 +76,10 @@ export function useSupabaseRelease() {
 	const updateReleaseArtists = async (id: string, artistIds?: string[]) => {
 		try {
 			// 1. Supprimer toutes les relations existantes
-			const { error: deleteError } = await supabase
-				.from('artist_releases')
-				.delete()
-				.eq('release_id', id)
+			const { error: deleteError } = await runMutation(
+				supabase.from('artist_releases').delete().eq('release_id', id),
+				'Refreshing linked artists timed out. Please try again.',
+			)
 
 			if (deleteError) {
 				console.error(
@@ -92,11 +95,14 @@ export function useSupabaseRelease() {
 
 			// 2. Ajouter les nouvelles relations si nécessaire
 			if (artistIds && artistIds.length > 0) {
-				const { error: insertError } = await supabase.from('artist_releases').insert(
-					artistIds.map((artistId) => ({
-						release_id: id,
-						artist_id: artistId,
-					})),
+				const { error: insertError } = await runMutation(
+					supabase.from('artist_releases').insert(
+						artistIds.map((artistId) => ({
+							release_id: id,
+							artist_id: artistId,
+						})),
+					),
+					'Linking artists to the release timed out. Please try again.',
 				)
 
 				if (insertError) {
@@ -122,10 +128,13 @@ export function useSupabaseRelease() {
 	// Supprime une release
 	const deleteRelease = async (id: string) => {
 		try {
-			await $fetch(`/api/releases/${id}`, {
-				method: 'DELETE',
-				headers: requireAuthHeaders(),
-			})
+			await runMutation(
+				$fetch(`/api/releases/${id}`, {
+					method: 'DELETE',
+					headers: requireAuthHeaders(),
+				}),
+				'Deleting the release timed out. Please try again.',
+			)
 			return true
 		} catch (error) {
 			console.error('Erreur lors de la suppression de la release:', error)
@@ -464,11 +473,10 @@ export function useSupabaseRelease() {
 	): Promise<Release | null> => {
 		try {
 			// 1. Créer la release
-			const { data: release, error: releaseError } = await supabase
-				.from('releases')
-				.insert(releaseData)
-				.select()
-				.single()
+			const { data: release, error: releaseError } = await runMutation(
+				supabase.from('releases').insert(releaseData).select().single(),
+				'Creating the release timed out. Please try again.',
+			)
 
 			if (releaseError) {
 				console.error('Erreur lors de la création de la release:', releaseError)
@@ -481,18 +489,24 @@ export function useSupabaseRelease() {
 
 			// 2. Ajouter les relations avec les artistes
 			if (artistIds && artistIds.length > 0) {
-				const { error: artistError } = await supabase.from('artist_releases').insert(
-					artistIds.map((artistId, index) => ({
-						release_id: release.id,
-						artist_id: artistId,
-						is_primary: index === 0, // Le premier artiste est considéré comme principal
-					})),
+				const { error: artistError } = await runMutation(
+					supabase.from('artist_releases').insert(
+						artistIds.map((artistId, index) => ({
+							release_id: release.id,
+							artist_id: artistId,
+							is_primary: index === 0, // Le premier artiste est considéré comme principal
+						})),
+					),
+					'Linking artists to the release timed out. Please try again.',
 				)
 
 				if (artistError) {
 					console.error("Erreur lors de l'ajout des artistes:", artistError)
 					// On supprime la release créée si l'ajout des artistes échoue
-					await supabase.from('releases').delete().eq('id', release.id)
+					await runMutation(
+						supabase.from('releases').delete().eq('id', release.id),
+						'Cleaning up the failed release creation timed out. Please try again.',
+					)
 					toast.add({
 						title: 'Error while adding artists',
 						color: 'error',
@@ -508,14 +522,18 @@ export function useSupabaseRelease() {
 					release_id: release.id,
 				}))
 
-				const { error: platformError } = await supabase
-					.from('release_platform_links')
-					.insert(platformLinksWithReleaseId)
+				const { error: platformError } = await runMutation(
+					supabase.from('release_platform_links').insert(platformLinksWithReleaseId),
+					'Adding platform links to the release timed out. Please try again.',
+				)
 
 				if (platformError) {
 					console.error("Erreur lors de l'ajout des liens de plateformes:", platformError)
 					// On supprime la release créée si l'ajout des liens échoue
-					await supabase.from('releases').delete().eq('id', release.id)
+					await runMutation(
+						supabase.from('releases').delete().eq('id', release.id),
+						'Cleaning up the failed release creation timed out. Please try again.',
+					)
 					toast.add({
 						title: 'Error while adding platform links',
 						color: 'error',

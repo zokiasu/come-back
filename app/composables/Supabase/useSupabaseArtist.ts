@@ -33,6 +33,7 @@ const logArtistCreateTrace = (step: string, details?: Record<string, unknown>) =
 export function useSupabaseArtist() {
 	const supabase = useSupabaseClient<Database>()
 	const toast = useToast()
+	const { runMutation } = useMutationTimeout()
 
 	// Vérifie si un artiste existe avec l'ID YouTube Music
 	const artistExistInSupabase = (idYoutubeMusic: string | null): Promise<boolean> => {
@@ -198,10 +199,10 @@ export function useSupabaseArtist() {
 
 	// Approuve un artiste (met verified = true) sans toucher aux relations
 	const approveArtist = async (artistId: string) => {
-		const { error } = await supabase
-			.from('artists')
-			.update({ verified: true })
-			.eq('id', artistId)
+		const { error } = await runMutation(
+			supabase.from('artists').update({ verified: true }).eq('id', artistId),
+			'Approving the artist timed out. Please try again.',
+		)
 
 		if (error) {
 			console.error("Erreur lors de l'approbation de l'artiste:", error)

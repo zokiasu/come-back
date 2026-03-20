@@ -17,6 +17,7 @@ interface ContributionsResponse {
 export function useSupabaseUserArtistContributions() {
 	const supabase = useSupabaseClient<Database>()
 	const toast = useToast()
+	const { runMutation } = useMutationTimeout()
 
 	// Ajouter une contribution utilisateur pour un artiste
 	const addUserArtistContribution = async (
@@ -35,13 +36,16 @@ export function useSupabaseUserArtistContributions() {
 		if (existing) {
 			// Mettre à jour le type de contribution si différent
 			if (existing.contribution_type !== contributionType) {
-				const { data, error } = await supabase
-					.from('user_artist_contributions')
-					.update({ contribution_type: contributionType })
-					.eq('user_id', userId)
-					.eq('artist_id', artistId)
-					.select()
-					.single()
+				const { data, error } = await runMutation(
+					supabase
+						.from('user_artist_contributions')
+						.update({ contribution_type: contributionType })
+						.eq('user_id', userId)
+						.eq('artist_id', artistId)
+						.select()
+						.single(),
+					'Updating the contribution timed out. Please try again.',
+				)
 
 				if (error) {
 					console.error('Erreur lors de la mise à jour de la contribution:', error)
@@ -59,15 +63,18 @@ export function useSupabaseUserArtistContributions() {
 		}
 
 		// Créer une nouvelle contribution
-		const { data, error } = await supabase
-			.from('user_artist_contributions')
-			.insert({
-				user_id: userId,
-				artist_id: artistId,
-				contribution_type: contributionType,
-			})
-			.select()
-			.single()
+		const { data, error } = await runMutation(
+			supabase
+				.from('user_artist_contributions')
+				.insert({
+					user_id: userId,
+					artist_id: artistId,
+					contribution_type: contributionType,
+				})
+				.select()
+				.single(),
+			'Creating the contribution timed out. Please try again.',
+		)
 
 		if (error) {
 			console.error('Erreur lors de la création de la contribution:', error)
@@ -84,11 +91,14 @@ export function useSupabaseUserArtistContributions() {
 
 	// Supprimer une contribution utilisateur
 	const removeUserArtistContribution = async (userId: string, artistId: string) => {
-		const { error } = await supabase
-			.from('user_artist_contributions')
-			.delete()
-			.eq('user_id', userId)
-			.eq('artist_id', artistId)
+		const { error } = await runMutation(
+			supabase
+				.from('user_artist_contributions')
+				.delete()
+				.eq('user_id', userId)
+				.eq('artist_id', artistId),
+			'Deleting the contribution timed out. Please try again.',
+		)
 
 		if (error) {
 			console.error('Erreur lors de la suppression de la contribution:', error)

@@ -14,24 +14,7 @@ interface NewsResponse {
 export function useSupabaseNews() {
 	const supabase = useSupabaseClient<Database>()
 	const toast = useToast()
-	const withTimeout = async <T>(
-		promise: PromiseLike<T>,
-		timeoutMs: number,
-		errorMessage: string,
-	): Promise<T> => {
-		let timeoutId: ReturnType<typeof setTimeout> | null = null
-
-		try {
-			return await Promise.race([
-				promise,
-				new Promise<never>((_, reject) => {
-					timeoutId = setTimeout(() => reject(new Error(errorMessage)), timeoutMs)
-				}),
-			])
-		} finally {
-			if (timeoutId) clearTimeout(timeoutId)
-		}
-	}
+	const { runMutation } = useMutationTimeout()
 
 	// Crée une nouvelle news
 	const createNews = async (
@@ -46,7 +29,7 @@ export function useSupabaseNews() {
 			throw new Error('Le message est requis pour créer une news')
 		}
 
-		const { data: news, error } = await withTimeout(
+		const { data: news, error } = await runMutation(
 			supabase
 				.from('news')
 				.insert(data)
@@ -57,9 +40,8 @@ export function useSupabaseNews() {
 						artist_id
 					)
 				`,
-				)
+					)
 				.single(),
-			15000,
 			'The comeback request timed out while creating the report.',
 		)
 
@@ -80,15 +62,17 @@ export function useSupabaseNews() {
 			}),
 		)
 
-		const { error: junctionError } = await withTimeout(
+		const { error: junctionError } = await runMutation(
 			supabase.from('news_artists_junction').insert(junctionInserts).select(),
-			15000,
 			'The comeback request timed out while linking artists.',
 		)
 
 		if (junctionError) {
 			console.error('Erreur lors de la création des relations artistes:', junctionError)
-			await supabase.from('news').delete().eq('id', news.id)
+			await runMutation(
+				supabase.from('news').delete().eq('id', news.id),
+				'Cleaning up the failed news creation timed out. Please try again.',
+			)
 			toast.add({
 				title: 'Erreur',
 				description: 'Erreur lors de la création des relations artistes',
@@ -105,12 +89,10 @@ export function useSupabaseNews() {
 		id: string,
 		updates: TablesUpdate<'news'>,
 	): Promise<News | null> => {
-		const { data, error } = await supabase
-			.from('news')
-			.update(updates)
-			.eq('id', id)
-			.select()
-			.single()
+		const { data, error } = await runMutation(
+			supabase.from('news').update(updates).eq('id', id).select().single(),
+			'Updating the report timed out. Please try again.',
+		)
 
 		if (error) {
 			console.error('Erreur lors de la mise à jour de la news:', error)
@@ -128,10 +110,10 @@ export function useSupabaseNews() {
 	const updateNewsArtistsRelations = async (id: string, artistIds?: string[]) => {
 		try {
 			// 1. Supprimer toutes les relations existantes pour cette news
-			const { error: deleteError } = await supabase
-				.from('news_artists_junction')
-				.delete()
-				.eq('news_id', id)
+			const { error: deleteError } = await runMutation(
+				supabase.from('news_artists_junction').delete().eq('news_id', id),
+				'Refreshing linked artists timed out. Please try again.',
+			)
 
 			if (deleteError) {
 				console.error(
@@ -156,9 +138,10 @@ export function useSupabaseNews() {
 					}),
 				)
 
-				const { error: insertError } = await supabase
-					.from('news_artists_junction')
-					.insert(junctionInserts)
+				const { error: insertError } = await runMutation(
+					supabase.from('news_artists_junction').insert(junctionInserts),
+					'Linking artists to the report timed out. Please try again.',
+				)
 
 				if (insertError) {
 					console.error(
@@ -183,7 +166,10 @@ export function useSupabaseNews() {
 
 	// Supprime une news
 	const deleteNews = async (id: string) => {
-		const { error } = await supabase.from('news').delete().eq('id', id)
+		const { error } = await runMutation(
+			supabase.from('news').delete().eq('id', id),
+			'Deleting the report timed out. Please try again.',
+		)
 
 		if (error) {
 			console.error('Erreur lors de la suppression de la news:', error)

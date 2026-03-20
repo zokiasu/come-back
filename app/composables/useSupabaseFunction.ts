@@ -3,6 +3,7 @@ import type { User } from '~/types'
 export function useSupabaseFunction() {
 	const supabase = useSupabaseClient()
 	const userStore = useUserStore()
+	const { runMutation } = useMutationTimeout()
 
 	// Updates user data in the 'users' table in Supabase.
 	const updateUserData = async (user: User) => {
@@ -12,12 +13,10 @@ export function useSupabaseFunction() {
 				updated_at: new Date().toISOString(),
 			}
 
-			const { data, error } = await supabase
-				.from('users')
-				.update(updateData)
-				.eq('id', user.id)
-				.select()
-				.single()
+			const { data, error } = await runMutation(
+				supabase.from('users').update(updateData).eq('id', user.id).select().single(),
+				'Updating the user profile timed out. Please try again.',
+			)
 
 			if (error) {
 				console.error('Error updating user:', error)

@@ -33,18 +33,17 @@ interface PaginatedMusicsResponse {
 export function useSupabaseMusic() {
 	const supabase = useSupabaseClient<Database>()
 	const toast = useToast()
+	const { runMutation } = useMutationTimeout()
 
 	// Met à jour une musique
 	const updateMusic = async (
 		id: string,
 		updates: Partial<Database['public']['Tables']['musics']['Update']>,
 	) => {
-		const { data, error } = await supabase
-			.from('musics')
-			.update(updates)
-			.eq('id', id)
-			.select()
-			.single()
+		const { data, error } = await runMutation(
+			supabase.from('musics').update(updates).eq('id', id).select().single(),
+			'Updating the track timed out. Please try again.',
+		)
 
 		if (error) {
 			console.error('Erreur lors de la mise à jour de la musique:', error)
@@ -61,10 +60,10 @@ export function useSupabaseMusic() {
 	const updateMusicArtists = async (id: string, artistIds?: string[]) => {
 		try {
 			// 1. Supprimer toutes les relations existantes
-			const { error: deleteError } = await supabase
-				.from('music_artists')
-				.delete()
-				.eq('music_id', id)
+			const { error: deleteError } = await runMutation(
+				supabase.from('music_artists').delete().eq('music_id', id),
+				'Refreshing linked artists timed out. Please try again.',
+			)
 
 			if (deleteError) {
 				console.error(
@@ -80,11 +79,14 @@ export function useSupabaseMusic() {
 
 			// 2. Ajouter les nouvelles relations si nécessaire
 			if (artistIds && artistIds.length > 0) {
-				const { error: insertError } = await supabase.from('music_artists').insert(
-					artistIds.map((artistId) => ({
-						music_id: id,
-						artist_id: artistId,
-					})) as Database['public']['Tables']['music_artists']['Insert'][],
+				const { error: insertError } = await runMutation(
+					supabase.from('music_artists').insert(
+						artistIds.map((artistId) => ({
+							music_id: id,
+							artist_id: artistId,
+						})) as Database['public']['Tables']['music_artists']['Insert'][],
+					),
+					'Linking artists to the track timed out. Please try again.',
 				)
 
 				if (insertError) {
@@ -110,10 +112,10 @@ export function useSupabaseMusic() {
 	const updateMusicReleases = async (id: string, releaseIds?: string[]) => {
 		try {
 			// 1. Supprimer toutes les relations existantes
-			const { error: deleteError } = await supabase
-				.from('music_releases')
-				.delete()
-				.eq('music_id', id)
+			const { error: deleteError } = await runMutation(
+				supabase.from('music_releases').delete().eq('music_id', id),
+				'Refreshing linked releases timed out. Please try again.',
+			)
 
 			if (deleteError) {
 				console.error(
@@ -129,11 +131,14 @@ export function useSupabaseMusic() {
 
 			// 2. Ajouter les nouvelles relations si nécessaire
 			if (releaseIds && releaseIds.length > 0) {
-				const { error: insertError } = await supabase.from('music_releases').insert(
-					releaseIds.map((releaseId) => ({
-						music_id: id,
-						release_id: releaseId,
-					})) as Database['public']['Tables']['music_releases']['Insert'][],
+				const { error: insertError } = await runMutation(
+					supabase.from('music_releases').insert(
+						releaseIds.map((releaseId) => ({
+							music_id: id,
+							release_id: releaseId,
+						})) as Database['public']['Tables']['music_releases']['Insert'][],
+					),
+					'Linking releases to the track timed out. Please try again.',
 				)
 
 				if (insertError) {
@@ -159,13 +164,22 @@ export function useSupabaseMusic() {
 	// Supprime une musique
 	const deleteMusic = async (id: string) => {
 		// Supprimer d'abord les relations avec les artistes
-		await supabase.from('music_artists').delete().eq('music_id', id)
+		await runMutation(
+			supabase.from('music_artists').delete().eq('music_id', id),
+			'Deleting track artist links timed out. Please try again.',
+		)
 
 		// Supprimer les relations avec les releases
-		await supabase.from('music_releases').delete().eq('music_id', id)
+		await runMutation(
+			supabase.from('music_releases').delete().eq('music_id', id),
+			'Deleting track release links timed out. Please try again.',
+		)
 
 		// Supprimer la musique
-		const { error } = await supabase.from('musics').delete().eq('id', id)
+		const { error } = await runMutation(
+			supabase.from('musics').delete().eq('id', id),
+			'Deleting the track timed out. Please try again.',
+		)
 
 		if (error) {
 			console.error('Erreur lors de la suppression de la musique:', error)
@@ -433,11 +447,14 @@ export function useSupabaseMusic() {
 	): Promise<Music | null> => {
 		try {
 			// 1. Créer la musique
-			const { data: music, error: musicError } = await supabase
-				.from('musics')
-				.insert(musicData as Database['public']['Tables']['musics']['Insert'])
-				.select()
-				.single()
+			const { data: music, error: musicError } = await runMutation(
+				supabase
+					.from('musics')
+					.insert(musicData as Database['public']['Tables']['musics']['Insert'])
+					.select()
+					.single(),
+				'Creating the track timed out. Please try again.',
+			)
 
 			if (musicError) {
 				console.error('Erreur lors de la création de la musique:', musicError)
@@ -450,18 +467,24 @@ export function useSupabaseMusic() {
 
 			// 2. Ajouter les relations avec les artistes
 			if (artistIds && artistIds.length > 0) {
-				const { error: artistError } = await supabase.from('music_artists').insert(
-					artistIds.map((artistId, index) => ({
-						music_id: music.id,
-						artist_id: artistId,
-						is_primary: index === 0, // Le premier artiste est considéré comme principal
-					})) as Database['public']['Tables']['music_artists']['Insert'][],
+				const { error: artistError } = await runMutation(
+					supabase.from('music_artists').insert(
+						artistIds.map((artistId, index) => ({
+							music_id: music.id,
+							artist_id: artistId,
+							is_primary: index === 0, // Le premier artiste est considéré comme principal
+						})) as Database['public']['Tables']['music_artists']['Insert'][],
+					),
+					'Linking artists to the new track timed out. Please try again.',
 				)
 
 				if (artistError) {
 					console.error("Erreur lors de l'ajout des artistes:", artistError)
 					// On supprime la musique créée si l'ajout des artistes échoue
-					await supabase.from('musics').delete().eq('id', music.id)
+					await runMutation(
+						supabase.from('musics').delete().eq('id', music.id),
+						'Cleaning up the failed track creation timed out. Please try again.',
+					)
 					toast.add({
 						title: "Erreur lors de l'ajout des artistes",
 						color: 'error',
@@ -484,11 +507,14 @@ export function useSupabaseMusic() {
 		trackNumber: number,
 	): Promise<boolean> => {
 		try {
-			const { error } = await supabase.from('music_releases').insert({
-				music_id: musicId,
-				release_id: releaseId,
-				track_number: trackNumber,
-			} as Database['public']['Tables']['music_releases']['Insert'])
+			const { error } = await runMutation(
+				supabase.from('music_releases').insert({
+					music_id: musicId,
+					release_id: releaseId,
+					track_number: trackNumber,
+				} as Database['public']['Tables']['music_releases']['Insert']),
+				'Adding the track to the release timed out. Please try again.',
+			)
 
 			if (error) {
 				console.error("Erreur lors de l'ajout de la musique à la release:", error)
@@ -512,11 +538,10 @@ export function useSupabaseMusic() {
 		releaseId: string,
 	): Promise<boolean> => {
 		try {
-			const { error } = await supabase
-				.from('music_releases')
-				.delete()
-				.eq('music_id', musicId)
-				.eq('release_id', releaseId)
+			const { error } = await runMutation(
+				supabase.from('music_releases').delete().eq('music_id', musicId).eq('release_id', releaseId),
+				'Removing the track from the release timed out. Please try again.',
+			)
 
 			if (error) {
 				console.error('Erreur lors de la suppression de la musique de la release:', error)

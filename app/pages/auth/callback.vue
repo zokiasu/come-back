@@ -22,6 +22,7 @@
 	const supabase = useSupabaseClient()
 	const user = useSupabaseUser()
 	const userStore = useUserStore()
+	const { runMutation } = useMutationTimeout()
 
 	const log = (message: string) => {
 		const timestamp = new Date().toLocaleTimeString()
@@ -225,11 +226,14 @@
 				let dbUser
 				if (!existingUser) {
 					log('Creating new user in database...')
-					const { data: newUser, error: createError } = await supabase
-						.from('users')
-						.insert([{ ...userData, created_at: new Date().toISOString() }])
-						.select()
-						.single()
+					const { data: newUser, error: createError } = await runMutation(
+						supabase
+							.from('users')
+							.insert([{ ...userData, created_at: new Date().toISOString() }])
+							.select()
+							.single(),
+						'Creating the user profile timed out. Please try again.',
+					)
 
 					if (createError) {
 						log(`Error creating user: ${createError.message}`)
@@ -239,12 +243,15 @@
 					log('User created successfully!')
 				} else {
 					log('Updating existing user in database...')
-					const { data: updatedUser, error: updateError } = await supabase
-						.from('users')
-						.update(userData)
-						.eq('id', sessionUser.id)
-						.select()
-						.single()
+					const { data: updatedUser, error: updateError } = await runMutation(
+						supabase
+							.from('users')
+							.update(userData)
+							.eq('id', sessionUser.id)
+							.select()
+							.single(),
+						'Updating the user profile timed out. Please try again.',
+					)
 
 					if (updateError) {
 						log(`Error updating user: ${updateError.message}`)
