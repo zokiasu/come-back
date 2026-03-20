@@ -21,20 +21,11 @@
 			description: 'Edit public identity, account details, and profile visuals.',
 		},
 		{
-			label: 'General Settings',
-			shortLabel: 'General',
-			to: '/settings/general',
-			icon: 'i-lucide-sliders-horizontal',
-			description: 'Future home for app preferences, locale, and defaults.',
-			status: 'Coming Soon',
-		},
-		{
 			label: 'Security & Privacy',
 			shortLabel: 'Security',
 			to: '/settings/security',
 			icon: 'i-lucide-shield-check',
-			description: 'Future home for login security, privacy, and sessions.',
-			status: 'Coming Soon',
+			description: 'Manage sign-in methods, password access, sessions, and data exports.',
 		},
 		{
 			label: 'Notifications',
@@ -86,8 +77,8 @@
 					</p>
 					<h1 class="text-2xl font-semibold text-white">Account workspace</h1>
 					<p class="text-sm leading-6 text-zinc-400">
-						Move between profile editing, planned account sections, and release notes
-						from one responsive hub.
+						Move between profile editing, account security, future alerts, and release
+						notes from one responsive hub.
 					</p>
 				</div>
 
