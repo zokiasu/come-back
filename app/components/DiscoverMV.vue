@@ -295,7 +295,7 @@
 			<!-- Thumbnail (affiché quand pas en lecture) -->
 			<UButton
 				v-if="currentMV && showThumbnail"
-				class="bg-cb-quinary-900 text-cb-tertiary-200 hover:text-cb-tertiary-100 relative aspect-video w-full overflow-hidden rounded-lg !p-0 drop-shadow-lg"
+				class="group bg-cb-quinary-900 text-cb-tertiary-200 hover:text-cb-tertiary-100 relative aspect-video w-full overflow-hidden rounded-lg !p-0 drop-shadow-lg"
 				@click="playCurrentMV"
 			>
 				<div v-if="currentMV.id_youtube_music" class="relative h-full w-full">
@@ -325,8 +325,13 @@
 						</p>
 					</div>
 					<div class="flex justify-end">
-						<div class="bg-cb-quinary-900/80 rounded-full p-3 backdrop-blur-sm">
-							<UIcon name="i-lucide-play" class="h-8 w-8 md:h-10 md:w-10" />
+						<div
+							class="bg-cb-quinary-900/80 group-hover:bg-cb-primary-900 flex size-14 items-center justify-center rounded-full backdrop-blur-sm transition-colors duration-200 md:size-16"
+						>
+							<UIcon
+								name="i-lucide-play"
+								class="size-6 translate-x-px text-white md:size-7"
+							/>
 						</div>
 					</div>
 				</div>

@@ -71,7 +71,7 @@
 		>
 			<button
 				type="button"
-				class="group border-cb-quinary-900 bg-cb-quinary-900/70 hover:border-cb-tertiary-300/70 hover:bg-cb-quinary-900 flex w-fit items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition"
+				class="group border-cb-quinary-900 bg-cb-quinary-900/70 hover:border-cb-tertiary-300/70 hover:bg-cb-quinary-900 flex w-fit cursor-pointer items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition"
 				@click="toggleDisplayAll"
 			>
 				<span v-if="displayAll">Show less</span>

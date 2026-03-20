@@ -65,6 +65,7 @@
 	})
 
 	const idYoutubeVideo = useIdYoutubeVideo()
+	const isPlayingVideo = useIsPlayingVideo()
 	const fallbackMusicImage = '/slider-placeholder.webp'
 
 	const displayVideo = ref(false)
@@ -76,16 +77,43 @@
 		return fallbackMusicImage
 	})
 
-	const { addToPlaylist } = useYouTube()
+	const { addToPlaylist, playNow, stopMusic, isCurrentlyPlaying } = useYouTube()
+	const { isPlaylistActive } = usePlaylist()
 
-	const playVideo = (videoId: string) => {
-		const mainArtistName =
-			artists && artists.length > 0 ? artists[0]?.name : artistName || ''
+	const primaryArtistName = computed(() => {
+		if (artists && artists.length > 0) return artists[0]?.name || ''
+		return artistName || ''
+	})
+
+	const hasActivePlayback = computed(
+		() => isPlayingVideo.value || isPlaylistActive.value,
+	)
+	const isCurrentTrackPlaying = computed(() => isCurrentlyPlaying(musicId))
+
+	const primaryActionLabel = computed(() => {
+		if (isCurrentTrackPlaying.value) return `Stop ${musicName}`
+		if (hasActivePlayback.value) return `Play ${musicName} now`
+		return `Play ${musicName}`
+	})
+
+	const handlePlayMusic = () => {
+		if (!musicId) return
+
+		if (isCurrentTrackPlaying.value) {
+			stopMusic()
+			return
+		}
+
+		playNow(musicId, musicName, primaryArtistName.value, resolvedMusicImage.value, ismv)
+	}
+
+	const handleQueueMusic = () => {
+		if (!musicId) return
 
 		addToPlaylist(
-			videoId,
+			musicId,
 			musicName,
-			mainArtistName ?? '',
+			primaryArtistName.value,
 			resolvedMusicImage.value,
 			ismv,
 		)
@@ -116,15 +144,13 @@
 		class="grid w-full bg-transparent"
 		:class="ismv && horizontalMode ? 'grid-cols-5 gap-2' : 'grid-cols-1 gap-0.5'"
 	>
-		<button
+		<div
 			v-if="musicId"
-			:disabled="idYoutubeVideo == musicId"
-			class="bg-cb-quaternary-950 col-span-1 flex w-full cursor-pointer items-center gap-2 rounded p-2 px-3"
+			class="bg-cb-quaternary-950 col-span-1 flex w-full items-center gap-3 rounded p-2 px-3"
 			:class="{
-				'group hover:bg-cb-tertiary-200/10': idYoutubeVideo != musicId,
+				'ring-cb-primary-900/40 ring-1': idYoutubeVideo === musicId,
 				'col-span-4': ismv && horizontalMode,
 			}"
-			@click="playVideo(musicId)"
 		>
 			<div class="hidden shrink-0 md:block">
 				<NuxtImg
@@ -228,23 +254,39 @@
 				</div>
 			</div>
 
-			<div class="flex w-10 shrink-0 justify-center">
-				<UIcon
-					v-if="idYoutubeVideo != musicId"
-					name="i-lucide-play"
-					class="h-6 w-6 transition-all duration-300 ease-in-out md:h-7 md:w-7"
-				/>
-				<UIcon
-					v-else
-					name="i-lucide-pause"
-					class="h-6 w-6 transition-all duration-300 ease-in-out md:h-7 md:w-7"
-				/>
+			<div class="flex shrink-0 items-center gap-2">
+				<button
+					type="button"
+					class="flex size-8 cursor-pointer items-center justify-center rounded-full text-white transition-colors md:size-9"
+					:class="
+						isCurrentTrackPlaying
+							? 'bg-cb-primary-900'
+							: 'bg-cb-quinary-900 hover:bg-cb-primary-900'
+					"
+					:aria-label="primaryActionLabel"
+					@click.stop="handlePlayMusic"
+				>
+					<UIcon
+						:name="isCurrentTrackPlaying ? 'i-lucide-pause' : 'i-lucide-play'"
+						class="size-4"
+					/>
+				</button>
+
+				<button
+					v-if="hasActivePlayback"
+					type="button"
+					class="bg-cb-quinary-900 hover:bg-cb-primary-900 flex size-8 cursor-pointer items-center justify-center rounded-full text-white transition-colors md:size-9"
+					:aria-label="`Add ${musicName} to playlist`"
+					@click.stop="handleQueueMusic"
+				>
+					<UIcon name="i-lucide-plus" class="size-4" />
+				</button>
 			</div>
-		</button>
+		</div>
 
 		<button
 			v-if="ismv"
-			class="bg-cb-primary-900 hover:bg-cb-primary-900/50 flex w-full items-center justify-center rounded px-2 py-1 text-xs font-semibold tracking-widest uppercase"
+			class="bg-cb-primary-900 hover:bg-cb-primary-900/50 flex w-full cursor-pointer items-center justify-center rounded px-2 py-1 text-xs font-semibold tracking-widest uppercase"
 			:class="horizontalMode ? 'w-fit' : 'w-full'"
 			@click="displayVideo = true"
 		>
