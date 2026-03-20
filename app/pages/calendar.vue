@@ -1,5 +1,4 @@
 <script setup lang="ts">
-	import { useWindowSize } from '@vueuse/core'
 	import { useSupabaseRelease } from '~/composables/Supabase/useSupabaseRelease'
 
 	type CalendarRelease = {
@@ -15,7 +14,6 @@
 	type ReleaseTypeFilter = 'ALL' | 'ALBUM' | 'EP' | 'SINGLE'
 
 	const { getReleasesByMonthAndYear } = useSupabaseRelease()
-	const { width: windowWidth } = useWindowSize()
 
 	const latestYear = new Date().getFullYear()
 	const monthList = [
@@ -51,26 +49,6 @@
 
 		return releases.value.filter((release) => release.type === selectedReleaseType.value)
 	})
-
-	const releaseLaneCount = computed(() => {
-		if (windowWidth.value >= 1280) return 8
-		if (windowWidth.value >= 1024) return 6
-		if (windowWidth.value >= 768) return 4
-		if (windowWidth.value >= 640) return 3
-		return 2
-	})
-
-	const releaseGridGap = computed(() => {
-		return windowWidth.value >= 768 ? 14 : 8
-	})
-
-	const releaseVirtualizeOptions = computed(() => ({
-		lanes: releaseLaneCount.value,
-		gap: releaseGridGap.value,
-		overscan: releaseLaneCount.value * 6,
-		estimateSize: () => (windowWidth.value >= 1024 ? 315 : 285),
-		getItemKey: (index: number) => displayedReleases.value[index]?.id ?? index,
-	}))
 
 	const normalizeReleases = (items: unknown[]): CalendarRelease[] => {
 		return items.map((item) => {
@@ -332,40 +310,24 @@
 				</p>
 			</div>
 
-			<div v-else class="h-[min(72vh,56rem)]">
-				<UScrollArea
-					:items="displayedReleases"
-					:virtualize="releaseVirtualizeOptions"
-					class="h-full"
-					:ui="{
-						viewport: 'h-full w-full',
-						item: 'min-w-0',
-					}"
-				>
-					<template #default="{ item: release }">
-						<CardObject
-							v-if="release"
-							:artist-id="release.artists?.[0]?.id ?? ''"
-							:main-title="release.name"
-							:sub-title="release.artists?.[0]?.name"
-							:image="release.image ?? undefined"
-							:release-date="release.date ?? undefined"
-							:release-type="release.type ?? undefined"
-							:object-link="`/release/${release.id}`"
-							date-always-display
-							class="!min-w-0 !w-full"
-						/>
-					</template>
-				</UScrollArea>
+			<div
+				v-else
+				class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5"
+			>
+				<CardObject
+					v-for="release in displayedReleases"
+					:key="release.id"
+					:artist-id="release.artists?.[0]?.id ?? ''"
+					:main-title="release.name"
+					:sub-title="release.artists?.[0]?.name"
+					:image="release.image ?? undefined"
+					:release-date="release.date ?? undefined"
+					:release-type="release.type ?? undefined"
+					:object-link="`/release/${release.id}`"
+					date-always-display
+					class="!max-w-none !min-w-0 !w-full"
+				/>
 			</div>
-		</div>
-		<div
-			v-if="!loading && !pageError && displayedReleases.length > 24"
-			class="w-full py-2 text-center"
-		>
-			<p class="text-cb-tertiary-500 text-xs">
-				Virtualized list enabled for smoother scrolling.
-			</p>
 		</div>
 	</div>
 </template>

@@ -25,9 +25,16 @@
 	)
 
 	const imageLoaded = ref(false)
+	const router = useRouter()
 
 	const formatDate = (date: string) => {
 		return new Date(date).toLocaleDateString('sv-SE')
+	}
+
+	const navigateToArtist = async () => {
+		if (!props.artistId) return
+
+		await router.push(`/artist/${props.artistId}`)
 	}
 </script>
 
@@ -77,7 +84,7 @@
 			<span
 				v-else
 				class="cursor-pointer hover:underline"
-				@click.stop="$router.push(`/artist/${props.artistId}`)"
+				@click.stop.prevent="navigateToArtist"
 			>
 				<p class="truncate">{{ props.subTitle }}</p>
 			</span>
