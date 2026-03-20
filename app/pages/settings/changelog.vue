@@ -3,7 +3,7 @@
 </script>
 
 <template>
-	<div class="flex h-full w-full flex-col gap-6 overflow-y-auto p-6">
+	<div class="mx-auto flex max-w-5xl flex-col gap-6 px-1 pb-6 sm:px-0">
 		<div class="space-y-1">
 			<h1 class="text-2xl font-semibold text-white">Changelog</h1>
 			<p class="text-sm text-zinc-400">Release history and notable changes.</p>

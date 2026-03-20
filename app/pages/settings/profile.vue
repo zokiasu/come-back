@@ -20,6 +20,8 @@
 
 	const defaultPhotoUrl = 'https://i.ibb.co/wLhbFZx/Frame-255.png'
 	const photoPageSize = 18
+	const millisecondsPerDay = 1000 * 60 * 60 * 24
+	const dayCountFormatter = new Intl.NumberFormat('en-GB')
 	const profileInputUi = {
 		base: 'bg-cb-quaternary-950 border border-cb-quinary-900/70 rounded-xl text-white placeholder:text-gray-500',
 	}
@@ -63,6 +65,29 @@
 			month: 'short',
 			year: 'numeric',
 		}).format(date)
+	}
+
+	const formatElapsedDays = (value: string | null | undefined) => {
+		if (!value) return 'Timeline unavailable'
+
+		const date = new Date(value)
+		if (Number.isNaN(date.getTime())) return 'Timeline unavailable'
+
+		const now = new Date()
+		const currentDayUtc = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
+		const targetDayUtc = Date.UTC(
+			date.getUTCFullYear(),
+			date.getUTCMonth(),
+			date.getUTCDate(),
+		)
+		const elapsedDays = Math.max(
+			0,
+			Math.floor((currentDayUtc - targetDayUtc) / millisecondsPerDay),
+		)
+
+		if (elapsedDays === 0) return 'Today'
+
+		return `${dayCountFormatter.format(elapsedDays)} day${elapsedDays === 1 ? '' : 's'} ago`
 	}
 
 	const createProfileSnapshot = (user: User | null): ProfileSnapshot | null => {
@@ -494,23 +519,15 @@
 
 						<div class="flex flex-wrap gap-2 text-sm text-gray-300">
 							<div
-								class="bg-cb-quaternary-950 border-cb-quinary-900/70 rounded-full border px-3 py-1.5"
-							>
-								<span class="text-cb-quinary-700 mr-2 text-xs tracking-[0.2em] uppercase">
-									User ID
-								</span>
-								<span class="font-medium">{{ userDetails.id }}</span>
-							</div>
-							<div
-								class="bg-cb-quaternary-950 border-cb-quinary-900/70 rounded-full border px-3 py-1.5"
+								class="bg-cb-quaternary-950 border-cb-quinary-900/70 max-w-full rounded-2xl border px-3 py-1.5"
 							>
 								<span class="text-cb-quinary-700 mr-2 text-xs tracking-[0.2em] uppercase">
 									Email
 								</span>
-								<span class="font-medium">{{ userDetails.email }}</span>
+								<span class="break-all font-medium">{{ userDetails.email }}</span>
 							</div>
 							<div
-								class="bg-cb-quaternary-950 border-cb-quinary-900/70 rounded-full border px-3 py-1.5"
+								class="bg-cb-quaternary-950 border-cb-quinary-900/70 max-w-full rounded-2xl border px-3 py-1.5"
 							>
 								<span class="text-cb-quinary-700 mr-2 text-xs tracking-[0.2em] uppercase">
 									Updated
@@ -570,8 +587,8 @@
 					<div class="mb-5 space-y-2">
 						<h2 class="text-xl font-semibold">Identity details</h2>
 						<p class="text-sm leading-6 text-gray-400">
-							Update the account fields used across profile surfaces and internal admin
-							tools.
+							Update the editable account fields used across your public profile and
+							internal admin tools.
 						</p>
 					</div>
 
@@ -608,32 +625,6 @@
 								:ui="profileInputUi"
 							/>
 						</div>
-						<div class="space-y-2">
-							<label for="profile-user-id" class="text-sm font-medium text-gray-200">
-								User ID
-							</label>
-							<UInput
-								id="profile-user-id"
-								:model-value="userDetails.id"
-								name="profile-user-id"
-								disabled
-								class="w-full"
-								:ui="profileInputUi"
-							/>
-						</div>
-						<div class="space-y-2">
-							<label for="profile-role" class="text-sm font-medium text-gray-200">
-								Role
-							</label>
-							<UInput
-								id="profile-role"
-								:model-value="roleLabels[userDetails.role]"
-								name="profile-role"
-								disabled
-								class="w-full"
-								:ui="profileInputUi"
-							/>
-						</div>
 					</div>
 				</section>
 
@@ -656,7 +647,12 @@
 							<p class="mt-3 text-2xl font-bold">
 								{{ formatDisplayDate(userDetails.created_at) }}
 							</p>
-							<p class="mt-1 text-sm text-gray-400">
+							<p
+								class="bg-cb-quinary-900 mt-2 inline-flex rounded-full px-2.5 py-1 text-xs font-medium text-zinc-200"
+							>
+								{{ formatElapsedDays(userDetails.created_at) }}
+							</p>
+							<p class="mt-3 text-sm text-gray-400">
 								First account registration in the platform.
 							</p>
 						</div>
@@ -667,7 +663,12 @@
 							<p class="mt-3 text-2xl font-bold">
 								{{ formatDisplayDate(userDetails.updated_at) }}
 							</p>
-							<p class="mt-1 text-sm text-gray-400">
+							<p
+								class="bg-cb-quinary-900 mt-2 inline-flex rounded-full px-2.5 py-1 text-xs font-medium text-zinc-200"
+							>
+								{{ formatElapsedDays(userDetails.updated_at) }}
+							</p>
+							<p class="mt-3 text-sm text-gray-400">
 								Latest server-side save recorded for this profile.
 							</p>
 						</div>
