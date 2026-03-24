@@ -148,7 +148,7 @@
 					</div>
 
 					<!-- Toggle push -->
-					<UToggle
+					<USwitch
 						v-else
 						:model-value="isSubscribed"
 						:loading="isTogglingPush"
@@ -240,7 +240,7 @@
 								</p>
 							</div>
 						</div>
-						<UToggle
+						<USwitch
 							:model-value="preferences.daily_comeback"
 							:disabled="isSaving"
 							color="primary"
@@ -270,7 +270,7 @@
 								</p>
 							</div>
 						</div>
-						<UToggle
+						<USwitch
 							:model-value="preferences.weekly_comeback"
 							:disabled="isSaving"
 							color="primary"
@@ -297,7 +297,7 @@
 								</p>
 							</div>
 						</div>
-						<UToggle
+						<USwitch
 							:model-value="preferences.followed_artist_alerts"
 							:disabled="isSaving"
 							color="primary"
