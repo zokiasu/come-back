@@ -92,6 +92,7 @@ export default defineNuxtConfig({
 
 		// Pages de paramètres : Hybride
 		'/settings': { ssr: true },
+		'/settings/notification': { ssr: false },
 		'/settings/**': { ssr: true },
 
 		// API : CORS activé
@@ -147,7 +148,7 @@ export default defineNuxtConfig({
 			installPrompt: true,
 		},
 		devOptions: {
-			enabled: false,
+			enabled: true,
 			suppressWarnings: true,
 			type: 'module',
 		},
