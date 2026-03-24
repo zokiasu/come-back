@@ -52,9 +52,13 @@ export function useSupabaseMusic() {
 			)
 			return data
 		} catch (error) {
-			console.error('Erreur lors de la mise à jour de la musique:', error)
+			console.error('[useSupabaseMusic] updateMusic failed', {
+				error,
+				data: (error as { data?: unknown })?.data,
+			})
 			toast.add({
 				title: 'Erreur lors de la mise à jour de la musique',
+				description: extractErrorMessage(error),
 				color: 'error',
 			})
 			return null
@@ -73,9 +77,13 @@ export function useSupabaseMusic() {
 			)
 			return true
 		} catch (error) {
-			console.error('Erreur lors de la mise à jour des artistes:', error)
+			console.error('[useSupabaseMusic] updateMusicArtists failed', {
+				error,
+				data: (error as { data?: unknown })?.data,
+			})
 			toast.add({
 				title: 'Erreur lors de la mise à jour des artistes',
+				description: extractErrorMessage(error),
 				color: 'error',
 			})
 			return false
@@ -94,9 +102,13 @@ export function useSupabaseMusic() {
 			)
 			return true
 		} catch (error) {
-			console.error('Erreur lors de la mise à jour des releases:', error)
+			console.error('[useSupabaseMusic] updateMusicReleases failed', {
+				error,
+				data: (error as { data?: unknown })?.data,
+			})
 			toast.add({
 				title: 'Erreur lors de la mise à jour des releases',
+				description: extractErrorMessage(error),
 				color: 'error',
 			})
 			return false
@@ -115,9 +127,13 @@ export function useSupabaseMusic() {
 			)
 			return true
 		} catch (error) {
-			console.error('Erreur lors de la suppression de la musique:', error)
+			console.error('[useSupabaseMusic] deleteMusic failed', {
+				error,
+				data: (error as { data?: unknown })?.data,
+			})
 			toast.add({
 				title: 'Erreur lors de la suppression de la musique',
+				description: extractErrorMessage(error),
 				color: 'error',
 			})
 			return false
@@ -390,9 +406,13 @@ export function useSupabaseMusic() {
 			)
 			return music
 		} catch (error) {
-			console.error('Erreur lors de la création de la musique:', error)
+			console.error('[useSupabaseMusic] createMusic failed', {
+				error,
+				data: (error as { data?: unknown })?.data,
+			})
 			toast.add({
 				title: 'Erreur lors de la création de la musique',
+				description: extractErrorMessage(error),
 				color: 'error',
 			})
 			return null
@@ -416,9 +436,13 @@ export function useSupabaseMusic() {
 			)
 			return true
 		} catch (error) {
-			console.error("Erreur lors de l'ajout de la musique à la release:", error)
+			console.error('[useSupabaseMusic] addMusicToRelease failed', {
+				error,
+				data: (error as { data?: unknown })?.data,
+			})
 			toast.add({
 				title: "Erreur lors de l'ajout à la release",
+				description: extractErrorMessage(error),
 				color: 'error',
 			})
 			return false
@@ -441,9 +465,13 @@ export function useSupabaseMusic() {
 			)
 			return true
 		} catch (error) {
-			console.error('Erreur lors de la suppression de la musique de la release:', error)
+			console.error('[useSupabaseMusic] removeMusicFromRelease failed', {
+				error,
+				data: (error as { data?: unknown })?.data,
+			})
 			toast.add({
 				title: 'Erreur lors de la suppression',
+				description: extractErrorMessage(error),
 				color: 'error',
 			})
 			return false

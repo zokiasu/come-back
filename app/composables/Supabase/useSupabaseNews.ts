@@ -55,10 +55,13 @@ export function useSupabaseNews() {
 				'Updating the report timed out. Please try again.',
 			)
 		} catch (error) {
-			console.error('Erreur lors de la mise à jour de la news:', error)
+			console.error('[useSupabaseNews] updateNews failed', {
+				error,
+				data: (error as { data?: unknown })?.data,
+			})
 			toast.add({
 				title: 'Erreur',
-				description: 'Erreur lors de la mise à jour de la news',
+				description: extractErrorMessage(error),
 				color: 'error',
 			})
 			return null
@@ -77,10 +80,13 @@ export function useSupabaseNews() {
 			)
 			return true
 		} catch (error) {
-			console.error('Erreur lors de la mise à jour des artistes:', error)
+			console.error('[useSupabaseNews] updateNewsArtistsRelations failed', {
+				error,
+				data: (error as { data?: unknown })?.data,
+			})
 			toast.add({
 				title: 'Erreur',
-				description: 'Erreur lors de la mise à jour des artistes',
+				description: extractErrorMessage(error),
 				color: 'error',
 			})
 			return false
@@ -99,10 +105,13 @@ export function useSupabaseNews() {
 			)
 			return true
 		} catch (error) {
-			console.error('Erreur lors de la suppression de la news:', error)
+			console.error('[useSupabaseNews] deleteNews failed', {
+				error,
+				data: (error as { data?: unknown })?.data,
+			})
 			toast.add({
 				title: 'Erreur',
-				description: 'Erreur lors de la suppression de la news',
+				description: extractErrorMessage(error),
 				color: 'error',
 			})
 			return false

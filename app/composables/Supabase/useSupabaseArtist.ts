@@ -81,9 +81,14 @@ export function useSupabaseArtist() {
 		} catch (error) {
 			console.error('[ArtistCreate][useSupabaseArtist] createArtist failed', {
 				error,
+				data: (error as { data?: unknown })?.data,
 				elapsedMs: Date.now() - startedAt,
 			})
-			toast.add({ title: 'Error while creating artist', color: 'error' })
+			toast.add({
+				title: 'Error while creating artist',
+				description: extractErrorMessage(error),
+				color: 'error',
+			})
 			throw error
 		}
 	}
@@ -98,22 +103,35 @@ export function useSupabaseArtist() {
 		artistMembers?: Artist[],
 		artistCompanies?: Omit<TablesInsert<'artist_companies'>, 'artist_id'>[],
 	): Promise<Artist> => {
-		const artist = await runMutation(
-			$fetch<Artist>(`/api/artists/${artistId}`, {
-				method: 'PATCH',
-				headers: requireAuthHeaders(),
-				body: {
-					updates,
-					socialLinks,
-					platformLinks,
-					groupIds: artistGroups?.map((g) => g.id),
-					memberIds: artistMembers?.map((m) => m.id),
-					companies: artistCompanies,
-				},
-			}),
-			'Updating the artist timed out. Please try again.',
-		)
-		return artist
+		try {
+			const artist = await runMutation(
+				$fetch<Artist>(`/api/artists/${artistId}`, {
+					method: 'PATCH',
+					headers: requireAuthHeaders(),
+					body: {
+						updates,
+						socialLinks,
+						platformLinks,
+						groupIds: artistGroups?.map((g) => g.id),
+						memberIds: artistMembers?.map((m) => m.id),
+						companies: artistCompanies,
+					},
+				}),
+				'Updating the artist timed out. Please try again.',
+			)
+			return artist
+		} catch (error) {
+			console.error('[useSupabaseArtist] updateArtist failed', {
+				error,
+				data: (error as { data?: unknown })?.data,
+			})
+			toast.add({
+				title: 'Error while updating artist',
+				description: extractErrorMessage(error),
+				color: 'error',
+			})
+			throw error
+		}
 	}
 
 	// Analyse les impacts de la suppression d'un artiste
@@ -142,9 +160,15 @@ export function useSupabaseArtist() {
 			})
 			return { success: response?.success, message: response?.message }
 		} catch (error) {
-			const msg = error instanceof Error ? error.message : 'An error occurred'
-			console.error("Erreur lors de la suppression de l'artiste:", error)
-			toast.add({ title: 'Deletion error', description: msg, color: 'error' })
+			console.error('[useSupabaseArtist] deleteArtist failed', {
+				error,
+				data: (error as { data?: unknown })?.data,
+			})
+			toast.add({
+				title: 'Deletion error',
+				description: extractErrorMessage(error),
+				color: 'error',
+			})
 			throw error
 		}
 	}
@@ -168,9 +192,15 @@ export function useSupabaseArtist() {
 			})
 			return { success: response?.success, message: response?.message, artist_name: response?.artist_name }
 		} catch (error) {
-			const msg = error instanceof Error ? error.message : 'An error occurred'
-			console.error("Erreur lors de la suppression de l'artiste:", error)
-			toast.add({ title: 'Deletion error', description: msg, color: 'error' })
+			console.error('[useSupabaseArtist] deleteArtistSimple failed', {
+				error,
+				data: (error as { data?: unknown })?.data,
+			})
+			toast.add({
+				title: 'Deletion error',
+				description: extractErrorMessage(error),
+				color: 'error',
+			})
 			throw error
 		}
 	}
@@ -233,10 +263,13 @@ export function useSupabaseArtist() {
 				'Approving the artist timed out. Please try again.',
 			)
 		} catch (error) {
-			console.error("Erreur lors de l'approbation de l'artiste:", error)
+			console.error('[useSupabaseArtist] approveArtist failed', {
+				error,
+				data: (error as { data?: unknown })?.data,
+			})
 			toast.add({
 				title: 'Error',
-				description: 'Unable to approve the artist',
+				description: extractErrorMessage(error),
 				color: 'error',
 			})
 			throw error

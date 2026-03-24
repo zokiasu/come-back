@@ -44,9 +44,13 @@ export function useSupabaseRelease() {
 			)
 			return data
 		} catch (error) {
-			console.error('Erreur lors de la mise à jour de la release:', error)
+			console.error('[useSupabaseRelease] updateRelease failed', {
+				error,
+				data: (error as { data?: unknown })?.data,
+			})
 			toast.add({
 				title: 'Error while updating release',
+				description: extractErrorMessage(error),
 				color: 'error',
 			})
 			return null
@@ -65,9 +69,13 @@ export function useSupabaseRelease() {
 			)
 			return true
 		} catch (error) {
-			console.error('Erreur lors de la mise à jour des artistes:', error)
+			console.error('[useSupabaseRelease] updateReleaseArtists failed', {
+				error,
+				data: (error as { data?: unknown })?.data,
+			})
 			toast.add({
 				title: 'Error while updating artists',
+				description: extractErrorMessage(error),
 				color: 'error',
 			})
 			return false
@@ -86,9 +94,13 @@ export function useSupabaseRelease() {
 			)
 			return true
 		} catch (error) {
-			console.error('Erreur lors de la suppression de la release:', error)
+			console.error('[useSupabaseRelease] deleteRelease failed', {
+				error,
+				data: (error as { data?: unknown })?.data,
+			})
 			toast.add({
 				title: 'Error while deleting release',
+				description: extractErrorMessage(error),
 				color: 'error',
 			})
 			return false
@@ -435,9 +447,13 @@ export function useSupabaseRelease() {
 			)
 			return release
 		} catch (error) {
-			console.error('Erreur lors de la création de la release:', error)
+			console.error('[useSupabaseRelease] createReleaseWithDetails failed', {
+				error,
+				data: (error as { data?: unknown })?.data,
+			})
 			toast.add({
 				title: 'Error while creating release',
+				description: extractErrorMessage(error),
 				color: 'error',
 			})
 			return null

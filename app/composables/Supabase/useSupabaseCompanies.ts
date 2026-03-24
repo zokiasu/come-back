@@ -41,22 +41,33 @@ export function useSupabaseCompanies() {
 	const createCompany = async (
 		companyData: TablesInsert<'companies'>,
 	): Promise<Company> => {
-		const data = await runMutation(
-			$fetch<Company>('/api/companies', {
-				method: 'POST',
-				headers: requireAuthHeaders(),
-				body: { data: companyData },
-			}),
-			'Creating the company timed out. Please try again.',
-		)
-
-		toast.add({
-			title: 'Company created',
-			description: `${companyData.name} was created successfully`,
-			color: 'success',
-		})
-
-		return data
+		try {
+			const data = await runMutation(
+				$fetch<Company>('/api/companies', {
+					method: 'POST',
+					headers: requireAuthHeaders(),
+					body: { data: companyData },
+				}),
+				'Creating the company timed out. Please try again.',
+			)
+			toast.add({
+				title: 'Company created',
+				description: `${companyData.name} was created successfully`,
+				color: 'success',
+			})
+			return data
+		} catch (error) {
+			console.error('[useSupabaseCompanies] createCompany failed', {
+				error,
+				data: (error as { data?: unknown })?.data,
+			})
+			toast.add({
+				title: 'Error while creating company',
+				description: extractErrorMessage(error),
+				color: 'error',
+			})
+			throw error
+		}
 	}
 
 	// Mettre à jour une company
@@ -64,41 +75,63 @@ export function useSupabaseCompanies() {
 		companyId: string,
 		companyData: TablesUpdate<'companies'>,
 	): Promise<Company> => {
-		const data = await runMutation(
-			$fetch<Company>(`/api/companies/${companyId}`, {
-				method: 'PATCH',
-				headers: requireAuthHeaders(),
-				body: { data: companyData },
-			}),
-			'Updating the company timed out. Please try again.',
-		)
-
-		toast.add({
-			title: 'Company updated',
-			description: `${data.name} was updated successfully`,
-			color: 'success',
-		})
-
-		return data
+		try {
+			const data = await runMutation(
+				$fetch<Company>(`/api/companies/${companyId}`, {
+					method: 'PATCH',
+					headers: requireAuthHeaders(),
+					body: { data: companyData },
+				}),
+				'Updating the company timed out. Please try again.',
+			)
+			toast.add({
+				title: 'Company updated',
+				description: `${data.name} was updated successfully`,
+				color: 'success',
+			})
+			return data
+		} catch (error) {
+			console.error('[useSupabaseCompanies] updateCompany failed', {
+				error,
+				data: (error as { data?: unknown })?.data,
+			})
+			toast.add({
+				title: 'Error while updating company',
+				description: extractErrorMessage(error),
+				color: 'error',
+			})
+			throw error
+		}
 	}
 
 	// Supprimer une company
 	const deleteCompany = async (companyId: string) => {
-		await runMutation(
-			$fetch(`/api/companies/${companyId}`, {
-				method: 'DELETE',
-				headers: requireAuthHeaders(),
-			}),
-			'Deleting the company timed out. Please try again.',
-		)
-
-		toast.add({
-			title: 'Company deleted',
-			description: 'The company was deleted successfully',
-			color: 'success',
-		})
-
-		return true
+		try {
+			await runMutation(
+				$fetch(`/api/companies/${companyId}`, {
+					method: 'DELETE',
+					headers: requireAuthHeaders(),
+				}),
+				'Deleting the company timed out. Please try again.',
+			)
+			toast.add({
+				title: 'Company deleted',
+				description: 'The company was deleted successfully',
+				color: 'success',
+			})
+			return true
+		} catch (error) {
+			console.error('[useSupabaseCompanies] deleteCompany failed', {
+				error,
+				data: (error as { data?: unknown })?.data,
+			})
+			toast.add({
+				title: 'Error while deleting company',
+				description: extractErrorMessage(error),
+				color: 'error',
+			})
+			throw error
+		}
 	}
 
 	// Récupérer toutes les companies avec pagination et filtres
@@ -215,47 +248,69 @@ export function useSupabaseCompanies() {
 			isCurrent?: boolean
 		},
 	): Promise<CompanyArtist> => {
-		const data = await runMutation(
-			$fetch<CompanyArtist>(`/api/companies/${companyId}/artist-link`, {
-				method: 'POST',
-				headers: requireAuthHeaders(),
-				body: {
-					artistId,
-					relationshipType: relationshipType || null,
-					startDate: options?.startDate || null,
-					endDate: options?.endDate || null,
-					isCurrent: options?.isCurrent ?? true,
-				},
-			}),
-			'Linking the company to the artist timed out. Please try again.',
-		)
-
-		toast.add({
-			title: 'Relation created',
-			description: 'The company was linked to the artist successfully',
-			color: 'success',
-		})
-
-		return data
+		try {
+			const data = await runMutation(
+				$fetch<CompanyArtist>(`/api/companies/${companyId}/artist-link`, {
+					method: 'POST',
+					headers: requireAuthHeaders(),
+					body: {
+						artistId,
+						relationshipType: relationshipType || null,
+						startDate: options?.startDate || null,
+						endDate: options?.endDate || null,
+						isCurrent: options?.isCurrent ?? true,
+					},
+				}),
+				'Linking the company to the artist timed out. Please try again.',
+			)
+			toast.add({
+				title: 'Relation created',
+				description: 'The company was linked to the artist successfully',
+				color: 'success',
+			})
+			return data
+		} catch (error) {
+			console.error('[useSupabaseCompanies] linkCompanyToArtist failed', {
+				error,
+				data: (error as { data?: unknown })?.data,
+			})
+			toast.add({
+				title: 'Error while linking company',
+				description: extractErrorMessage(error),
+				color: 'error',
+			})
+			throw error
+		}
 	}
 
 	// Supprimer une liaison company-artiste
 	const unlinkCompanyFromArtist = async (relationId: string) => {
-		await runMutation(
-			$fetch(`/api/companies/artist-links/${relationId}`, {
-				method: 'DELETE',
-				headers: requireAuthHeaders(),
-			}),
-			'Deleting the company relation timed out. Please try again.',
-		)
-
-		toast.add({
-			title: 'Relation deleted',
-			description: 'The company-artist relation was deleted successfully',
-			color: 'success',
-		})
-
-		return true
+		try {
+			await runMutation(
+				$fetch(`/api/companies/artist-links/${relationId}`, {
+					method: 'DELETE',
+					headers: requireAuthHeaders(),
+				}),
+				'Deleting the company relation timed out. Please try again.',
+			)
+			toast.add({
+				title: 'Relation deleted',
+				description: 'The company-artist relation was deleted successfully',
+				color: 'success',
+			})
+			return true
+		} catch (error) {
+			console.error('[useSupabaseCompanies] unlinkCompanyFromArtist failed', {
+				error,
+				data: (error as { data?: unknown })?.data,
+			})
+			toast.add({
+				title: 'Error while deleting relation',
+				description: extractErrorMessage(error),
+				color: 'error',
+			})
+			throw error
+		}
 	}
 
 	// Mettre à jour une relation company-artiste
@@ -263,22 +318,33 @@ export function useSupabaseCompanies() {
 		relationId: string,
 		updates: TablesUpdate<'artist_companies'>,
 	): Promise<CompanyArtist> => {
-		const data = await runMutation(
-			$fetch<CompanyArtist>(`/api/companies/artist-links/${relationId}`, {
-				method: 'PATCH',
-				headers: requireAuthHeaders(),
-				body: { updates },
-			}),
-			'Updating the company relation timed out. Please try again.',
-		)
-
-		toast.add({
-			title: 'Relation updated',
-			description: 'The company-artist relation was updated successfully',
-			color: 'success',
-		})
-
-		return data
+		try {
+			const data = await runMutation(
+				$fetch<CompanyArtist>(`/api/companies/artist-links/${relationId}`, {
+					method: 'PATCH',
+					headers: requireAuthHeaders(),
+					body: { updates },
+				}),
+				'Updating the company relation timed out. Please try again.',
+			)
+			toast.add({
+				title: 'Relation updated',
+				description: 'The company-artist relation was updated successfully',
+				color: 'success',
+			})
+			return data
+		} catch (error) {
+			console.error('[useSupabaseCompanies] updateCompanyArtistRelation failed', {
+				error,
+				data: (error as { data?: unknown })?.data,
+			})
+			toast.add({
+				title: 'Error while updating relation',
+				description: extractErrorMessage(error),
+				color: 'error',
+			})
+			throw error
+		}
 	}
 
 	// Récupérer les artistes d'une company
