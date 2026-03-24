@@ -145,9 +145,7 @@
 		}
 
 		if (
-			nationalityFetch.value.find(
-				(nationality) => nationality.name === normalizedName,
-			)
+			nationalityFetch.value.find((nationality) => nationality.name === normalizedName)
 		) {
 			toast.add({
 				title: 'Nationality already exists',

@@ -66,10 +66,7 @@
 								loading="lazy"
 							/>
 							<div v-else class="flex h-full w-full items-center justify-center">
-								<UIcon
-									name="i-lucide-music"
-									class="text-cb-tertiary-500 size-8"
-								/>
+								<UIcon name="i-lucide-music" class="text-cb-tertiary-500 size-8" />
 							</div>
 						</div>
 					</div>

@@ -517,10 +517,7 @@
 							v-else
 							class="bg-cb-quinary-900 flex size-16 items-center justify-center rounded-lg"
 						>
-							<UIcon
-								name="i-lucide-music"
-								class="text-cb-tertiary-500 size-8"
-							/>
+							<UIcon name="i-lucide-music" class="text-cb-tertiary-500 size-8" />
 						</div>
 					</NuxtLink>
 
@@ -649,10 +646,7 @@
 								v-else
 								class="bg-cb-quinary-900 flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl"
 							>
-								<UIcon
-									name="i-lucide-music"
-									class="text-cb-tertiary-500 size-10"
-								/>
+								<UIcon name="i-lucide-music" class="text-cb-tertiary-500 size-10" />
 							</div>
 
 							<div class="min-w-0 space-y-2">
@@ -719,10 +713,7 @@
 			<template #content>
 				<div class="bg-cb-secondary-950 space-y-5 p-6">
 					<div class="text-center">
-						<UIcon
-							name="i-lucide-triangle-alert"
-							class="mx-auto size-12 text-red-500"
-						/>
+						<UIcon name="i-lucide-triangle-alert" class="mx-auto size-12 text-red-500" />
 						<h3 class="mt-4 text-lg font-bold">Confirm deletion</h3>
 						<p class="text-cb-tertiary-400 mt-2 text-sm">
 							This action cannot be undone. The release and all associated links will be

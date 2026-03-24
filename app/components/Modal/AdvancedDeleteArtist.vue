@@ -93,12 +93,7 @@
 			<template #header>
 				<div class="flex items-center justify-between">
 					<h3 class="text-lg font-semibold text-red-600">🗑️ Advanced deletion</h3>
-					<UButton
-						color="neutral"
-						variant="ghost"
-						icon="i-lucide-x"
-						@click="close"
-					/>
+					<UButton color="neutral" variant="ghost" icon="i-lucide-x" @click="close" />
 				</div>
 			</template>
 

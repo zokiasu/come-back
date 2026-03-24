@@ -85,9 +85,7 @@
 		return artistName || ''
 	})
 
-	const hasActivePlayback = computed(
-		() => isPlayingVideo.value || isPlaylistActive.value,
-	)
+	const hasActivePlayback = computed(() => isPlayingVideo.value || isPlaylistActive.value)
 	const isCurrentTrackPlaying = computed(() => isCurrentlyPlaying(musicId))
 
 	const primaryActionLabel = computed(() => {

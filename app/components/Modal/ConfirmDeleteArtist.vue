@@ -100,10 +100,7 @@
 						<div
 							class="bg-cb-primary-900/20 flex h-10 w-10 items-center justify-center rounded-full"
 						>
-							<UIcon
-								name="i-lucide-triangle-alert"
-								class="text-cb-primary-900 h-5 w-5"
-							/>
+							<UIcon name="i-lucide-triangle-alert" class="text-cb-primary-900 h-5 w-5" />
 						</div>
 						<h3 class="text-lg font-semibold text-white">Confirm deletion</h3>
 					</div>
@@ -148,10 +145,7 @@
 								<!-- Releases -->
 								<div class="flex items-center justify-between">
 									<div class="flex items-center gap-2">
-										<UIcon
-											name="i-lucide-music"
-											class="h-4 w-4 text-zinc-500"
-										/>
+										<UIcon name="i-lucide-music" class="h-4 w-4 text-zinc-500" />
 										<span class="text-sm text-zinc-300">Deleted releases</span>
 									</div>
 									<span

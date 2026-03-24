@@ -94,7 +94,7 @@
 			toast.add({
 				title: 'News created',
 				description: 'News created successfully',
-			icon: 'i-lucide-circle-check',
+				icon: 'i-lucide-circle-check',
 				color: 'success',
 			})
 			closeModal()
@@ -102,7 +102,7 @@
 			toast.add({
 				title: 'Error creating news',
 				description: error instanceof Error ? error.message : 'Error creating news',
-			icon: 'i-lucide-circle-x',
+				icon: 'i-lucide-circle-x',
 				color: 'error',
 			})
 			console.error('Error creating news', error)

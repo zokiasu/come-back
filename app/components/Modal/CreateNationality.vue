@@ -52,11 +52,7 @@
 			return
 		}
 
-		if (
-			props.nationalities.find(
-				(nationality) => nationality.name === normalizedName,
-			)
-		) {
+		if (props.nationalities.find((nationality) => nationality.name === normalizedName)) {
 			toast.add({
 				title: 'Nationality already exists',
 				description: 'Nationality already exists',

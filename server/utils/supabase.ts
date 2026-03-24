@@ -50,17 +50,13 @@ export const useServerSupabase = (): SupabaseClient<Database> => {
 	}
 
 	// Create and cache the client
-	_supabaseClient = createClient<Database>(
-		config.public.supabase.url,
-		serverKey,
-		{
-			auth: {
-				persistSession: false,
-				autoRefreshToken: false,
-				detectSessionInUrl: false,
-			},
+	_supabaseClient = createClient<Database>(config.public.supabase.url, serverKey, {
+		auth: {
+			persistSession: false,
+			autoRefreshToken: false,
+			detectSessionInUrl: false,
 		},
-	)
+	})
 
 	return _supabaseClient
 }

@@ -122,7 +122,10 @@
 		pageError.value = null
 
 		try {
-			const result = await getReleasesByMonthAndYear(currentMonth.value, currentYear.value)
+			const result = await getReleasesByMonthAndYear(
+				currentMonth.value,
+				currentYear.value,
+			)
 			const normalizedReleases = Array.isArray(result) ? normalizeReleases(result) : []
 			releases.value = sortReleases(normalizedReleases)
 		} catch (error) {
@@ -147,11 +150,14 @@
 		await loadReleases()
 	})
 
-	watch([currentYear, currentMonth], async ([nextYear, nextMonth], [prevYear, prevMonth]) => {
-		if (nextYear === prevYear && nextMonth === prevMonth) return
+	watch(
+		[currentYear, currentMonth],
+		async ([nextYear, nextMonth], [prevYear, prevMonth]) => {
+			if (nextYear === prevYear && nextMonth === prevMonth) return
 
-		await loadReleases()
-	})
+			await loadReleases()
+		},
+	)
 
 	useHead({
 		title: 'Calendar Releases',
@@ -213,9 +219,7 @@
 				<button
 					class="bg-cb-primary-900 flex h-full w-full flex-col items-center justify-center rounded px-2 py-1"
 					:class="
-						selectedReleaseType === 'ALL'
-							? 'bg-cb-primary-900'
-							: 'bg-cb-quaternary-950'
+						selectedReleaseType === 'ALL' ? 'bg-cb-primary-900' : 'bg-cb-quaternary-950'
 					"
 					@click="setReleaseTypeFilter('ALL')"
 				>
@@ -225,9 +229,7 @@
 				<button
 					class="bg-cb-primary-900 flex h-full w-full flex-col items-center justify-center rounded px-2 py-1"
 					:class="
-						selectedReleaseType === 'ALBUM'
-							? 'bg-cb-primary-900'
-							: 'bg-cb-quaternary-950'
+						selectedReleaseType === 'ALBUM' ? 'bg-cb-primary-900' : 'bg-cb-quaternary-950'
 					"
 					@click="setReleaseTypeFilter('ALBUM')"
 				>
@@ -239,9 +241,7 @@
 				<button
 					class="bg-cb-primary-900 flex h-full w-full flex-col items-center justify-center rounded px-2 py-1"
 					:class="
-						selectedReleaseType === 'EP'
-							? 'bg-cb-primary-900'
-							: 'bg-cb-quaternary-950'
+						selectedReleaseType === 'EP' ? 'bg-cb-primary-900' : 'bg-cb-quaternary-950'
 					"
 					@click="setReleaseTypeFilter('EP')"
 				>
@@ -275,7 +275,9 @@
 						{{ monthList[currentMonth]?.original }} {{ currentYear }}
 					</p>
 					<p class="text-cb-tertiary-500 text-xs">
-						{{ displayedReleases.length }} release{{ displayedReleases.length > 1 ? 's' : '' }}
+						{{ displayedReleases.length }} release{{
+							displayedReleases.length > 1 ? 's' : ''
+						}}
 						displayed
 					</p>
 				</div>
@@ -329,7 +331,7 @@
 					:release-type="release.type ?? undefined"
 					:object-link="`/release/${release.id}`"
 					date-always-display
-					class="!max-w-none !min-w-0 !w-full"
+					class="!w-full !max-w-none !min-w-0"
 				/>
 			</div>
 		</div>

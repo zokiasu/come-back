@@ -67,7 +67,9 @@
 
 <template>
 	<div class="min-h-dvh-wo-nav px-3 py-3 sm:px-4 sm:py-4 lg:px-5">
-		<div class="mx-auto grid max-w-7xl gap-4 lg:grid-cols-[280px_minmax(0,1fr)] lg:items-start">
+		<div
+			class="mx-auto grid max-w-7xl gap-4 lg:grid-cols-[280px_minmax(0,1fr)] lg:items-start"
+		>
 			<aside
 				class="bg-cb-quaternary-950 border-cb-quinary-900/70 hidden rounded-[28px] border p-4 shadow-xl lg:sticky lg:top-24 lg:block lg:max-h-[calc(100dvh-7rem)] lg:overflow-y-auto"
 			>
@@ -139,7 +141,9 @@
 				>
 					<div class="flex items-start justify-between gap-3">
 						<div class="space-y-2">
-							<p class="text-cb-quinary-700 text-xs font-semibold tracking-[0.3em] uppercase">
+							<p
+								class="text-cb-quinary-700 text-xs font-semibold tracking-[0.3em] uppercase"
+							>
 								Settings
 							</p>
 							<h1 class="text-2xl font-semibold text-white">{{ currentLink.label }}</h1>
@@ -202,7 +206,7 @@
 						overlay: 'bg-cb-quinary-950/75',
 						content: 'bg-cb-quaternary-950 ring-cb-quinary-900 max-w-lg',
 						body: 'bg-cb-quaternary-950',
-						header: 'bg-cb-quaternary-950'
+						header: 'bg-cb-quaternary-950',
 					}"
 				>
 					<template #content>
@@ -221,7 +225,9 @@
 									:to="link.to"
 									class="border-cb-quinary-900/70 flex items-start gap-3 rounded-2xl border px-3 py-3"
 									:class="
-										routeN.path === link.to ? 'bg-cb-quinary-900 text-white' : 'text-zinc-300'
+										routeN.path === link.to
+											? 'bg-cb-quinary-900 text-white'
+											: 'text-zinc-300'
 									"
 								>
 									<UIcon :name="link.icon" class="mt-0.5 h-4 w-4 shrink-0" />

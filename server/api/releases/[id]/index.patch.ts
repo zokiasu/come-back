@@ -39,7 +39,8 @@ export default defineEventHandler(async (event) => {
 			.delete()
 			.eq('release_id', releaseId)
 
-		if (deleteError) throw handleSupabaseError(deleteError, 'releases.update.artists.delete')
+		if (deleteError)
+			throw handleSupabaseError(deleteError, 'releases.update.artists.delete')
 
 		if (body.artistIds.length > 0) {
 			const { error: insertError } = await supabase.from('artist_releases').insert(
@@ -50,7 +51,8 @@ export default defineEventHandler(async (event) => {
 				})),
 			)
 
-			if (insertError) throw handleSupabaseError(insertError, 'releases.update.artists.insert')
+			if (insertError)
+				throw handleSupabaseError(insertError, 'releases.update.artists.insert')
 		}
 	}
 

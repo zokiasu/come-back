@@ -45,10 +45,7 @@
 			>
 				{{ rankingsError }}
 			</div>
-			<div
-				v-else-if="isLoadingRankings"
-				class="flex items-center justify-center py-10"
-			>
+			<div v-else-if="isLoadingRankings" class="flex items-center justify-center py-10">
 				<UIcon
 					name="line-md:loading-twotone-loop"
 					class="text-cb-primary-900 size-6 animate-spin"
@@ -66,10 +63,7 @@
 					@delete="deleteRanking(ranking.id)"
 				/>
 			</div>
-			<div
-				v-else
-				class="rounded-lg border border-white/5 bg-black/10 p-6 text-center"
-			>
+			<div v-else class="rounded-lg border border-white/5 bg-black/10 p-6 text-center">
 				<p class="font-medium">
 					{{ isProfile ? 'No rankings yet' : 'No public rankings yet' }}
 				</p>

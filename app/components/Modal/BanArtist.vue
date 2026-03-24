@@ -192,10 +192,7 @@
 								<!-- Releases -->
 								<div class="flex items-center justify-between">
 									<div class="flex items-center gap-2">
-										<UIcon
-											name="i-lucide-music"
-											class="h-4 w-4 text-zinc-500"
-										/>
+										<UIcon name="i-lucide-music" class="h-4 w-4 text-zinc-500" />
 										<span class="text-sm text-zinc-300">Deleted releases</span>
 									</div>
 									<span

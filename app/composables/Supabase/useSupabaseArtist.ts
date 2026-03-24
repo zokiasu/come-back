@@ -184,13 +184,21 @@ export function useSupabaseArtist() {
 				}),
 				'Deleting the artist timed out. Please try again.',
 			)
-			const response = data as { success?: boolean; message?: string; artist_name?: string } | null
+			const response = data as {
+				success?: boolean
+				message?: string
+				artist_name?: string
+			} | null
 			toast.add({
 				title: 'Artist deleted',
 				description: response?.message || '',
 				color: 'success',
 			})
-			return { success: response?.success, message: response?.message, artist_name: response?.artist_name }
+			return {
+				success: response?.success,
+				message: response?.message,
+				artist_name: response?.artist_name,
+			}
 		} catch (error) {
 			console.error('[useSupabaseArtist] deleteArtistSimple failed', {
 				error,

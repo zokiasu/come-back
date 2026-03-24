@@ -463,9 +463,7 @@
 						<UIcon
 							v-if="sortColumn === 'artist'"
 							:name="
-								sortDirection === 'asc'
-									? 'i-lucide-chevron-up'
-									: 'i-lucide-chevron-down'
+								sortDirection === 'asc' ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down'
 							"
 							class="size-4"
 						/>
@@ -506,9 +504,7 @@
 						<UIcon
 							v-if="sortColumn === 'date'"
 							:name="
-								sortDirection === 'asc'
-									? 'i-lucide-chevron-up'
-									: 'i-lucide-chevron-down'
+								sortDirection === 'asc' ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down'
 							"
 							class="size-4"
 						/>
@@ -571,10 +567,7 @@
 				<!-- Empty state -->
 				<template #empty>
 					<div class="text-cb-tertiary-500 py-10 text-center">
-						<UIcon
-							name="i-lucide-file-search"
-							class="mx-auto size-12 opacity-50"
-						/>
+						<UIcon name="i-lucide-file-search" class="mx-auto size-12 opacity-50" />
 						<p class="mt-2">No news found</p>
 					</div>
 				</template>
@@ -704,10 +697,7 @@
 			<template #content>
 				<div class="bg-cb-secondary-950 space-y-5 p-6">
 					<div class="text-center">
-						<UIcon
-							name="i-lucide-triangle-alert"
-							class="mx-auto size-12 text-red-500"
-						/>
+						<UIcon name="i-lucide-triangle-alert" class="mx-auto size-12 text-red-500" />
 						<h3 class="mt-4 text-lg font-bold">Confirm deletion</h3>
 						<p class="text-cb-tertiary-400 mt-2 text-sm">
 							This action cannot be undone. The news item will be permanently deleted.
