@@ -33,7 +33,6 @@
 			to: '/settings/notification',
 			icon: 'i-lucide-bell-ring',
 			description: 'Future home for release alerts, digests, and quiet hours.',
-			status: 'Coming Soon',
 		},
 		{
 			label: 'Changelog',
