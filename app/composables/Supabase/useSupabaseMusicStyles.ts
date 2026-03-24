@@ -3,16 +3,16 @@ import type { Database, TablesInsert, TablesUpdate } from '~/types/supabase'
 
 export function useSupabaseMusicStyles() {
 	const supabase = useSupabaseClient<Database>()
+	const { runMutation } = useMutationTimeout()
 
 	// Crée un nouveau style
 	const createMusicStyle = async (
 		data: TablesInsert<'music_styles'>,
 	): Promise<MusicStyle> => {
-		const { data: style, error } = await supabase
-			.from('music_styles')
-			.insert(data)
-			.select()
-			.single()
+		const { data: style, error } = await runMutation(
+			supabase.from('music_styles').insert(data).select().single(),
+			'Creating the style timed out. Please try again.',
+		)
 
 		if (error) {
 			console.error('Erreur lors de la création du style:', error)
@@ -27,12 +27,10 @@ export function useSupabaseMusicStyles() {
 		id: string,
 		updates: TablesUpdate<'music_styles'>,
 	): Promise<MusicStyle> => {
-		const { data, error } = await supabase
-			.from('music_styles')
-			.update(updates)
-			.eq('id', id)
-			.select()
-			.single()
+		const { data, error } = await runMutation(
+			supabase.from('music_styles').update(updates).eq('id', id).select().single(),
+			'Updating the style timed out. Please try again.',
+		)
 
 		if (error) {
 			console.error('Erreur lors de la mise à jour du style:', error)
@@ -44,7 +42,10 @@ export function useSupabaseMusicStyles() {
 
 	// Supprime un style
 	const deleteMusicStyle = async (name: string) => {
-		const { error } = await supabase.from('music_styles').delete().eq('name', name)
+		const { error } = await runMutation(
+			supabase.from('music_styles').delete().eq('name', name),
+			'Deleting the style timed out. Please try again.',
+		)
 
 		if (error) {
 			console.error('Erreur lors de la suppression du style:', error)

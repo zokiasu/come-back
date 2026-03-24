@@ -1,6 +1,7 @@
 import type { Database, TablesInsert, TablesUpdate } from '~/types/supabase'
 import type { Artist } from '~/types'
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { useMutationTimeout } from '~/composables/useMutationTimeout'
 import type {
 	ArtistDeletionAnalysis,
 	ArtistDeletionResponse,
@@ -20,6 +21,7 @@ import {
 import { checkArtistExists } from './artistQueries'
 
 type SupabaseClientType = SupabaseClient<Database>
+const { runMutation } = useMutationTimeout()
 
 const logArtistCreateTrace = (step: string, details?: Record<string, unknown>) => {
 	if (!import.meta.dev) return
@@ -95,11 +97,10 @@ export async function createArtistRecord(
 
 	// Créer l'artiste
 	logArtistCreateTrace('inserting artist row')
-	const { data: artist, error } = await supabase
-		.from('artists')
-		.insert(data)
-		.select()
-		.single()
+	const { data: artist, error } = await runMutation(
+		supabase.from('artists').insert(data).select().single(),
+		'Creating the artist timed out. Please try again.',
+	)
 
 	if (error) {
 		const message = "Erreur lors de la création de l'artiste"
@@ -187,12 +188,10 @@ export async function updateArtistRecord(
 	}
 
 	// Mettre à jour l'artiste
-	const { data: artist, error } = await supabase
-		.from('artists')
-		.update(updates)
-		.eq('id', artistId)
-		.select()
-		.single()
+	const { data: artist, error } = await runMutation(
+		supabase.from('artists').update(updates).eq('id', artistId).select().single(),
+		'Updating the artist timed out. Please try again.',
+	)
 
 	if (error) {
 		console.error("Erreur lors de la mise à jour de l'artiste:", error)
@@ -245,9 +244,12 @@ export async function analyzeArtistDeletionImpact(
 	supabase: SupabaseClientType,
 	id: string,
 ) {
-	const { data, error } = await supabase.rpc('analyze_artist_deletion_impact', {
-		artist_id_param: id,
-	})
+	const { data, error } = await runMutation(
+		supabase.rpc('analyze_artist_deletion_impact', {
+			artist_id_param: id,
+		}),
+		'Analyzing the artist deletion impact timed out. Please try again.',
+	)
 
 	if (error) {
 		console.error("Erreur lors de l'analyse d'impact:", error)
@@ -272,9 +274,12 @@ export async function deleteArtistSafely(
 	onError?: (message: string) => void,
 ) {
 	try {
-		const { data, error } = await supabase.rpc('delete_artist_safely', {
-			artist_id_param: id,
-		})
+		const { data, error } = await runMutation(
+			supabase.rpc('delete_artist_safely', {
+				artist_id_param: id,
+			}),
+			'Deleting the artist timed out. Please try again.',
+		)
 
 		if (error) {
 			throw new Error(error.message || "Erreur lors de la suppression de l'artiste")
@@ -308,9 +313,12 @@ export async function deleteArtistSimply(
 	onError?: (message: string) => void,
 ) {
 	try {
-		const { data, error } = await supabase.rpc('delete_artist_simple', {
-			artist_id_param: id,
-		})
+		const { data, error } = await runMutation(
+			supabase.rpc('delete_artist_simple', {
+				artist_id_param: id,
+			}),
+			'Deleting the artist timed out. Please try again.',
+		)
 
 		if (error) {
 			throw new Error(error.message || "Erreur lors de la suppression de l'artiste")

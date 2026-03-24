@@ -12,6 +12,8 @@ interface CompaniesResponse {
 export function useSupabaseCompanies() {
 	const supabase = useSupabaseClient<Database>()
 	const toast = useToast()
+	const { requireAuthHeaders } = useApiAuthHeaders()
+	const { runMutation } = useMutationTimeout()
 
 	// Types de companies disponibles (depuis les types Supabase constants)
 	const companyTypes = [
@@ -39,32 +41,33 @@ export function useSupabaseCompanies() {
 	const createCompany = async (
 		companyData: TablesInsert<'companies'>,
 	): Promise<Company> => {
-		const { data, error } = await supabase
-			.from('companies')
-			.insert(companyData)
-			.select()
-			.single()
-
-		if (error) {
-			console.error('Erreur lors de la création de la company:', error)
+		try {
+			const data = await runMutation(
+				$fetch<Company>('/api/companies', {
+					method: 'POST',
+					headers: requireAuthHeaders(),
+					body: { data: companyData },
+				}),
+				'Creating the company timed out. Please try again.',
+			)
 			toast.add({
-				title: 'Error',
-				description: 'Error while creating the company',
+				title: 'Company created',
+				description: `${companyData.name} was created successfully`,
+				color: 'success',
+			})
+			return data
+		} catch (error) {
+			console.error('[useSupabaseCompanies] createCompany failed', {
+				error,
+				data: (error as { data?: unknown })?.data,
+			})
+			toast.add({
+				title: 'Error while creating company',
+				description: extractErrorMessage(error),
 				color: 'error',
 			})
-			throw createError({
-				statusCode: 400,
-				message: `Error while creating the company: ${error.message}`,
-			})
+			throw error
 		}
-
-		toast.add({
-			title: 'Company created',
-			description: `${companyData.name} was created successfully`,
-			color: 'success',
-		})
-
-		return data as Company
 	}
 
 	// Mettre à jour une company
@@ -72,72 +75,63 @@ export function useSupabaseCompanies() {
 		companyId: string,
 		companyData: TablesUpdate<'companies'>,
 	): Promise<Company> => {
-		const { data, error } = await supabase
-			.from('companies')
-			.update(companyData)
-			.eq('id', companyId)
-			.select()
-			.single()
-
-		if (error) {
-			console.error('Erreur lors de la mise à jour de la company:', error)
+		try {
+			const data = await runMutation(
+				$fetch<Company>(`/api/companies/${companyId}`, {
+					method: 'PATCH',
+					headers: requireAuthHeaders(),
+					body: { data: companyData },
+				}),
+				'Updating the company timed out. Please try again.',
+			)
 			toast.add({
-				title: 'Error',
-				description: 'Error while updating the company',
+				title: 'Company updated',
+				description: `${data.name} was updated successfully`,
+				color: 'success',
+			})
+			return data
+		} catch (error) {
+			console.error('[useSupabaseCompanies] updateCompany failed', {
+				error,
+				data: (error as { data?: unknown })?.data,
+			})
+			toast.add({
+				title: 'Error while updating company',
+				description: extractErrorMessage(error),
 				color: 'error',
 			})
-			throw createError({
-				statusCode: 400,
-				message: `Error while updating the company: ${error.message}`,
-			})
+			throw error
 		}
-
-		toast.add({
-			title: 'Company updated',
-			description: `${data.name} was updated successfully`,
-			color: 'success',
-		})
-
-		return data as Company
 	}
 
 	// Supprimer une company
 	const deleteCompany = async (companyId: string) => {
-		// Vérifier les relations avec les artistes avant suppression
-		const { data: relations } = await supabase
-			.from('artist_companies')
-			.select('artist_id')
-			.eq('company_id', companyId)
-
-		if (relations && relations.length > 0) {
-			throw createError({
-				statusCode: 400,
-				message: `This company is linked to ${relations.length} artist(s). Remove those relations first.`,
-			})
-		}
-
-		const { error } = await supabase.from('companies').delete().eq('id', companyId)
-
-		if (error) {
-			console.error('Erreur lors de la suppression de la company:', error)
+		try {
+			await runMutation(
+				$fetch(`/api/companies/${companyId}`, {
+					method: 'DELETE',
+					headers: requireAuthHeaders(),
+				}),
+				'Deleting the company timed out. Please try again.',
+			)
 			toast.add({
-				title: 'Error',
-				description: 'Error while deleting the company',
+				title: 'Company deleted',
+				description: 'The company was deleted successfully',
+				color: 'success',
+			})
+			return true
+		} catch (error) {
+			console.error('[useSupabaseCompanies] deleteCompany failed', {
+				error,
+				data: (error as { data?: unknown })?.data,
+			})
+			toast.add({
+				title: 'Error while deleting company',
+				description: extractErrorMessage(error),
 				color: 'error',
 			})
-			throw createError({
-				statusCode: 400,
-				message: `Error while deleting the company: ${error.message}`,
-			})
+			throw error
 		}
-
-		toast.add({
-			title: 'Company deleted',
-			description: 'The company was deleted successfully',
-			color: 'success',
-		})
-
-		return true
 	}
 
 	// Récupérer toutes les companies avec pagination et filtres
@@ -254,76 +248,69 @@ export function useSupabaseCompanies() {
 			isCurrent?: boolean
 		},
 	): Promise<CompanyArtist> => {
-		const insertData: TablesInsert<'artist_companies'> = {
-			company_id: companyId,
-			artist_id: artistId,
-			relationship_type: relationshipType || null,
-			start_date: options?.startDate || null,
-			end_date: options?.endDate || null,
-			is_current: options?.isCurrent ?? true,
-		}
-
-		const { data, error } = await supabase
-			.from('artist_companies')
-			.insert(insertData)
-			.select(
-				`
-				*,
-				company:companies(*),
-				artist:artists(id, name, image, type, verified)
-			`,
+		try {
+			const data = await runMutation(
+				$fetch<CompanyArtist>(`/api/companies/${companyId}/artist-link`, {
+					method: 'POST',
+					headers: requireAuthHeaders(),
+					body: {
+						artistId,
+						relationshipType: relationshipType || null,
+						startDate: options?.startDate || null,
+						endDate: options?.endDate || null,
+						isCurrent: options?.isCurrent ?? true,
+					},
+				}),
+				'Linking the company to the artist timed out. Please try again.',
 			)
-			.single()
-
-		if (error) {
-			console.error('Erreur lors de la liaison company-artiste:', error)
 			toast.add({
-				title: 'Error',
-				description: 'Error while linking company and artist',
+				title: 'Relation created',
+				description: 'The company was linked to the artist successfully',
+				color: 'success',
+			})
+			return data
+		} catch (error) {
+			console.error('[useSupabaseCompanies] linkCompanyToArtist failed', {
+				error,
+				data: (error as { data?: unknown })?.data,
+			})
+			toast.add({
+				title: 'Error while linking company',
+				description: extractErrorMessage(error),
 				color: 'error',
 			})
-			throw createError({
-				statusCode: 400,
-				message: `Database error: ${error.message}`,
-			})
+			throw error
 		}
-
-		toast.add({
-			title: 'Relation created',
-			description: 'The company was linked to the artist successfully',
-			color: 'success',
-		})
-
-		return data as CompanyArtist
 	}
 
 	// Supprimer une liaison company-artiste
 	const unlinkCompanyFromArtist = async (relationId: string) => {
-		const { error } = await supabase
-			.from('artist_companies')
-			.delete()
-			.eq('id', relationId)
-
-		if (error) {
-			console.error('Erreur lors de la suppression de la liaison:', error)
+		try {
+			await runMutation(
+				$fetch(`/api/companies/artist-links/${relationId}`, {
+					method: 'DELETE',
+					headers: requireAuthHeaders(),
+				}),
+				'Deleting the company relation timed out. Please try again.',
+			)
 			toast.add({
-				title: 'Error',
-				description: 'Error while deleting the relation',
+				title: 'Relation deleted',
+				description: 'The company-artist relation was deleted successfully',
+				color: 'success',
+			})
+			return true
+		} catch (error) {
+			console.error('[useSupabaseCompanies] unlinkCompanyFromArtist failed', {
+				error,
+				data: (error as { data?: unknown })?.data,
+			})
+			toast.add({
+				title: 'Error while deleting relation',
+				description: extractErrorMessage(error),
 				color: 'error',
 			})
-			throw createError({
-				statusCode: 400,
-				message: `Database error: ${error.message}`,
-			})
+			throw error
 		}
-
-		toast.add({
-			title: 'Relation deleted',
-			description: 'The company-artist relation was deleted successfully',
-			color: 'success',
-		})
-
-		return true
 	}
 
 	// Mettre à jour une relation company-artiste
@@ -331,39 +318,33 @@ export function useSupabaseCompanies() {
 		relationId: string,
 		updates: TablesUpdate<'artist_companies'>,
 	): Promise<CompanyArtist> => {
-		const { data, error } = await supabase
-			.from('artist_companies')
-			.update(updates)
-			.eq('id', relationId)
-			.select(
-				`
-				*,
-				company:companies(*),
-				artist:artists(id, name, image, type, verified)
-			`,
+		try {
+			const data = await runMutation(
+				$fetch<CompanyArtist>(`/api/companies/artist-links/${relationId}`, {
+					method: 'PATCH',
+					headers: requireAuthHeaders(),
+					body: { updates },
+				}),
+				'Updating the company relation timed out. Please try again.',
 			)
-			.single()
-
-		if (error) {
-			console.error('Erreur lors de la mise à jour de la relation:', error)
 			toast.add({
-				title: 'Error',
-				description: 'Error while updating the relation',
+				title: 'Relation updated',
+				description: 'The company-artist relation was updated successfully',
+				color: 'success',
+			})
+			return data
+		} catch (error) {
+			console.error('[useSupabaseCompanies] updateCompanyArtistRelation failed', {
+				error,
+				data: (error as { data?: unknown })?.data,
+			})
+			toast.add({
+				title: 'Error while updating relation',
+				description: extractErrorMessage(error),
 				color: 'error',
 			})
-			throw createError({
-				statusCode: 400,
-				message: `Database error: ${error.message}`,
-			})
+			throw error
 		}
-
-		toast.add({
-			title: 'Relation updated',
-			description: 'The company-artist relation was updated successfully',
-			color: 'success',
-		})
-
-		return data as CompanyArtist
 	}
 
 	// Récupérer les artistes d'une company

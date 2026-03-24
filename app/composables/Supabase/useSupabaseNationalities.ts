@@ -3,15 +3,15 @@ import type { Database, TablesInsert, TablesUpdate } from '~/types/supabase'
 
 export function useSupabaseNationalities() {
 	const supabase = useSupabaseClient<Database>()
+	const { runMutation } = useMutationTimeout()
 
 	const createNationality = async (
 		data: TablesInsert<'nationalities'>,
 	): Promise<Nationality> => {
-		const { data: nationality, error } = await supabase
-			.from('nationalities')
-			.insert(data)
-			.select()
-			.single()
+		const { data: nationality, error } = await runMutation(
+			supabase.from('nationalities').insert(data).select().single(),
+			'Creating the nationality timed out. Please try again.',
+		)
 
 		if (error) {
 			console.error('Erreur lors de la creation de la nationalite:', error)
@@ -25,12 +25,10 @@ export function useSupabaseNationalities() {
 		id: string,
 		updates: TablesUpdate<'nationalities'>,
 	): Promise<Nationality> => {
-		const { data, error } = await supabase
-			.from('nationalities')
-			.update(updates)
-			.eq('id', id)
-			.select()
-			.single()
+		const { data, error } = await runMutation(
+			supabase.from('nationalities').update(updates).eq('id', id).select().single(),
+			'Updating the nationality timed out. Please try again.',
+		)
 
 		if (error) {
 			console.error('Erreur lors de la mise a jour de la nationalite:', error)
@@ -41,7 +39,10 @@ export function useSupabaseNationalities() {
 	}
 
 	const deleteNationality = async (name: string) => {
-		const { error } = await supabase.from('nationalities').delete().eq('name', name)
+		const { error } = await runMutation(
+			supabase.from('nationalities').delete().eq('name', name),
+			'Deleting the nationality timed out. Please try again.',
+		)
 
 		if (error) {
 			console.error('Erreur lors de la suppression de la nationalite:', error)

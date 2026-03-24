@@ -10,13 +10,6 @@ import {
 	fetchArtistsByPage,
 	fetchLatestArtists,
 	type ArtistPageOptions,
-	createArtistRecord,
-	updateArtistRecord,
-	analyzeArtistDeletionImpact,
-	deleteArtistSafely,
-	deleteArtistSimply,
-	type CreateArtistParams,
-	type UpdateArtistParams,
 } from './helpers/artist'
 
 const logArtistCreateTrace = (step: string, details?: Record<string, unknown>) => {
@@ -33,6 +26,8 @@ const logArtistCreateTrace = (step: string, details?: Record<string, unknown>) =
 export function useSupabaseArtist() {
 	const supabase = useSupabaseClient<Database>()
 	const toast = useToast()
+	const { requireAuthHeaders } = useApiAuthHeaders()
+	const { runMutation } = useMutationTimeout()
 
 	// Vérifie si un artiste existe avec l'ID YouTube Music
 	const artistExistInSupabase = (idYoutubeMusic: string | null): Promise<boolean> => {
@@ -42,21 +37,12 @@ export function useSupabaseArtist() {
 	// Crée un nouvel artiste
 	const createArtist = async (
 		data: TablesInsert<'artists'>,
-		artistSocials: TablesInsert<'artist_social_links'>[],
-		artistPlatforms: TablesInsert<'artist_platform_links'>[],
+		artistSocials: Omit<TablesInsert<'artist_social_links'>, 'artist_id'>[],
+		artistPlatforms: Omit<TablesInsert<'artist_platform_links'>, 'artist_id'>[],
 		artistGroups: Artist[],
 		artistMembers: Artist[],
-		artistCompanies?: TablesInsert<'artist_companies'>[],
+		artistCompanies?: Omit<TablesInsert<'artist_companies'>, 'artist_id'>[],
 	): Promise<Artist> => {
-		const params: CreateArtistParams = {
-			data,
-			socialLinks: artistSocials,
-			platformLinks: artistPlatforms,
-			groups: artistGroups,
-			members: artistMembers,
-			companies: artistCompanies,
-		}
-
 		const startedAt = Date.now()
 		logArtistCreateTrace('createArtist called', {
 			name: data.name,
@@ -70,9 +56,21 @@ export function useSupabaseArtist() {
 		})
 
 		try {
-			const artist = await createArtistRecord(supabase, params, (message) => {
-				toast.add({ title: message, color: 'error' })
-			})
+			const artist = await runMutation(
+				$fetch<Artist>('/api/artists', {
+					method: 'POST',
+					headers: requireAuthHeaders(),
+					body: {
+						data,
+						socialLinks: artistSocials,
+						platformLinks: artistPlatforms,
+						groupIds: artistGroups.map((g) => g.id),
+						memberIds: artistMembers.map((m) => m.id),
+						companies: artistCompanies,
+					},
+				}),
+				'Creating the artist timed out. Please try again.',
+			)
 
 			logArtistCreateTrace('createArtist resolved', {
 				artistId: artist.id,
@@ -83,7 +81,13 @@ export function useSupabaseArtist() {
 		} catch (error) {
 			console.error('[ArtistCreate][useSupabaseArtist] createArtist failed', {
 				error,
+				data: (error as { data?: unknown })?.data,
 				elapsedMs: Date.now() - startedAt,
+			})
+			toast.add({
+				title: 'Error while creating artist',
+				description: extractErrorMessage(error),
+				color: 'error',
 			})
 			throw error
 		}
@@ -93,60 +97,112 @@ export function useSupabaseArtist() {
 	const updateArtist = async (
 		artistId: string,
 		updates: TablesUpdate<'artists'>,
-		socialLinks?: TablesInsert<'artist_social_links'>[],
-		platformLinks?: TablesInsert<'artist_platform_links'>[],
+		socialLinks?: Omit<TablesInsert<'artist_social_links'>, 'artist_id'>[],
+		platformLinks?: Omit<TablesInsert<'artist_platform_links'>, 'artist_id'>[],
 		artistGroups?: Artist[],
 		artistMembers?: Artist[],
 		artistCompanies?: Omit<TablesInsert<'artist_companies'>, 'artist_id'>[],
 	): Promise<Artist> => {
-		const params: UpdateArtistParams = {
-			artistId,
-			updates,
-			socialLinks,
-			platformLinks,
-			groups: artistGroups,
-			members: artistMembers,
-			companies: artistCompanies,
+		try {
+			const artist = await runMutation(
+				$fetch<Artist>(`/api/artists/${artistId}`, {
+					method: 'PATCH',
+					headers: requireAuthHeaders(),
+					body: {
+						updates,
+						socialLinks,
+						platformLinks,
+						groupIds: artistGroups?.map((g) => g.id),
+						memberIds: artistMembers?.map((m) => m.id),
+						companies: artistCompanies,
+					},
+				}),
+				'Updating the artist timed out. Please try again.',
+			)
+			return artist
+		} catch (error) {
+			console.error('[useSupabaseArtist] updateArtist failed', {
+				error,
+				data: (error as { data?: unknown })?.data,
+			})
+			toast.add({
+				title: 'Error while updating artist',
+				description: extractErrorMessage(error),
+				color: 'error',
+			})
+			throw error
 		}
-
-		return updateArtistRecord(supabase, params)
 	}
 
 	// Analyse les impacts de la suppression d'un artiste
-	const getArtistDeletionImpact = (id: string) => {
-		return analyzeArtistDeletionImpact(supabase, id)
+	const getArtistDeletionImpact = async (id: string) => {
+		return $fetch(`/api/artists/${id}/analyze-deletion`, {
+			headers: requireAuthHeaders(),
+		})
 	}
 
 	// Supprime un artiste de manière sécurisée
 	const deleteArtist = async (id: string) => {
-		return deleteArtistSafely(
-			supabase,
-			id,
-			(message) =>
-				toast.add({ title: 'Artist deleted', description: message, color: 'success' }),
-			(message) =>
-				toast.add({
-					title: 'Deletion error',
-					description: message,
-					color: 'error',
+		try {
+			const data = await runMutation(
+				$fetch(`/api/artists/${id}`, {
+					method: 'DELETE',
+					headers: requireAuthHeaders(),
+					query: { mode: 'safe' },
 				}),
-		)
+				'Deleting the artist timed out. Please try again.',
+			)
+			const response = data as { success?: boolean; message?: string } | null
+			toast.add({
+				title: 'Artist deleted',
+				description: response?.message || '',
+				color: 'success',
+			})
+			return { success: response?.success, message: response?.message }
+		} catch (error) {
+			console.error('[useSupabaseArtist] deleteArtist failed', {
+				error,
+				data: (error as { data?: unknown })?.data,
+			})
+			toast.add({
+				title: 'Deletion error',
+				description: extractErrorMessage(error),
+				color: 'error',
+			})
+			throw error
+		}
 	}
 
 	// Supprime un artiste de manière simple
 	const deleteArtistSimple = async (id: string) => {
-		return deleteArtistSimply(
-			supabase,
-			id,
-			(message) =>
-				toast.add({ title: 'Artist deleted', description: message, color: 'success' }),
-			(message) =>
-				toast.add({
-					title: 'Deletion error',
-					description: message,
-					color: 'error',
+		try {
+			const data = await runMutation(
+				$fetch(`/api/artists/${id}`, {
+					method: 'DELETE',
+					headers: requireAuthHeaders(),
+					query: { mode: 'simple' },
 				}),
-		)
+				'Deleting the artist timed out. Please try again.',
+			)
+			const response = data as { success?: boolean; message?: string; artist_name?: string } | null
+			toast.add({
+				title: 'Artist deleted',
+				description: response?.message || '',
+				color: 'success',
+			})
+			return { success: response?.success, message: response?.message, artist_name: response?.artist_name }
+		} catch (error) {
+			console.error('[useSupabaseArtist] deleteArtistSimple failed', {
+				error,
+				data: (error as { data?: unknown })?.data,
+			})
+			toast.add({
+				title: 'Deletion error',
+				description: extractErrorMessage(error),
+				color: 'error',
+			})
+			throw error
+		}
 	}
 
 	// Fonction utilitaire pour choisir le mode de suppression
@@ -198,16 +254,22 @@ export function useSupabaseArtist() {
 
 	// Approuve un artiste (met verified = true) sans toucher aux relations
 	const approveArtist = async (artistId: string) => {
-		const { error } = await supabase
-			.from('artists')
-			.update({ verified: true })
-			.eq('id', artistId)
-
-		if (error) {
-			console.error("Erreur lors de l'approbation de l'artiste:", error)
+		try {
+			await runMutation(
+				$fetch(`/api/artists/${artistId}/approve`, {
+					method: 'PATCH',
+					headers: requireAuthHeaders(),
+				}),
+				'Approving the artist timed out. Please try again.',
+			)
+		} catch (error) {
+			console.error('[useSupabaseArtist] approveArtist failed', {
+				error,
+				data: (error as { data?: unknown })?.data,
+			})
 			toast.add({
 				title: 'Error',
-				description: 'Unable to approve the artist',
+				description: extractErrorMessage(error),
 				color: 'error',
 			})
 			throw error

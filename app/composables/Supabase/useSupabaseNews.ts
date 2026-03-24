@@ -14,24 +14,8 @@ interface NewsResponse {
 export function useSupabaseNews() {
 	const supabase = useSupabaseClient<Database>()
 	const toast = useToast()
-	const withTimeout = async <T>(
-		promise: PromiseLike<T>,
-		timeoutMs: number,
-		errorMessage: string,
-	): Promise<T> => {
-		let timeoutId: ReturnType<typeof setTimeout> | null = null
-
-		try {
-			return await Promise.race([
-				promise,
-				new Promise<never>((_, reject) => {
-					timeoutId = setTimeout(() => reject(new Error(errorMessage)), timeoutMs)
-				}),
-			])
-		} finally {
-			if (timeoutId) clearTimeout(timeoutId)
-		}
-	}
+	const { requireAuthHeaders } = useApiAuthHeaders()
+	const { runMutation } = useMutationTimeout()
 
 	// Crée une nouvelle news
 	const createNews = async (
@@ -46,58 +30,14 @@ export function useSupabaseNews() {
 			throw new Error('Le message est requis pour créer une news')
 		}
 
-		const { data: news, error } = await withTimeout(
-			supabase
-				.from('news')
-				.insert(data)
-				.select(
-					`
-					*,
-					news_artists_junction(
-						artist_id
-					)
-				`,
-				)
-				.single(),
-			15000,
+		return runMutation(
+			$fetch<News>('/api/news', {
+				method: 'POST',
+				headers: requireAuthHeaders(),
+				body: { data, artistIds },
+			}),
 			'The comeback request timed out while creating the report.',
 		)
-
-		if (error) {
-			console.error('Erreur lors de la création de la news:', error)
-			toast.add({
-				title: 'Erreur',
-				description: 'Erreur lors de la création de la news',
-				color: 'error',
-			})
-			throw new Error('Erreur lors de la création de la news')
-		}
-
-		const junctionInserts: TablesInsert<'news_artists_junction'>[] = artistIds.map(
-			(artistId) => ({
-				news_id: news.id,
-				artist_id: artistId,
-			}),
-		)
-
-		const { error: junctionError } = await withTimeout(
-			supabase.from('news_artists_junction').insert(junctionInserts).select(),
-			15000,
-			'The comeback request timed out while linking artists.',
-		)
-
-		if (junctionError) {
-			console.error('Erreur lors de la création des relations artistes:', junctionError)
-			await supabase.from('news').delete().eq('id', news.id)
-			toast.add({
-				title: 'Erreur',
-				description: 'Erreur lors de la création des relations artistes',
-				color: 'error',
-			})
-			throw new Error('Erreur lors de la création des relations artistes')
-		}
-
-		return news as News
 	}
 
 	// Met à jour une news
@@ -105,97 +45,77 @@ export function useSupabaseNews() {
 		id: string,
 		updates: TablesUpdate<'news'>,
 	): Promise<News | null> => {
-		const { data, error } = await supabase
-			.from('news')
-			.update(updates)
-			.eq('id', id)
-			.select()
-			.single()
-
-		if (error) {
-			console.error('Erreur lors de la mise à jour de la news:', error)
+		try {
+			return await runMutation(
+				$fetch<News>(`/api/news/${id}`, {
+					method: 'PATCH',
+					headers: requireAuthHeaders(),
+					body: { updates },
+				}),
+				'Updating the report timed out. Please try again.',
+			)
+		} catch (error) {
+			console.error('[useSupabaseNews] updateNews failed', {
+				error,
+				data: (error as { data?: unknown })?.data,
+			})
 			toast.add({
 				title: 'Erreur',
-				description: 'Erreur lors de la mise à jour de la news',
+				description: extractErrorMessage(error),
 				color: 'error',
 			})
 			return null
 		}
-
-		return data as News
 	}
 
 	const updateNewsArtistsRelations = async (id: string, artistIds?: string[]) => {
 		try {
-			// 1. Supprimer toutes les relations existantes pour cette news
-			const { error: deleteError } = await supabase
-				.from('news_artists_junction')
-				.delete()
-				.eq('news_id', id)
-
-			if (deleteError) {
-				console.error(
-					'Erreur lors de la suppression des anciennes relations:',
-					deleteError,
-				)
-				toast.add({
-					title: 'Erreur',
-					description: 'Erreur lors de la mise à jour des artistes',
-					color: 'error',
-				})
-				throw deleteError
-			}
-
-			// 2. Si nous avons de nouveaux artistes à ajouter
-			if (artistIds && artistIds.length > 0) {
-				// Créer les nouvelles relations
-				const junctionInserts: TablesInsert<'news_artists_junction'>[] = artistIds.map(
-					(artistId) => ({
-						news_id: id,
-						artist_id: artistId,
-					}),
-				)
-
-				const { error: insertError } = await supabase
-					.from('news_artists_junction')
-					.insert(junctionInserts)
-
-				if (insertError) {
-					console.error(
-						'Erreur lors de la création des nouvelles relations:',
-						insertError,
-					)
-					toast.add({
-						title: 'Erreur',
-						description: 'Erreur lors de la mise à jour des artistes',
-						color: 'error',
-					})
-					throw insertError
-				}
-			}
-
+			await runMutation(
+				$fetch(`/api/news/${id}`, {
+					method: 'PATCH',
+					headers: requireAuthHeaders(),
+					body: { artistIds },
+				}),
+				'Linking artists to the report timed out. Please try again.',
+			)
 			return true
 		} catch (error) {
-			console.error('Erreur lors de la mise à jour des artistes:', error)
+			console.error('[useSupabaseNews] updateNewsArtistsRelations failed', {
+				error,
+				data: (error as { data?: unknown })?.data,
+			})
+			toast.add({
+				title: 'Erreur',
+				description: extractErrorMessage(error),
+				color: 'error',
+			})
 			return false
 		}
 	}
 
 	// Supprime une news
 	const deleteNews = async (id: string) => {
-		const { error } = await supabase.from('news').delete().eq('id', id)
-
-		if (error) {
-			console.error('Erreur lors de la suppression de la news:', error)
+		try {
+			await runMutation(
+				$fetch(`/api/news/${id}`, {
+					method: 'DELETE',
+					headers: requireAuthHeaders(),
+				}),
+				'Deleting the report timed out. Please try again.',
+			)
+			return true
+		} catch (error) {
+			console.error('[useSupabaseNews] deleteNews failed', {
+				error,
+				data: (error as { data?: unknown })?.data,
+			})
 			toast.add({
 				title: 'Erreur',
-				description: 'Erreur lors de la suppression de la news',
+				description: extractErrorMessage(error),
 				color: 'error',
 			})
 			return false
 		}
-
-		return true
 	}
 
 	// Récupère toutes les news

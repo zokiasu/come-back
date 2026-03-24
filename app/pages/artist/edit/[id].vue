@@ -14,6 +14,7 @@
 		Company,
 	} from '~/types'
 	import type { TablesInsert } from '~/types/supabase'
+	import { useMutationTimeout } from '~/composables/useMutationTimeout'
 
 	// Creates a generic type that adds 'label' to an existing type T
 	type MenuItem<T> = T & { label: string }
@@ -47,6 +48,7 @@
 	const { getAllGeneralTags } = useSupabaseGeneralTags()
 	const { getAllNationalities } = useSupabaseNationalities()
 	const { getAllCompanies, relationshipTypes } = useSupabaseCompanies()
+	const { runMutation } = useMutationTimeout()
 
 	const title = ref('Edit Artist Page')
 	const description = ref('Edit Artist Page')
@@ -435,25 +437,6 @@
 		}
 	}
 
-	const withTimeout = async <T,>(
-		promise: Promise<T>,
-		timeoutMs: number,
-		errorMessage: string,
-	): Promise<T> => {
-		let timeoutId: ReturnType<typeof setTimeout> | null = null
-
-		try {
-			return await Promise.race([
-				promise,
-				new Promise<never>((_, reject) => {
-					timeoutId = setTimeout(() => reject(new Error(errorMessage)), timeoutMs)
-				}),
-			])
-		} finally {
-			if (timeoutId) clearTimeout(timeoutId)
-		}
-	}
-
 	const sendUpdateArtist = async () => {
 		isUploadingEdit.value = true
 
@@ -508,7 +491,9 @@
 			const validPlatformLinks = platformLinkManager.getValidLinks()
 			const validSocialLinks = socialLinkManager.getValidLinks()
 
-			await withTimeout(
+			// Keep an explicit timeout at page level too: if the full edit flow
+			// never resolves, the user gets feedback and the save button unlocks again.
+			await runMutation(
 				updateArtist(
 					currentArtistId,
 					updates,
@@ -518,7 +503,6 @@
 					buildArtistRefs(artistMembers.value),
 					selectedCompanies,
 				),
-				15000,
 				'Artist update timed out. Please try again.',
 			)
 
@@ -582,14 +566,15 @@
 		bootstrapError.value = null
 
 		try {
-			const [fullArtist, styles, tags, nationalities] = await withTimeout(
+			// The first editor screen depends on multiple async sources.
+			// Wrapping the whole Promise.all keeps the hero loader from hanging forever.
+			const [fullArtist, styles, tags, nationalities] = await runMutation(
 				Promise.all([
 					getFullArtistById(route.params.id as string),
 					getAllMusicStyles(),
 					getAllGeneralTags(),
 					getAllNationalities(),
 				]),
-				15000,
 				'Artist editor loading timed out. Please try again.',
 			)
 
@@ -602,9 +587,10 @@
 				artistToEdit.value = { ...artist.value }
 
 				try {
-					const { socialLinks, platformLinks } = await withTimeout(
+					// Links are loaded separately from the main artist payload, so they get
+					// their own timeout and their own warning state.
+					const { socialLinks, platformLinks } = await runMutation(
 						getSocialAndPlatformLinksByArtistId(artist.value.id),
-						10000,
 						'Artist links loading timed out. Please try again.',
 					)
 

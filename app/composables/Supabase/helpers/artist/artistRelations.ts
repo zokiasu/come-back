@@ -1,8 +1,10 @@
 import type { Database, TablesInsert } from '~/types/supabase'
 import type { Artist } from '~/types'
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { useMutationTimeout } from '~/composables/useMutationTimeout'
 
 type SupabaseClientType = SupabaseClient<Database>
+const { runMutation } = useMutationTimeout()
 
 const logArtistCreateTrace = (step: string, details?: Record<string, unknown>) => {
 	if (!import.meta.dev) return
@@ -38,7 +40,10 @@ export async function insertSocialLinks(
 		artist_id: artistId,
 	}))
 
-	const { error } = await supabase.from('artist_social_links').insert(linksWithArtistId)
+	const { error } = await runMutation(
+		supabase.from('artist_social_links').insert(linksWithArtistId),
+		'Adding artist social links timed out. Please try again.',
+	)
 
 	if (error) {
 		console.error('[ArtistCreate][artistRelations] insertSocialLinks failed', {
@@ -78,7 +83,10 @@ export async function insertPlatformLinks(
 		artist_id: artistId,
 	}))
 
-	const { error } = await supabase.from('artist_platform_links').insert(linksWithArtistId)
+	const { error } = await runMutation(
+		supabase.from('artist_platform_links').insert(linksWithArtistId),
+		'Adding artist platform links timed out. Please try again.',
+	)
 
 	if (error) {
 		console.error('[ArtistCreate][artistRelations] insertPlatformLinks failed', {
@@ -119,7 +127,10 @@ export async function insertGroupRelations(
 		relation_type: 'MEMBER' as const,
 	}))
 
-	const { error } = await supabase.from('artist_relations').insert(relations)
+	const { error } = await runMutation(
+		supabase.from('artist_relations').insert(relations),
+		'Adding artist group relations timed out. Please try again.',
+	)
 
 	if (error) {
 		console.error('[ArtistCreate][artistRelations] insertGroupRelations failed', {
@@ -160,7 +171,10 @@ export async function insertMemberRelations(
 		relation_type: 'GROUP' as const,
 	}))
 
-	const { error } = await supabase.from('artist_relations').insert(relations)
+	const { error } = await runMutation(
+		supabase.from('artist_relations').insert(relations),
+		'Adding artist member relations timed out. Please try again.',
+	)
 
 	if (error) {
 		console.error('[ArtistCreate][artistRelations] insertMemberRelations failed', {
@@ -200,7 +214,10 @@ export async function insertCompanyRelations(
 		artist_id: artistId,
 	}))
 
-	const { error } = await supabase.from('artist_companies').insert(relations)
+	const { error } = await runMutation(
+		supabase.from('artist_companies').insert(relations),
+		'Adding artist company relations timed out. Please try again.',
+	)
 
 	if (error) {
 		console.error('[ArtistCreate][artistRelations] insertCompanyRelations failed', {
@@ -224,7 +241,10 @@ export async function deleteSocialLinks(
 	supabase: SupabaseClientType,
 	artistId: string,
 ): Promise<void> {
-	await supabase.from('artist_social_links').delete().eq('artist_id', artistId)
+	await runMutation(
+		supabase.from('artist_social_links').delete().eq('artist_id', artistId),
+		'Refreshing artist social links timed out. Please try again.',
+	)
 }
 
 /**
@@ -234,7 +254,10 @@ export async function deletePlatformLinks(
 	supabase: SupabaseClientType,
 	artistId: string,
 ): Promise<void> {
-	await supabase.from('artist_platform_links').delete().eq('artist_id', artistId)
+	await runMutation(
+		supabase.from('artist_platform_links').delete().eq('artist_id', artistId),
+		'Refreshing artist platform links timed out. Please try again.',
+	)
 }
 
 /**
@@ -244,10 +267,13 @@ export async function deleteArtistRelations(
 	supabase: SupabaseClientType,
 	artistId: string,
 ): Promise<void> {
-	await supabase
-		.from('artist_relations')
-		.delete()
-		.or(`group_id.eq.${artistId},member_id.eq.${artistId}`)
+	await runMutation(
+		supabase
+			.from('artist_relations')
+			.delete()
+			.or(`group_id.eq.${artistId},member_id.eq.${artistId}`),
+		'Refreshing artist relations timed out. Please try again.',
+	)
 }
 
 /**
@@ -257,7 +283,10 @@ export async function deleteCompanyRelations(
 	supabase: SupabaseClientType,
 	artistId: string,
 ): Promise<void> {
-	await supabase.from('artist_companies').delete().eq('artist_id', artistId)
+	await runMutation(
+		supabase.from('artist_companies').delete().eq('artist_id', artistId),
+		'Refreshing artist company relations timed out. Please try again.',
+	)
 }
 
 /**

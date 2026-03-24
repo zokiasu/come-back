@@ -33,150 +33,111 @@ interface PaginatedMusicsResponse {
 export function useSupabaseMusic() {
 	const supabase = useSupabaseClient<Database>()
 	const toast = useToast()
+	const { requireAuthHeaders } = useApiAuthHeaders()
+	const { runMutation } = useMutationTimeout()
 
 	// Met à jour une musique
 	const updateMusic = async (
 		id: string,
 		updates: Partial<Database['public']['Tables']['musics']['Update']>,
 	) => {
-		const { data, error } = await supabase
-			.from('musics')
-			.update(updates)
-			.eq('id', id)
-			.select()
-			.single()
-
-		if (error) {
-			console.error('Erreur lors de la mise à jour de la musique:', error)
+		try {
+			const data = await runMutation(
+				$fetch<Music>(`/api/musics/${id}`, {
+					method: 'PATCH',
+					headers: requireAuthHeaders(),
+					body: { updates },
+				}),
+				'Updating the track timed out. Please try again.',
+			)
+			return data
+		} catch (error) {
+			console.error('[useSupabaseMusic] updateMusic failed', {
+				error,
+				data: (error as { data?: unknown })?.data,
+			})
 			toast.add({
 				title: 'Erreur lors de la mise à jour de la musique',
+				description: extractErrorMessage(error),
 				color: 'error',
 			})
 			return null
 		}
-
-		return data as Music
 	}
 
 	const updateMusicArtists = async (id: string, artistIds?: string[]) => {
 		try {
-			// 1. Supprimer toutes les relations existantes
-			const { error: deleteError } = await supabase
-				.from('music_artists')
-				.delete()
-				.eq('music_id', id)
-
-			if (deleteError) {
-				console.error(
-					'Erreur lors de la suppression des anciennes relations:',
-					deleteError,
-				)
-				toast.add({
-					title: 'Erreur lors de la mise à jour des artistes',
-					color: 'error',
-				})
-				throw deleteError
-			}
-
-			// 2. Ajouter les nouvelles relations si nécessaire
-			if (artistIds && artistIds.length > 0) {
-				const { error: insertError } = await supabase.from('music_artists').insert(
-					artistIds.map((artistId) => ({
-						music_id: id,
-						artist_id: artistId,
-					})) as Database['public']['Tables']['music_artists']['Insert'][],
-				)
-
-				if (insertError) {
-					console.error(
-						'Erreur lors de la création des nouvelles relations:',
-						insertError,
-					)
-					toast.add({
-						title: 'Erreur lors de la mise à jour des artistes',
-						color: 'error',
-					})
-					throw insertError
-				}
-			}
-
+			await runMutation(
+				$fetch(`/api/musics/${id}`, {
+					method: 'PATCH',
+					headers: requireAuthHeaders(),
+					body: { artistIds },
+				}),
+				'Linking artists to the track timed out. Please try again.',
+			)
 			return true
 		} catch (error) {
-			console.error('Erreur lors de la mise à jour des artistes:', error)
+			console.error('[useSupabaseMusic] updateMusicArtists failed', {
+				error,
+				data: (error as { data?: unknown })?.data,
+			})
+			toast.add({
+				title: 'Erreur lors de la mise à jour des artistes',
+				description: extractErrorMessage(error),
+				color: 'error',
+			})
 			return false
 		}
 	}
 
 	const updateMusicReleases = async (id: string, releaseIds?: string[]) => {
 		try {
-			// 1. Supprimer toutes les relations existantes
-			const { error: deleteError } = await supabase
-				.from('music_releases')
-				.delete()
-				.eq('music_id', id)
-
-			if (deleteError) {
-				console.error(
-					'Erreur lors de la suppression des anciennes relations:',
-					deleteError,
-				)
-				toast.add({
-					title: 'Erreur lors de la mise à jour des releases',
-					color: 'error',
-				})
-				throw deleteError
-			}
-
-			// 2. Ajouter les nouvelles relations si nécessaire
-			if (releaseIds && releaseIds.length > 0) {
-				const { error: insertError } = await supabase.from('music_releases').insert(
-					releaseIds.map((releaseId) => ({
-						music_id: id,
-						release_id: releaseId,
-					})) as Database['public']['Tables']['music_releases']['Insert'][],
-				)
-
-				if (insertError) {
-					console.error(
-						'Erreur lors de la création des nouvelles relations:',
-						insertError,
-					)
-					toast.add({
-						title: 'Erreur lors de la mise à jour des releases',
-						color: 'error',
-					})
-					throw insertError
-				}
-			}
-
+			await runMutation(
+				$fetch(`/api/musics/${id}`, {
+					method: 'PATCH',
+					headers: requireAuthHeaders(),
+					body: { releaseIds },
+				}),
+				'Linking releases to the track timed out. Please try again.',
+			)
 			return true
 		} catch (error) {
-			console.error('Erreur lors de la mise à jour des releases:', error)
+			console.error('[useSupabaseMusic] updateMusicReleases failed', {
+				error,
+				data: (error as { data?: unknown })?.data,
+			})
+			toast.add({
+				title: 'Erreur lors de la mise à jour des releases',
+				description: extractErrorMessage(error),
+				color: 'error',
+			})
 			return false
 		}
 	}
 
 	// Supprime une musique
 	const deleteMusic = async (id: string) => {
-		// Supprimer d'abord les relations avec les artistes
-		await supabase.from('music_artists').delete().eq('music_id', id)
-
-		// Supprimer les relations avec les releases
-		await supabase.from('music_releases').delete().eq('music_id', id)
-
-		// Supprimer la musique
-		const { error } = await supabase.from('musics').delete().eq('id', id)
-
-		if (error) {
-			console.error('Erreur lors de la suppression de la musique:', error)
+		try {
+			await runMutation(
+				$fetch(`/api/musics/${id}`, {
+					method: 'DELETE',
+					headers: requireAuthHeaders(),
+				}),
+				'Deleting the track timed out. Please try again.',
+			)
+			return true
+		} catch (error) {
+			console.error('[useSupabaseMusic] deleteMusic failed', {
+				error,
+				data: (error as { data?: unknown })?.data,
+			})
 			toast.add({
 				title: 'Erreur lors de la suppression de la musique',
+				description: extractErrorMessage(error),
 				color: 'error',
 			})
 			return false
 		}
-
-		return true
 	}
 
 	// Récupère toutes les musiques
@@ -432,47 +393,28 @@ export function useSupabaseMusic() {
 		artistIds: string[],
 	): Promise<Music | null> => {
 		try {
-			// 1. Créer la musique
-			const { data: music, error: musicError } = await supabase
-				.from('musics')
-				.insert(musicData as Database['public']['Tables']['musics']['Insert'])
-				.select()
-				.single()
-
-			if (musicError) {
-				console.error('Erreur lors de la création de la musique:', musicError)
-				toast.add({
-					title: 'Erreur lors de la création de la musique',
-					color: 'error',
-				})
-				throw musicError
-			}
-
-			// 2. Ajouter les relations avec les artistes
-			if (artistIds && artistIds.length > 0) {
-				const { error: artistError } = await supabase.from('music_artists').insert(
-					artistIds.map((artistId, index) => ({
-						music_id: music.id,
-						artist_id: artistId,
-						is_primary: index === 0, // Le premier artiste est considéré comme principal
-					})) as Database['public']['Tables']['music_artists']['Insert'][],
-				)
-
-				if (artistError) {
-					console.error("Erreur lors de l'ajout des artistes:", artistError)
-					// On supprime la musique créée si l'ajout des artistes échoue
-					await supabase.from('musics').delete().eq('id', music.id)
-					toast.add({
-						title: "Erreur lors de l'ajout des artistes",
-						color: 'error',
-					})
-					throw artistError
-				}
-			}
-
-			return music as Music
+			const music = await runMutation(
+				$fetch<Music>('/api/musics', {
+					method: 'POST',
+					headers: requireAuthHeaders(),
+					body: {
+						music: musicData,
+						artistIds,
+					},
+				}),
+				'Creating the track timed out. Please try again.',
+			)
+			return music
 		} catch (error) {
-			console.error('Erreur lors de la création de la musique:', error)
+			console.error('[useSupabaseMusic] createMusic failed', {
+				error,
+				data: (error as { data?: unknown })?.data,
+			})
+			toast.add({
+				title: 'Erreur lors de la création de la musique',
+				description: extractErrorMessage(error),
+				color: 'error',
+			})
 			return null
 		}
 	}
@@ -484,24 +426,25 @@ export function useSupabaseMusic() {
 		trackNumber: number,
 	): Promise<boolean> => {
 		try {
-			const { error } = await supabase.from('music_releases').insert({
-				music_id: musicId,
-				release_id: releaseId,
-				track_number: trackNumber,
-			} as Database['public']['Tables']['music_releases']['Insert'])
-
-			if (error) {
-				console.error("Erreur lors de l'ajout de la musique à la release:", error)
-				toast.add({
-					title: "Erreur lors de l'ajout à la release",
-					color: 'error',
-				})
-				throw error
-			}
-
+			await runMutation(
+				$fetch(`/api/musics/${musicId}/release`, {
+					method: 'POST',
+					headers: requireAuthHeaders(),
+					body: { releaseId, trackNumber },
+				}),
+				'Adding the track to the release timed out. Please try again.',
+			)
 			return true
 		} catch (error) {
-			console.error("Erreur lors de l'ajout de la musique à la release:", error)
+			console.error('[useSupabaseMusic] addMusicToRelease failed', {
+				error,
+				data: (error as { data?: unknown })?.data,
+			})
+			toast.add({
+				title: "Erreur lors de l'ajout à la release",
+				description: extractErrorMessage(error),
+				color: 'error',
+			})
 			return false
 		}
 	}
@@ -512,24 +455,25 @@ export function useSupabaseMusic() {
 		releaseId: string,
 	): Promise<boolean> => {
 		try {
-			const { error } = await supabase
-				.from('music_releases')
-				.delete()
-				.eq('music_id', musicId)
-				.eq('release_id', releaseId)
-
-			if (error) {
-				console.error('Erreur lors de la suppression de la musique de la release:', error)
-				toast.add({
-					title: 'Erreur lors de la suppression',
-					color: 'error',
-				})
-				throw error
-			}
-
+			await runMutation(
+				$fetch(`/api/musics/${musicId}/release`, {
+					method: 'DELETE',
+					headers: requireAuthHeaders(),
+					query: { releaseId },
+				}),
+				'Removing the track from the release timed out. Please try again.',
+			)
 			return true
 		} catch (error) {
-			console.error('Erreur lors de la suppression de la musique de la release:', error)
+			console.error('[useSupabaseMusic] removeMusicFromRelease failed', {
+				error,
+				data: (error as { data?: unknown })?.data,
+			})
+			toast.add({
+				title: 'Erreur lors de la suppression',
+				description: extractErrorMessage(error),
+				color: 'error',
+			})
 			return false
 		}
 	}

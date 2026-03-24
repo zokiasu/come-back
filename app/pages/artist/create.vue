@@ -14,6 +14,7 @@
 
 	import { useSupabaseArtist } from '~/composables/Supabase/useSupabaseArtist'
 	import { useSupabaseCompanies } from '~/composables/Supabase/useSupabaseCompanies'
+	import { useMutationTimeout } from '~/composables/useMutationTimeout'
 	import { useYoutubeMusicIdCheck } from '~/composables/useYoutubeMusicIdCheck'
 	import { useUserStore } from '~/stores/user'
 
@@ -32,6 +33,7 @@
 
 	const toast = useToast()
 	const { getAuthHeaders } = useApiAuthHeaders()
+	const { runMutation } = useMutationTimeout()
 	const userStore = useUserStore()
 	const { isAdminStore } = storeToRefs(userStore)
 	const { createArtist, getAllArtists } = useSupabaseArtist()
@@ -441,9 +443,14 @@
 
 	const loadCreateOptions = async () => {
 		logArtistCreateTrace('loadCreateOptions request started')
-		return $fetch<ArtistCreateOptionsPayload>('/api/admin/artist-create-options', {
-			headers: getAuthHeaders(),
-		})
+		// The form cannot bootstrap without these options, so we fail with a timeout
+		// instead of leaving the hero loader visible forever.
+		return await runMutation(
+			$fetch<ArtistCreateOptionsPayload>('/api/admin/artist-create-options', {
+				headers: getAuthHeaders(),
+			}),
+			'Artist creation data loading timed out. Please try again.',
+		)
 	}
 
 	const refreshNationalities = async () => {
@@ -555,6 +562,8 @@
 		isUploadingEdit.value = true
 
 		try {
+			// createArtist() now uses the shared timeout wrapper internally for the
+			// record itself and its linked relations (socials, platforms, groups, companies).
 			const selectedGroups = buildArtistRefs(artistGroups.value)
 			const selectedMembers = buildArtistRefs(artistMembers.value)
 			const selectedCompanies = artistCompanies.value

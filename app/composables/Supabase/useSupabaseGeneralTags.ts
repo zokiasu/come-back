@@ -3,16 +3,16 @@ import type { Database, TablesInsert, TablesUpdate } from '~/types/supabase'
 
 export function useSupabaseGeneralTags() {
 	const supabase = useSupabaseClient<Database>()
+	const { runMutation } = useMutationTimeout()
 
 	// Crée un nouveau tag
 	const createGeneralTag = async (
 		data: TablesInsert<'general_tags'>,
 	): Promise<GeneralTag> => {
-		const { data: tag, error } = await supabase
-			.from('general_tags')
-			.insert(data)
-			.select()
-			.single()
+		const { data: tag, error } = await runMutation(
+			supabase.from('general_tags').insert(data).select().single(),
+			'Creating the tag timed out. Please try again.',
+		)
 
 		if (error) {
 			console.error('Erreur lors de la création du tag:', error)
@@ -27,12 +27,10 @@ export function useSupabaseGeneralTags() {
 		id: string,
 		updates: TablesUpdate<'general_tags'>,
 	): Promise<GeneralTag> => {
-		const { data, error } = await supabase
-			.from('general_tags')
-			.update(updates)
-			.eq('id', id)
-			.select()
-			.single()
+		const { data, error } = await runMutation(
+			supabase.from('general_tags').update(updates).eq('id', id).select().single(),
+			'Updating the tag timed out. Please try again.',
+		)
 
 		if (error) {
 			console.error('Erreur lors de la mise à jour du tag:', error)
@@ -44,7 +42,10 @@ export function useSupabaseGeneralTags() {
 
 	// Supprime un tag
 	const deleteGeneralTag = async (name: string) => {
-		const { error } = await supabase.from('general_tags').delete().eq('name', name)
+		const { error } = await runMutation(
+			supabase.from('general_tags').delete().eq('name', name),
+			'Deleting the tag timed out. Please try again.',
+		)
 
 		if (error) {
 			console.error('Erreur lors de la suppression du tag:', error)
