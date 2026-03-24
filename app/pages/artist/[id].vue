@@ -11,7 +11,7 @@
 	const route = useRoute()
 	const artistId = computed(() => route.params.id as string)
 
-	const { followedIds, fetchFollowedArtists, followArtist, unfollowArtist } =
+	const { followedIds, isLoading: isFollowsLoading, fetchFollowedArtists, followArtist, unfollowArtist } =
 		useFollowedArtists()
 	const isFollowLoading = ref(false)
 
@@ -291,7 +291,7 @@
 						<UButton
 							type="button"
 							:icon="isFollowing ? 'i-lucide-star-off' : 'i-lucide-star'"
-							:loading="isFollowLoading"
+							:loading="isFollowLoading || isFollowsLoading"
 							:color="isFollowing ? 'primary' : 'neutral'"
 							:variant="isFollowing ? 'solid' : 'outline'"
 							size="xs"
