@@ -288,18 +288,29 @@
 						>
 							Edit Artist
 						</button>
-						<UButton
+						<button
 							type="button"
-							:icon="isFollowing ? 'i-lucide-star-off' : 'i-lucide-star'"
-							:loading="isFollowLoading || isFollowsLoading"
-							:color="isFollowing ? 'primary' : 'neutral'"
-							:variant="isFollowing ? 'solid' : 'outline'"
-							size="xs"
-							class="uppercase"
+							:disabled="isFollowLoading || isFollowsLoading"
+							class="bg-cb-secondary-950 group flex cursor-pointer items-center gap-1 px-2 py-1 text-xs font-semibold uppercase disabled:cursor-not-allowed disabled:opacity-50"
 							@click="handleFollowToggle"
 						>
-							{{ isFollowing ? 'Suivi' : 'Suivre' }}
-						</UButton>
+							<template v-if="isFollowing">
+								<UIcon
+									name="i-lucide-star"
+									class="text-cb-primary-500 size-3 group-hover:hidden"
+								/>
+								<UIcon
+									name="i-lucide-star-off"
+									class="hidden size-3 group-hover:block"
+								/>
+								<span class="group-hover:hidden">Suivi</span>
+								<span class="hidden group-hover:inline">Ne plus suivre</span>
+							</template>
+							<template v-else>
+								<UIcon name="i-lucide-star" class="size-3" />
+								Suivre
+							</template>
+						</button>
 					</div>
 				</div>
 			</div>
