@@ -37,13 +37,17 @@ export default defineNuxtConfig({
 	},
 
 	runtimeConfig: {
+		SUPABASE_SECRET_KEY: supabaseSecretKey,
+		VAPID_PRIVATE_KEY: process.env.VAPID_PRIVATE_KEY,
+		VAPID_SUBJECT: process.env.VAPID_SUBJECT ?? 'mailto:admin@come-back.app',
+		CRON_SECRET: process.env.CRON_SECRET,
 		public: {
 			YOUTUBE_API_KEY: process.env.YOUTUBE_API_KEY,
 			SUPABASE_URL: process.env.SUPABASE_URL,
 			SUPABASE_KEY: process.env.NUXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
 			SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY,
+			VAPID_PUBLIC_KEY: process.env.VAPID_PUBLIC_KEY,
 		},
-		SUPABASE_SECRET_KEY: supabaseSecretKey,
 	},
 
 	supabase: {
@@ -112,6 +116,9 @@ export default defineNuxtConfig({
 	},
 
 	pwa: {
+		strategies: 'injectManifest',
+		srcDir: 'public',
+		filename: 'sw.ts',
 		registerType: 'autoUpdate',
 		manifest: {
 			name: 'Comeback',
@@ -133,39 +140,8 @@ export default defineNuxtConfig({
 				},
 			],
 		},
-		workbox: {
+		injectManifest: {
 			globPatterns: ['**/*.{js,css,png,svg,ico,webp,woff2}'],
-			navigateFallback: null,
-			runtimeCaching: [
-				{
-					urlPattern: /^https:\/\/lh3\.googleusercontent\.com\/.*/i,
-					handler: 'CacheFirst',
-					options: {
-						cacheName: 'google-images',
-						expiration: {
-							maxEntries: 50,
-							maxAgeSeconds: 60 * 60 * 24 * 30,
-						},
-						cacheableResponse: {
-							statuses: [0, 200],
-						},
-					},
-				},
-				{
-					urlPattern: /^https:\/\/i\.ibb\.co\/.*/i,
-					handler: 'CacheFirst',
-					options: {
-						cacheName: 'ibb-images',
-						expiration: {
-							maxEntries: 50,
-							maxAgeSeconds: 60 * 60 * 24 * 30,
-						},
-						cacheableResponse: {
-							statuses: [0, 200],
-						},
-					},
-				},
-			],
 		},
 		client: {
 			installPrompt: true,

@@ -311,3 +311,25 @@ export type MusicMenuItem = {
  * Type générique pour les items de menu avec label
  */
 export type MenuItem<T> = T & { label: string }
+
+// ===== TYPES NOTIFICATIONS =====
+
+export interface PushPayload {
+	title: string
+	body: string
+	icon?: string
+	image?: string
+	url?: string
+	tag?: string
+}
+
+export interface NotificationPreferences {
+	user_id: string
+	push_enabled: boolean
+	daily_comeback: boolean
+	weekly_comeback: boolean
+	followed_artist_alerts: boolean
+	updated_at: string | null
+}
+
+export type FollowedArtist = Artist & { followed_at: string | null }
