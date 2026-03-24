@@ -15,8 +15,14 @@
 	const isNotifOpen = ref(false)
 	const newsCreationModal = ref<{ openModal: () => void } | null>(null)
 	const { open: openAuthModal } = useAuthModal()
-	const { notifications, unreadCount, isLoading: isNotifsLoading, fetchNotifications, markAsRead, markAllAsRead } =
-		useNotifications()
+	const {
+		notifications,
+		unreadCount,
+		isLoading: isNotifsLoading,
+		fetchNotifications,
+		markAsRead,
+		markAllAsRead,
+	} = useNotifications()
 
 	const openNotifications = async () => {
 		isMoreOpen.value = false
@@ -64,7 +70,6 @@
 		isClient.value = true
 	})
 
-	// Computed pour vérifier si l'utilisateur est connecté (source unique de vérité)
 	const isUserLoggedIn = computed(() => {
 		if (!isClient.value) return false
 		return Boolean(supabaseUser.value?.id) || (isHydrated.value && isLoginStore.value)
@@ -76,6 +81,11 @@
 		}
 		return 'bottom-5'
 	})
+
+	const navRadiusClass = computed(() => {
+		if (isMobileNavDocked.value) return 'rounded-none border-x-0 border-b-0'
+		return isMoreOpen.value ? 'rounded-3xl' : 'rounded-3xl'
+	})
 </script>
 
 <template>
@@ -84,54 +94,175 @@
 		:class="[bottomOffsetClass, isMobileNavDocked ? 'px-0' : 'px-4']"
 	>
 		<div
-			class="bg-cb-secondary-950/95 flex w-full items-center justify-between border border-zinc-700/80 shadow-lg shadow-black/30 backdrop-blur transition-all duration-300"
-			:class="isMobileNavDocked ? 'rounded-none border-x-0 border-b-0' : 'rounded-3xl'"
+			class="bg-cb-secondary-950/95 w-full overflow-hidden border border-zinc-700/80 shadow-lg shadow-black/30 backdrop-blur transition-all duration-300"
+			:class="navRadiusClass"
 		>
-			<NuxtLink
-				to="/"
-				class="cb-no-select text-cb-tertiary-200 flex flex-1 flex-col items-center justify-center gap-1 py-3 transition-all duration-300 ease-in-out hover:text-white"
-				active-class="text-white"
+			<!-- Expanded more panel -->
+			<Transition
+				enter-active-class="transition-all duration-200 ease-out"
+				leave-active-class="transition-all duration-150 ease-in"
+				enter-from-class="opacity-0 translate-y-2"
+				leave-to-class="opacity-0 translate-y-2"
 			>
-				<UIcon name="i-lucide-house" class="h-5 w-5" />
-				<span class="text-[10px] font-semibold">Home</span>
-			</NuxtLink>
+				<div v-if="isMoreOpen" class="px-3 pb-2 pt-3">
+					<div class="grid grid-cols-4 gap-1">
+						<!-- Explore rankings -->
+						<NuxtLink
+							to="/ranking/explore"
+							class="cb-no-select text-cb-tertiary-200 hover:bg-cb-quinary-950 hover:text-white flex flex-col items-center gap-1.5 rounded-2xl p-3 transition"
+							@click="isMoreOpen = false"
+						>
+							<UIcon name="i-lucide-music" class="size-5" />
+							<span class="text-center text-[9px] font-semibold leading-tight"
+								>Rankings</span
+							>
+						</NuxtLink>
 
-			<NuxtLink
-				to="/calendar"
-				class="cb-no-select text-cb-tertiary-200 flex flex-1 flex-col items-center justify-center gap-1 py-3 transition-all duration-300 ease-in-out hover:text-white"
-				active-class="text-white"
-			>
-				<UIcon name="i-lucide-calendar-days" class="h-5 w-5" />
-				<span class="text-[10px] font-semibold">Calendar</span>
-			</NuxtLink>
+						<!-- Explore music -->
+						<NuxtLink
+							to="/music"
+							class="cb-no-select text-cb-tertiary-200 hover:bg-cb-quinary-950 hover:text-white flex flex-col items-center gap-1.5 rounded-2xl p-3 transition"
+							@click="isMoreOpen = false"
+						>
+							<UIcon name="i-lucide-circle-play" class="size-5" />
+							<span class="text-center text-[9px] font-semibold leading-tight"
+								>Music</span
+							>
+						</NuxtLink>
 
-			<button
-				class="cb-no-select text-cb-tertiary-200 flex flex-1 flex-col items-center justify-center gap-1 py-3 transition-all duration-300 ease-in-out hover:text-white"
-				type="button"
-				aria-label="Search"
-				@click="isSearchOpen = true"
-			>
-				<UIcon name="i-lucide-search" class="h-5 w-5" />
-				<span class="text-[10px] font-semibold">Search</span>
-			</button>
+						<!-- Settings -->
+						<NuxtLink
+							to="/settings"
+							class="cb-no-select text-cb-tertiary-200 hover:bg-cb-quinary-950 hover:text-white flex flex-col items-center gap-1.5 rounded-2xl p-3 transition"
+							@click="isMoreOpen = false"
+						>
+							<UIcon name="i-lucide-settings" class="size-5" />
+							<span class="text-center text-[9px] font-semibold leading-tight"
+								>Settings</span
+							>
+						</NuxtLink>
 
-			<button
-				class="cb-no-select text-cb-tertiary-200 relative flex flex-1 flex-col items-center justify-center gap-1 py-3 transition-all duration-300 ease-in-out hover:text-white"
-				type="button"
-				aria-label="More"
-				@click="isMoreOpen = true"
-			>
-				<UIcon name="i-lucide-ellipsis" class="h-5 w-5" />
-				<span class="text-[10px] font-semibold">Plus</span>
-				<span
-					v-if="isClient && isUserLoggedIn && unreadCount > 0"
-					class="bg-cb-primary-500 absolute right-2 top-2 flex size-4 items-center justify-center rounded-full text-[9px] font-bold text-white"
+						<!-- Notifications (logged in) -->
+						<button
+							v-if="isUserLoggedIn && isClient"
+							type="button"
+							class="cb-no-select text-cb-tertiary-200 hover:bg-cb-quinary-950 hover:text-white relative flex flex-col items-center gap-1.5 rounded-2xl p-3 transition"
+							@click="openNotifications"
+						>
+							<span class="relative">
+								<UIcon name="i-lucide-bell" class="size-5" />
+								<span
+									v-if="unreadCount > 0"
+									class="bg-cb-primary-500 absolute -right-1 -top-1 flex size-3.5 items-center justify-center rounded-full text-[8px] font-bold text-white"
+								>
+									{{ unreadCount > 9 ? '9+' : unreadCount }}
+								</span>
+							</span>
+							<span class="text-center text-[9px] font-semibold leading-tight"
+								>Notifs</span
+							>
+						</button>
+
+						<!-- Sign in (not logged in) -->
+						<button
+							v-if="!isUserLoggedIn && isClient"
+							type="button"
+							class="cb-no-select text-cb-tertiary-200 hover:bg-cb-quinary-950 hover:text-white flex flex-col items-center gap-1.5 rounded-2xl p-3 transition"
+							@click="handleLoginClick"
+						>
+							<UIcon name="i-lucide-circle-user-round" class="size-5" />
+							<span class="text-center text-[9px] font-semibold leading-tight"
+								>Sign in</span
+							>
+						</button>
+
+						<!-- Admin dashboard -->
+						<NuxtLink
+							v-if="isAdminStore && isClient"
+							to="/dashboard/artist"
+							class="cb-no-select text-cb-tertiary-200 hover:bg-cb-quinary-950 hover:text-white flex flex-col items-center gap-1.5 rounded-2xl p-3 transition"
+							@click="isMoreOpen = false"
+						>
+							<UIcon name="i-lucide-pencil" class="size-5" />
+							<span class="text-center text-[9px] font-semibold leading-tight"
+								>Admin</span
+							>
+						</NuxtLink>
+
+						<!-- New comeback -->
+						<button
+							v-if="isUserLoggedIn && isClient"
+							type="button"
+							class="cb-no-select text-cb-primary-400 hover:bg-cb-primary-900/20 hover:text-cb-primary-300 flex flex-col items-center gap-1.5 rounded-2xl p-3 transition"
+							@click="openNewsCreationModal"
+						>
+							<IconComeback class="size-5" />
+							<span class="text-center text-[9px] font-semibold leading-tight"
+								>Comeback</span
+							>
+						</button>
+					</div>
+				</div>
+			</Transition>
+
+			<!-- Separator -->
+			<div v-if="isMoreOpen" class="mx-3 border-t border-zinc-700/50" />
+
+			<!-- Main tab bar -->
+			<div class="flex w-full items-center justify-between">
+				<NuxtLink
+					to="/"
+					class="cb-no-select text-cb-tertiary-200 flex flex-1 flex-col items-center justify-center gap-1 py-3 transition-all duration-300 ease-in-out hover:text-white"
+					active-class="text-white"
 				>
-					{{ unreadCount > 9 ? '9+' : unreadCount }}
-				</span>
-			</button>
+					<UIcon name="i-lucide-house" class="h-5 w-5" />
+					<span class="text-[10px] font-semibold">Home</span>
+				</NuxtLink>
+
+				<NuxtLink
+					to="/calendar"
+					class="cb-no-select text-cb-tertiary-200 flex flex-1 flex-col items-center justify-center gap-1 py-3 transition-all duration-300 ease-in-out hover:text-white"
+					active-class="text-white"
+				>
+					<UIcon name="i-lucide-calendar-days" class="h-5 w-5" />
+					<span class="text-[10px] font-semibold">Calendar</span>
+				</NuxtLink>
+
+				<button
+					class="cb-no-select text-cb-tertiary-200 flex flex-1 flex-col items-center justify-center gap-1 py-3 transition-all duration-300 ease-in-out hover:text-white"
+					type="button"
+					aria-label="Search"
+					@click="isSearchOpen = true"
+				>
+					<UIcon name="i-lucide-search" class="h-5 w-5" />
+					<span class="text-[10px] font-semibold">Search</span>
+				</button>
+
+				<button
+					class="cb-no-select relative flex flex-1 flex-col items-center justify-center gap-1 py-3 transition-all duration-300 ease-in-out"
+					:class="isMoreOpen ? 'text-white' : 'text-cb-tertiary-200 hover:text-white'"
+					type="button"
+					aria-label="More"
+					@click="isMoreOpen = !isMoreOpen"
+				>
+					<UIcon
+						:name="isMoreOpen ? 'i-lucide-x' : 'i-lucide-ellipsis'"
+						class="h-5 w-5"
+					/>
+					<span class="text-[10px] font-semibold">{{
+						isMoreOpen ? 'Close' : 'More'
+					}}</span>
+					<span
+						v-if="!isMoreOpen && isClient && isUserLoggedIn && unreadCount > 0"
+						class="bg-cb-primary-500 absolute right-2 top-2 flex size-4 items-center justify-center rounded-full text-[9px] font-bold text-white"
+					>
+						{{ unreadCount > 9 ? '9+' : unreadCount }}
+					</span>
+				</button>
+			</div>
 		</div>
 
+		<!-- Search modal -->
 		<UModal
 			v-model:open="isSearchOpen"
 			:ui="{
@@ -149,95 +280,6 @@
 						container-class="w-full"
 						dropdown-class="!static !mt-3 !max-h-[60vh]"
 					/>
-				</div>
-			</template>
-		</UModal>
-
-		<UModal
-			v-model:open="isMoreOpen"
-			:ui="{
-				overlay: 'bg-cb-quinary-950/75',
-				content: 'ring-cb-quinary-950',
-				body: 'bg-cb-secondary-950',
-				wrapper: 'bg-cb-secondary-950',
-				header: 'bg-cb-secondary-950',
-			}"
-		>
-			<template #content>
-				<div class="bg-cb-secondary-950 space-y-3 p-4">
-					<div class="flex flex-col gap-2">
-						<NuxtLink
-							to="/ranking/explore"
-							class="cb-no-select border-cb-quinary-900 bg-cb-quinary-950/70 hover:bg-cb-quinary-900 flex items-center gap-3 rounded-xl border px-4 py-3 text-sm font-semibold text-white transition"
-							@click="isMoreOpen = false"
-						>
-							<UIcon name="i-lucide-music" class="h-5 w-5" />
-							Explore rankings
-						</NuxtLink>
-
-						<NuxtLink
-							to="/music"
-							class="cb-no-select border-cb-quinary-900 bg-cb-quinary-950/70 hover:bg-cb-quinary-900 flex items-center gap-3 rounded-xl border px-4 py-3 text-sm font-semibold text-white transition"
-							@click="isMoreOpen = false"
-						>
-							<UIcon name="i-lucide-circle-play" class="h-5 w-5" />
-							Explore music
-						</NuxtLink>
-
-						<NuxtLink
-							to="/settings"
-							class="cb-no-select border-cb-quinary-900 bg-cb-quinary-950/70 hover:bg-cb-quinary-900 flex items-center gap-3 rounded-xl border px-4 py-3 text-sm font-semibold text-white transition"
-							@click="isMoreOpen = false"
-						>
-							<UIcon name="i-lucide-settings" class="h-5 w-5" />
-							Settings
-						</NuxtLink>
-
-						<button
-							v-if="isUserLoggedIn && isClient"
-							type="button"
-							class="cb-no-select border-cb-quinary-900 bg-cb-quinary-950/70 hover:bg-cb-quinary-900 relative flex items-center gap-3 rounded-xl border px-4 py-3 text-sm font-semibold text-white transition"
-							@click="openNotifications"
-						>
-							<UIcon name="i-lucide-bell" class="h-5 w-5" />
-							Notifications
-							<span
-								v-if="unreadCount > 0"
-								class="bg-cb-primary-500 ml-auto flex size-5 items-center justify-center rounded-full text-[10px] font-bold text-white"
-							>
-								{{ unreadCount > 9 ? '9+' : unreadCount }}
-							</span>
-						</button>
-
-						<button
-							v-if="!isUserLoggedIn && isClient"
-							class="cb-no-select border-cb-quinary-900 bg-cb-quinary-950/70 hover:bg-cb-quinary-900 flex items-center gap-3 rounded-xl border px-4 py-3 text-sm font-semibold text-white transition"
-							@click="handleLoginClick"
-						>
-							<UIcon name="i-lucide-circle-user-round" class="h-5 w-5" />
-							Sign in
-						</button>
-
-						<NuxtLink
-							v-if="isAdminStore && isClient"
-							to="/dashboard/artist"
-							class="cb-no-select border-cb-quinary-900 bg-cb-quinary-950/70 hover:bg-cb-quinary-900 flex items-center gap-3 rounded-xl border px-4 py-3 text-sm font-semibold text-white transition"
-							@click="isMoreOpen = false"
-						>
-							<UIcon name="i-lucide-pencil" class="h-5 w-5" />
-							Admin dashboard
-						</NuxtLink>
-
-						<button
-							v-if="isUserLoggedIn"
-							type="button"
-							class="cb-no-select border-cb-quinary-900 bg-cb-primary-700/10 hover:bg-cb-primary-900/70 flex items-center gap-3 rounded-xl border px-4 py-3 text-sm font-semibold text-white transition"
-							@click="openNewsCreationModal"
-						>
-							<IconComeback class="h-5 w-5" />
-							New comeback
-						</button>
-					</div>
 				</div>
 			</template>
 		</UModal>
@@ -271,8 +313,11 @@
 
 					<div class="max-h-[60vh] overflow-y-auto">
 						<div v-if="isNotifsLoading" class="flex items-center justify-center py-8">
-						<UIcon name="i-lucide-loader-circle" class="size-5 animate-spin text-zinc-500" />
-					</div>
+							<UIcon
+								name="i-lucide-loader-circle"
+								class="size-5 animate-spin text-zinc-500"
+							/>
+						</div>
 
 						<div v-else-if="!notifications.length" class="px-4 py-8 text-center">
 							<UIcon name="i-lucide-bell" class="mx-auto size-8 text-zinc-600" />
