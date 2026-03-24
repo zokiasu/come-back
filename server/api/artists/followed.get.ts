@@ -1,5 +1,7 @@
 import type { Tables } from '~/types/supabase'
 
+type ArtistRow = Pick<Tables<'artists'>, 'id' | 'name' | 'image' | 'verified' | 'type'>
+
 export default defineEventHandler(async (event) => {
 	const user = await requireAuth(event)
 	const supabase = useServerSupabase()
@@ -13,7 +15,7 @@ export default defineEventHandler(async (event) => {
 	if (error) throw handleSupabaseError(error, 'user_followed_artists.select')
 
 	return (data ?? []).map((row) => ({
-		...(row.artists as unknown as Tables<'artists'>),
+		...(row.artists as ArtistRow),
 		followed_at: row.created_at,
 	}))
 })

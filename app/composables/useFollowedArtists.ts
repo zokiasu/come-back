@@ -38,7 +38,7 @@ export function useFollowedArtists() {
 			}),
 			"Le désuivi de l'artiste a expiré.",
 		)
-		followedArtists.value = followedArtists.value.filter((a) => a.id !== artistId)
+		await fetchFollowedArtists()
 	}
 
 	const isFollowing = (artistId: string) => followedIds.value.has(artistId)

@@ -59,7 +59,6 @@ self.addEventListener('push', (event) => {
 			image: payload.image ?? undefined,
 			data: { url: payload.url ?? '/' },
 			tag: payload.tag ?? 'comeback',
-			renotify: true,
 		}),
 	)
 })
