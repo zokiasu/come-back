@@ -9,6 +9,34 @@
 	const { isLoginStore, isAdminStore } = storeToRefs(userStore)
 
 	const route = useRoute()
+	const artistId = computed(() => route.params.id as string)
+
+	const { followedIds, fetchFollowedArtists, followArtist, unfollowArtist } =
+		useFollowedArtists()
+	const isFollowLoading = ref(false)
+
+	const isFollowing = computed(() => followedIds.value.has(artistId.value))
+
+	onMounted(async () => {
+		if (isLoginStore.value) await fetchFollowedArtists()
+	})
+
+	const handleFollowToggle = async () => {
+		if (!isLoginStore.value) {
+			openAuthModal()
+			return
+		}
+		isFollowLoading.value = true
+		try {
+			if (isFollowing.value) {
+				await unfollowArtist(artistId.value)
+			} else {
+				await followArtist(artistId.value)
+			}
+		} finally {
+			isFollowLoading.value = false
+		}
+	}
 	const title = ref<string>('Artist Page')
 	const description = ref<string>('Artist')
 	const imageBackground = ref<string | null>(null)
@@ -260,6 +288,18 @@
 						>
 							Edit Artist
 						</button>
+						<UButton
+							type="button"
+							:icon="isFollowing ? 'i-lucide-star-off' : 'i-lucide-star'"
+							:loading="isFollowLoading"
+							:color="isFollowing ? 'primary' : 'neutral'"
+							:variant="isFollowing ? 'solid' : 'outline'"
+							size="xs"
+							class="uppercase"
+							@click="handleFollowToggle"
+						>
+							{{ isFollowing ? 'Suivi' : 'Suivre' }}
+						</UButton>
 					</div>
 				</div>
 			</div>
