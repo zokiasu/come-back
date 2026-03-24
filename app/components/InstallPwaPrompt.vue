@@ -79,7 +79,7 @@
 <template>
 	<div
 		v-if="canShowPrompt"
-		class="border-cb-secondary-800 bg-cb-secondary-950/95 fixed inset-x-4 bottom-20 z-50 rounded-2xl border p-4 shadow-lg backdrop-blur"
+		class="border-cb-secondary-800 bg-cb-secondary-950/95 fixed inset-x-4 top-4 z-50 rounded-2xl border p-4 shadow-lg backdrop-blur"
 	>
 		<div class="flex items-start justify-between gap-4">
 			<div class="space-y-1">
