@@ -17,9 +17,7 @@
 			/>
 			<UButton
 				label="Filters"
-				:trailing-icon="
-					filtersExpanded ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down'
-				"
+				:trailing-icon="filtersExpanded ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down'"
 				class="bg-cb-primary-700/10 lg:bg-cb-primary-900 lg:hover:bg-cb-primary-900/90 h-full w-fit items-center justify-center rounded text-white lg:cursor-pointer lg:px-5"
 				@click="toggleFilters"
 			/>

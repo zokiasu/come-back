@@ -39,7 +39,8 @@ export default defineEventHandler(async (event) => {
 			.delete()
 			.eq('music_id', musicId)
 
-		if (deleteError) throw handleSupabaseError(deleteError, 'musics.update.artists.delete')
+		if (deleteError)
+			throw handleSupabaseError(deleteError, 'musics.update.artists.delete')
 
 		if (body.artistIds.length > 0) {
 			const { error: insertError } = await supabase.from('music_artists').insert(
@@ -49,7 +50,8 @@ export default defineEventHandler(async (event) => {
 				})),
 			)
 
-			if (insertError) throw handleSupabaseError(insertError, 'musics.update.artists.insert')
+			if (insertError)
+				throw handleSupabaseError(insertError, 'musics.update.artists.insert')
 		}
 	}
 
@@ -60,7 +62,8 @@ export default defineEventHandler(async (event) => {
 			.delete()
 			.eq('music_id', musicId)
 
-		if (deleteError) throw handleSupabaseError(deleteError, 'musics.update.releases.delete')
+		if (deleteError)
+			throw handleSupabaseError(deleteError, 'musics.update.releases.delete')
 
 		if (body.releaseIds.length > 0) {
 			const { error: insertError } = await supabase.from('music_releases').insert(
@@ -70,7 +73,8 @@ export default defineEventHandler(async (event) => {
 				})),
 			)
 
-			if (insertError) throw handleSupabaseError(insertError, 'musics.update.releases.insert')
+			if (insertError)
+				throw handleSupabaseError(insertError, 'musics.update.releases.insert')
 		}
 	}
 

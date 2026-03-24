@@ -94,9 +94,11 @@
 				<div class="flex items-center justify-between">
 					<h3 class="text-lg font-semibold text-red-600">🗑️ Advanced deletion</h3>
 					<UButton
+						type="button"
 						color="neutral"
 						variant="ghost"
 						icon="i-lucide-x"
+						aria-label="Close"
 						@click="close"
 					/>
 				</div>

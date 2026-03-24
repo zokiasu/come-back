@@ -205,6 +205,7 @@ export type Database = {
 				Row: {
 					active_career: boolean | null
 					birth_date: string | null
+					check_tier: string
 					created_at: string | null
 					debut_date: string | null
 					description: string | null
@@ -213,6 +214,7 @@ export type Database = {
 					id: string
 					id_youtube_music: string | null
 					image: string | null
+					last_checked_at: string | null
 					name: string
 					nationalities: string[] | null
 					styles: string[] | null
@@ -223,6 +225,7 @@ export type Database = {
 				Insert: {
 					active_career?: boolean | null
 					birth_date?: string | null
+					check_tier?: string
 					created_at?: string | null
 					debut_date?: string | null
 					description?: string | null
@@ -231,6 +234,7 @@ export type Database = {
 					id?: string
 					id_youtube_music?: string | null
 					image?: string | null
+					last_checked_at?: string | null
 					name: string
 					nationalities?: string[] | null
 					styles?: string[] | null
@@ -241,6 +245,7 @@ export type Database = {
 				Update: {
 					active_career?: boolean | null
 					birth_date?: string | null
+					check_tier?: string
 					created_at?: string | null
 					debut_date?: string | null
 					description?: string | null
@@ -249,6 +254,7 @@ export type Database = {
 					id?: string
 					id_youtube_music?: string | null
 					image?: string | null
+					last_checked_at?: string | null
 					name?: string
 					nationalities?: string[] | null
 					styles?: string[] | null
@@ -350,24 +356,24 @@ export type Database = {
 				}
 				Relationships: []
 			}
-			nationalities: {
+			ignored_artists: {
 				Row: {
 					created_at: string | null
 					id: string
-					name: string
-					updated_at: string | null
+					id_youtube_music: string
+					reason: string | null
 				}
 				Insert: {
 					created_at?: string | null
 					id?: string
-					name: string
-					updated_at?: string | null
+					id_youtube_music: string
+					reason?: string | null
 				}
 				Update: {
 					created_at?: string | null
 					id?: string
-					name?: string
-					updated_at?: string | null
+					id_youtube_music?: string
+					reason?: string | null
 				}
 				Relationships: []
 			}
@@ -473,8 +479,10 @@ export type Database = {
 					id: string
 					id_youtube_music: string | null
 					ismv: boolean
+					last_stream_sync_at: string | null
 					name: string
 					release_year: number | null
+					stream_count: number
 					thumbnails: Json | null
 					type: Database['public']['Enums']['music_type'] | null
 					updated_at: string | null
@@ -488,8 +496,10 @@ export type Database = {
 					id?: string
 					id_youtube_music?: string | null
 					ismv?: boolean
+					last_stream_sync_at?: string | null
 					name: string
 					release_year?: number | null
+					stream_count?: number
 					thumbnails?: Json | null
 					type?: Database['public']['Enums']['music_type'] | null
 					updated_at?: string | null
@@ -503,12 +513,35 @@ export type Database = {
 					id?: string
 					id_youtube_music?: string | null
 					ismv?: boolean
+					last_stream_sync_at?: string | null
 					name?: string
 					release_year?: number | null
+					stream_count?: number
 					thumbnails?: Json | null
 					type?: Database['public']['Enums']['music_type'] | null
 					updated_at?: string | null
 					verified?: boolean | null
+				}
+				Relationships: []
+			}
+			nationalities: {
+				Row: {
+					created_at: string | null
+					id: string
+					name: string
+					updated_at: string | null
+				}
+				Insert: {
+					created_at?: string | null
+					id?: string
+					name: string
+					updated_at?: string | null
+				}
+				Update: {
+					created_at?: string | null
+					id?: string
+					name?: string
+					updated_at?: string | null
 				}
 				Relationships: []
 			}
@@ -572,6 +605,79 @@ export type Database = {
 					},
 				]
 			}
+			notification_preferences: {
+				Row: {
+					daily_comeback: boolean
+					followed_artist_alerts: boolean
+					push_enabled: boolean
+					updated_at: string
+					user_id: string
+					weekly_comeback: boolean
+				}
+				Insert: {
+					daily_comeback?: boolean
+					followed_artist_alerts?: boolean
+					push_enabled?: boolean
+					updated_at?: string
+					user_id: string
+					weekly_comeback?: boolean
+				}
+				Update: {
+					daily_comeback?: boolean
+					followed_artist_alerts?: boolean
+					push_enabled?: boolean
+					updated_at?: string
+					user_id?: string
+					weekly_comeback?: boolean
+				}
+				Relationships: [
+					{
+						foreignKeyName: 'notification_preferences_user_id_fkey'
+						columns: ['user_id']
+						isOneToOne: true
+						referencedRelation: 'users'
+						referencedColumns: ['id']
+					},
+				]
+			}
+			push_subscriptions: {
+				Row: {
+					auth: string
+					created_at: string
+					endpoint: string
+					id: string
+					p256dh: string
+					user_agent: string | null
+					user_id: string
+				}
+				Insert: {
+					auth: string
+					created_at?: string
+					endpoint: string
+					id?: string
+					p256dh: string
+					user_agent?: string | null
+					user_id: string
+				}
+				Update: {
+					auth?: string
+					created_at?: string
+					endpoint?: string
+					id?: string
+					p256dh?: string
+					user_agent?: string | null
+					user_id?: string
+				}
+				Relationships: [
+					{
+						foreignKeyName: 'push_subscriptions_user_id_fkey'
+						columns: ['user_id']
+						isOneToOne: false
+						referencedRelation: 'users'
+						referencedColumns: ['id']
+					},
+				]
+			}
 			release_platform_links: {
 				Row: {
 					created_at: string | null
@@ -612,7 +718,12 @@ export type Database = {
 					id: string
 					id_youtube_music: string | null
 					image: string | null
+					last_stream_sync_at: string | null
 					name: string
+					resolved_tracks: number
+					stream_count: number
+					stream_coverage: number
+					total_tracks: number
 					type: Database['public']['Enums']['release_type'] | null
 					updated_at: string | null
 					verified: boolean | null
@@ -625,7 +736,12 @@ export type Database = {
 					id?: string
 					id_youtube_music?: string | null
 					image?: string | null
+					last_stream_sync_at?: string | null
 					name: string
+					resolved_tracks?: number
+					stream_count?: number
+					stream_coverage?: number
+					total_tracks?: number
 					type?: Database['public']['Enums']['release_type'] | null
 					updated_at?: string | null
 					verified?: boolean | null
@@ -638,7 +754,12 @@ export type Database = {
 					id?: string
 					id_youtube_music?: string | null
 					image?: string | null
+					last_stream_sync_at?: string | null
 					name?: string
+					resolved_tracks?: number
+					stream_count?: number
+					stream_coverage?: number
+					total_tracks?: number
 					type?: Database['public']['Enums']['release_type'] | null
 					updated_at?: string | null
 					verified?: boolean | null
@@ -675,6 +796,39 @@ export type Database = {
 					},
 					{
 						foreignKeyName: 'user_artist_contributions_user_id_fkey'
+						columns: ['user_id']
+						isOneToOne: false
+						referencedRelation: 'users'
+						referencedColumns: ['id']
+					},
+				]
+			}
+			user_followed_artists: {
+				Row: {
+					artist_id: string
+					created_at: string
+					user_id: string
+				}
+				Insert: {
+					artist_id: string
+					created_at?: string
+					user_id: string
+				}
+				Update: {
+					artist_id?: string
+					created_at?: string
+					user_id?: string
+				}
+				Relationships: [
+					{
+						foreignKeyName: 'user_followed_artists_artist_id_fkey'
+						columns: ['artist_id']
+						isOneToOne: false
+						referencedRelation: 'artists'
+						referencedColumns: ['id']
+					},
+					{
+						foreignKeyName: 'user_followed_artists_user_id_fkey'
 						columns: ['user_id']
 						isOneToOne: false
 						referencedRelation: 'users'
@@ -839,7 +993,7 @@ export type Database = {
 				Args: { arr: string[]; table_name: string }
 				Returns: boolean
 			}
-			cleanup_orphaned_contributions: { Args: never; Returns: number }
+			cleanup_orphaned_contributions: { Args: never; Returns: undefined }
 			delete_artist_safely: { Args: { artist_id_param: string }; Returns: Json }
 			delete_artist_simple: { Args: { artist_id_param: string }; Returns: Json }
 			firebase_id_to_uuid: { Args: { firebase_id: string }; Returns: string }
@@ -971,6 +1125,10 @@ export type Database = {
 					user_photo_url: string
 				}[]
 			}
+			get_user_role: {
+				Args: never
+				Returns: Database['public']['Enums']['user_role']
+			}
 			http: {
 				Args: { request: Database['public']['CompositeTypes']['http_request'] }
 				Returns: Database['public']['CompositeTypes']['http_response']
@@ -1038,7 +1196,7 @@ export type Database = {
 				Returns: Database['public']['CompositeTypes']['http_header']
 				SetofOptions: {
 					from: '*'
-					to: 'http_header'
+					to: 'http_response'
 					isOneToOne: true
 					isSetofReturn: false
 				}
@@ -1096,6 +1254,8 @@ export type Database = {
 				Args: { curlopt: string; value: string }
 				Returns: boolean
 			}
+			is_admin: { Args: never; Returns: boolean }
+			is_contributor_or_admin: { Args: never; Returns: boolean }
 			is_supabase_or_firebase_project_jwt: { Args: never; Returns: boolean }
 			reorder_ranking_items_after_delete: {
 				Args: { p_deleted_position: number; p_ranking_id: string }
@@ -1105,33 +1265,61 @@ export type Database = {
 				Args: { p_items: Json; p_ranking_id: string }
 				Returns: undefined
 			}
-			search_artists_fulltext: {
-				Args: {
-					artist_type?: string
-					result_limit?: number
-					search_query: string
-				}
-				Returns: {
-					active_career: boolean
-					birth_date: string
-					companies: Json
-					created_at: string
-					debut_date: string
-					description: string
-					gender: string
-					general_tags: string[]
-					id: string
-					id_youtube_music: string
-					image: string
-					name: string
-					platform_links: Json
-					social_links: Json
-					styles: string[]
-					type: string
-					updated_at: string
-					verified: boolean
-				}[]
-			}
+			search_artists_fulltext:
+				| {
+						Args: {
+							artist_type?: string
+							result_limit?: number
+							search_query: string
+						}
+						Returns: {
+							active_career: boolean
+							birth_date: string
+							companies: Json
+							created_at: string
+							debut_date: string
+							description: string
+							gender: string
+							general_tags: string[]
+							id: string
+							id_youtube_music: string
+							image: string
+							name: string
+							platform_links: Json
+							social_links: Json
+							styles: string[]
+							type: string
+							updated_at: string
+							verified: boolean
+						}[]
+				  }
+				| {
+						Args: {
+							artist_type?: string
+							result_limit: number
+							search_query: string
+						}
+						Returns: {
+							active_career: boolean
+							birth_date: string
+							companies: Json
+							created_at: string
+							debut_date: string
+							description: string
+							gender: string
+							general_tags: string[]
+							id: string
+							id_youtube_music: string
+							image: string
+							name: string
+							platform_links: Json
+							social_links: Json
+							styles: string[]
+							type: string
+							updated_at: string
+							verified: boolean
+						}[]
+				  }
 			text_to_bytea: { Args: { data: string }; Returns: string }
 			urlencode:
 				| { Args: { data: Json }; Returns: string }

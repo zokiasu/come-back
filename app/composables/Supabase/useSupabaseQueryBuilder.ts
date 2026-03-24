@@ -155,7 +155,10 @@ export const useSupabaseQueryBuilder = () => {
 		// The relation update is destructive, so both the delete and re-insert
 		// are protected by the shared timeout helper.
 		const { error: deleteError } = await runMutation(
-			supabase.from(tableName).delete().eq(parentColumn as never, parentId),
+			supabase
+				.from(tableName)
+				.delete()
+				.eq(parentColumn as never, parentId),
 			`Updating ${String(tableName)} relations timed out while deleting previous links.`,
 		)
 
@@ -264,7 +267,10 @@ export const useSupabaseQueryBuilder = () => {
 	): Promise<void> => {
 		// Same rule here: relation cleanup must not leave the UI in an endless loading state.
 		const { error } = await runMutation(
-			supabase.from(tableName).delete().eq(column as never, parentId),
+			supabase
+				.from(tableName)
+				.delete()
+				.eq(column as never, parentId),
 			`Deleting linked ${String(tableName)} items timed out. Please try again.`,
 		)
 

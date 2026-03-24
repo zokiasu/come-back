@@ -178,7 +178,11 @@
 									"
 									@click="handlePlayItem(item)"
 								>
-									<UIcon v-if="index === currentIndex" name="i-lucide-pause" class="h-4 w-4" />
+									<UIcon
+										v-if="index === currentIndex"
+										name="i-lucide-pause"
+										class="h-4 w-4"
+									/>
 									<UIcon v-else name="i-lucide-play" class="h-4 w-4" />
 								</button>
 

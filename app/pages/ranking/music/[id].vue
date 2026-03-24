@@ -248,9 +248,7 @@
 					</div>
 					<div class="ml-2 flex items-center gap-1">
 						<UButton
-							:icon="
-								ranking?.is_public ? 'i-lucide-globe' : 'i-lucide-lock'
-							"
+							:icon="ranking?.is_public ? 'i-lucide-globe' : 'i-lucide-lock'"
 							size="xs"
 							color="neutral"
 							variant="ghost"

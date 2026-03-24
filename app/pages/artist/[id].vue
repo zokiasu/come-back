@@ -226,7 +226,7 @@
 							v-for="nationality in artist.nationalities"
 							:key="nationality"
 							class="bg-cb-quaternary-950 w-fit rounded px-3 py-1 text-xs font-semibold whitespace-nowrap uppercase"
-							>
+						>
 							{{ nationality }}
 						</p>
 						<p

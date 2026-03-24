@@ -223,10 +223,10 @@
 				</div>
 			</div>
 
-		<div v-if="activeFilterChips.length > 0" class="flex flex-wrap gap-2">
-			<UButton
-				v-for="chip in activeFilterChips"
-				:key="`${chip.key}-${chip.label}`"
+			<div v-if="activeFilterChips.length > 0" class="flex flex-wrap gap-2">
+				<UButton
+					v-for="chip in activeFilterChips"
+					:key="`${chip.key}-${chip.label}`"
 					type="button"
 					color="neutral"
 					variant="outline"
@@ -241,7 +241,7 @@
 
 			<div
 				v-if="pageError"
-				class="bg-red-500/10 text-red-100 flex flex-col gap-3 rounded-xl border border-red-400/20 p-4 sm:flex-row sm:items-center sm:justify-between"
+				class="flex flex-col gap-3 rounded-xl border border-red-400/20 bg-red-500/10 p-4 text-red-100 sm:flex-row sm:items-center sm:justify-between"
 			>
 				<div class="space-y-1">
 					<p class="font-semibold">Unable to load the artists list</p>
@@ -406,7 +406,9 @@
 				label: nationality,
 			})),
 		set: (nextNationalities) => {
-			selectedNationalities.value = nextNationalities.map((nationality) => nationality.value)
+			selectedNationalities.value = nextNationalities.map(
+				(nationality) => nationality.value,
+			)
 		},
 	})
 
@@ -461,7 +463,9 @@
 				search: search.value,
 				general_tags: selectedTags.value.length > 0 ? selectedTags.value : undefined,
 				nationalities:
-					selectedNationalities.value.length > 0 ? selectedNationalities.value : undefined,
+					selectedNationalities.value.length > 0
+						? selectedNationalities.value
+						: undefined,
 				type: selectedType.value || undefined,
 				styles: selectedStyles.value.length > 0 ? selectedStyles.value : undefined,
 				gender: selectedGender.value || undefined,
@@ -596,11 +600,9 @@
 			console.error('[ArtistIndex] Failed to load music styles', stylesResult.reason)
 		}
 
-		const failedFilterLoads = [
-			tagsResult,
-			nationalitiesResult,
-			stylesResult,
-		].filter((result) => result.status === 'rejected').length
+		const failedFilterLoads = [tagsResult, nationalitiesResult, stylesResult].filter(
+			(result) => result.status === 'rejected',
+		).length
 
 		logArtistIndexTrace('bootstrapFilters completed', {
 			tagsCount: tagsList.value.length,
@@ -612,7 +614,8 @@
 		if (failedFilterLoads > 0) {
 			toast.add({
 				title: 'Filters partially unavailable',
-				description: 'The artists list is still available, but some filter options failed to load.',
+				description:
+					'The artists list is still available, but some filter options failed to load.',
 				color: 'warning',
 			})
 		}
@@ -648,7 +651,9 @@
 
 	if (import.meta.client) {
 		useEventListener(window, 'wheel', markUserInteractedForPagination, { passive: true })
-		useEventListener(window, 'touchmove', markUserInteractedForPagination, { passive: true })
+		useEventListener(window, 'touchmove', markUserInteractedForPagination, {
+			passive: true,
+		})
 	}
 
 	const toggleGender = (gender: ArtistGender) => {
@@ -799,7 +804,9 @@
 				)
 				break
 			case 'style':
-				selectedStyles.value = selectedStyles.value.filter((style) => style !== chip.value)
+				selectedStyles.value = selectedStyles.value.filter(
+					(style) => style !== chip.value,
+				)
 				break
 			case 'tag':
 				selectedTags.value = selectedTags.value.filter((tag) => tag !== chip.value)

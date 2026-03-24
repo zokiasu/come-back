@@ -13,10 +13,7 @@
 			v-else-if="!ranking"
 			class="bg-cb-quaternary-950 flex flex-col items-center justify-center rounded-lg py-20"
 		>
-			<UIcon
-				name="i-lucide-circle-alert"
-				class="text-cb-tertiary-500 mb-4 size-16"
-			/>
+			<UIcon name="i-lucide-circle-alert" class="text-cb-tertiary-500 mb-4 size-16" />
 			<h2 class="mb-2 text-lg font-semibold">Ranking not found</h2>
 			<p class="text-cb-tertiary-500 mb-4 text-sm">
 				This ranking does not exist or is not public.
@@ -105,10 +102,7 @@
 							loading="lazy"
 						/>
 						<div v-else class="flex h-full w-full items-center justify-center">
-							<UIcon
-								name="i-lucide-music"
-								class="text-cb-tertiary-500 size-12"
-							/>
+							<UIcon name="i-lucide-music" class="text-cb-tertiary-500 size-12" />
 						</div>
 					</div>
 				</div>
@@ -119,10 +113,7 @@
 				v-if="ranking.items.length === 0"
 				class="bg-cb-quaternary-950 flex flex-col items-center justify-center rounded-lg py-12"
 			>
-				<UIcon
-					name="i-lucide-music"
-					class="text-cb-tertiary-500 mb-4 size-12"
-				/>
+				<UIcon name="i-lucide-music" class="text-cb-tertiary-500 mb-4 size-12" />
 				<p class="text-cb-tertiary-500 text-sm">This ranking is empty</p>
 			</div>
 
@@ -151,10 +142,7 @@
 							loading="lazy"
 						/>
 						<div v-else class="flex h-full w-full items-center justify-center">
-							<UIcon
-								name="i-lucide-music"
-								class="text-cb-tertiary-500 size-6"
-							/>
+							<UIcon name="i-lucide-music" class="text-cb-tertiary-500 size-6" />
 						</div>
 						<!-- MV badge -->
 						<div

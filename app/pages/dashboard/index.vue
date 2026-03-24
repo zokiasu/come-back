@@ -141,10 +141,7 @@
 						<div
 							class="bg-cb-primary-900/20 group-hover:bg-cb-primary-900/30 rounded-lg p-3 transition-colors"
 						>
-							<UIcon
-								name="i-lucide-music"
-								class="text-cb-primary-400 h-6 w-6"
-							/>
+							<UIcon name="i-lucide-music" class="text-cb-primary-400 h-6 w-6" />
 						</div>
 					</div>
 				</NuxtLink>
@@ -188,10 +185,7 @@
 						<div
 							class="bg-cb-primary-900/20 group-hover:bg-cb-primary-900/30 rounded-lg p-3 transition-colors"
 						>
-							<UIcon
-								name="i-lucide-building-2"
-								class="text-cb-primary-400 h-6 w-6"
-							/>
+							<UIcon name="i-lucide-building-2" class="text-cb-primary-400 h-6 w-6" />
 						</div>
 					</div>
 				</NuxtLink>
@@ -256,10 +250,7 @@
 								v-else
 								class="bg-cb-primary-900/20 flex h-10 w-10 items-center justify-center rounded"
 							>
-								<UIcon
-									name="i-lucide-music"
-									class="text-cb-primary-400 h-5 w-5"
-								/>
+								<UIcon name="i-lucide-music" class="text-cb-primary-400 h-5 w-5" />
 							</div>
 							<div class="flex-1">
 								<p class="font-medium text-white">{{ release.name }}</p>

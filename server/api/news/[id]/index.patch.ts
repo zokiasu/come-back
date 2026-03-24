@@ -48,7 +48,8 @@ export default defineEventHandler(async (event) => {
 				})),
 			)
 
-			if (insertError) throw handleSupabaseError(insertError, 'news.update.artists.insert')
+			if (insertError)
+				throw handleSupabaseError(insertError, 'news.update.artists.insert')
 		}
 	}
 

@@ -32,7 +32,9 @@
 						{{ ranking.name || 'Untitled' }}
 					</h3>
 					<p class="text-cb-tertiary-500 text-xs">
-						{{ ranking.item_count || 0 }} track{{ (ranking.item_count || 0) > 1 ? 's' : '' }}
+						{{ ranking.item_count || 0 }} track{{
+							(ranking.item_count || 0) > 1 ? 's' : ''
+						}}
 					</p>
 				</div>
 				<div class="flex items-center gap-1">
@@ -97,7 +99,9 @@
 	}>()
 
 	const rankingLink = computed(() =>
-		props.isProfile ? `/ranking/music/${props.ranking.id}` : `/ranking/view/${props.ranking.id}`,
+		props.isProfile
+			? `/ranking/music/${props.ranking.id}`
+			: `/ranking/view/${props.ranking.id}`,
 	)
 
 	const coverThumbnails = computed(() => {

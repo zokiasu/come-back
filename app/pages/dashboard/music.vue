@@ -646,10 +646,7 @@
 							v-else
 							class="bg-cb-quinary-900 flex size-16 items-center justify-center rounded-lg"
 						>
-							<UIcon
-								name="i-lucide-music"
-								class="text-cb-tertiary-500 size-8"
-							/>
+							<UIcon name="i-lucide-music" class="text-cb-tertiary-500 size-8" />
 						</div>
 					</NuxtLink>
 
@@ -777,10 +774,7 @@
 								v-else
 								class="bg-cb-quinary-900 flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl"
 							>
-								<UIcon
-									name="i-lucide-music"
-									class="text-cb-tertiary-500 size-10"
-								/>
+								<UIcon name="i-lucide-music" class="text-cb-tertiary-500 size-10" />
 							</div>
 
 							<div class="min-w-0 space-y-2">

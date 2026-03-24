@@ -74,7 +74,11 @@
 		if (Number.isNaN(date.getTime())) return 'Timeline unavailable'
 
 		const now = new Date()
-		const currentDayUtc = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
+		const currentDayUtc = Date.UTC(
+			now.getUTCFullYear(),
+			now.getUTCMonth(),
+			now.getUTCDate(),
+		)
 		const targetDayUtc = Date.UTC(
 			date.getUTCFullYear(),
 			date.getUTCMonth(),
@@ -101,7 +105,9 @@
 	}
 
 	const currentPhotoUrl = computed(() => userDetails.value?.photo_url || defaultPhotoUrl)
-	const trimmedPhotoSearch = computed(() => photoSearchQuery.value.trim().replace(/\s+/g, ' '))
+	const trimmedPhotoSearch = computed(() =>
+		photoSearchQuery.value.trim().replace(/\s+/g, ' '),
+	)
 	const activePhotoSearch = computed(() =>
 		trimmedPhotoSearch.value.length >= 2 ? trimmedPhotoSearch.value : '',
 	)
@@ -134,7 +140,9 @@
 							: 'bg-cb-quinary-900 text-white ring-cb-quinary-800',
 			},
 			{
-				label: userDetails.value.photo_url ? 'Custom profile photo' : 'Default profile photo',
+				label: userDetails.value.photo_url
+					? 'Custom profile photo'
+					: 'Default profile photo',
 				class: userDetails.value.photo_url
 					? 'bg-emerald-500/15 text-emerald-300 ring-emerald-500/30'
 					: 'bg-zinc-700/60 text-zinc-200 ring-zinc-600',
@@ -505,7 +513,7 @@
 								<span class="text-cb-quinary-700 mr-2 text-xs tracking-[0.2em] uppercase">
 									Email
 								</span>
-								<span class="break-all font-medium">{{ userDetails.email }}</span>
+								<span class="font-medium break-all">{{ userDetails.email }}</span>
 							</div>
 							<div
 								class="bg-cb-quaternary-950 border-cb-quinary-900/70 max-w-full rounded-2xl border px-3 py-1.5"
@@ -551,7 +559,9 @@
 					:key="stat.label"
 					class="bg-cb-quaternary-950 border-cb-quinary-900/70 rounded-2xl border p-4"
 				>
-					<p class="text-cb-quinary-700 text-xs font-semibold tracking-[0.25em] uppercase">
+					<p
+						class="text-cb-quinary-700 text-xs font-semibold tracking-[0.25em] uppercase"
+					>
 						{{ stat.label }}
 					</p>
 					<p class="mt-3 text-2xl font-bold">{{ stat.value }}</p>
@@ -575,10 +585,7 @@
 
 					<div class="grid gap-4 lg:grid-cols-2">
 						<div class="space-y-2">
-							<label
-								for="profile-display-name"
-								class="text-sm font-medium text-gray-200"
-							>
+							<label for="profile-display-name" class="text-sm font-medium text-gray-200">
 								Display name
 							</label>
 							<UInput
@@ -621,8 +628,12 @@
 					</div>
 
 					<div class="grid gap-4 md:grid-cols-2">
-						<div class="bg-cb-quaternary-950 border-cb-quinary-900/70 rounded-2xl border p-4">
-							<p class="text-cb-quinary-700 text-xs font-semibold tracking-[0.25em] uppercase">
+						<div
+							class="bg-cb-quaternary-950 border-cb-quinary-900/70 rounded-2xl border p-4"
+						>
+							<p
+								class="text-cb-quinary-700 text-xs font-semibold tracking-[0.25em] uppercase"
+							>
 								Created
 							</p>
 							<p class="mt-3 text-2xl font-bold">
@@ -637,8 +648,12 @@
 								First account registration in the platform.
 							</p>
 						</div>
-						<div class="bg-cb-quaternary-950 border-cb-quinary-900/70 rounded-2xl border p-4">
-							<p class="text-cb-quinary-700 text-xs font-semibold tracking-[0.25em] uppercase">
+						<div
+							class="bg-cb-quaternary-950 border-cb-quinary-900/70 rounded-2xl border p-4"
+						>
+							<p
+								class="text-cb-quinary-700 text-xs font-semibold tracking-[0.25em] uppercase"
+							>
 								Last update
 							</p>
 							<p class="mt-3 text-2xl font-bold">
@@ -705,7 +720,9 @@
 						<div
 							class="bg-cb-quaternary-950 border-cb-quinary-900/70 rounded-2xl border p-4"
 						>
-							<p class="text-cb-quinary-700 text-xs font-semibold tracking-[0.25em] uppercase">
+							<p
+								class="text-cb-quinary-700 text-xs font-semibold tracking-[0.25em] uppercase"
+							>
 								Selected source
 							</p>
 							<p class="mt-3 text-lg font-semibold">{{ photoSourceLabel }}</p>
@@ -713,10 +730,7 @@
 						</div>
 
 						<div class="space-y-2">
-							<label
-								for="profile-photo-search"
-								class="text-sm font-medium text-gray-200"
-							>
+							<label for="profile-photo-search" class="text-sm font-medium text-gray-200">
 								Search artist visuals
 							</label>
 							<UInput
@@ -784,7 +798,7 @@
 										</div>
 										<div
 											v-if="userDetails.photo_url === artist.image"
-											class="bg-cb-primary-900 text-white flex h-7 w-7 shrink-0 items-center justify-center rounded-full"
+											class="bg-cb-primary-900 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-white"
 										>
 											<UIcon name="i-lucide-check" class="h-4 w-4" />
 										</div>

@@ -127,7 +127,9 @@
 
 	const providerKeys = computed(() => getProviderKeys(authSnapshot.value))
 	const hasPasswordProvider = computed(() => providerKeys.value.includes('email'))
-	const authEmail = computed(() => authSnapshot.value?.email ?? accountProfile.value?.email ?? 'Not available')
+	const authEmail = computed(
+		() => authSnapshot.value?.email ?? accountProfile.value?.email ?? 'Not available',
+	)
 	const isEmailConfirmed = computed(() => Boolean(authSnapshot.value?.email_confirmed_at))
 	const providerSummary = computed(() => {
 		if (!providerKeys.value.length) return 'No provider detected'
@@ -144,7 +146,8 @@
 			: 'This account currently relies on OAuth. Add a password if you want a direct sign-in fallback.',
 	)
 	const publicProfileRoute = computed(() => {
-		const userId = accountProfile.value?.id ?? userDataStore.value?.id ?? authSnapshot.value?.id
+		const userId =
+			accountProfile.value?.id ?? userDataStore.value?.id ?? authSnapshot.value?.id
 		return userId ? `/profile/${userId}` : undefined
 	})
 	const overviewBadges = computed(() => {
@@ -177,7 +180,10 @@
 		if (passwordForm.nextPassword.length > 0 && passwordForm.nextPassword.length < 8) {
 			return 'Use at least 8 characters.'
 		}
-		if (passwordForm.confirmPassword && passwordForm.nextPassword !== passwordForm.confirmPassword) {
+		if (
+			passwordForm.confirmPassword &&
+			passwordForm.nextPassword !== passwordForm.confirmPassword
+		) {
 			return 'The confirmation does not match yet.'
 		}
 		return 'The password is ready to be saved.'
@@ -189,24 +195,33 @@
 			!isSavingPassword.value,
 	)
 
-	const loadActivitySummary = async (userId: string): Promise<SecurityActivitySummary> => {
-		const [rankingsResult, publicRankingsResult, artistContributionsResult, newsContributionsResult] =
-			await Promise.allSettled([
-				supabase.from('user_rankings').select('id', { count: 'exact', head: true }).eq('user_id', userId),
-				supabase
-					.from('user_rankings')
-					.select('id', { count: 'exact', head: true })
-					.eq('user_id', userId)
-					.eq('is_public', true),
-				supabase
-					.from('user_artist_contributions')
-					.select('artist_id', { count: 'exact', head: true })
-					.eq('user_id', userId),
-				supabase
-					.from('user_news_contributions')
-					.select('news_id', { count: 'exact', head: true })
-					.eq('user_id', userId),
-			])
+	const loadActivitySummary = async (
+		userId: string,
+	): Promise<SecurityActivitySummary> => {
+		const [
+			rankingsResult,
+			publicRankingsResult,
+			artistContributionsResult,
+			newsContributionsResult,
+		] = await Promise.allSettled([
+			supabase
+				.from('user_rankings')
+				.select('id', { count: 'exact', head: true })
+				.eq('user_id', userId),
+			supabase
+				.from('user_rankings')
+				.select('id', { count: 'exact', head: true })
+				.eq('user_id', userId)
+				.eq('is_public', true),
+			supabase
+				.from('user_artist_contributions')
+				.select('artist_id', { count: 'exact', head: true })
+				.eq('user_id', userId),
+			supabase
+				.from('user_news_contributions')
+				.select('news_id', { count: 'exact', head: true })
+				.eq('user_id', userId),
+		])
 
 		const readCount = (
 			result:
@@ -499,7 +514,7 @@
 							<p class="text-cb-quinary-700 text-xs tracking-[0.2em] uppercase">
 								Sign-in email
 							</p>
-							<p class="mt-3 break-all text-base font-semibold text-white">
+							<p class="mt-3 text-base font-semibold break-all text-white">
 								{{ authEmail }}
 							</p>
 							<p class="mt-2 text-sm text-zinc-400">Current account access address.</p>
@@ -676,9 +691,11 @@
 								{{ isEmailConfirmed ? 'Verified' : 'Awaiting confirmation' }}
 							</p>
 							<p class="mt-2 text-sm text-zinc-400">
-								{{ isEmailConfirmed
-									? 'This sign-in email is already confirmed.'
-									: 'Confirmation is still pending for this sign-in email.' }}
+								{{
+									isEmailConfirmed
+										? 'This sign-in email is already confirmed.'
+										: 'Confirmation is still pending for this sign-in email.'
+								}}
 							</p>
 						</div>
 
@@ -816,7 +833,9 @@
 						<div
 							class="bg-cb-quaternary-950 border-cb-quinary-900/70 rounded-2xl border p-4"
 						>
-							<p class="text-sm font-medium text-white">Public identity stays in Profile</p>
+							<p class="text-sm font-medium text-white">
+								Public identity stays in Profile
+							</p>
 							<p class="mt-2 text-sm leading-6 text-zinc-400">
 								Display name, profile artwork, and the public-facing parts of your account
 								are still managed from the Profile studio.
@@ -835,10 +854,12 @@
 						<div
 							class="bg-cb-quaternary-950 border-cb-quinary-900/70 rounded-2xl border p-4"
 						>
-							<p class="text-sm font-medium text-white">Account deletion is still manual</p>
+							<p class="text-sm font-medium text-white">
+								Account deletion is still manual
+							</p>
 							<p class="mt-2 text-sm leading-6 text-zinc-400">
-								Comeback keeps rankings and contribution history linked to your account, so
-								a one-click deletion flow is not exposed here yet.
+								Comeback keeps rankings and contribution history linked to your account,
+								so a one-click deletion flow is not exposed here yet.
 							</p>
 						</div>
 					</div>
