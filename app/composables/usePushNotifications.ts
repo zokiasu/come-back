@@ -48,19 +48,26 @@ export function usePushNotifications() {
 		const json = sub.toJSON()
 		const keys = json.keys as { p256dh: string; auth: string }
 
-		await runMutation(
-			$fetch<{ success: boolean }>('/api/push/subscribe', {
-				method: 'POST',
-				headers: requireAuthHeaders() as Record<string, string>,
-				body: {
-					endpoint: sub.endpoint,
-					p256dh: keys.p256dh,
-					auth: keys.auth,
-					userAgent: navigator.userAgent,
-				},
-			}),
-			"L'abonnement aux notifications a expiré.",
-		)
+		try {
+			await runMutation(
+				$fetch<{ success: boolean }>('/api/push/subscribe', {
+					method: 'POST',
+					headers: requireAuthHeaders() as Record<string, string>,
+					body: {
+						endpoint: sub.endpoint,
+						p256dh: keys.p256dh,
+						auth: keys.auth,
+						userAgent: navigator.userAgent,
+					},
+				}),
+				"L'abonnement aux notifications a expiré.",
+			)
+		} catch (err) {
+			// Le serveur n'a pas enregistré la subscription — annuler côté navigateur
+			// pour éviter une désynchronisation (browser abonné, backend sans enregistrement)
+			await sub.unsubscribe()
+			throw err
+		}
 
 		isSubscribed.value = true
 		currentEndpoint.value = sub.endpoint

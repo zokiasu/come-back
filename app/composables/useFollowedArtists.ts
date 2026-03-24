@@ -6,14 +6,21 @@ export function useFollowedArtists() {
 
 	const followedArtists = ref<FollowedArtist[]>([])
 	const isLoading = ref(false)
+	const error = ref<string | null>(null)
 	const followedIds = computed(() => new Set(followedArtists.value.map((a) => a.id)))
 
 	const fetchFollowedArtists = async () => {
 		isLoading.value = true
+		error.value = null
 		try {
 			followedArtists.value = await $fetch<FollowedArtist[]>('/api/artists/followed', {
 				headers: requireAuthHeaders(),
 			})
+		} catch (err) {
+			error.value =
+				err instanceof Error
+					? err.message
+					: 'Erreur lors du chargement des artistes suivis'
 		} finally {
 			isLoading.value = false
 		}
@@ -46,6 +53,7 @@ export function useFollowedArtists() {
 	return {
 		followedArtists,
 		isLoading,
+		error,
 		followedIds,
 		fetchFollowedArtists,
 		followArtist,

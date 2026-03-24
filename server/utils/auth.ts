@@ -136,3 +136,30 @@ export const requireContributor = async (event: H3Event): Promise<AuthenticatedU
 
 	return user
 }
+
+/**
+ * Validates cron job authentication via Bearer token.
+ * Returns 500 if CRON_SECRET is not configured (prevents "Bearer undefined" bypass).
+ * Returns 401 if the token is missing or invalid.
+ *
+ * @param event - The H3 event from the request
+ * @throws H3Error with status 500 if CRON_SECRET env var is not set
+ * @throws H3Error with status 401 if the Bearer token is missing or incorrect
+ */
+export const requireCronSecret = (event: H3Event): void => {
+	const config = useRuntimeConfig()
+
+	if (!config.CRON_SECRET) {
+		throw createError({
+			statusCode: 500,
+			statusMessage: 'Internal Server Error',
+			message: 'CRON_SECRET is not configured',
+		})
+	}
+
+	const auth = getHeader(event, 'authorization')
+
+	if (!auth || auth !== `Bearer ${config.CRON_SECRET}`) {
+		throw createError({ statusCode: 401, statusMessage: 'Unauthorized' })
+	}
+}

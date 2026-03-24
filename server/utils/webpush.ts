@@ -43,8 +43,8 @@ export const sendPush = async (
 	} catch (err: unknown) {
 		const status = (err as { statusCode?: number }).statusCode
 		if (status === 410 || status === 404) return false
-		console.error('[webpush] send failed:', err)
-		return false
+		// Rethrow transient errors — caller must NOT delete the subscription
+		throw err
 	}
 }
 

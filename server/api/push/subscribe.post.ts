@@ -28,13 +28,12 @@ export default defineEventHandler(async (event) => {
 
 	if (error) throw handleSupabaseError(error, 'push_subscriptions.upsert')
 
-	// Créer les préférences par défaut si elles n'existent pas encore
+	// Créer ou mettre à jour les préférences pour s'assurer que push_enabled=true
+	// (ignoreDuplicates serait incorrect : un user qui se ré-abonne après désactivation
+	// doit récupérer push_enabled=true même si la ligne existe déjà)
 	await supabase
 		.from('notification_preferences')
-		.upsert(
-			{ user_id: user.id, push_enabled: true },
-			{ onConflict: 'user_id', ignoreDuplicates: true },
-		)
+		.upsert({ user_id: user.id, push_enabled: true }, { onConflict: 'user_id' })
 
 	return { success: true }
 })

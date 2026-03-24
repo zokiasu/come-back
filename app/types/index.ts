@@ -332,4 +332,9 @@ export interface NotificationPreferences {
 	updated_at: string | null
 }
 
-export type FollowedArtist = Artist & { followed_at: string | null }
+export type FollowedArtist = Pick<
+	Artist,
+	'id' | 'name' | 'image' | 'verified' | 'type'
+> & {
+	followed_at: string | null
+}

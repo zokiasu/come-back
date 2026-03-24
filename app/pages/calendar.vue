@@ -276,7 +276,7 @@
 					</p>
 					<p class="text-cb-tertiary-500 text-xs">
 						{{ displayedReleases.length }} release{{
-							displayedReleases.length > 1 ? 's' : ''
+							displayedReleases.length !== 1 ? 's' : ''
 						}}
 						displayed
 					</p>

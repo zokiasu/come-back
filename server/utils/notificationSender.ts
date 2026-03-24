@@ -111,7 +111,7 @@ export async function sendWeeklyNotifications(): Promise<{
 		.from('releases')
 		.select('id, name, date, image, artist_releases!inner(artists!inner(name))')
 		.gte('date', startDate)
-		.lte('date', endDate)
+		.lt('date', endDate)
 		.eq('verified', true)
 		.order('date', { ascending: true })
 		.limit(10)
