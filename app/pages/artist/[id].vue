@@ -294,7 +294,11 @@
 							class="bg-cb-secondary-950 group flex cursor-pointer items-center gap-1 px-2 py-1 text-xs font-semibold uppercase disabled:cursor-not-allowed disabled:opacity-50"
 							@click="handleFollowToggle"
 						>
-							<template v-if="isFollowing">
+							<template v-if="isFollowLoading">
+								<UIcon name="i-lucide-loader-circle" class="size-3 animate-spin" />
+								{{ isFollowing ? 'Suivi' : 'Suivre' }}
+							</template>
+							<template v-else-if="isFollowing">
 								<UIcon
 									name="i-lucide-star"
 									class="text-cb-primary-500 size-3 group-hover:hidden"
