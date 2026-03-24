@@ -90,6 +90,11 @@ export default defineNuxtConfig({
 		'/newdashboard/**': { ssr: false },
 		'/music': { ssr: false },
 
+		// Pages d'édition : SPA (auth requise, pas de SEO)
+		'/artist/create': { ssr: false },
+		'/artist/edit/**': { ssr: false },
+		'/release/create': { ssr: false },
+
 		// Pages de paramètres : Hybride
 		'/settings': { ssr: true },
 		'/settings/notification': { ssr: false },
