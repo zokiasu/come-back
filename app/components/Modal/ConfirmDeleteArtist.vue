@@ -49,7 +49,7 @@
 
 		isLoading.value = true
 		try {
-			impact.value = await getArtistDeletionImpact(props.artistId)
+			impact.value = (await getArtistDeletionImpact(props.artistId)) as DeletionImpact
 		} catch (error) {
 			console.error("Erreur lors de l'analyse d'impact:", error)
 			toast.add({

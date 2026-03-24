@@ -50,7 +50,7 @@
 
 		isLoading.value = true
 		try {
-			impact.value = await getArtistDeletionImpact(props.artistId)
+			impact.value = (await getArtistDeletionImpact(props.artistId)) as DeletionImpact
 		} catch (error) {
 			console.error('Error during impact analysis:', error)
 		} finally {

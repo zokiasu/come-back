@@ -70,6 +70,7 @@ export default defineEventHandler(async (event) => {
 				body.releaseIds.map((releaseId) => ({
 					music_id: musicId,
 					release_id: releaseId,
+					track_number: 0,
 				})),
 			)
 

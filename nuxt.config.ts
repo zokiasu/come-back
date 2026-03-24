@@ -93,7 +93,6 @@ export default defineNuxtConfig({
 		// Pages d'édition : SPA (auth requise, pas de SEO)
 		'/artist/create': { ssr: false },
 		'/artist/edit/**': { ssr: false },
-		'/release/create': { ssr: false },
 
 		// Pages de paramètres : Hybride
 		'/settings': { ssr: true },

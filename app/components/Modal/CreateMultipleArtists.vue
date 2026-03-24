@@ -194,6 +194,8 @@
 							platform_links: [],
 							created_at: null,
 							updated_at: null,
+							check_tier: 'STANDARD',
+							last_checked_at: null,
 						},
 					],
 					[],

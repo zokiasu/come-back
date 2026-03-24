@@ -578,7 +578,13 @@
 
 			const artist: Omit<
 				Artist,
-				'id' | 'created_at' | 'updated_at' | 'social_links' | 'platform_links'
+				| 'id'
+				| 'created_at'
+				| 'updated_at'
+				| 'social_links'
+				| 'platform_links'
+				| 'check_tier'
+				| 'last_checked_at'
 			> = {
 				name: artistName.value,
 				image: artistImage.value,
