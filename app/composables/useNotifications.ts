@@ -33,7 +33,7 @@ export function useNotifications() {
 		try {
 			const res = await $fetch<NotificationsResponse>('/api/notifications', {
 				headers: requireAuthHeaders(),
-				query: { page },
+				query: { page, limit },
 			})
 			if (page === 1) {
 				notifications.value = res.notifications
