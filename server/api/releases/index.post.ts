@@ -57,5 +57,10 @@ export default defineEventHandler(async (event) => {
 		}
 	}
 
+	// 4. Notifier les followers des artistes liés (non-fatal)
+	notifyFollowersOfNewRelease(release.id, release.name, body.artistIds).catch((err) =>
+		console.error('Error notifying followers:', err),
+	)
+
 	return release
 })

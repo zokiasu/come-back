@@ -146,6 +146,7 @@
 							aria-label="Create Artist"
 							class="bg-cb-quaternary-950 hover:bg-cb-tertiary-200/20 h-full items-center justify-center text-xs text-white"
 						/>
+						<NotificationBell v-if="isUserLoggedIn" />
 						<UButton
 							v-if="isUserLoggedIn"
 							to="/settings/profile"

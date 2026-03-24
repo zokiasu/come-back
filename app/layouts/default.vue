@@ -22,6 +22,17 @@
 		)
 	})
 
+	const needsMobileBottomSpacer = computed(() => {
+		return (
+			route &&
+			route.name &&
+			typeof route.name === 'string' &&
+			!route.name.startsWith('dashboard-') &&
+			!route.name.startsWith('syncradio') &&
+			!route.name.startsWith('ranking-music-')
+		)
+	})
+
 	onMounted(() => {
 		useIntersectionObserver(
 			mobileNavSentinel,
@@ -54,8 +65,8 @@
 			<slot />
 		</main>
 		<LazyFooter v-if="displayingFooter" class="hidden lg:block" />
-		<div v-if="displayingFooter" class="h-24 lg:hidden" />
-		<div v-if="displayingFooter" ref="mobileNavSentinel" class="h-px w-full lg:hidden" />
+		<div v-if="needsMobileBottomSpacer" class="h-24 lg:hidden" />
+		<div v-if="needsMobileBottomSpacer" ref="mobileNavSentinel" class="h-px w-full lg:hidden" />
 		<LazyMobileNavigation class="lg:hidden" />
 		<LazyYoutubePlayer
 			v-if="isPlayingVideo"

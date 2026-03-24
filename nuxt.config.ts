@@ -99,6 +99,7 @@ export default defineNuxtConfig({
 		'/settings': { ssr: true },
 		'/settings/notification': { ssr: false },
 		'/settings/**': { ssr: true },
+		'/notifications': { ssr: false },
 
 		// API : CORS activé
 		'/api/**': {

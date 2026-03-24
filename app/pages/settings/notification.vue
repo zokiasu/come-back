@@ -116,13 +116,24 @@
 				>
 					Notifications
 				</div>
-				<h1 class="text-2xl font-semibold text-white sm:text-3xl">
-					Alertes & abonnements
-				</h1>
-				<p class="max-w-2xl text-sm leading-6 text-zinc-400">
-					Choisissez les alertes que vous souhaitez recevoir. Les notifications sont
-					envoyées directement sur cet appareil via votre navigateur.
-				</p>
+				<div class="flex items-start justify-between gap-4">
+					<div class="space-y-1">
+						<h1 class="text-2xl font-semibold text-white sm:text-3xl">
+							Alertes & abonnements
+						</h1>
+						<p class="max-w-2xl text-sm leading-6 text-zinc-400">
+							Choisissez les alertes que vous souhaitez recevoir. Les notifications sont
+							envoyées directement sur cet appareil via votre navigateur.
+						</p>
+					</div>
+					<NuxtLink
+						to="/notifications"
+						class="bg-cb-quaternary-950 border-cb-quinary-900/70 hover:bg-cb-quinary-900 flex shrink-0 items-center gap-2 rounded-xl border px-3 py-2 text-xs font-medium text-zinc-400 transition hover:text-white"
+					>
+						<UIcon name="i-lucide-history" class="size-3.5" />
+						Historique
+					</NuxtLink>
+				</div>
 			</div>
 		</section>
 

@@ -162,6 +162,53 @@ export async function sendWeeklyNotifications(): Promise<{
 	return { sent, expired: expiredIds.length }
 }
 
+export async function notifyFollowersOfNewRelease(
+	releaseId: string,
+	releaseName: string,
+	artistIds: string[],
+): Promise<void> {
+	const supabase = useServerSupabase()
+
+	// Récupérer les noms des artistes
+	const { data: artists } = await supabase
+		.from('artists')
+		.select('id, name')
+		.in('id', artistIds)
+
+	if (!artists?.length) return
+
+	// Trouver tous les followers de ces artistes
+	const { data: follows } = await supabase
+		.from('user_followed_artists')
+		.select('user_id, artist_id')
+		.in('artist_id', artistIds)
+
+	if (!follows?.length) return
+
+	const artistMap = new Map(artists.map((a) => [a.id, a.name]))
+
+	// Un user peut suivre plusieurs artistes de la release — une seule notif par user
+	const userArtistMap = new Map<string, string>()
+	for (const follow of follows) {
+		if (!userArtistMap.has(follow.user_id)) {
+			userArtistMap.set(follow.user_id, follow.artist_id)
+		}
+	}
+
+	const rows = [...userArtistMap.entries()].map(([userId, artistId]) => ({
+		user_id: userId,
+		type: 'new_release' as const,
+		title: `${artistMap.get(artistId) ?? 'Un artiste suivi'} a une nouvelle sortie`,
+		message: releaseName,
+		artist_id: artistId,
+		release_id: releaseId,
+	}))
+
+	if (rows.length) {
+		await supabase.from('user_notifications').insert(rows)
+	}
+}
+
 type FollowedReleaseRow = {
 	id: string
 	name: string
@@ -229,7 +276,7 @@ export async function sendFollowedArtistNotifications(): Promise<{
 	// Un user peut suivre plusieurs artistes sortant le même jour — une seule notif par user
 	const userReleaseMap = new Map<
 		string,
-		{ release: FollowedReleaseRow; artistName: string }
+		{ release: FollowedReleaseRow; artistName: string; artistId: string }
 	>()
 	for (const follow of follows) {
 		if (!eligibleUserIds.has(follow.user_id)) continue
@@ -242,7 +289,7 @@ export async function sendFollowedArtistNotifications(): Promise<{
 			release.artist_releases.find((ar) => ar.artists.id === follow.artist_id)?.artists
 				.name ?? ''
 
-		userReleaseMap.set(follow.user_id, { release, artistName })
+		userReleaseMap.set(follow.user_id, { release, artistName, artistId: follow.artist_id })
 	}
 
 	if (!userReleaseMap.size) return { sent: 0, expired: 0 }
