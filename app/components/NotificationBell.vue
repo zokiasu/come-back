@@ -27,13 +27,13 @@
 	const timeAgo = (dateStr: string) => {
 		const diff = Date.now() - new Date(dateStr).getTime()
 		const mins = Math.floor(diff / 60000)
-		if (mins < 1) return "à l'instant"
-		if (mins < 60) return `il y a ${mins} min`
+		if (mins < 1) return 'just now'
+		if (mins < 60) return `${mins}m ago`
 		const hours = Math.floor(mins / 60)
-		if (hours < 24) return `il y a ${hours} h`
+		if (hours < 24) return `${hours}h ago`
 		const days = Math.floor(hours / 24)
-		if (days < 30) return `il y a ${days} j`
-		return new Date(dateStr).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
+		if (days < 30) return `${days}d ago`
+		return new Date(dateStr).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })
 	}
 </script>
 
@@ -65,25 +65,21 @@
 						class="text-xs text-zinc-400 transition hover:text-white"
 						@click="markAllAsRead"
 					>
-						Tout marquer lu
+						Mark all as read
 					</button>
 				</div>
 
-				<!-- Liste -->
+				<!-- List -->
 				<div class="max-h-96 overflow-y-auto">
-					<!-- Skeleton -->
-					<div v-if="isLoading" class="space-y-px p-2">
-						<div
-							v-for="n in 3"
-							:key="n"
-							class="bg-cb-quaternary-950/50 h-16 animate-pulse rounded-lg"
-						/>
+					<!-- Loader -->
+					<div v-if="isLoading" class="flex items-center justify-center py-8">
+						<UIcon name="i-lucide-loader-circle" class="size-5 animate-spin text-zinc-500" />
 					</div>
 
-					<!-- Vide -->
+					<!-- Empty -->
 					<div v-else-if="!notifications.length" class="px-4 py-8 text-center">
 						<UIcon name="i-lucide-bell" class="mx-auto size-8 text-zinc-600" />
-						<p class="mt-2 text-sm text-zinc-500">Aucune notification</p>
+						<p class="mt-2 text-sm text-zinc-500">No notifications</p>
 					</div>
 
 					<!-- Notifications -->

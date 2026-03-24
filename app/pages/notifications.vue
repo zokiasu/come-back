@@ -12,13 +12,13 @@
 	const timeAgo = (dateStr: string) => {
 		const diff = Date.now() - new Date(dateStr).getTime()
 		const mins = Math.floor(diff / 60000)
-		if (mins < 1) return "à l'instant"
-		if (mins < 60) return `il y a ${mins} min`
+		if (mins < 1) return 'just now'
+		if (mins < 60) return `${mins}m ago`
 		const hours = Math.floor(mins / 60)
-		if (hours < 24) return `il y a ${hours} h`
+		if (hours < 24) return `${hours}h ago`
 		const days = Math.floor(hours / 24)
-		if (days < 30) return `il y a ${days} j`
-		return new Date(dateStr).toLocaleDateString('fr-FR', {
+		if (days < 30) return `${days}d ago`
+		return new Date(dateStr).toLocaleDateString('en-US', {
 			day: 'numeric',
 			month: 'long',
 			year: 'numeric',
@@ -34,7 +34,15 @@
 		for (const n of notifs) {
 			const d = new Date(n.created_at).toDateString()
 			const label =
-				d === today ? "Aujourd'hui" : d === yesterday ? 'Hier' : new Date(n.created_at).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })
+				d === today
+					? 'Today'
+					: d === yesterday
+						? 'Yesterday'
+						: new Date(n.created_at).toLocaleDateString('en-US', {
+								weekday: 'long',
+								day: 'numeric',
+								month: 'long',
+							})
 			if (!map.has(label)) map.set(label, [])
 			map.get(label)!.push(n)
 		}
@@ -55,7 +63,7 @@
 
 <template>
 	<div class="mx-auto max-w-2xl space-y-6 px-1 pb-6 sm:px-0">
-		<!-- En-tête -->
+		<!-- Header -->
 		<section
 			class="bg-cb-secondary-950 border-cb-quinary-900/70 rounded-[28px] border p-6 shadow-xl"
 		>
@@ -66,13 +74,11 @@
 						class="text-cb-primary-400 hover:text-cb-primary-300 flex items-center gap-1.5 text-xs font-medium transition"
 					>
 						<UIcon name="i-lucide-arrow-left" class="size-3.5" />
-						Paramètres de notifications
+						Notification settings
 					</NuxtLink>
-					<h1 class="text-2xl font-semibold text-white sm:text-3xl">
-						Historique
-					</h1>
+					<h1 class="text-2xl font-semibold text-white sm:text-3xl">History</h1>
 					<p class="text-sm text-zinc-400">
-						{{ total }} notification{{ total > 1 ? 's' : '' }} reçue{{ total > 1 ? 's' : '' }}
+						{{ total }} notification{{ total !== 1 ? 's' : '' }}
 					</p>
 				</div>
 				<UButton
@@ -81,34 +87,30 @@
 					variant="soft"
 					color="neutral"
 					size="sm"
-					label="Tout marquer lu"
+					label="Mark all as read"
 					@click="markAllAsRead"
 				/>
 			</div>
 		</section>
 
-		<!-- Skeleton -->
-		<div v-if="isLoading && !notifications.length" class="space-y-3">
-			<div
-				v-for="n in 5"
-				:key="n"
-				class="bg-cb-secondary-950 border-cb-quinary-900/70 h-20 animate-pulse rounded-2xl border"
-			/>
+		<!-- Loader -->
+		<div v-if="isLoading && !notifications.length" class="flex items-center justify-center py-16">
+			<UIcon name="i-lucide-loader-circle" class="size-6 animate-spin text-zinc-500" />
 		</div>
 
-		<!-- Vide -->
+		<!-- Empty -->
 		<section
 			v-else-if="!notifications.length"
 			class="bg-cb-secondary-950 border-cb-quinary-900/70 rounded-[28px] border p-12 text-center shadow-xl"
 		>
 			<UIcon name="i-lucide-bell" class="mx-auto size-10 text-zinc-600" />
-			<p class="mt-4 text-sm font-medium text-zinc-400">Aucune notification pour l'instant.</p>
+			<p class="mt-4 text-sm font-medium text-zinc-400">No notifications yet.</p>
 			<p class="mt-1 text-xs text-zinc-600">
-				Suivez des artistes pour recevoir des alertes dès qu'ils annoncent une sortie.
+				Follow artists to get notified when they announce a new release.
 			</p>
 		</section>
 
-		<!-- Groupes par date -->
+		<!-- Groups by date -->
 		<template v-else>
 			<section
 				v-for="group in groups"
@@ -167,7 +169,7 @@
 					variant="soft"
 					color="neutral"
 					:loading="isLoading"
-					label="Charger plus"
+					label="Load more"
 					@click="loadMore"
 				/>
 			</div>

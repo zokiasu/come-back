@@ -26,8 +26,8 @@
 				await unsubscribe()
 				await updatePreferences({ push_enabled: false })
 				toast.add({
-					title: 'Notifications désactivées',
-					description: "Vous ne recevrez plus d'alertes push.",
+					title: 'Notifications disabled',
+					description: 'You will no longer receive push alerts.',
 					color: 'neutral',
 				})
 			} else {
@@ -35,9 +35,9 @@
 				if (!ok) {
 					if (permission.value === 'denied') {
 						toast.add({
-							title: 'Permission refusée',
+							title: 'Permission denied',
 							description:
-								'Réactivez les notifications pour ce site dans les paramètres de votre navigateur.',
+								'Re-enable notifications for this site in your browser settings.',
 							color: 'error',
 						})
 					}
@@ -45,15 +45,15 @@
 				}
 				await fetchPreferences()
 				toast.add({
-					title: 'Notifications activées',
-					description: 'Vous recevrez les alertes de comebacks.',
+					title: 'Notifications enabled',
+					description: 'You will receive comeback alerts.',
 					color: 'success',
 				})
 			}
 		} catch (err) {
 			toast.add({
-				title: 'Erreur',
-				description: err instanceof Error ? err.message : 'Une erreur est survenue.',
+				title: 'Error',
+				description: err instanceof Error ? err.message : 'An error occurred.',
 				color: 'error',
 			})
 		} finally {
@@ -70,8 +70,8 @@
 			await updatePreferences({ [key]: value })
 		} catch {
 			toast.add({
-				title: 'Erreur',
-				description: 'Impossible de sauvegarder la préférence.',
+				title: 'Error',
+				description: 'Could not save preference.',
 				color: 'error',
 			})
 		} finally {
@@ -84,14 +84,14 @@
 		try {
 			await unfollowArtist(artistId)
 			toast.add({
-				title: 'Artiste retiré',
-				description: `Vous ne suivez plus ${artistName}.`,
+				title: 'Artist removed',
+				description: `You are no longer following ${artistName}.`,
 				color: 'neutral',
 			})
 		} catch {
 			toast.add({
-				title: 'Erreur',
-				description: 'Impossible de retirer cet artiste.',
+				title: 'Error',
+				description: 'Could not remove this artist.',
 				color: 'error',
 			})
 		} finally {
@@ -106,7 +106,7 @@
 
 <template>
 	<div class="mx-auto max-w-5xl space-y-6 px-1 pb-6 sm:px-0">
-		<!-- En-tête -->
+		<!-- Header -->
 		<section
 			class="bg-cb-secondary-950 border-cb-quinary-900/70 rounded-[28px] border p-6 shadow-xl"
 		>
@@ -119,11 +119,11 @@
 				<div class="flex items-start justify-between gap-4">
 					<div class="space-y-1">
 						<h1 class="text-2xl font-semibold text-white sm:text-3xl">
-							Alertes & abonnements
+							Alerts & subscriptions
 						</h1>
 						<p class="max-w-2xl text-sm leading-6 text-zinc-400">
-							Choisissez les alertes que vous souhaitez recevoir. Les notifications sont
-							envoyées directement sur cet appareil via votre navigateur.
+							Choose the alerts you want to receive. Notifications are sent directly to
+							this device via your browser.
 						</p>
 					</div>
 					<NuxtLink
@@ -131,34 +131,34 @@
 						class="bg-cb-quaternary-950 border-cb-quinary-900/70 hover:bg-cb-quinary-900 flex shrink-0 items-center gap-2 rounded-xl border px-3 py-2 text-xs font-medium text-zinc-400 transition hover:text-white"
 					>
 						<UIcon name="i-lucide-history" class="size-3.5" />
-						Historique
+						History
 					</NuxtLink>
 				</div>
 			</div>
 		</section>
 
-		<!-- Notifications push -->
+		<!-- Push notifications -->
 		<section
 			class="bg-cb-secondary-950 border-cb-quinary-900/70 rounded-[28px] border p-6 shadow-xl"
 		>
 			<div class="space-y-5">
 				<div class="flex items-start justify-between gap-4">
 					<div class="space-y-1">
-						<h2 class="text-base font-semibold text-white">Notifications push</h2>
+						<h2 class="text-base font-semibold text-white">Push notifications</h2>
 						<p class="text-sm text-zinc-400">
-							Recevez des alertes même lorsque l'application est en arrière-plan.
+							Receive alerts even when the app is in the background.
 						</p>
 					</div>
 
-					<!-- Non supporté -->
+					<!-- Not supported -->
 					<div
 						v-if="!isSupported"
 						class="bg-cb-quaternary-950 border-cb-quinary-900/70 rounded-xl border px-3 py-2 text-xs text-zinc-400"
 					>
-						Non supporté
+						Not supported
 					</div>
 
-					<!-- Toggle push -->
+					<!-- Push toggle -->
 					<USwitch
 						v-else
 						:model-value="isSubscribed"
@@ -169,7 +169,7 @@
 					/>
 				</div>
 
-				<!-- Message navigateur non supporté -->
+				<!-- Browser not supported message -->
 				<div
 					v-if="!isSupported"
 					class="bg-cb-quaternary-950 border-cb-quinary-900/70 rounded-2xl border p-4"
@@ -180,14 +180,13 @@
 							class="mt-0.5 size-4 shrink-0 text-zinc-500"
 						/>
 						<p class="text-sm text-zinc-400">
-							Votre navigateur ou appareil ne supporte pas les notifications web push. Sur
-							iOS, installez l'application depuis Safari puis ajoutez-la à l'écran
-							d'accueil.
+							Your browser or device does not support web push notifications. On iOS,
+							install the app from Safari then add it to your home screen.
 						</p>
 					</div>
 				</div>
 
-				<!-- Message permission refusée -->
+				<!-- Permission denied message -->
 				<div
 					v-else-if="isSupported && permission === 'denied'"
 					class="bg-cb-primary-900/10 border-cb-primary-900/30 rounded-2xl border p-4"
@@ -198,10 +197,10 @@
 							class="text-cb-primary-400 mt-0.5 size-4 shrink-0"
 						/>
 						<div class="space-y-1">
-							<p class="text-sm font-medium text-white">Permission refusée</p>
+							<p class="text-sm font-medium text-white">Permission denied</p>
 							<p class="text-sm text-zinc-400">
-								Pour réactiver les notifications, rendez-vous dans les paramètres de votre
-								navigateur → Confidentialité → Notifications → Autorisations pour ce site.
+								To re-enable notifications, go to your browser settings → Privacy →
+								Notifications → Permissions for this site.
 							</p>
 						</div>
 					</div>
@@ -209,16 +208,16 @@
 			</div>
 		</section>
 
-		<!-- Mes alertes (visible seulement si abonné) -->
+		<!-- My alerts (visible only when subscribed) -->
 		<section
 			v-if="isSubscribed"
 			class="bg-cb-secondary-950 border-cb-quinary-900/70 rounded-[28px] border p-6 shadow-xl"
 		>
 			<div class="space-y-5">
 				<div class="space-y-1">
-					<h2 class="text-base font-semibold text-white">Mes alertes</h2>
+					<h2 class="text-base font-semibold text-white">My alerts</h2>
 					<p class="text-sm text-zinc-400">
-						Choisissez les types de notifications que vous souhaitez recevoir.
+						Choose the types of notifications you want to receive.
 					</p>
 				</div>
 
@@ -231,7 +230,7 @@
 				</div>
 
 				<div v-else-if="preferences" class="space-y-3">
-					<!-- Comeback du jour -->
+					<!-- Daily comeback -->
 					<div
 						class="bg-cb-quaternary-950 border-cb-quinary-900/70 flex items-center justify-between gap-4 rounded-2xl border p-4"
 					>
@@ -245,9 +244,9 @@
 								/>
 							</div>
 							<div class="space-y-0.5">
-								<p class="text-sm font-medium text-white">Comeback du jour</p>
+								<p class="text-sm font-medium text-white">Daily comeback</p>
 								<p class="text-xs text-zinc-500">
-									Une notification chaque matin pour les sorties du jour.
+									A notification each morning for today's releases.
 								</p>
 							</div>
 						</div>
@@ -261,7 +260,7 @@
 						/>
 					</div>
 
-					<!-- Récap hebdomadaire -->
+					<!-- Weekly recap -->
 					<div
 						class="bg-cb-quaternary-950 border-cb-quinary-900/70 flex items-center justify-between gap-4 rounded-2xl border p-4"
 					>
@@ -275,9 +274,9 @@
 								/>
 							</div>
 							<div class="space-y-0.5">
-								<p class="text-sm font-medium text-white">Récap hebdomadaire</p>
+								<p class="text-sm font-medium text-white">Weekly recap</p>
 								<p class="text-xs text-zinc-500">
-									Un digest le lundi avec les comebacks de la semaine à venir.
+									A digest every Monday with the week's upcoming comebacks.
 								</p>
 							</div>
 						</div>
@@ -291,7 +290,7 @@
 						/>
 					</div>
 
-					<!-- Alertes artistes suivis -->
+					<!-- Followed artist alerts -->
 					<div
 						class="bg-cb-quaternary-950 border-cb-quinary-900/70 flex items-center justify-between gap-4 rounded-2xl border p-4"
 					>
@@ -302,9 +301,9 @@
 								<UIcon name="i-lucide-star" class="text-cb-primary-400 size-4" />
 							</div>
 							<div class="space-y-0.5">
-								<p class="text-sm font-medium text-white">Artistes suivis</p>
+								<p class="text-sm font-medium text-white">Followed artists</p>
 								<p class="text-xs text-zinc-500">
-									Une alerte dès qu'un artiste que vous suivez sort quelque chose.
+									An alert whenever an artist you follow releases something.
 								</p>
 							</div>
 						</div>
@@ -321,16 +320,16 @@
 			</div>
 		</section>
 
-		<!-- Artistes suivis -->
+		<!-- Followed artists -->
 		<section
 			class="bg-cb-secondary-950 border-cb-quinary-900/70 rounded-[28px] border p-6 shadow-xl"
 		>
 			<div class="space-y-5">
 				<div class="flex items-center justify-between gap-4">
 					<div class="space-y-1">
-						<h2 class="text-base font-semibold text-white">Artistes suivis</h2>
+						<h2 class="text-base font-semibold text-white">Followed artists</h2>
 						<p class="text-sm text-zinc-400">
-							Les artistes dont vous souhaitez suivre les actualités et sorties.
+							Artists whose news and releases you want to follow.
 						</p>
 					</div>
 					<div
@@ -350,7 +349,7 @@
 					/>
 				</div>
 
-				<!-- Liste des artistes suivis -->
+				<!-- Followed artists list -->
 				<div v-else-if="followedArtists.length" class="grid gap-3 sm:grid-cols-2">
 					<div
 						v-for="artist in followedArtists"
@@ -380,7 +379,7 @@
 								{{ artist.name }}
 							</NuxtLink>
 							<p class="truncate text-xs text-zinc-500">
-								{{ artist.type === 'GROUP' ? 'Groupe' : 'Artiste solo' }}
+								{{ artist.type === 'GROUP' ? 'Group' : 'Solo artist' }}
 							</p>
 						</div>
 
@@ -392,23 +391,23 @@
 							size="xs"
 							:loading="isUnfollowing === artist.id"
 							:disabled="isUnfollowing !== null"
-							aria-label="Ne plus suivre"
+							aria-label="Unfollow"
 							@click="handleUnfollow(artist.id, artist.name)"
 						/>
 					</div>
 				</div>
 
-				<!-- État vide -->
+				<!-- Empty state -->
 				<div
 					v-else
 					class="bg-cb-quaternary-950 border-cb-quinary-900/70 rounded-2xl border p-6 text-center"
 				>
 					<UIcon name="i-lucide-star" class="mx-auto size-8 text-zinc-600" />
 					<p class="mt-3 text-sm font-medium text-zinc-400">
-						Vous ne suivez aucun artiste pour l'instant.
+						You are not following any artists yet.
 					</p>
 					<p class="mt-1 text-xs text-zinc-600">
-						Rendez-vous sur la page d'un artiste pour le suivre.
+						Visit an artist's page to follow them.
 					</p>
 				</div>
 			</div>

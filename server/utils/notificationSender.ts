@@ -1,7 +1,7 @@
-// NOTE: Les dates sont calculées en UTC via toISOString().
-// Les releases en base sont stockées en date locale (YYYY-MM-DD).
-// Le cron doit être configuré pour se déclencher à minuit KST (= 15:00 UTC)
-// si l'audience principale est coréenne.
+// NOTE: Dates are calculated in UTC via toISOString().
+// Releases in the database are stored as local dates (YYYY-MM-DD).
+// The cron should be configured to trigger at midnight KST (= 15:00 UTC)
+// if the primary audience is Korean.
 
 type ReleaseRow = {
 	id: string
@@ -76,11 +76,11 @@ export async function sendDailyNotifications(): Promise<{
 	const count = releases.length
 
 	const payload = {
-		title: '🎵 Comeback du jour',
+		title: '🎵 Today\'s comebacks',
 		body:
 			count === 1
-				? `${artistName} sort aujourd'hui !`
-				: `${count} sorties aujourd'hui — dont ${artistName}`,
+				? `${artistName} releases today!`
+				: `${count} releases today — including ${artistName}`,
 		icon: firstRelease.image ?? '/icons/icon-192x192.png',
 		url: count === 1 ? `/release/${firstRelease.id}` : '/calendar',
 		tag: 'daily-comeback',
@@ -143,11 +143,11 @@ export async function sendWeeklyNotifications(): Promise<{
 	const firstArtist = firstRelease.artist_releases?.[0]?.artists?.name ?? ''
 
 	const payload = {
-		title: '📅 Récap comebacks de la semaine',
+		title: '📅 Weekly comebacks recap',
 		body:
 			count === 1
-				? `${firstArtist} sort cette semaine !`
-				: `${count} sorties cette semaine — ${firstArtist} et plus`,
+				? `${firstArtist} releases this week!`
+				: `${count} releases this week — ${firstArtist} and more`,
 		icon: firstRelease.image ?? '/icons/icon-192x192.png',
 		url: '/calendar',
 		tag: 'weekly-comeback',
@@ -169,7 +169,7 @@ export async function notifyFollowersOfNewRelease(
 ): Promise<void> {
 	const supabase = useServerSupabase()
 
-	// Récupérer les noms des artistes
+	// Fetch artist names
 	const { data: artists } = await supabase
 		.from('artists')
 		.select('id, name')
@@ -177,7 +177,7 @@ export async function notifyFollowersOfNewRelease(
 
 	if (!artists?.length) return
 
-	// Trouver tous les followers de ces artistes
+	// Find all followers of these artists
 	const { data: follows } = await supabase
 		.from('user_followed_artists')
 		.select('user_id, artist_id')
@@ -187,7 +187,7 @@ export async function notifyFollowersOfNewRelease(
 
 	const artistMap = new Map(artists.map((a) => [a.id, a.name]))
 
-	// Un user peut suivre plusieurs artistes de la release — une seule notif par user
+	// A user may follow multiple artists on the same release — one notification per user
 	const userArtistMap = new Map<string, string>()
 	for (const follow of follows) {
 		if (!userArtistMap.has(follow.user_id)) {
@@ -198,7 +198,7 @@ export async function notifyFollowersOfNewRelease(
 	const rows = [...userArtistMap.entries()].map(([userId, artistId]) => ({
 		user_id: userId,
 		type: 'new_release' as const,
-		title: `${artistMap.get(artistId) ?? 'Un artiste suivi'} a une nouvelle sortie`,
+		title: `${artistMap.get(artistId) ?? 'A followed artist'} has a new release`,
 		message: releaseName,
 		artist_id: artistId,
 		release_id: releaseId,
@@ -223,7 +223,7 @@ export async function sendFollowedArtistNotifications(): Promise<{
 	const supabase = useServerSupabase()
 	const today = new Date().toISOString().slice(0, 10)
 
-	// Récupérer les sorties vérifiées du jour avec leurs artistes
+	// Fetch today's verified releases with their artists
 	const { data: releases, error: relError } = await supabase
 		.from('releases')
 		.select('id, name, image, artist_releases!inner(artists!inner(id, name))')
@@ -233,7 +233,7 @@ export async function sendFollowedArtistNotifications(): Promise<{
 	if (relError) throw handleSupabaseError(relError, 'releases.today.followed')
 	if (!releases?.length) return { sent: 0, expired: 0 }
 
-	// Collecter tous les artist IDs des sorties du jour
+	// Collect all artist IDs from today's releases
 	const artistReleaseMap = new Map<string, FollowedReleaseRow>()
 	for (const rel of releases as unknown as FollowedReleaseRow[]) {
 		for (const ar of rel.artist_releases) {
@@ -247,7 +247,7 @@ export async function sendFollowedArtistNotifications(): Promise<{
 
 	const artistIds = [...artistReleaseMap.keys()]
 
-	// Trouver les users qui suivent ces artistes et ont les notifications activées
+	// Find users following these artists with notifications enabled
 	const { data: follows, error: followsError } = await supabase
 		.from('user_followed_artists')
 		.select('user_id, artist_id')
@@ -272,8 +272,8 @@ export async function sendFollowedArtistNotifications(): Promise<{
 
 	const eligibleUserIds = new Set(prefs.map((p) => p.user_id))
 
-	// Associer chaque user éligible à sa première sortie du jour (artiste suivi)
-	// Un user peut suivre plusieurs artistes sortant le même jour — une seule notif par user
+	// Map each eligible user to their first release of the day (followed artist)
+	// A user may follow multiple artists releasing the same day — one notification per user
 	const userReleaseMap = new Map<
 		string,
 		{ release: FollowedReleaseRow; artistName: string; artistId: string }
@@ -294,7 +294,7 @@ export async function sendFollowedArtistNotifications(): Promise<{
 
 	if (!userReleaseMap.size) return { sent: 0, expired: 0 }
 
-	// Récupérer les subscriptions des users éligibles
+	// Fetch subscriptions for eligible users
 	const { data: subs, error: subError } = await supabase
 		.from('push_subscriptions')
 		.select('id, endpoint, p256dh, auth, user_id')
@@ -303,7 +303,7 @@ export async function sendFollowedArtistNotifications(): Promise<{
 	if (subError) throw handleSupabaseError(subError, 'push_subscriptions.followed')
 	if (!subs?.length) return { sent: 0, expired: 0 }
 
-	// Fan-out avec payload personnalisé par user
+	// Fan-out with per-user personalized payload
 	const expiredIds: string[] = []
 	let sent = 0
 
@@ -314,8 +314,8 @@ export async function sendFollowedArtistNotifications(): Promise<{
 
 			const { release, artistName } = userInfo
 			const payload = {
-				title: '🔔 Nouveau comeback',
-				body: `${artistName} sort aujourd'hui !`,
+				title: '🔔 New comeback',
+				body: `${artistName} releases today!`,
 				icon: release.image ?? '/icons/icon-192x192.png',
 				url: `/release/${release.id}`,
 				tag: `followed-artist-${sub.user_id}`,
