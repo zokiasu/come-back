@@ -320,8 +320,24 @@
 			class="scrollBarLight border-cb-quinary-900/70 bg-cb-secondary-950/95 absolute top-full right-0 left-0 z-50 mt-2 max-h-72 overflow-y-auto rounded-xl border p-2 shadow-lg"
 			:class="dropdownClass"
 		>
-			<div v-if="isLoading" class="text-cb-tertiary-400 px-3 py-2 text-xs">
-				Searching...
+			<div v-if="isLoading" class="space-y-2 px-1 py-2">
+				<div
+					v-for="i in 4"
+					:key="i"
+					class="flex items-center gap-3 rounded-lg px-3 py-2"
+				>
+					<div class="skeleton-shimmer size-8 shrink-0 rounded-full" />
+					<div class="flex-1 space-y-1.5">
+						<div
+							class="skeleton-shimmer h-3 rounded"
+							:style="{ width: `${50 + ((i * 23) % 40)}%` }"
+						/>
+						<div
+							class="skeleton-shimmer h-2 rounded"
+							:style="{ width: `${30 + ((i * 17) % 30)}%` }"
+						/>
+					</div>
+				</div>
 			</div>
 			<div v-if="artists.length" class="space-y-1">
 				<div class="flex items-center justify-between px-3 pt-2">

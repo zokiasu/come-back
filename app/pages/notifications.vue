@@ -62,7 +62,7 @@
 </script>
 
 <template>
-	<div class="mx-auto max-w-2xl space-y-6 px-1 pb-6 sm:px-0">
+	<div class="mx-auto max-w-2xl space-y-6 px-1 pb-6 sm:px-0 w-full">
 		<!-- Header -->
 		<section
 			class="bg-cb-secondary-950 border-cb-quinary-900/70 rounded-[28px] border p-6 shadow-xl"

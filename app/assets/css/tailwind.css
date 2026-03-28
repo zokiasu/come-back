@@ -63,6 +63,26 @@
 	--color-cb-quinary-950: #262626;
 }
 
+@keyframes shimmer {
+	0% {
+		background-position: -200% 0;
+	}
+	100% {
+		background-position: 200% 0;
+	}
+}
+
+.skeleton-shimmer {
+	background: linear-gradient(
+		90deg,
+		var(--color-cb-quinary-900) 25%,
+		var(--color-cb-quinary-800) 50%,
+		var(--color-cb-quinary-900) 75%
+	);
+	background-size: 200% 100%;
+	animation: shimmer 1.5s ease-in-out infinite;
+}
+
 html:focus-within {
 	scroll-behavior: smooth;
 }

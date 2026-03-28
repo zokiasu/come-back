@@ -43,18 +43,30 @@
 		await logout()
 	}
 
+	const activeItemClass = 'text-cb-primary-400 before:bg-cb-primary-900/20'
+	const activeIconClass = 'text-cb-primary-400'
+
 	const userMenuItems = computed<DropdownMenuItem[][]>(() => {
+		const path = route.path
 		const groups: DropdownMenuItem[][] = []
 
 		if (isUserAdmin.value) {
+			const isActive = path === '/artist/create'
 			groups.push([
 				{
 					label: 'Create Artist',
 					icon: 'i-lucide-user-round-plus',
 					to: '/artist/create',
+					class: isActive ? activeItemClass : '',
+					ui: isActive
+						? { itemLeadingIcon: activeIconClass }
+						: undefined,
 				},
 			])
 		}
+
+		const isNotifActive = path === '/notifications'
+		const isSettingsActive = path.startsWith('/settings')
 
 		groups.push([
 			{
@@ -64,11 +76,19 @@
 						: 'Notifications',
 				icon: 'i-lucide-bell',
 				to: '/notifications',
+				class: isNotifActive ? activeItemClass : '',
+				ui: isNotifActive
+					? { itemLeadingIcon: activeIconClass }
+					: undefined,
 			},
 			{
 				label: 'Settings',
 				icon: 'i-lucide-settings',
 				to: '/settings/profile',
+				class: isSettingsActive ? activeItemClass : '',
+				ui: isSettingsActive
+					? { itemLeadingIcon: activeIconClass }
+					: undefined,
 			},
 		])
 

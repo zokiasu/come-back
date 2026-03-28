@@ -12,8 +12,9 @@ export default defineAppConfig({
 			slots: {
 				content:
 					'bg-cb-secondary-950/90 backdrop-blur-md ring-cb-quinary-900/70',
-				item: 'text-white data-highlighted:text-white data-highlighted:before:bg-cb-primary-900/30',
-				itemLeadingIcon: 'text-cb-tertiary-400 group-data-highlighted:text-white',
+				item: 'text-white data-highlighted:text-white data-highlighted:before:bg-cb-primary-900/30 cursor-pointer',
+				itemLabel: 'text-white',
+				itemLeadingIcon: 'text-white/70 group-data-highlighted:text-white',
 			},
 		},
 		inputMenu: {
