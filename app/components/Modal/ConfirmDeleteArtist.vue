@@ -49,7 +49,28 @@
 
 		isLoading.value = true
 		try {
-			impact.value = (await getArtistDeletionImpact(props.artistId)) as DeletionImpact
+			const raw = (await getArtistDeletionImpact(props.artistId)) as
+				| DeletionImpact
+				| {
+						exclusive_releases?: DeletionImpact['exclusiveReleases']
+						exclusive_musics?: DeletionImpact['exclusiveMusics']
+						exclusive_news?: DeletionImpact['exclusiveNews']
+				  }
+
+			impact.value = {
+				exclusiveReleases:
+					('exclusiveReleases' in raw ? raw.exclusiveReleases : null) ??
+					('exclusive_releases' in raw ? raw.exclusive_releases : null) ??
+					[],
+				exclusiveMusics:
+					('exclusiveMusics' in raw ? raw.exclusiveMusics : null) ??
+					('exclusive_musics' in raw ? raw.exclusive_musics : null) ??
+					[],
+				exclusiveNews:
+					('exclusiveNews' in raw ? raw.exclusiveNews : null) ??
+					('exclusive_news' in raw ? raw.exclusive_news : null) ??
+					[],
+			}
 		} catch (error) {
 			console.error("Erreur lors de l'analyse d'impact:", error)
 			toast.add({
