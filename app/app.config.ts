@@ -10,20 +10,8 @@ export default defineAppConfig({
 		},
 		dropdownMenu: {
 			slots: {
-				content:
-					'bg-cb-secondary-950/90 backdrop-blur-md ring-cb-quinary-900/70',
-				item: 'text-white data-highlighted:text-white data-highlighted:before:bg-cb-primary-900/30 cursor-pointer',
-				itemLabel: 'text-white',
-				itemLeadingIcon: 'text-white/70 group-data-highlighted:text-white',
-			},
-		},
-		inputMenu: {
-			slots: {
-				content:
-					'bg-cb-quaternary-950 text-white ring-cb-quinary-900/70',
-				item: 'text-white data-highlighted:text-white',
-				itemLabel: 'text-white',
-				empty: 'text-cb-tertiary-400',
+				content: 'bg-cb-secondary-950/90 backdrop-blur-md',
+				item: 'data-highlighted:before:bg-cb-primary-900/30 cursor-pointer',
 			},
 		},
 		button: {

@@ -44,6 +44,17 @@ export const useAuth = () => {
 		}
 	}
 
+	const withTimeout = <T>(
+		promise: Promise<T>,
+		ms: number,
+		fallback: T,
+	): Promise<T> => {
+		return Promise.race([
+			promise,
+			new Promise<T>((resolve) => setTimeout(() => resolve(fallback), ms)),
+		])
+	}
+
 	const getTrustedAuthUser = async (): Promise<SupabaseAuthUser | null> => {
 		if (sharedTrustedAuthUserPromise) {
 			return await sharedTrustedAuthUserPromise
@@ -51,10 +62,20 @@ export const useAuth = () => {
 
 		sharedTrustedAuthUserPromise = (async () => {
 			try {
-				const sessionAuthUser = await getSessionAuthUser()
+				const sessionAuthUser = await withTimeout(
+					getSessionAuthUser(),
+					3000,
+					null,
+				)
 				if (sessionAuthUser?.id) return sessionAuthUser
 
-				const { data: userData, error } = await supabase.auth.getUser()
+				const { data: userData, error } = await withTimeout(
+					supabase.auth.getUser(),
+					3000,
+					{ data: { user: null }, error: null } as Awaited<
+						ReturnType<typeof supabase.auth.getUser>
+					>,
+				)
 				const sessionUser = userData.user
 
 				if (error || !sessionUser?.id) return null
@@ -386,7 +407,7 @@ export const useAuth = () => {
 
 		sharedInitPromise = (async () => {
 			try {
-				return await runInitializeAuth()
+				return await withTimeout(runInitializeAuth(), 8000, false)
 			} finally {
 				authInitialized = true
 				sharedInitPromise = null

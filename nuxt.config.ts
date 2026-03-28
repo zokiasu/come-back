@@ -18,6 +18,10 @@ export default defineNuxtConfig({
 		'@vite-pwa/nuxt',
 	],
 
+	colorMode: {
+		preference: 'dark',
+	},
+
 	css: ['~/assets/css/tailwind.css'],
 
 	ssr: true,
