@@ -27,7 +27,12 @@ Pas de suite de tests configurée (ni Vitest ni Jest).
 SUPABASE_URL
 NUXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 NUXT_PUBLIC_SUPABASE_SECRET_KEY    # Service role key (serveur)
+SUPABASE_ANON_KEY
 YOUTUBE_API_KEY
+VAPID_PUBLIC_KEY                   # Push notifications (client)
+VAPID_PRIVATE_KEY                  # Push notifications (serveur)
+VAPID_SUBJECT                     # mailto: pour VAPID (défaut: mailto:admin@come-back.app)
+CRON_SECRET                       # Auth pour endpoints cron
 ```
 
 ## Architecture
@@ -60,6 +65,7 @@ server/
 │   ├── releases/        # latest, paginated, [id]/complete, [id]/delete
 │   ├── musics/          # latest-mvs, random, paginated
 │   ├── calendar/        # releases (par mois)
+│   ├── cron/            # send-daily, send-weekly, send-followed-artists (CRON_SECRET)
 │   └── dashboard/       # overview
 ├── utils/
 │   ├── supabase.ts      # Client service role (singleton, bypass RLS)
@@ -220,15 +226,18 @@ const { data } = await useFetch('/api/releases/paginated', {
 
 ## Stratégie de Rendu
 
-| Route                               | Mode | Détails                     |
-| ----------------------------------- | ---- | --------------------------- |
-| `/`                                 | ISR  | 3600s revalidation          |
-| `/calendar`                         | SSG  | Prerender                   |
-| `/authentification`, `/auth/`       | SPA  | Client-side only            |
-| `/dashboard/**`, `/newdashboard/**` | SPA  | Client-side only            |
-| `/release/create`, `/music`         | SPA  | Client-side only            |
-| `/settings/**`                      | SSR  | Hybride                     |
-| `/api/**`                           | —    | CORS activé + cache headers |
+| Route                               | Mode     | Détails                              |
+| ----------------------------------- | -------- | ------------------------------------ |
+| `/`                                 | ISR      | 3600s revalidation                   |
+| `/calendar`                         | SSG      | Prerender                            |
+| `/auth/callback`                    | SPA      | Client-side only                     |
+| `/dashboard/**`, `/newdashboard/**` | SPA      | Client-side only                     |
+| `/music`                            | SPA      | Client-side only                     |
+| `/artist/create`, `/artist/edit/**` | SPA      | Client-side only (auth requise)      |
+| `/release/create`                   | Redirect | → `/dashboard/release`               |
+| `/settings/**`                      | SSR      | Hybride (`/notification` en SPA)     |
+| `/notifications`                    | SPA      | Client-side only                     |
+| `/api/**`                           | —        | CORS activé + cache headers          |
 
 ## Formatage & Linting
 
@@ -272,7 +281,8 @@ MIN_YEAR: 1900, MAX_YEAR: 2100
 - **Swiper** — carrousels (transpilé via `nuxt.config.ts`)
 - **vuedraggable** — drag-and-drop (rankings)
 - **chart.js + vue-chartjs** — graphiques (dashboard)
-- **@vite-pwa/nuxt** — PWA avec Workbox runtime caching (images Google, ibb.co)
+- **@vite-pwa/nuxt** — PWA avec stratégie `injectManifest` (service worker dans `public/sw.ts`), Workbox runtime caching
+- **web-push** — notifications push côté serveur (endpoints cron)
 
 ## Rappels
 

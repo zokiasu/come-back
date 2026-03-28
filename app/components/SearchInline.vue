@@ -58,7 +58,9 @@
 	const isDesktop = useMediaQuery('(min-width: 768px)')
 	const router = useRouter()
 
-	const debouncedSearch = useDebounce(async (query: string) => {
+	let searchVersion = 0
+
+	watch(searchInput, async (query) => {
 		if (query.length < 2) {
 			artists.value = []
 			releases.value = []
@@ -69,28 +71,33 @@
 		}
 
 		isLoading.value = true
+		const version = ++searchVersion
+
+		await new Promise((resolve) => setTimeout(resolve, 250))
+		if (searchVersion !== version) return
+
 		try {
 			const [artistsResult, releasesResult, musicsResult] = await Promise.all([
 				searchArtistsFullText({ query, limit: props.maxResults }),
 				searchReleases({ query, limit: Math.min(6, props.maxResults) }),
 				searchMusics({ query, limit: Math.min(6, props.maxResults) }),
 			])
+			if (searchVersion !== version) return
 			artists.value = artistsResult.artists
 			releases.value = releasesResult.releases
 			musics.value = musicsResult.musics
 			activeIndex.value = -1
 		} catch (error) {
 			console.error('Search error:', error)
+			if (searchVersion !== version) return
 			artists.value = []
 			releases.value = []
 			musics.value = []
 		} finally {
-			isLoading.value = false
+			if (searchVersion === version) {
+				isLoading.value = false
+			}
 		}
-	}, 250)
-
-	watchEffect(() => {
-		debouncedSearch(searchInput.value)
 	})
 
 	const closeDropdown = () => {
@@ -524,9 +531,13 @@
 
 			<div
 				v-if="!isLoading && !artists.length && !releases.length && !musics.length"
-				class="text-cb-tertiary-500 px-3 py-2 text-xs"
+				class="flex flex-col items-center gap-1 px-3 py-6 text-center"
 			>
-				No results found.
+				<UIcon name="i-lucide-search-x" class="text-cb-tertiary-600 h-8 w-8" />
+				<p class="text-cb-tertiary-400 text-sm">No results found</p>
+				<p class="text-cb-tertiary-600 text-xs">
+					No artist, release, or music matches "{{ searchInput }}"
+				</p>
 			</div>
 		</div>
 	</div>

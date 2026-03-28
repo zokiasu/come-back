@@ -4,6 +4,7 @@
 	import { useWindowScroll } from '@vueuse/core'
 	import { useAuthModal } from '@/composables/useAuthModal'
 	import { useAuth } from '@/composables/useAuth'
+	import type { DropdownMenuItem } from '@nuxt/ui'
 
 	const userStore = useUserStore()
 	const { isAdminStore, isLoginStore, isHydrated } = storeToRefs(userStore)
@@ -36,9 +37,52 @@
 	const { open: openAuthModal } = useAuthModal()
 	const { logout } = useAuth()
 
+	const { unreadCount } = useNotifications()
+
 	const handleLogoutClick = async () => {
 		await logout()
 	}
+
+	const userMenuItems = computed<DropdownMenuItem[][]>(() => {
+		const groups: DropdownMenuItem[][] = []
+
+		if (isUserAdmin.value) {
+			groups.push([
+				{
+					label: 'Create Artist',
+					icon: 'i-lucide-user-round-plus',
+					to: '/artist/create',
+				},
+			])
+		}
+
+		groups.push([
+			{
+				label:
+					unreadCount.value > 0
+						? `Notifications (${unreadCount.value})`
+						: 'Notifications',
+				icon: 'i-lucide-bell',
+				to: '/notifications',
+			},
+			{
+				label: 'Settings',
+				icon: 'i-lucide-settings',
+				to: '/settings/profile',
+			},
+		])
+
+		groups.push([
+			{
+				label: 'Logout',
+				icon: 'i-lucide-log-out',
+				color: 'error' as const,
+				onSelect: handleLogoutClick,
+			},
+		])
+
+		return groups
+	})
 
 	// Utiliser le composable Nuxt pour le scroll
 	const { y: scrollY } = useWindowScroll()
@@ -136,38 +180,26 @@
 					<!-- Éléments utilisateur rendus côté client uniquement -->
 					<ClientOnly>
 						<ModalNewsCreation v-if="isUserLoggedIn" />
-						<UButton
-							v-if="isUserAdmin"
-							to="/artist/create"
-							size="sm"
-							variant="soft"
-							icon="i-lucide-user-round-plus"
-							title="Create Artist"
-							aria-label="Create Artist"
-							class="bg-cb-quaternary-950 hover:bg-cb-tertiary-200/20 h-full items-center justify-center text-xs text-white"
-						/>
-						<NotificationBell v-if="isUserLoggedIn" />
-						<UButton
+						<UDropdownMenu
 							v-if="isUserLoggedIn"
-							to="/settings/profile"
-							size="sm"
-							variant="soft"
-							icon="i-lucide-settings"
-							title="Settings"
-							aria-label="Settings"
-							class="bg-cb-quaternary-950 hover:bg-cb-tertiary-200/20 h-full items-center justify-center text-xs text-white"
-						/>
-						<UButton
-							v-if="isUserLoggedIn"
-							type="button"
-							size="sm"
-							variant="soft"
-							icon="i-lucide-log-out"
-							title="Logout"
-							aria-label="Logout"
-							class="bg-cb-quaternary-950 hover:bg-cb-tertiary-200/20 h-full items-center justify-center text-xs text-white"
-							@click="handleLogoutClick"
-						/>
+							:items="userMenuItems"
+							:content="{ align: 'end' }"
+						>
+							<UButton
+								size="sm"
+								variant="soft"
+								icon="i-lucide-ellipsis-vertical"
+								aria-label="User menu"
+								class="bg-cb-quaternary-950 hover:bg-cb-tertiary-200/20 relative h-full items-center justify-center text-xs text-white"
+							>
+								<span
+									v-if="unreadCount > 0"
+									class="bg-cb-primary-500 absolute -right-0.5 -top-0.5 flex size-4 items-center justify-center rounded-full text-[10px] font-bold text-white"
+								>
+									{{ unreadCount > 9 ? '9+' : unreadCount }}
+								</span>
+							</UButton>
+						</UDropdownMenu>
 						<UButton
 							v-else
 							variant="soft"
