@@ -14,7 +14,7 @@ export default defineEventHandler(async (event) => {
 	}
 
 	try {
-		// 1. Récupérer le release de base
+		// 1. Fetch the release of base
 		const { data: release, error: releaseError } = await supabase
 			.from('releases')
 			.select('*')
@@ -29,7 +29,7 @@ export default defineEventHandler(async (event) => {
 			})
 		}
 
-		// 2. Récupérer les artistes associés
+		// 2. Fetch related artists
 		const { data: finalReleaseArtists, error: artistsError } = await supabase
 			.from('artist_releases')
 			.select('artist:artists(*)')
@@ -37,14 +37,14 @@ export default defineEventHandler(async (event) => {
 			.eq('artist.verified', true)
 		if (artistsError) throw artistsError
 
-		// 3. Récupérer les musiques associées
+		// 3. Fetch related musics
 		const { data: finalReleaseMusics, error: musicsError } = await supabase
 			.from('music_releases')
 			.select('music:musics(*)')
 			.eq('release_id', releaseId)
 		if (musicsError) throw musicsError
 
-		// Récupérer des releases suggérées (même artiste, excluant le release actuel)
+		// Fetch suggested releases from the same artist, excluding the current release
 		const artistIds = transformJunction(finalReleaseArtists, 'artist').map(
 			(artist) => artist.id,
 		)
@@ -53,7 +53,7 @@ export default defineEventHandler(async (event) => {
 		> = []
 
 		if (artistIds.length > 0) {
-			// Approche simplifiée : récupérer d'abord les IDs des releases suggérées
+			// Fetch suggested release IDs first to keep the query simpler
 			const { data: suggestedIds } = await supabase
 				.from('artist_releases')
 				.select('release_id')
@@ -64,7 +64,7 @@ export default defineEventHandler(async (event) => {
 			if (suggestedIds && suggestedIds.length > 0) {
 				const releaseIds = suggestedIds.map((item) => item.release_id)
 
-				// Récupérer les données complètes des releases suggérées + leurs artistes en 2 requêtes au lieu de N+1
+				// Fetch full data for suggested releases and their artists in 2 queries instead of N+1
 				const [releasesResult, artistsResult] = await Promise.all([
 					supabase
 						.from('releases')
@@ -78,7 +78,7 @@ export default defineEventHandler(async (event) => {
 						.eq('artist.verified', true),
 				])
 
-				// Créer un Map pour grouper les artistes par release_id
+				// Create a map to group artists by release_id
 				const artistsByReleaseId = new Map<string, Tables<'artists'>[]>()
 				for (const item of artistsResult.data || []) {
 					if (!artistsByReleaseId.has(item.release_id)) {
@@ -87,7 +87,7 @@ export default defineEventHandler(async (event) => {
 					artistsByReleaseId.get(item.release_id)!.push(item.artist as Tables<'artists'>)
 				}
 
-				// Assembler les releases avec leurs artistes
+				// Assemble releases with their artists
 				for (const release of releasesResult.data || []) {
 					suggestedReleases.push({
 						...release,
@@ -97,7 +97,7 @@ export default defineEventHandler(async (event) => {
 			}
 		}
 
-		// Transformer les données pour correspondre au format attendu
+		// Transform the data to match the expected format
 		const transformedRelease = {
 			...release,
 			artists: transformJunction(finalReleaseArtists, 'artist'),

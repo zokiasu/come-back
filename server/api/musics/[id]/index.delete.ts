@@ -8,13 +8,13 @@ export default defineEventHandler(async (event) => {
 	const supabase = useServerSupabase()
 
 	try {
-		// Supprimer les relations music_artists
+		// Delete the relations music_artists
 		await supabase.from('music_artists').delete().eq('music_id', musicId)
 
-		// Supprimer les relations music_releases
+		// Delete the relations music_releases
 		await supabase.from('music_releases').delete().eq('music_id', musicId)
 
-		// Supprimer la musique
+		// Delete the music
 		const { error } = await supabase.from('musics').delete().eq('id', musicId)
 
 		if (error) throw handleSupabaseError(error, 'musics.delete')

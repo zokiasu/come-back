@@ -18,7 +18,7 @@ export default defineEventHandler(async (event) => {
 
 	const supabase = useServerSupabase()
 
-	// 1. Mettre à jour les champs de la release si fournis
+	// 1. Update the champs the release if provided
 	let updatedRelease = null
 	if (body.updates && Object.keys(body.updates).length > 0) {
 		const { data, error } = await supabase
@@ -32,7 +32,7 @@ export default defineEventHandler(async (event) => {
 		updatedRelease = data
 	}
 
-	// 2. Remplacer les artistes si fournis
+	// 2. Remplacer the artists if provided
 	if (body.artistIds !== undefined) {
 		const { error: deleteError } = await supabase
 			.from('artist_releases')
@@ -56,7 +56,7 @@ export default defineEventHandler(async (event) => {
 		}
 	}
 
-	// 3. Remplacer les liens de plateformes si fournis
+	// 3. Remplacer the platform links if provided
 	if (body.platformLinks !== undefined) {
 		const { error: deleteError } = await supabase
 			.from('release_platform_links')

@@ -1,6 +1,5 @@
 <template>
 	<div class="container mx-auto min-h-screen p-5">
-		<!-- Header -->
 		<div class="mb-6 flex items-center justify-between">
 			<div>
 				<h1 class="text-2xl font-bold">Explore rankings</h1>
@@ -19,14 +18,12 @@
 			</ClientOnly>
 		</div>
 
-		<!-- Loading state -->
 		<PageHeroLoader
 			v-if="showHeroLoader"
 			title="Loading rankings explorer"
 			description="We are preparing the latest public rankings for the community."
 		/>
 
-		<!-- Empty state -->
 		<div
 			v-else-if="isInitialized && rankings.length === 0"
 			class="bg-cb-quaternary-950 flex flex-col items-center justify-center rounded-lg py-20"
@@ -38,7 +35,6 @@
 			</p>
 		</div>
 
-		<!-- Rankings grid -->
 		<div
 			v-else
 			class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
@@ -49,7 +45,6 @@
 				:to="`/ranking/view/${ranking.id}`"
 				class="bg-cb-quaternary-950 hover:bg-cb-quinary-900 group overflow-hidden rounded-lg transition-colors"
 			>
-				<!-- Cover (4 thumbnails grid) -->
 				<div class="aspect-square">
 					<div class="grid h-full w-full grid-cols-2 grid-rows-2">
 						<div
@@ -72,7 +67,6 @@
 					</div>
 				</div>
 
-				<!-- Info -->
 				<div class="p-3">
 					<h3 class="truncate font-semibold">{{ ranking.name }}</h3>
 					<p class="text-cb-tertiary-500 text-xs">
@@ -85,7 +79,6 @@
 						{{ ranking.description }}
 					</p>
 
-					<!-- User info + Edit button -->
 					<div class="mt-2 flex items-center justify-between">
 						<div class="flex min-w-0 items-center gap-2">
 							<NuxtImg
@@ -106,7 +99,6 @@
 							</span>
 						</div>
 
-						<!-- Edit button (owner only) -->
 						<NuxtLink
 							v-if="ranking.user_id === currentUserId"
 							:to="`/ranking/music/${ranking.id}`"
@@ -121,7 +113,6 @@
 			</NuxtLink>
 		</div>
 
-		<!-- Pagination -->
 		<div v-if="totalPages > 1" class="mt-6 flex justify-center">
 			<UPagination
 				v-model:page="currentPage"
@@ -142,7 +133,6 @@
 	const currentUserId = computed(() => userStore.userDataStore?.id)
 	const isUserLoggedIn = computed(() => isHydrated.value && isLoginStore.value)
 
-	// State
 	const rankings = ref<UserRankingWithPreview[]>([])
 	const isLoading = ref(true)
 	const isInitialized = ref(false)

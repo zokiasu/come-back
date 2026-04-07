@@ -2,7 +2,7 @@ export const useErrorLogger = () => {
 	const isDevelopment = process.env.NODE_ENV === 'development'
 
 	const logError = (error: unknown, context: string) => {
-		// Simplifier le logging pour éviter les problèmes de sérialisation
+		// Simplify logging to avoid serialization issues
 		const err = error as { message?: string; name?: string; stack?: string } | null
 		const errorInfo = {
 			message: err?.message || 'Unknown error',
@@ -11,13 +11,13 @@ export const useErrorLogger = () => {
 		}
 
 		if (isDevelopment) {
-			// Log détaillé en développement
+			// Detailed logging in development
 			console.error(`[${context}]`, errorInfo)
 			if (err?.stack) {
 				console.error(`Stack trace:`, err.stack)
 			}
 		} else {
-			// Log minimal en production
+			// Log minimal in production
 			console.error(`[${context}] ${errorInfo.message}`)
 		}
 	}
@@ -26,7 +26,7 @@ export const useErrorLogger = () => {
 		if (isDevelopment) {
 			console.info(`[INFO] ${message}`, data)
 		}
-		// En production, on peut logger seulement les infos importantes
+		// in production, on can logger only the infos importantes
 	}
 
 	return {

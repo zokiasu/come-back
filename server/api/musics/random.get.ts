@@ -7,11 +7,11 @@ export default defineEventHandler(async (event) => {
 	const limit = parseInt(query.limit as string) || 4
 
 	try {
-		// Stratégie optimisée: une seule requête simple avec offset aléatoire
-		// Évite les jointures complexes qui causent des timeouts
+		// Optimized strategy: use a single simple query with a random offset
+		// Avoid complex joins that can cause timeouts
 
-		// 1. Obtenir un count estimé (très rapide)
-		// Exclure les instrumentales, sped up et versions live (basé sur le nom)
+		// 1. Fetch an estimated count (very fast)
+		// Exclude instrumental, sped-up, and live versions based on the title
 		const { count } = await supabase
 			.from('musics')
 			.select('*', { count: 'estimated', head: true })
@@ -27,7 +27,7 @@ export default defineEventHandler(async (event) => {
 			return []
 		}
 
-		// 2. Générer un offset aléatoire
+		// 2. Generate a random offset
 		const maxOffset = Math.max(0, count - limit * 3)
 		const randomOffset = maxOffset > 0 ? Math.floor(Math.random() * (maxOffset + 1)) : 0
 
@@ -70,7 +70,7 @@ export default defineEventHandler(async (event) => {
 			return data || []
 		}
 
-		// 3. Requête principale + fallback offset 0 pour éviter les fenêtres vides.
+		// 3. Primary query more an offset 0 fallback to avoid empty windows.
 		let data = await fetchChunk(randomOffset)
 		if (data.length === 0 && randomOffset > 0) {
 			data = await fetchChunk(0)
@@ -80,7 +80,7 @@ export default defineEventHandler(async (event) => {
 			return []
 		}
 
-		// 4. Transformer les données
+		// 4. Transform the data
 		const transformedData = data.map((music) => ({
 			...music,
 			artists:
@@ -96,7 +96,7 @@ export default defineEventHandler(async (event) => {
 					.filter(Boolean) || [],
 		}))
 
-		// 5. Mélanger et diversifier par artiste
+		// 5. Shuffle results and diversify by artist
 		const shuffleArray = <T>(array: T[]): T[] => {
 			const shuffled = [...array]
 			for (let i = shuffled.length - 1; i > 0; i--) {
@@ -115,7 +115,7 @@ export default defineEventHandler(async (event) => {
 		const result: typeof transformedData = []
 		const usedArtistIds = new Set<string>()
 
-		// Privilégier la diversité d'artistes
+		// Prefer artist diversity
 		for (const music of shuffled) {
 			if (result.length >= limit) break
 			const artistId = music.artists?.[0]?.id
@@ -125,7 +125,7 @@ export default defineEventHandler(async (event) => {
 			}
 		}
 
-		// Compléter si nécessaire
+		// Backfill if needed
 		if (result.length < limit) {
 			for (const music of shuffled) {
 				if (result.length >= limit) break

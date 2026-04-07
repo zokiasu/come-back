@@ -12,7 +12,7 @@ export const useUserStore = defineStore(
 		const isAdminStore = ref<boolean>(false)
 		const userDataStore = ref<User | null>(null)
 
-		// État d'hydratation pour éviter les erreurs SSR/client
+		// hydration state to avoid SSR/client mismatches
 		const isHydrated = ref(false)
 
 		const setUserData = (user: User | null) => {
@@ -60,10 +60,10 @@ export const useUserStore = defineStore(
 			isHydrated.value = true
 		}
 
-		// Initialisation côté client uniquement
+		// Initialisation client-side only
 		const initializeStore = () => {
 			if (import.meta.client && !isHydrated.value) {
-				// Marquer comme hydraté même si pas de données
+				// Mark as hydrated even when no data is available
 				isHydrated.value = true
 			}
 		}
@@ -85,10 +85,10 @@ export const useUserStore = defineStore(
 	},
 	{
 		persist: {
-			// Clé de stockage localStorage
+			// localStorage key
 			key: 'userStore',
-			// Note: On ne persiste pas isAdminStore car c'est une valeur dérivée de userDataStore.role
-			// Elle sera recalculée lors de l'hydratation via afterHydrate
+			// Note: isAdminStore is not persisted because it is derived from userDataStore.role
+			// It is recalculated during hydration via afterHydrate
 			pick: ['userDataStore', 'isLoginStore'],
 			afterHydrate: (ctx) => {
 				const userData = ctx.store.userDataStore

@@ -36,7 +36,7 @@
 	let originalConsoleError: typeof console.error | null = null
 	let youtubeErrorHandler: ((event: ErrorEvent) => void) | null = null
 
-	// Création du lecteur YouTube
+	// Create the YouTube player
 	const createPlayer = () => {
 		if (!import.meta.client) return
 
@@ -101,11 +101,13 @@
 			duration.value = player.value?.getDuration()
 		}
 
-		// Gestion de la fin de vidéo pour la playlist
+		// Handle playlist end-of-video events
 		if (event.data === window.YT.PlayerState.ENDED) {
 			console.warn('🎵 Fin de vidéo - tentative de lecture suivante')
 			const { playNext } = usePlaylist()
 
+			// Give the iframe a short moment to settle before switching tracks,
+			// otherwise the next load can be ignored on some browsers.
 			setTimeout(() => {
 				const hasPlayedNext = playNext()
 				if (!hasPlayedNext) {
@@ -114,7 +116,7 @@
 			}, 500)
 		}
 
-		// Log des changements d'état pour debug
+		// Log state changes for debugging
 		const states: Record<number, string> = {
 			[-1]: 'non démarré',
 			[0]: 'terminé',
@@ -154,7 +156,9 @@
 	const setupYouTubeErrorFiltering = () => {
 		if (!import.meta.client) return
 
-		// Filtrer les erreurs postMessage YouTube au niveau global
+		// YouTube emits noisy cross-origin postMessage errors in development that
+		// do not break playback. Filter them so real failures stay visible.
+		// Filter YouTube postMessage errors at the global level
 		youtubeErrorHandler = (event: ErrorEvent) => {
 			if (
 				event.error &&
@@ -169,11 +173,11 @@
 		}
 		window.addEventListener('error', youtubeErrorHandler)
 
-		// Filtrer aussi les erreurs de console
+		// Filter console errors as well
 		originalConsoleError = console.error
 		console.error = (...args) => {
 			const message = args.join(' ')
-			// Filtrer les erreurs postMessage YouTube connues (non critiques)
+			// Filter known non-critical YouTube postMessage errors
 			if (message.includes('postMessage') && message.includes('youtube.com')) {
 				console.warn('🎵 Info: Communication YouTube iframe (normal en localhost)')
 				return
@@ -206,12 +210,12 @@
 
 		console.warn('🎵 Initialisation du lecteur YouTube...')
 
-		// Détecter les bloqueurs de publicités de manière plus robuste
+		// Detect ad blockers more reliably
 		const detectAdBlocker = () => {
 			if (!import.meta.client) return false
 
 			try {
-				// Créer un élément test qui serait bloqué par les ad-blockers
+				// Create a test element that ad blockers would block
 				const testEl = document.createElement('div')
 				testEl.innerHTML = '&nbsp;'
 				testEl.className = 'adsbox'
@@ -239,11 +243,12 @@
 		} else {
 			console.warn("📥 Chargement de l'API YouTube...")
 
-			// Vérifier si le script est déjà présent
+			// Check whether the script is already present
 			const existingScript = document.querySelector(
 				'script[src*="youtube.com/iframe_api"]',
 			)
 			if (existingScript) {
+				// Another player instance already requested the API script.
 				console.warn('⏳ Script YouTube déjà en cours de chargement...')
 				return
 			}
@@ -266,13 +271,13 @@
 				document.head.appendChild(tag)
 			}
 
-			// Callback global pour l'API YouTube avec timeout
+			// Callback global for the API YouTube with timeout
 			window.onYouTubeIframeAPIReady = () => {
 				console.warn('✅ API YouTube prête')
 				createPlayer()
 			}
 
-			// Timeout de sécurité
+			// Safety timeout
 			setTimeout(() => {
 				if (!window.YT || !window.YT.Player) {
 					console.error('❌ Timeout: API YouTube non chargée après 10 secondes')
@@ -465,7 +470,7 @@
 		isPlayingVideo.value = false
 		idYoutubeVideo.value = ''
 
-		// Vider la playlist pour permettre de relancer une musique directement
+		// Vider the playlist for permettre of relancer a music directement
 		const { clearPlaylist } = usePlaylist()
 		clearPlaylist()
 
@@ -477,7 +482,7 @@
 			}
 		}
 
-		// Reset des états
+		// Reset state
 		isPlayerReady.value = false
 		errorDetected.value = false
 		errorMessage.value = ''

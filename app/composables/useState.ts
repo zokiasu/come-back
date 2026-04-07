@@ -1,4 +1,4 @@
-// Composables YouTube avec persistance
+// Composables YouTube with persistance
 export const useIdYoutubeVideo = () =>
 	useState<string>('idYoutubeVideo', () => 'L9Ts6kiEAts')
 

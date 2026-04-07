@@ -21,7 +21,7 @@ export default defineEventHandler(async (event) => {
 
 	const supabase = useServerSupabase()
 
-	// Vérifier conflit YouTube Music ID
+	// Check conflit YouTube Music ID
 	if (body.updates?.id_youtube_music) {
 		const { data: conflict } = await supabase
 			.from('artists')
@@ -39,7 +39,7 @@ export default defineEventHandler(async (event) => {
 		}
 	}
 
-	// 1. Mettre à jour l'artiste
+	// 1. Update the artist
 	let updatedArtist = null
 	if (body.updates && Object.keys(body.updates).length > 0) {
 		const { data, error } = await supabase
@@ -53,7 +53,7 @@ export default defineEventHandler(async (event) => {
 		updatedArtist = data
 	}
 
-	// 2. Mettre à jour les liens sociaux si fournis
+	// 2. Update the social links if provided
 	if (body.socialLinks !== undefined) {
 		await supabase.from('artist_social_links').delete().eq('artist_id', artistId)
 
@@ -66,7 +66,7 @@ export default defineEventHandler(async (event) => {
 		}
 	}
 
-	// 3. Mettre à jour les liens plateformes si fournis
+	// 3. Update platform links when provided
 	if (body.platformLinks !== undefined) {
 		await supabase.from('artist_platform_links').delete().eq('artist_id', artistId)
 
@@ -79,15 +79,15 @@ export default defineEventHandler(async (event) => {
 		}
 	}
 
-	// 4. Mettre à jour les relations artiste si groupIds/memberIds fournis
+	// 4. Update the relations artist if groupIds/memberIds provided
 	if (body.groupIds !== undefined || body.memberIds !== undefined) {
-		// Supprimer toutes les relations existantes
+		// Delete all existing relations
 		await supabase
 			.from('artist_relations')
 			.delete()
 			.or(`group_id.eq.${artistId},member_id.eq.${artistId}`)
 
-		// Re-insérer les groupes
+		// Re-insert groups
 		if (body.groupIds?.length) {
 			const { error } = await supabase.from('artist_relations').insert(
 				body.groupIds.map((groupId) => ({
@@ -100,7 +100,7 @@ export default defineEventHandler(async (event) => {
 			if (error) console.error('Error updating group relations:', error)
 		}
 
-		// Re-insérer les membres
+		// Re-insert members
 		if (body.memberIds?.length) {
 			const { error } = await supabase.from('artist_relations').insert(
 				body.memberIds.map((memberId) => ({
@@ -114,7 +114,7 @@ export default defineEventHandler(async (event) => {
 		}
 	}
 
-	// 5. Mettre à jour les companies si fournis
+	// 5. Update the companies if provided
 	if (body.companies !== undefined) {
 		await supabase.from('artist_companies').delete().eq('artist_id', artistId)
 

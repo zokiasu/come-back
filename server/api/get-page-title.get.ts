@@ -1,6 +1,6 @@
-// Whitelist des domaines autorisés pour prévenir les attaques SSRF
+// Allow only trusted domains to prevent SSRF attacks
 const ALLOWED_DOMAINS = [
-	// Plateformes musicales
+	// platforms musicales
 	'youtube.com',
 	'youtu.be',
 	'spotify.com',
@@ -17,13 +17,13 @@ const ALLOWED_DOMAINS = [
 	'napster.com',
 	'pandora.com',
 	'qobuz.com',
-	// Plateformes coréennes
+	// Korean platforms
 	'melon.com',
 	'genie.co.kr',
 	'bugs.co.kr',
 	'vibe.naver.com',
 	'flo.com',
-	// Réseaux sociaux
+	// Social networks
 	'instagram.com',
 	'twitter.com',
 	'x.com',
@@ -31,13 +31,13 @@ const ALLOWED_DOMAINS = [
 	'tiktok.com',
 	'weibo.com',
 	'weverse.io',
-	// Autres plateformes
+	// Autres platforms
 	'vlive.tv',
 	'bilibili.com',
 ]
 
 /**
- * Vérifie si un domaine est dans la whitelist
+ * Checks whether a domain is in the allowlist
  */
 function isDomainAllowed(hostname: string): boolean {
 	const domain = hostname.toLowerCase().replace(/^www\./, '')
@@ -58,10 +58,10 @@ export default defineEventHandler(async (event) => {
 	}
 
 	try {
-		// Validation de l'URL
+		// Validation the URL
 		const urlObj = new URL(url)
 
-		// Limiter aux protocoles HTTP/HTTPS pour la sécurité
+		// Restrict to HTTP/HTTPS protocols for safety
 		if (!['http:', 'https:'].includes(urlObj.protocol)) {
 			throw createError({
 				statusCode: 400,
@@ -69,7 +69,7 @@ export default defineEventHandler(async (event) => {
 			})
 		}
 
-		// Vérifier que le domaine est dans la whitelist (protection SSRF)
+	// Check that the domain is in the allowlist for SSRF protection
 		if (!isDomainAllowed(urlObj.hostname)) {
 			throw createError({
 				statusCode: 403,
@@ -77,7 +77,7 @@ export default defineEventHandler(async (event) => {
 			})
 		}
 
-		// Fetch de la page avec un timeout et des headers appropriés
+		// Fetch the page with a timeout and appropriate headers
 		const controller = new AbortController()
 		const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 secondes timeout
 
@@ -97,7 +97,7 @@ export default defineEventHandler(async (event) => {
 			throw new Error(`HTTP ${response.status}`)
 		}
 
-		// Vérifier le content-type
+		// Check the content-type
 		const contentType = response.headers.get('content-type')
 		if (!contentType || !contentType.includes('text/html')) {
 			throw new Error('Content is not HTML')
@@ -105,17 +105,17 @@ export default defineEventHandler(async (event) => {
 
 		const html = await response.text()
 
-		// Extraire le titre de la page avec une regex simple
+		// Extraire the title the page with a regex simple
 		const titleMatch = html.match(/<title[^>]*>(.*?)<\/title>/is)
 
 		if (!titleMatch || !titleMatch[1]) {
-			// Essayer de trouver des métadonnées alternatives
+			// Try to find fallback metadata
 			const ogTitleMatch = html.match(
 				/<meta[^>]*property=['"](og:title|twitter:title)['"][^>]*content=['"]([^'"]*)['"]/i,
 			)
 			if (ogTitleMatch && ogTitleMatch[2]) {
 				return {
-					title: decodeHtmlEntities(ogTitleMatch[2]).substring(0, 100), // Limiter à 100 caractères
+					title: decodeHtmlEntities(ogTitleMatch[2]).substring(0, 100), // Limit to 100 characters
 					source: 'og:title',
 				}
 			}
@@ -123,8 +123,8 @@ export default defineEventHandler(async (event) => {
 			throw new Error('No title found')
 		}
 
-		// Nettoyer et décoder le titre
-		const title = decodeHtmlEntities(titleMatch[1].trim()).substring(0, 100) // Limiter à 100 caractères
+		// Clean and decode the title
+		const title = decodeHtmlEntities(titleMatch[1].trim()).substring(0, 100) // Limit to 100 characters
 
 		return {
 			title,
@@ -140,7 +140,7 @@ export default defineEventHandler(async (event) => {
 	}
 })
 
-// Fonction utilitaire pour décoder les entités HTML basiques
+// Helper to decode basic HTML entities
 function decodeHtmlEntities(text: string): string {
 	const entities: Record<string, string> = {
 		'&amp;': '&',

@@ -48,7 +48,7 @@ export type RawMusicData = Tables<'musics'> & {
  * ```typescript
  * // Transform artist_releases junction to just releases
  * const releases = transformJunction(artistReleases, 'release')
- * // Result: Release[]
+ * // Result: release[]
  * ```
  */
 export const transformJunction = <T, K extends string>(

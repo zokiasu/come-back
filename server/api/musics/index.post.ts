@@ -16,7 +16,7 @@ export default defineEventHandler(async (event) => {
 
 	const supabase = useServerSupabase()
 
-	// 1. Créer la musique
+	// 1. Create the music
 	const { data: music, error: musicError } = await supabase
 		.from('musics')
 		.insert(body.music)
@@ -25,7 +25,7 @@ export default defineEventHandler(async (event) => {
 
 	if (musicError) throw handleSupabaseError(musicError, 'musics.create')
 
-	// 2. Lier les artistes
+	// 2. Link the artists
 	if (body.artistIds?.length) {
 		const { error: artistError } = await supabase.from('music_artists').insert(
 			body.artistIds.map((artistId, index) => ({

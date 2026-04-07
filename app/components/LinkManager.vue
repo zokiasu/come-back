@@ -2,7 +2,6 @@
 	<div class="w-full space-y-2">
 		<ComebackLabel :label="label" />
 
-		<!-- Liste des liens existants -->
 		<div
 			v-for="(item, index) in items"
 			:key="`${keyPrefix}_${index}`"
@@ -43,12 +42,10 @@
 			</button>
 		</div>
 
-		<!-- Message si aucun élément -->
 		<div v-if="items.length === 0" class="py-4 text-center text-sm text-gray-400">
 			No {{ label.toLowerCase() }} added yet. Click "Add {{ label }}" to start.
 		</div>
 
-		<!-- Bouton pour ajouter -->
 		<button
 			class="bg-cb-primary-900 w-full rounded p-2 text-xs font-semibold uppercase transition-colors duration-200 hover:bg-red-900"
 			@click="addItem"
@@ -105,7 +102,7 @@
 		const link = (event.target as HTMLInputElement).value.trim()
 		const currentItem = props.items[index]
 
-		// Ne pas auto-compléter si l'URL est vide/invalide ou le nom est déjà rempli
+		// Do not auto-fill when the URL is empty or invalid, or when the name is already set
 		if (!link || currentItem?.name || !isValidUrl(link)) {
 			return
 		}

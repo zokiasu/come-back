@@ -270,7 +270,7 @@
 				statusMessage.value = 'Redirecting...'
 				await new Promise((resolve) => setTimeout(resolve, 500))
 
-				// Récupérer les tokens pour que la fenêtre principale puisse hydrater son client Supabase
+				// Fetch tokens so the main window can hydrate its Supabase client
 				const { data: sessionForOpener } = await supabase.auth.getSession()
 				const sessionTokens = sessionForOpener?.session
 					? {

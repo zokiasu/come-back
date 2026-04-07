@@ -17,7 +17,7 @@ export default defineEventHandler(async (event) => {
 
 	const supabase = useServerSupabase()
 
-	// 1. Mettre à jour les champs si fournis
+	// 1. Update the champs if provided
 	let updatedNews = null
 	if (body.updates && Object.keys(body.updates).length > 0) {
 		const { data, error } = await supabase
@@ -31,7 +31,7 @@ export default defineEventHandler(async (event) => {
 		updatedNews = data
 	}
 
-	// 2. Remplacer les artistes si fournis
+	// 2. Remplacer the artists if provided
 	if (body.artistIds !== undefined) {
 		const { error: deleteError } = await supabase
 			.from('news_artists_junction')

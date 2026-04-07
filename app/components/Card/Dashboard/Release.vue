@@ -35,7 +35,6 @@
 	const isDeleting = ref(false)
 	const dateToTestYear = props.date ? new Date(props.date) : new Date()
 
-	// COMPUTED
 	const releaseDate = computed(() => {
 		let dateComputed = new Date()
 		if (props.date) {
@@ -51,7 +50,6 @@
 		return false
 	})
 
-	// FUNCTIONS
 	const showImage = () => {
 		imageLoaded.value = true
 	}

@@ -20,7 +20,7 @@ export default defineEventHandler(async (event) => {
 
 	const supabase = useServerSupabase()
 
-	// 1. Créer la news
+	// 1. Create the news
 	const { data: news, error: newsError } = await supabase
 		.from('news')
 		.insert(body.data)
@@ -29,7 +29,7 @@ export default defineEventHandler(async (event) => {
 
 	if (newsError) throw handleSupabaseError(newsError, 'news.create')
 
-	// 2. Lier les artistes
+	// 2. Link the artists
 	const { error: junctionError } = await supabase.from('news_artists_junction').insert(
 		body.artistIds.map((artistId) => ({
 			news_id: news.id,

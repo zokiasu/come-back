@@ -16,7 +16,7 @@ export default defineEventHandler(async (event) => {
 			)
 		`,
 		)
-		.eq('ismv', true) // Seulement les clips musicaux
+		.eq('ismv', true) // only the clips musicaux
 		.eq('artists.artist.verified', true)
 		.order('date', { ascending: false })
 		.order('id', { ascending: false })
@@ -26,7 +26,7 @@ export default defineEventHandler(async (event) => {
 		throw handleSupabaseError(error, 'musics.latest-mvs')
 	}
 
-	// Transformer les données pour extraire les artistes de la jonction
+	// Transform the data for extraire the artists the junction
 	const transformedData = (data || []).map((music) => ({
 		...music,
 		artists: transformJunction(music.artists, 'artist'),

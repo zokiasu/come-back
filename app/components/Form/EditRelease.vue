@@ -27,7 +27,7 @@
 	const { updateRelease } = useSupabaseRelease()
 	const currentYear = new Date().getFullYear()
 
-	// Release types
+	// release types
 	const releaseTypes: Array<{ label: string; value: ReleaseFormType }> = [
 		{ label: 'Album', value: 'ALBUM' },
 		{ label: 'Single', value: 'SINGLE' },

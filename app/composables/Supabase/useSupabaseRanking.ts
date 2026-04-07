@@ -43,7 +43,7 @@ export function useSupabaseRanking() {
 	}
 
 	/**
-	 * Récupère tous les rankings de l'utilisateur connecté
+	 * Fetches all rankings for the authenticated user
 	 */
 	const getUserRankings = async (): Promise<UserRankingWithPreview[]> => {
 		console.warn('[getUserRankings] Starting...', { userId: userStore.userDataStore?.id })
@@ -71,14 +71,14 @@ export function useSupabaseRanking() {
 			return []
 		}
 
-		// Pour chaque ranking, récupérer le nombre d'items et les 4 premières thumbnails
+		// For each ranking, fetch the item count and the first 4 thumbnails
 		const rankingsWithPreview = await buildRankingPreviews(rankings as UserRanking[])
 
 		return rankingsWithPreview
 	}
 
 	/**
-	 * Récupère les rankings d'un utilisateur donné
+	 * Fetches rankings for a given user
 	 */
 	const getRankingsByUserId = async (
 		userId: string,
@@ -114,7 +114,7 @@ export function useSupabaseRanking() {
 	}
 
 	/**
-	 * Récupère un ranking par son ID avec tous ses items
+	 * Fetches a ranking by ID with all of its items
 	 */
 	const getRankingById = async (id: string): Promise<UserRankingWithItems | null> => {
 		console.warn('[getRankingById] Starting...', { id })
@@ -132,7 +132,7 @@ export function useSupabaseRanking() {
 			return null
 		}
 
-		// Récupérer les items avec les infos des musiques
+		// Fetch the items with the infos the musics
 		const { data: items, error: itemsError } = await supabase
 			.from('user_ranking_items')
 			.select(
@@ -154,7 +154,7 @@ export function useSupabaseRanking() {
 			return null
 		}
 
-		// Transformer les données
+		// Transform the data
 		const transformedItems = (items || []).map((item: any) => ({
 			...item,
 			music: {
@@ -171,7 +171,7 @@ export function useSupabaseRanking() {
 	}
 
 	/**
-	 * Crée un nouveau ranking
+	 * Creates a new ranking
 	 */
 	const createRanking = async (
 		name: string,
@@ -228,7 +228,7 @@ export function useSupabaseRanking() {
 	}
 
 	/**
-	 * Met à jour un ranking
+	 * Updates a ranking
 	 */
 	const updateRanking = async (
 		id: string,
@@ -281,13 +281,13 @@ export function useSupabaseRanking() {
 	}
 
 	/**
-	 * Ajoute une musique au ranking
+	 * Adds a track to the ranking
 	 */
 	const addMusicToRanking = async (
 		rankingId: string,
 		musicId: string,
 	): Promise<UserRankingItem | null> => {
-		// Récupérer la position maximale actuelle
+		// Fetch the position maximale actuelle
 		const { data: maxPositionData } = await supabase
 			.from('user_ranking_items')
 			.select('position')
@@ -339,7 +339,7 @@ export function useSupabaseRanking() {
 			return null
 		}
 
-		// Mettre à jour updated_at du ranking parent
+		// Update updated_at the ranking parent
 		await runMutation(
 			supabase
 				.from('user_rankings')
@@ -352,13 +352,13 @@ export function useSupabaseRanking() {
 	}
 
 	/**
-	 * Retire une musique du ranking
+	 * Removes a track from the ranking
 	 */
 	const removeMusicFromRanking = async (
 		rankingId: string,
 		musicId: string,
 	): Promise<boolean> => {
-		// Récupérer la position de l'item à supprimer
+		// Fetch the position of the item to delete
 		const { data: itemToDelete } = await supabase
 			.from('user_ranking_items')
 			.select('position')
@@ -368,7 +368,7 @@ export function useSupabaseRanking() {
 
 		if (!itemToDelete) return false
 
-		// Supprimer l'item
+		// Delete the item
 		const { error } = await runMutation(
 			supabase
 				.from('user_ranking_items')
@@ -388,7 +388,7 @@ export function useSupabaseRanking() {
 			return false
 		}
 
-		// Réajuster les positions des items suivants
+		// Adjust the positions of the following items
 		await runMutation(
 			supabase.rpc('reorder_ranking_items_after_delete', {
 				p_ranking_id: rankingId,
@@ -397,7 +397,7 @@ export function useSupabaseRanking() {
 			'Reordering the ranking timed out after deleting the track. Please try again.',
 		)
 
-		// Mettre à jour updated_at du ranking parent
+		// Update updated_at the ranking parent
 		await runMutation(
 			supabase
 				.from('user_rankings')
@@ -410,14 +410,14 @@ export function useSupabaseRanking() {
 	}
 
 	/**
-	 * Réordonne les items du ranking
+	 * Reorders ranking items
 	 */
 	const reorderRankingItems = async (
 		rankingId: string,
 		items: { id: string; position: number }[],
 	): Promise<boolean> => {
 		try {
-			// Utiliser la fonction RPC atomique pour éviter les conflits 409
+			// Use the atomic RPC function to avoid 409 conflicts
 			const { error } = await runMutation(
 				supabase.rpc('reorder_ranking_items_atomic', {
 					p_ranking_id: rankingId,
@@ -443,7 +443,7 @@ export function useSupabaseRanking() {
 	}
 
 	/**
-	 * Vérifie si une musique est dans un ranking
+	 * Checks whether a track is in a ranking
 	 */
 	const isMusicInRanking = async (
 		rankingId: string,
@@ -460,7 +460,7 @@ export function useSupabaseRanking() {
 	}
 
 	/**
-	 * Récupère un ranking public par son ID (pour la page view)
+	 * Fetches a public ranking by ID for the view page
 	 */
 	const getPublicRankingById = async (
 		id: string,
@@ -477,7 +477,7 @@ export function useSupabaseRanking() {
 			return null
 		}
 
-		// Récupérer les items avec les infos des musiques
+		// Fetch the items with the infos the musics
 		const { data: items, error: itemsError } = await supabase
 			.from('user_ranking_items')
 			.select(
@@ -499,7 +499,7 @@ export function useSupabaseRanking() {
 			return null
 		}
 
-		// Transformer les données
+		// Transform the data
 		const transformedItems = (items || []).map((item: any) => ({
 			...item,
 			music: {
@@ -516,7 +516,7 @@ export function useSupabaseRanking() {
 	}
 
 	/**
-	 * Récupère les rankings publics (pour la page explore)
+	 * Fetches public rankings for the explore page
 	 */
 	const getPublicRankings = async (
 		page: number = 1,
@@ -540,7 +540,7 @@ export function useSupabaseRanking() {
 			return { rankings: [], total: 0 }
 		}
 
-		// Pour chaque ranking, récupérer le nombre d'items et les 4 premières thumbnails
+		// For each ranking, fetch the item count and the first 4 thumbnails
 		const rankingsWithPreview: UserRankingWithPreview[] = await Promise.all(
 			(rankings || []).map(async (ranking: any) => {
 				const { data: items, count: itemCount } = await supabase

@@ -33,7 +33,7 @@ export interface ArtistPageResult {
 }
 
 /**
- * Vérifie si un artiste existe avec l'ID YouTube Music
+ * Checks whether an artist exists with the YouTube Music ID
  */
 export async function checkArtistExists(
 	supabase: SupabaseClientType,
@@ -56,7 +56,7 @@ export async function checkArtistExists(
 }
 
 /**
- * Récupère tous les artistes avec options de filtrage
+ * Fetches all artists with filtering options
  */
 export async function fetchAllArtists(
 	supabase: SupabaseClientType,
@@ -107,7 +107,7 @@ export async function fetchAllArtists(
 }
 
 /**
- * Récupère tous les artistes (version légère)
+ * Fetches all artists (light version)
  */
 export async function fetchAllArtistsLight(
 	supabase: SupabaseClientType,
@@ -123,7 +123,7 @@ export async function fetchAllArtistsLight(
 }
 
 /**
- * Récupère un artiste par son ID (version légère)
+ * Fetches an artist by ID (light version)
  */
 export async function fetchArtistById(
 	supabase: SupabaseClientType,
@@ -140,13 +140,13 @@ export async function fetchArtistById(
 }
 
 /**
- * Récupère un artiste avec tous ses détails (relations incluses)
+ * Fetches an artist with all details, including related records
  */
 export async function fetchFullArtist(
 	supabase: SupabaseClientType,
 	id: string,
 ): Promise<Artist> {
-	// Récupérer l'artiste
+	// Fetch the artist
 	const { data: artist, error: artistError } = await supabase
 		.from('artists')
 		.select('*')
@@ -155,7 +155,7 @@ export async function fetchFullArtist(
 
 	if (artistError) throw artistError
 
-	// Récupérer les groupes (relations où l'artiste est membre)
+	// Fetch the groups (relations where the artist is a member)
 	const { data: groups, error: groupsError } = await supabase
 		.from('artist_relations')
 		.select('group:artists!artist_relations_group_id_fkey(*)')
@@ -163,7 +163,7 @@ export async function fetchFullArtist(
 
 	if (groupsError) throw groupsError
 
-	// Récupérer les membres (relations où l'artiste est groupe)
+	// Fetch the members (relations where the artist is the group)
 	const { data: members, error: membersError } = await supabase
 		.from('artist_relations')
 		.select('member:artists!artist_relations_member_id_fkey(*)')
@@ -171,7 +171,7 @@ export async function fetchFullArtist(
 
 	if (membersError) throw membersError
 
-	// Récupérer les releases
+	// Fetch the releases
 	const { data: releases, error: releasesError } = await supabase
 		.from('artist_releases')
 		.select('release:releases(*)')
@@ -179,7 +179,7 @@ export async function fetchFullArtist(
 
 	if (releasesError) throw releasesError
 
-	// Récupérer les compagnies
+	// Fetch the companies
 	const { data: companies, error: companiesError } = await supabase
 		.from('artist_companies')
 		.select('*, company:companies(*)')
@@ -197,7 +197,7 @@ export async function fetchFullArtist(
 }
 
 /**
- * Récupère les liens sociaux et de plateformes d'un artiste
+ * Fetches an artist's social and platform links
  */
 export async function fetchArtistLinks(supabase: SupabaseClientType, id: string) {
 	const { data: socialLinks, error: socialLinksError } = await supabase
@@ -227,7 +227,7 @@ export async function fetchArtistLinks(supabase: SupabaseClientType, id: string)
 }
 
 /**
- * Récupère les artistes avec pagination et filtres avancés
+ * Fetches artists with pagination and advanced filters
  */
 export async function fetchArtistsByPage(
 	supabase: SupabaseClientType,
@@ -250,7 +250,6 @@ export async function fetchArtistsByPage(
 		{ count: 'exact' },
 	)
 
-	// Appliquer les filtres
 	if (options?.search) {
 		const searchValue = options.search.trim()
 		const normalizedSearch = searchValue.replaceAll('*', '')
@@ -297,7 +296,7 @@ export async function fetchArtistsByPage(
 		query = query.not('styles', 'is', null).not('styles', 'eq', '{}')
 	}
 
-	// Filtre verified
+	// Apply the verified filter
 	if (options?.verified !== undefined) {
 		if (options.verified === null) {
 			query = query.or('verified.is.null,verified.eq.false')
@@ -306,12 +305,12 @@ export async function fetchArtistsByPage(
 		}
 	}
 
-	// Filtre pour n'avoir que les artistes avec un id_youtube_music
+	// Filter to artists with an id_youtube_music
 	if (!options?.skipYoutubeMusicFilter) {
 		query = query.not('id_youtube_music', 'is', null)
 	}
 
-	// Tri
+	// sorting
 	if (options?.orderBy) {
 		query = query.order(options.orderBy, {
 			ascending: options.orderDirection === 'asc',
@@ -335,7 +334,7 @@ export async function fetchArtistsByPage(
 		groups?: Array<{ group?: Artist | null }> | Artist[]
 	}
 
-	// Transformer les données
+	// Transform the data
 	let transformedData = (data as ArtistWithCompanyGroup[]).map((artist) => ({
 		...artist,
 		social_links: artist.social_links || [],
@@ -352,7 +351,7 @@ export async function fetchArtistsByPage(
 				.filter(Boolean) || [],
 	}))
 
-	// Filtrage côté client pour les relations
+	// Filtrage client-side for the relations
 	if (options?.onlyWithoutSocials) {
 		transformedData = transformedData.filter(
 			(artist) => !artist.social_links || artist.social_links.length === 0,
@@ -375,7 +374,7 @@ export async function fetchArtistsByPage(
 }
 
 /**
- * Récupère les derniers artistes ajoutés
+ * Fetches the most recently added artists
  */
 export async function fetchLatestArtists(
 	supabase: SupabaseClientType,

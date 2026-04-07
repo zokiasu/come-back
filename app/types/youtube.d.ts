@@ -146,7 +146,7 @@ declare namespace YT {
 		getIframe(): HTMLIFrameElement
 		destroy(): void
 
-		// Event listeners
+		// events listeners
 		addEventListener(event: string, listener: (event: PlayerEvent) => void): void
 		removeEventListener(event: string, listener: (event: PlayerEvent) => void): void
 	}

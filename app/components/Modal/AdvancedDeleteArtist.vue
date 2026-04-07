@@ -26,7 +26,7 @@
 	const deletionMode = ref<'safe' | 'simple'>('safe')
 	const isModalOpen = ref(false)
 
-	// Synchroniser l'état local avec la prop
+	// Sync local state with the prop
 	watch(
 		() => props.isOpen,
 		(newValue) => {
@@ -38,7 +38,7 @@
 		},
 	)
 
-	// Émettre l'événement de fermeture quand l'état local change
+	// Emit the close events when local state changes
 	watch(isModalOpen, (newValue) => {
 		if (!newValue) {
 			emit('close')
@@ -133,7 +133,6 @@
 					</p>
 				</div>
 
-				<!-- Choix du mode de suppression -->
 				<div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
 					<h4 class="mb-3 font-semibold text-gray-800">Deletion mode:</h4>
 
@@ -158,7 +157,6 @@
 					</div>
 				</div>
 
-				<!-- Analyse d'impact (seulement en mode sécurisé) -->
 				<div v-if="deletionMode === 'safe'">
 					<div v-if="isLoading" class="flex justify-center py-6">
 						<UIcon name="i-lucide-refresh-cw" class="h-6 w-6 animate-spin" />

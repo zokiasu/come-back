@@ -1,6 +1,5 @@
 <template>
 	<div class="relative h-full space-y-3 overflow-y-auto">
-		<!-- Header Section -->
 		<section class="bg-cb-secondary-950 sticky top-0 z-20 w-full space-y-4 p-6">
 			<div class="space-y-2">
 				<h1 class="text-2xl font-bold text-white">Statistics dashboard</h1>
@@ -9,7 +8,6 @@
 				</p>
 			</div>
 
-			<!-- Time filters -->
 			<div class="bg-cb-quinary-900 space-y-4 rounded-lg p-4">
 				<h2 class="text-sm font-semibold text-white uppercase">Filters</h2>
 				<div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -76,7 +74,6 @@
 			</div>
 		</section>
 
-		<!-- Loading State -->
 		<div v-if="loading" class="bg-cb-quaternary-950 mx-6 rounded-lg p-8">
 			<div class="flex flex-col items-center space-y-4">
 				<div
@@ -86,7 +83,6 @@
 			</div>
 		</div>
 
-		<!-- Stats Grid -->
 		<div v-else class="space-y-6 px-6 pb-6">
 			<StatsOverviewSection
 				:section="generalStats"
@@ -127,7 +123,7 @@
 	definePageMeta({
 		middleware: ['admin'],
 		layout: 'dashboard',
-		ssr: false, // Admin dashboard in SPA mode
+		ssr: false, // admin dashboard in SPA mode
 	})
 
 	const { getStatistics } = useSupabaseStatistics()

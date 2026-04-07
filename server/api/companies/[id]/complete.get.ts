@@ -13,7 +13,7 @@ export default defineEventHandler(async (event) => {
 	}
 
 	try {
-		// 1. Récupérer la compagnie de base
+		// 1. Fetch the company of base
 		const { data: company, error: companyError } = await supabase
 			.from('companies')
 			.select('*')
@@ -27,7 +27,7 @@ export default defineEventHandler(async (event) => {
 			})
 		}
 
-		// 2. Récupérer les artistes liés à cette compagnie
+		// 2. Fetch artists linked to this company
 		const { data: companyArtists } = await supabase
 			.from('artist_companies')
 			.select('*, artist:artists(*)')

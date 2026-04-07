@@ -1,6 +1,7 @@
 import { storeToRefs } from 'pinia'
 import type { SupabaseAuthUser, UserInsertData, UserUpdateData } from '~/types/auth'
 
+// Keep auth initialization single-flight across every composable instance.
 let authWatcherBound = false
 let authInitialized = false
 let sharedInitPromise: Promise<boolean> | null = null
@@ -13,11 +14,11 @@ export const useAuth = () => {
 	const userStore = useUserStore()
 	const { runMutation } = useMutationTimeout()
 
-	// Utiliser storeToRefs pour préserver la réactivité
+	// Use storeToRefs to preserve reactivity
 	const { userDataStore, isLoginStore, isAdminStore, supabaseUserStore } =
 		storeToRefs(userStore)
 
-	// Destructurer les actions (pas besoin de storeToRefs pour les fonctions)
+	// Destructure actions directly; storeToRefs is only needed for refs.
 	const { syncUserProfile, resetStore } = userStore
 
 	const getErrorCode = (error: unknown): string | undefined => {
@@ -62,6 +63,8 @@ export const useAuth = () => {
 
 		sharedTrustedAuthUserPromise = (async () => {
 			try {
+				// Prefer the session snapshot first because it is cheaper and avoids
+				// some transient `getUser()` races during refresh or OAuth redirects.
 				const sessionAuthUser = await withTimeout(
 					getSessionAuthUser(),
 					3000,
@@ -96,18 +99,18 @@ export const useAuth = () => {
 		return await sharedTrustedAuthUserPromise
 	}
 
-	// Fonction pour créer ou mettre à jour un utilisateur (intégrée depuis useSupabaseUserManager)
+	// Create or update a user profile.
 	const createOrUpdateUser = async (authUser: SupabaseAuthUser): Promise<User | null> => {
-		// Vérifier que l'utilisateur et son ID sont définis (Supabase v2 peut retourner un user sans id pendant l'init)
+		// Supabase v2 can expose a user without an id during initialization.
 		if (!authUser?.id) return null
 
 		try {
-			// Vérifier si l'utilisateur existe déjà
+			// Check whether the user already exists.
 			let existingUser: User | null = null
 			let fetchError: { code?: string } | Error | null = null
 
 			if (import.meta.dev) {
-				// Timeout uniquement en développement
+				// Development-only timeout
 				const timeoutPromise = new Promise<never>((_, reject) => {
 					setTimeout(() => reject(new Error('Dev database timeout')), 2000)
 				})
@@ -126,7 +129,7 @@ export const useAuth = () => {
 					fetchError = error instanceof Error ? error : new Error('Unknown error')
 				}
 			} else {
-				// Pas de timeout en production
+				// Do not use a timeout in production.
 				const result = await supabase
 					.from('users')
 					.select('*')
@@ -234,11 +237,13 @@ export const useAuth = () => {
 		}
 	}
 
-	// État de synchronisation
+	// Synchronization state
 	const isSyncing = useState('auth-is-syncing', () => false)
 	const syncError = useState<string | null>('auth-sync-error', () => null)
 
 	const preserveAuthenticatedState = (authUser: SupabaseAuthUser) => {
+		// Mark the client as authenticated immediately while profile hydration
+		// catches up in the background.
 		userStore.setSupabaseUser(authUser)
 		userStore.setIsLogin(true)
 
@@ -252,11 +257,13 @@ export const useAuth = () => {
 		userStore.isHydrated = true
 	}
 
-	// Fonction pour synchroniser le profil utilisateur
+	// Sync the user profile
 	const ensureUserProfile = async () => {
-		// Attendre que l'utilisateur soit complètement initialisé (avec id)
-		// Supabase v2 peut avoir un user.value sans id pendant l'initialisation OAuth
+		// Wait until the user is fully initialized (with an id)
+		// Supabase v2 can expose user.value without an id during OAuth initialization.
 		if (!user.value?.id) {
+			// Before clearing local auth state, probe the session directly to avoid
+			// logging users out during short-lived Supabase initialization gaps.
 			const authUser = await getTrustedAuthUser()
 
 			if (authUser?.id) {
@@ -270,7 +277,7 @@ export const useAuth = () => {
 				return await syncUserProfileFromAuthUser(authUser)
 			}
 
-			// Ne pas réinitialiser si on a déjà des données valides dans le store
+			// Do not reset when valid data already exists in the store
 			if (userDataStore.value && isLoginStore.value) {
 				return true
 			}
@@ -278,8 +285,8 @@ export const useAuth = () => {
 			return false
 		}
 
-		// Si l'utilisateur Supabase existe mais qu'on n'a pas de données dans le store
-		// ou si l'ID ne correspond pas, on re-synchronise
+		// Re-sync when a Supabase user exists but the local store is missing data,
+		// or when the stored id no longer matches the auth user.
 		if (!userDataStore.value || userDataStore.value.id !== user.value.id) {
 			const authUser: SupabaseAuthUser = {
 				id: user.value.id,
@@ -307,7 +314,7 @@ export const useAuth = () => {
 			}
 		}
 
-		// Si tout est déjà synchronisé
+		// If everything is already synchronized
 		if (userDataStore.value && isLoginStore.value) {
 			return true
 		}
@@ -336,8 +343,8 @@ export const useAuth = () => {
 		}
 	}
 
-	// Flag pour indiquer une déconnexion volontaire
-	// Fonction de déconnexion
+	// Track whether the next auth change comes from an explicit sign-out.
+	// Sign out the current user.
 	const logout = async () => {
 		try {
 			sharedIsLoggingOutFlag = true
@@ -348,7 +355,7 @@ export const useAuth = () => {
 				throw logoutError
 			}
 
-			// Réinitialiser le store
+			// Reset the store
 			await resetStore()
 
 			await navigateTo('/')
@@ -358,15 +365,15 @@ export const useAuth = () => {
 		}
 	}
 
-	// Fonction d'initialisation au chargement de l'app
+	// Initialize auth state when the app starts.
 	const runInitializeAuth = async () => {
-		// Si on a un utilisateur Supabase complet (avec id) et des données dans le store
+		// Reuse store data when Supabase already has a complete user.
 		if (
 			user.value?.id &&
 			userDataStore.value &&
 			userDataStore.value.id === user.value.id
 		) {
-			// S'assurer que isAdmin est synchronisé avec le rôle dans userDataStore
+			// Keep isAdmin synchronized with the role in userDataStore
 			const shouldBeAdmin = userDataStore.value.role === 'ADMIN'
 			if (isAdminStore.value !== shouldBeAdmin) {
 				userStore.setIsAdmin(shouldBeAdmin)
@@ -374,7 +381,7 @@ export const useAuth = () => {
 			return true
 		}
 
-		// Si on a un utilisateur Supabase complet mais pas de données dans le store
+		// Sync the profile when Supabase has a complete user but the store is empty.
 		if (user.value?.id) {
 			return await ensureUserProfile()
 		}
@@ -385,8 +392,8 @@ export const useAuth = () => {
 			return await syncUserProfileFromAuthUser(sessionAuthUser)
 		}
 
-		// Si on a des données valides dans le store (restaurées depuis localStorage)
-		// mais que Supabase n'est pas encore initialisé, on garde ces données
+		// if on a valid data in the store (restored from localStorage)
+		// but Supabase is still not initialized, keep this data
 		if (userDataStore.value && isLoginStore.value) {
 			const shouldBeAdmin = userDataStore.value.role === 'ADMIN'
 			if (isAdminStore.value !== shouldBeAdmin) {
@@ -395,7 +402,7 @@ export const useAuth = () => {
 			return true
 		}
 
-		// Aucun utilisateur connecté et pas de données dans le store
+		// No signed-in user and no data in the store
 		await resetStore()
 		return false
 	}
@@ -423,23 +430,24 @@ export const useAuth = () => {
 		watch(
 			user,
 			async (newUser, oldUser) => {
-				// Initialisation une seule fois au démarrage
+				// One-time initialization at startup
 				if (!authInitialized) {
 					await initializeAuth()
 					return
 				}
 
-				// Ignorer les changements si l'utilisateur n'a pas d'id (état intermédiaire Supabase v2)
+				// Ignore transient Supabase v2 states where the user has no id yet.
 				if (newUser && !newUser.id) {
 					return
 				}
 
-				// Gestion des changements d'utilisateur après l'initialisation
+				// Handle auth changes after initialization.
 				if (newUser?.id && !oldUser?.id) {
 					await ensureUserProfile()
 				} else if (!newUser && oldUser) {
-					// L'utilisateur Supabase a disparu
-					// Ne réinitialiser que si c'est une vraie déconnexion (pas une race condition au refresh)
+					// The Supabase user disappeared.
+					// Reset only when this is a real sign-out, not when Supabase briefly
+					// loses the user during a refresh while local state is still valid.
 					if (sharedIsLoggingOutFlag || (!userDataStore.value && !isLoginStore.value)) {
 						await resetStore()
 						sharedIsLoggingOutFlag = false
@@ -452,26 +460,25 @@ export const useAuth = () => {
 		)
 	}
 
-	// Fonction pour s'assurer que l'auth est initialisée (pour les middlewares)
+	// Ensure auth is initialized (for the middlewares)
 	const ensureAuthInitialized = async (): Promise<boolean> => {
-		// Si une initialisation est en cours, l'attendre
+		// Wait if initialization is already in progress
 		if (sharedInitPromise) {
 			await sharedInitPromise
 			return true
 		}
 
-		// Si déjà initialisé, retourner immédiatement
+		// Return immediately when already initialized
 		if (authInitialized) {
 			return true
 		}
 
-		// Sinon démarrer l'initialisation
+		// Otherwise start initialization
 		await initializeAuth()
 		return true
 	}
 
 	return {
-		// États
 		user,
 		userData: userDataStore,
 		isLogin: isLoginStore,
@@ -480,7 +487,6 @@ export const useAuth = () => {
 		isSyncing: readonly(isSyncing),
 		syncError: readonly(syncError),
 
-		// Actions
 		ensureUserProfile,
 		syncUserProfileFromAuthUser,
 		initializeAuth,

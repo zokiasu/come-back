@@ -1,5 +1,5 @@
 /**
- * Composable pour gérer les liens platform et social
+ * Composable to manage platform and social links
  */
 
 export interface LinkItem {
@@ -7,9 +7,9 @@ export interface LinkItem {
 	link: string
 }
 
-// Mapping des domaines vers les noms de plateformes
+// Mapping the domaines vers the noms of platforms
 export const PLATFORM_DOMAIN_MAPPINGS: Record<string, string> = {
-	// Plateformes de streaming
+	// platforms of streaming
 	'youtube.com': 'YouTube',
 	'music.youtube.com': 'YouTube Music',
 	'open.spotify.com': 'Spotify',
@@ -22,7 +22,7 @@ export const PLATFORM_DOMAIN_MAPPINGS: Record<string, string> = {
 	'amazon.com': 'Amazon Music',
 	'music.amazon.com': 'Amazon Music',
 	'bandcamp.com': 'Bandcamp',
-	// Réseaux sociaux
+	// Social networks
 	'instagram.com': 'Instagram',
 	'facebook.com': 'Facebook',
 	'twitter.com': 'Twitter',
@@ -39,7 +39,7 @@ export const PLATFORM_DOMAIN_MAPPINGS: Record<string, string> = {
 	'cafe.daum.net': 'Daum Cafe',
 }
 
-// Services de favicon avec fallback
+// Services of favicon with fallback
 export const FAVICON_SERVICES = [
 	(domain: string) => `https://www.google.com/s2/favicons?domain=${domain}&sz=64`,
 	(domain: string) => `https://icons.duckduckgo.com/ip3/${domain}.ico`,
@@ -48,7 +48,7 @@ export const FAVICON_SERVICES = [
 
 export const useLinkManager = () => {
 	/**
-	 * Extrait le domaine d'une URL
+	 * Extracts a URL domain
 	 */
 	const extractDomain = (url: string): string | null => {
 		try {
@@ -60,7 +60,7 @@ export const useLinkManager = () => {
 	}
 
 	/**
-	 * Vérifie si une URL est valide
+	 * Checks whether a URL is valid
 	 */
 	const isValidUrl = (url: string): boolean => {
 		try {
@@ -72,18 +72,18 @@ export const useLinkManager = () => {
 	}
 
 	/**
-	 * Obtient le nom de la plateforme à partir d'une URL
+	 * Gets the platform name from a URL
 	 */
 	const getNameFromUrl = async (url: string): Promise<string> => {
 		const domain = extractDomain(url)
 		if (!domain) return ''
 
-		// Si le domaine est connu, utiliser le mapping
+		// Use the mapping when the domain is known
 		if (PLATFORM_DOMAIN_MAPPINGS[domain]) {
 			return PLATFORM_DOMAIN_MAPPINGS[domain]
 		}
 
-		// Pour les domaines inconnus, essayer de récupérer le titre de la page
+		// For unknown domains, try to fetch the page title
 		try {
 			const response = await fetch(`/api/get-page-title?url=${encodeURIComponent(url)}`)
 			if (response.ok) {
@@ -96,7 +96,7 @@ export const useLinkManager = () => {
 			console.warn('Impossible de récupérer le titre de la page:', error)
 		}
 
-		// Fallback: capitaliser le nom de domaine
+		// Fallback: capitalize the domain name
 		const domainPart = domain.split('.')[0]
 		if (domainPart) {
 			return domainPart.charAt(0).toUpperCase() + domainPart.slice(1)
@@ -105,7 +105,7 @@ export const useLinkManager = () => {
 	}
 
 	/**
-	 * Obtient l'URL du favicon pour un lien
+	 * Gets the favicon URL for a link
 	 */
 	const getFaviconUrl = (url: string, attempt: number = 0): string => {
 		const domain = extractDomain(url)
@@ -117,14 +117,14 @@ export const useLinkManager = () => {
 	}
 
 	/**
-	 * Filtre les liens valides (nom et lien non vides)
+	 * Filters valid links with a non-empty name and URL
 	 */
 	const filterValidLinks = <T extends LinkItem>(links: T[]): T[] => {
 		return links.filter((link) => link.name?.trim() && link.link?.trim())
 	}
 
 	/**
-	 * Crée un gestionnaire de liste de liens réactif
+	 * Creates a reactive link list manager
 	 */
 	const createLinkListManager = (initialLinks: LinkItem[] = []) => {
 		const links = ref<LinkItem[]>(initialLinks)
@@ -136,7 +136,7 @@ export const useLinkManager = () => {
 
 		const remove = (index: number) => {
 			links.value.splice(index, 1)
-			// Nettoyer l'état de chargement en recréant l'objet sans la clé
+			// Clear loading state by recreating the object without the key
 			const { [index]: removed, ...rest } = loadingStates.value
 			void removed
 			loadingStates.value = rest
@@ -167,7 +167,7 @@ export const useLinkManager = () => {
 		const autoFillName = async (index: number, url: string) => {
 			const currentItem = links.value[index]
 
-			// Ne pas auto-compléter si le nom est déjà rempli ou l'URL est vide
+			// Do not auto-fill when the name is already set or the URL is empty
 			if (!url || currentItem?.name || !isValidUrl(url)) {
 				return
 			}
@@ -212,7 +212,6 @@ export const useLinkManager = () => {
 		getNameFromUrl,
 		getFaviconUrl,
 		filterValidLinks,
-		// Factory
 		createLinkListManager,
 		// Constantes
 		PLATFORM_DOMAIN_MAPPINGS,

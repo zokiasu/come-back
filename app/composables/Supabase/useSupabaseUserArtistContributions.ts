@@ -19,13 +19,13 @@ export function useSupabaseUserArtistContributions() {
 	const toast = useToast()
 	const { runMutation } = useMutationTimeout()
 
-	// Ajouter une contribution utilisateur pour un artiste
+	// Add a contribution user for a artist
 	const addUserArtistContribution = async (
 		userId: string,
 		artistId: string,
 		contributionType: 'CREATOR' | 'EDITOR' = 'EDITOR',
 	) => {
-		// Vérifier si la contribution existe déjà
+		// Check if the contribution already exists
 		const { data: existing } = await supabase
 			.from('user_artist_contributions')
 			.select('*')
@@ -34,7 +34,7 @@ export function useSupabaseUserArtistContributions() {
 			.single()
 
 		if (existing) {
-			// Mettre à jour le type de contribution si différent
+			// Update the contribution type if it differs
 			if (existing.contribution_type !== contributionType) {
 				const { data, error } = await runMutation(
 					supabase
@@ -62,7 +62,7 @@ export function useSupabaseUserArtistContributions() {
 			return existing
 		}
 
-		// Créer une nouvelle contribution
+		// Create a nouvelle contribution
 		const { data, error } = await runMutation(
 			supabase
 				.from('user_artist_contributions')
@@ -89,7 +89,7 @@ export function useSupabaseUserArtistContributions() {
 		return data
 	}
 
-	// Supprimer une contribution utilisateur
+	// Delete a contribution user
 	const removeUserArtistContribution = async (userId: string, artistId: string) => {
 		const { error } = await runMutation(
 			supabase
@@ -113,7 +113,7 @@ export function useSupabaseUserArtistContributions() {
 		return true
 	}
 
-	// Récupérer toutes les contributions avec pagination
+	// Fetch all contributions with pagination
 	const getAllContributions = async (
 		options?: QueryOptions &
 			FilterOptions & {
@@ -140,7 +140,6 @@ export function useSupabaseUserArtistContributions() {
 			{ count: 'exact' },
 		)
 
-		// Filtres
 		if (options?.userId) {
 			query = query.eq('user_id', options.userId)
 		}
@@ -153,7 +152,7 @@ export function useSupabaseUserArtistContributions() {
 			query = query.eq('contribution_type', options.contributionType)
 		}
 
-		// Tri
+		// sorting
 		if (options?.orderBy) {
 			query = query.order(options.orderBy, {
 				ascending: options.orderDirection === 'asc',
@@ -193,7 +192,7 @@ export function useSupabaseUserArtistContributions() {
 		}
 	}
 
-	// Récupérer les contributions d'un utilisateur spécifique
+	// Fetch contributions for a specific user
 	const getUserContributions = async (userId: string) => {
 		const { data, error } = await supabase
 			.from('user_artist_contributions')
@@ -223,7 +222,7 @@ export function useSupabaseUserArtistContributions() {
 		return data || []
 	}
 
-	// Récupérer les contributeurs d'un artiste spécifique
+	// Fetch contributors for a specific artist
 	const getArtistContributors = async (artistId: string) => {
 		const { data, error } = await supabase
 			.from('user_artist_contributions')
@@ -250,7 +249,7 @@ export function useSupabaseUserArtistContributions() {
 		return data || []
 	}
 
-	// Statistiques des contributions d'un utilisateur
+	// Statistiques the contributions of a user
 	const getUserContributionStats = async (userId: string) => {
 		const { data, error } = await supabase
 			.from('user_artist_contributions')
@@ -271,7 +270,7 @@ export function useSupabaseUserArtistContributions() {
 		return stats
 	}
 
-	// Récupérer les contributeurs les plus actifs
+	// Fetch the contributeurs the more actifs
 	const getTopContributors = async (limit: number = 10) => {
 		const { data, error } = await supabase.rpc('get_top_contributors', {
 			contribution_limit: limit,
@@ -280,7 +279,7 @@ export function useSupabaseUserArtistContributions() {
 		if (error) {
 			console.error('Erreur lors de la récupération des top contributeurs:', error)
 
-			// Fallback: requête manuelle si la fonction RPC n'existe pas
+			// Fallback: manual query if the RPC function does not exist
 			const { data: fallbackData, error: fallbackError } = await supabase.from(
 				'user_artist_contributions',
 			).select(`
@@ -297,7 +296,7 @@ export function useSupabaseUserArtistContributions() {
 				throw fallbackError
 			}
 
-			// Grouper et compter manuellement
+			// Group and count results manually
 			const contributorMap = new Map()
 			fallbackData?.forEach((contrib) => {
 				const userId = contrib.user_id
@@ -326,7 +325,7 @@ export function useSupabaseUserArtistContributions() {
 		return data || []
 	}
 
-	// Récupérer les créateurs pour une liste d'artistes (batch)
+	// Fetch creators for a list of artists (batch)
 	const getCreatorsForArtists = async (artistIds: string[]) => {
 		if (!artistIds.length) return []
 

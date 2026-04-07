@@ -23,7 +23,6 @@
 
 	const toast = useToast()
 
-	// État du formulaire
 	const formData = reactive({
 		name: '',
 		description: '',
@@ -64,7 +63,7 @@
 		})
 	}
 
-	// Charger les données de la company pour l'édition
+	// Load company data for editing
 	const loadCompanyData = () => {
 		if (props.company) {
 			Object.assign(formData, {
@@ -81,7 +80,6 @@
 		}
 	}
 
-	// Validation
 	const validateForm = async (): Promise<boolean> => {
 		// Reset errors
 		Object.assign(errors, {
@@ -92,7 +90,7 @@
 
 		let isValid = true
 
-		// Validation du nom
+		// Validation the name
 		if (!formData.name.trim()) {
 			errors.name = 'Name is required'
 			isValid = false
@@ -100,7 +98,7 @@
 			errors.name = 'Name must contain at least 2 characters'
 			isValid = false
 		} else {
-			// Vérifier l'unicité du nom
+			// Check name uniqueness
 			try {
 				const exists = await companyExistsByName(
 					formData.name.trim(),
@@ -115,7 +113,7 @@
 			}
 		}
 
-		// Validation du site web
+		// Validation the site web
 		if (formData.website && formData.website.trim()) {
 			const websiteRegex = /^https?:\/\/.+\..+/
 			if (!websiteRegex.test(formData.website.trim())) {
@@ -124,7 +122,7 @@
 			}
 		}
 
-		// Validation de l'année de création
+		// Validate the founding year
 		if (formData.founded_year !== null) {
 			const currentYear = new Date().getFullYear()
 			if (formData.founded_year < 1800 || formData.founded_year > currentYear) {
@@ -136,7 +134,7 @@
 		return isValid
 	}
 
-	// Soumettre le formulaire
+	// Soumettre the formulaire
 	const handleSubmit = async () => {
 		isLoading.value = true
 
@@ -179,7 +177,7 @@
 		}
 	}
 
-	// Initialisation du formulaire au montage
+	// Initialisation the formulaire to the montage
 	onMounted(() => {
 		if (props.isCreating) {
 			resetForm()
@@ -188,7 +186,7 @@
 		}
 	})
 
-	// Watcher pour recharger les données quand la company change
+	// Watcher for recharger the data when the company change
 	watch(
 		() => props.company,
 		() => {
@@ -215,9 +213,7 @@
 			</h2>
 		</template>
 
-		<!-- Formulaire -->
 		<form class="space-y-6" @submit.prevent="handleSubmit">
-			<!-- Nom (requis) -->
 			<div>
 				<label class="text-cb-tertiary-200 mb-2 block text-sm font-medium">
 					Company Name *
@@ -233,7 +229,6 @@
 				<p v-if="errors.name" class="mt-1 text-sm text-red-400">{{ errors.name }}</p>
 			</div>
 
-			<!-- Type -->
 			<div>
 				<label class="text-cb-tertiary-200 mb-2 block text-sm font-medium">
 					Company Type
@@ -249,7 +244,6 @@
 				</select>
 			</div>
 
-			<!-- Description -->
 			<div>
 				<label class="text-cb-tertiary-200 mb-2 block text-sm font-medium">
 					Description
@@ -262,7 +256,6 @@
 				></textarea>
 			</div>
 
-			<!-- Website -->
 			<div>
 				<label class="text-cb-tertiary-200 mb-2 block text-sm font-medium">Website</label>
 				<input
@@ -277,7 +270,6 @@
 				</p>
 			</div>
 
-			<!-- Année de création et Localisation -->
 			<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
 				<div>
 					<label class="text-cb-tertiary-200 mb-2 block text-sm font-medium">
@@ -318,7 +310,6 @@
 				</div>
 			</div>
 
-			<!-- Logo URL -->
 			<div>
 				<label class="text-cb-tertiary-200 mb-2 block text-sm font-medium">
 					Logo URL
@@ -331,7 +322,6 @@
 				/>
 			</div>
 
-			<!-- Vérification -->
 			<div>
 				<label class="flex items-center space-x-2">
 					<input
@@ -343,7 +333,6 @@
 				</label>
 			</div>
 
-			<!-- Actions -->
 			<div class="border-cb-quinary-700 flex justify-end space-x-3 border-t pt-4">
 				<button
 					type="submit"

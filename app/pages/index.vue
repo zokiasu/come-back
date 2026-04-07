@@ -5,20 +5,20 @@
 	type ArtistListItem = Artist
 	type MusicListItem = Music
 
-	// Timestamp pour forcer le refresh
+	// Force cache-busting refreshes when realtime updates arrive.
 	const refreshTimestamp = ref(Date.now())
 	const musicsTimestamp = ref(Date.now())
 	const fallbackDiscoverMusicImage = '/slider-placeholder.webp'
 	const failedDiscoverMusicImages = ref<Record<string, boolean>>({})
 
-	// SSR-compatible data fetching avec useFetch + refresh pour temps réel
+	// SSR fetch used by the homepage realtime refresh flow.
 	const { data: comebacks, pending: newsFetching } = await useFetch(
 		() => `/api/news/latest?_t=${refreshTimestamp.value}`,
 		{
 			default: () => [],
 			server: true,
 			key: 'news-latest',
-			// Pas besoin de transform car l'API retourne déjà triées par date croissante
+			// The API already returns items sorted by ascending comeback date.
 		},
 	)
 
@@ -50,7 +50,7 @@
 		},
 	)
 
-	// Musiques aléatoires - client-only car changent à chaque visite
+	// Keep discovery tracks client-only so each visit can return different results.
 	const {
 		data: musics,
 		pending: musicsFetching,
@@ -168,21 +168,21 @@
 		addToPlaylist(videoId, music.name ?? '', artistName, getMusicThumbnail(music))
 	}
 
-	// 🔄 Temps réel - Écoute les changements en base après hydratation
+	// Refresh homepage feeds from realtime Supabase channels after hydration.
 	onMounted(() => {
 		const supabase = useSupabaseClient()
 
-		// Fonction de refresh des news
+		// Use $fetch here to bypass the cached useFetch response.
 		const refreshNewsData = async () => {
 			try {
 				const freshData = await $fetch(`/api/news/latest?_t=${Date.now()}`)
-				comebacks.value = freshData // Pas besoin de tri, déjà triées par l'API
+				comebacks.value = freshData // Already sorted by the API
 			} catch (error) {
 				console.error('Error refreshing news:', error)
 			}
 		}
 
-		// Channel pour les news/comebacks (écoute aussi la table de jonction pour les artistes)
+		// Listen to both news rows and artist junction inserts.
 		const newsChannel = supabase
 			.channel('news-realtime')
 			.on(
@@ -205,7 +205,6 @@
 			)
 			.subscribe()
 
-		// Channel pour les releases
 		const releasesChannel = supabase
 			.channel('releases-realtime')
 			.on(
@@ -216,7 +215,6 @@
 					table: 'releases',
 				},
 				async (_payload) => {
-					// Force un refresh direct avec $fetch (bypass du cache useFetch)
 					try {
 						const freshData = await $fetch('/api/releases/latest', {
 							query: { limit: 8 },
@@ -232,7 +230,6 @@
 			)
 			.subscribe()
 
-		// Channel pour les artists
 		const artistsChannel = supabase
 			.channel('artists-realtime')
 			.on(
@@ -243,7 +240,6 @@
 					table: 'artists',
 				},
 				async (_payload) => {
-					// Force un refresh direct avec $fetch (bypass du cache useFetch)
 					try {
 						const freshData = await $fetch('/api/artists/latest', {
 							query: { limit: 8 },
@@ -260,7 +256,6 @@
 			)
 			.subscribe()
 
-		// Channel pour les musics (MVs et musiques random)
 		const musicsChannel = supabase
 			.channel('musics-realtime')
 			.on(
@@ -271,7 +266,6 @@
 					table: 'musics',
 				},
 				async (_payload) => {
-					// Force un refresh direct avec $fetch (bypass du cache useFetch)
 					try {
 						const freshData = await $fetch('/api/musics/latest-mvs', {
 							query: { limit: 14 },
@@ -280,13 +274,12 @@
 					} catch (error) {
 						console.error('Error refreshing MVs:', error)
 					}
-
-					// Note: les musiques random ne se refresh pas auto pour garder l'aspect "découverte"
+					// Keep random discovery tracks static until the user refreshes them manually.
 				},
 			)
 			.subscribe()
 
-		// Nettoyage des channels au démontage
+		// Clean up realtime subscriptions on unmount.
 		onUnmounted(() => {
 			newsChannel.unsubscribe()
 			releasesChannel.unsubscribe()
@@ -295,7 +288,7 @@
 		})
 	})
 
-	// SEO Meta Tags dynamiques
+	// Keep homepage SEO metadata explicit and stable.
 	useSeoMeta({
 		title: 'Comeback - Track every next release by your favorite artists',
 		ogTitle: 'Comeback - Track every next release by your favorite artists',

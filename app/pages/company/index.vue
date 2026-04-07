@@ -1,6 +1,5 @@
 <template>
 	<div class="container mx-auto space-y-6 p-5">
-		<!-- Search bar -->
 		<div class="flex items-center gap-2">
 			<UInput
 				v-model="search"
@@ -23,7 +22,6 @@
 			/>
 		</div>
 
-		<!-- Section des filtres -->
 		<Transition
 			enter-active-class="transition-all duration-300 ease-out"
 			enter-from-class="opacity-0 max-h-0 overflow-hidden"
@@ -34,9 +32,7 @@
 		>
 			<UCard v-show="filtersExpanded">
 				<div class="space-y-6">
-					<!-- Filters by type and verification status -->
 					<div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-						<!-- Company type -->
 						<div>
 							<label class="mb-3 block text-sm font-medium text-gray-300">
 								Company type
@@ -57,7 +53,6 @@
 							</div>
 						</div>
 
-						<!-- Verification status -->
 						<div>
 							<label class="mb-3 block text-sm font-medium text-gray-300">Status</label>
 							<div class="flex flex-wrap gap-2">
@@ -80,7 +75,6 @@
 						</div>
 					</div>
 
-					<!-- Active filters counter and clear button -->
 					<div v-if="hasActiveFilters" class="flex items-center justify-between">
 						<p class="text-sm text-gray-400">{{ activeFiltersCount }} active filter(s)</p>
 						<UButton
@@ -97,7 +91,6 @@
 			</UCard>
 		</Transition>
 
-		<!-- Results header -->
 		<div
 			v-if="!isLoading || companies.length > 0"
 			class="flex items-center justify-between"
@@ -105,7 +98,6 @@
 			<p class="text-sm text-gray-400">{{ totalCompanies }} company(ies) found</p>
 		</div>
 
-		<!-- Companies grid -->
 		<transition-group
 			tag="div"
 			leave-active-class="animate__bounceOut"
@@ -120,7 +112,6 @@
 			/>
 		</transition-group>
 
-		<!-- Loading state -->
 		<div v-if="isLoading && companies.length === 0" class="py-8">
 			<div
 				class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6"
@@ -133,7 +124,6 @@
 			</div>
 		</div>
 
-		<!-- Load more / End messages -->
 		<div v-if="isLoading && companies.length > 0" class="py-4 text-center">
 			Loading...
 		</div>
@@ -165,7 +155,6 @@
 	const hasMore = ref(true)
 	const totalCompanies = ref(0)
 
-	// Filters
 	const selectedType = ref<string | null>(null)
 	const selectedVerified = ref<boolean | null>(null)
 

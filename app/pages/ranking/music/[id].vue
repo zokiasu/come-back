@@ -1,8 +1,6 @@
 <template>
 	<div class="flex h-[calc(100vh-5rem)] overflow-hidden">
-		<!-- Main content: Music exploration -->
 		<div ref="scrollContainer" class="scrollBarLight min-w-0 flex-1 overflow-y-auto p-5">
-			<!-- Header with back button -->
 			<div class="mb-4 flex items-center gap-3">
 				<UButton
 					icon="i-lucide-arrow-left"
@@ -18,7 +16,6 @@
 				</div>
 			</div>
 
-			<!-- Filters -->
 			<div class="mb-4 space-y-2">
 				<div class="grid grid-cols-2 gap-2 lg:grid-cols-4">
 					<UInput v-model="search" placeholder="Search music..." class="w-full" />
@@ -91,14 +88,12 @@
 				</div>
 			</div>
 
-			<!-- Music grid -->
 			<div class="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
 				<div
 					v-for="music in musicsList"
 					:key="music.id"
 					class="bg-cb-quinary-900 group relative flex items-center gap-3 rounded p-2"
 				>
-					<!-- Play button -->
 					<button
 						v-if="music.id_youtube_music"
 						class="flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-full transition-colors"
@@ -120,7 +115,6 @@
 					</button>
 					<div v-else class="size-10 shrink-0" />
 
-					<!-- Thumbnail -->
 					<NuxtImg
 						:src="getMusicThumbnailFromList(music)"
 						:alt="music.name"
@@ -129,7 +123,6 @@
 						loading="lazy"
 					/>
 
-					<!-- Info -->
 					<div class="min-w-0 flex-1">
 						<p class="truncate text-sm font-medium">{{ music.name }}</p>
 						<p class="text-cb-tertiary-500 truncate text-xs">
@@ -153,7 +146,6 @@
 						</div>
 					</div>
 
-					<!-- Add button -->
 					<button
 						class="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full transition-colors"
 						:class="
@@ -179,7 +171,6 @@
 				</div>
 			</div>
 
-			<!-- Loading indicator -->
 			<div
 				v-if="loading"
 				class="text-cb-tertiary-500 flex items-center justify-center gap-2 py-4 text-xs"
@@ -188,7 +179,6 @@
 				<p>{{ firstLoad ? 'Loading...' : 'Loading...' }}</p>
 			</div>
 
-			<!-- Load more -->
 			<div
 				v-if="!loading && musicsList.length > 0 && musicsList.length < totalMusics"
 				class="flex justify-center gap-2 py-4"
@@ -201,7 +191,6 @@
 				</UButton>
 			</div>
 
-			<!-- Error state -->
 			<p
 				v-if="!loading && musicsLoadError"
 				class="bg-cb-quaternary-950 w-full rounded p-5 text-center text-sm text-red-300"
@@ -209,7 +198,6 @@
 				{{ musicsLoadError }}
 			</p>
 
-			<!-- No results -->
 			<p
 				v-else-if="!loading && musicsList.length === 0"
 				class="bg-cb-quaternary-950 w-full rounded p-5 text-center text-sm"
@@ -218,11 +206,9 @@
 			</p>
 		</div>
 
-		<!-- Sidebar: Current ranking -->
 		<div
 			class="bg-cb-quaternary-950 flex w-80 shrink-0 flex-col overflow-hidden border-l border-zinc-700 lg:w-96"
 		>
-			<!-- Ranking header -->
 			<div class="border-b border-zinc-700 p-4">
 				<div class="flex items-center justify-between">
 					<div v-if="!isEditingName" class="min-w-0 flex-1">
@@ -266,7 +252,6 @@
 				</div>
 			</div>
 
-			<!-- Ranking items list (scrollable) -->
 			<div class="scrollBarLight flex-1 overflow-y-auto p-2">
 				<div v-if="isLoadingRanking" class="flex items-center justify-center py-10">
 					<UIcon
@@ -297,20 +282,17 @@
 				>
 					<template #item="{ element: item, index }">
 						<div class="bg-cb-quinary-900 group flex items-center gap-2 rounded p-2">
-							<!-- Position -->
 							<span
 								class="text-cb-tertiary-500 w-6 shrink-0 text-center text-xs font-medium"
 							>
 								{{ index + 1 }}
 							</span>
 
-							<!-- Drag handle -->
 							<UIcon
 								name="i-lucide-menu"
 								class="drag-handle text-cb-tertiary-500 size-4 shrink-0 cursor-grab active:cursor-grabbing"
 							/>
 
-							<!-- Play button -->
 							<button
 								v-if="item.music.id_youtube_music"
 								class="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full transition-colors"
@@ -331,7 +313,6 @@
 								/>
 							</button>
 
-							<!-- Thumbnail -->
 							<NuxtImg
 								:src="getMusicThumbnail(item.music)"
 								:alt="item.music.name"
@@ -340,7 +321,6 @@
 								loading="lazy"
 							/>
 
-							<!-- Info -->
 							<div class="min-w-0 flex-1">
 								<p class="truncate text-xs font-medium">{{ item.music.name }}</p>
 								<p class="text-cb-tertiary-500 truncate text-xs">
@@ -351,7 +331,6 @@
 								</p>
 							</div>
 
-							<!-- Remove button -->
 							<button
 								class="text-cb-tertiary-500 shrink-0 opacity-0 transition-opacity group-hover:opacity-100 hover:text-red-500"
 								@click="removeFromRanking(item.music_id)"
@@ -363,7 +342,6 @@
 				</draggable>
 			</div>
 
-			<!-- Footer actions -->
 			<div class="border-t border-zinc-700 p-4">
 				<div class="flex gap-2">
 					<UButton
@@ -383,7 +361,6 @@
 			:title="mvPreview?.title"
 			@update:open="isMvPreviewOpen = $event"
 		/>
-		<!-- Settings Modal -->
 		<UModal v-model:open="isSettingsModalOpen">
 			<template #content>
 				<div class="bg-cb-secondary-950 p-6">
@@ -489,11 +466,9 @@
 		},
 	})
 
-	// Data
 	const artistsList = ref<Artist[]>([])
 	const musicsList = ref<(Music & { artists: { name: string }[] })[]>([])
 
-	// Adding state
 	const addingMusicId = ref<string | null>(null)
 
 	// Edit name state
@@ -507,7 +482,7 @@
 	const settingsIsPublic = ref(false)
 	const isSavingSettings = ref(false)
 
-	// Drag and drop - synchroniser localRankingItems avec rankingItems
+	// Drag and drop: keep localRankingItems in sync with rankingItems
 	watch(
 		rankingItems,
 		(items) => {
@@ -516,7 +491,6 @@
 		{ immediate: true },
 	)
 
-	// Computed
 	const hasMore = computed(() => currentPage.value <= totalPages.value)
 
 	// Menu options
@@ -644,14 +618,14 @@
 	const loadMore = async () => {
 		if (loading.value || !hasMore.value || !isInitialized.value) return
 
-		// Vérifier que le conteneur est scrollable et qu'on est proche du bas
+		// Check que the conteneur est scrollable and that on est proche the bas
 		const container = scrollContainer.value
 		if (!container) return
 
 		const { scrollTop, scrollHeight, clientHeight } = container
 		const distanceFromBottom = scrollHeight - scrollTop - clientHeight
 
-		// Ne charger que si on est vraiment proche du bas (moins de 300px)
+		// Only load more items when the scroll position is within 300px of the bottom
 		if (distanceFromBottom > 300) return
 
 		await loadMusics(false)
@@ -663,7 +637,7 @@
 		}
 	}
 
-	// Setup infinite scroll avec événement scroll manuel
+	// Set up infinite scroll with a manual scroll listener
 	onMounted(() => {
 		const container = scrollContainer.value
 		if (container) {
@@ -678,7 +652,6 @@
 		}
 	})
 
-	// Helpers
 	const formatArtists = (artists: { name: string }[] = []) => {
 		return artists.map((a) => a.name).join(', ') || 'Unknown artist'
 	}
@@ -729,17 +702,17 @@
 		addingMusicId.value = music.id
 
 		if (isInRanking) {
-			// Retirer de la liste locale immédiatement
+			// Remove the item from the local list immediately
 			if (ranking.value) {
 				ranking.value.items = ranking.value.items.filter(
 					(item) => item.music_id !== music.id,
 				)
 				localRankingItems.value = [...ranking.value.items]
 			}
-			// Supprimer en arrière-plan
+			// Delete in the background
 			removeMusicFromRanking(rankingId.value, music.id)
 		} else {
-			// Ajouter à la liste locale immédiatement
+			// Add the item to the local list immediately
 			const newItem = await addMusicToRanking(rankingId.value, music.id)
 			if (newItem && ranking.value) {
 				const itemWithMusic = {
@@ -758,14 +731,14 @@
 	}
 
 	const removeFromRanking = async (musicId: string) => {
-		// Retirer de la liste locale immédiatement
+		// Remove the item from the local list immediately
 		if (ranking.value) {
 			ranking.value.items = ranking.value.items.filter(
 				(item) => item.music_id !== musicId,
 			)
 			localRankingItems.value = [...ranking.value.items]
 		}
-		// Supprimer en arrière-plan
+		// Delete in the background
 		removeMusicFromRanking(rankingId.value, musicId)
 	}
 
@@ -849,20 +822,20 @@
 		isSettingsModalOpen.value = false
 	}
 
-	// Drag and drop - appelé quand le drag est terminé
+	// Drag and drop: run this after a drag operation completes
 	const onDragEnd = async () => {
-		// Mettre à jour les positions dans la base de données
+		// Update the positions in the base of data
 		const newPositions = localRankingItems.value.map((item, index) => ({
 			id: item.id,
 			position: index + 1,
 		}))
 
-		// Mettre à jour l'état local du ranking sans recharger
+		// Update local ranking state without reloading
 		if (ranking.value) {
 			ranking.value.items = [...localRankingItems.value]
 		}
 
-		// Sauvegarder en arrière-plan sans attendre
+		// Save in the background without waiting
 		reorderRankingItems(rankingId.value, newPositions)
 	}
 
@@ -884,7 +857,6 @@
 		loadMusics(true)
 	}
 
-	// Watchers
 	watch(selectedArtistsWithLabel, (newVal: ArtistMenuItem[]) => {
 		selectedArtists.value = newVal.map((artist) => artist.id)
 	})
@@ -924,7 +896,7 @@
 
 		console.warn('[ranking/music/[id]] After loadRanking - ranking:', ranking.value)
 		await loadMusics(true)
-		// Activer l'infinite scroll après le premier chargement
+		// Activer the infinite scroll after the premier loading
 		isInitialized.value = true
 	})
 

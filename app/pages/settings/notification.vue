@@ -106,7 +106,6 @@
 
 <template>
 	<div class="mx-auto max-w-5xl space-y-6 px-1 pb-6 sm:px-0">
-		<!-- Header -->
 		<section
 			class="bg-cb-secondary-950 border-cb-quinary-900/70 rounded-[28px] border p-6 shadow-xl"
 		>
@@ -137,7 +136,6 @@
 			</div>
 		</section>
 
-		<!-- Push notifications -->
 		<section
 			class="bg-cb-secondary-950 border-cb-quinary-900/70 rounded-[28px] border p-6 shadow-xl"
 		>
@@ -150,7 +148,6 @@
 						</p>
 					</div>
 
-					<!-- Not supported -->
 					<div
 						v-if="!isSupported"
 						class="bg-cb-quaternary-950 border-cb-quinary-900/70 rounded-xl border px-3 py-2 text-xs text-zinc-400"
@@ -158,7 +155,6 @@
 						Not supported
 					</div>
 
-					<!-- Push toggle -->
 					<USwitch
 						v-else
 						:model-value="isSubscribed"
@@ -169,7 +165,6 @@
 					/>
 				</div>
 
-				<!-- Browser not supported message -->
 				<div
 					v-if="!isSupported"
 					class="bg-cb-quaternary-950 border-cb-quinary-900/70 rounded-2xl border p-4"
@@ -186,7 +181,6 @@
 					</div>
 				</div>
 
-				<!-- Permission denied message -->
 				<div
 					v-else-if="isSupported && permission === 'denied'"
 					class="bg-cb-primary-900/10 border-cb-primary-900/30 rounded-2xl border p-4"
@@ -208,7 +202,6 @@
 			</div>
 		</section>
 
-		<!-- My alerts (visible only when subscribed) -->
 		<section
 			v-if="isSubscribed"
 			class="bg-cb-secondary-950 border-cb-quinary-900/70 rounded-[28px] border p-6 shadow-xl"
@@ -230,7 +223,6 @@
 				</div>
 
 				<div v-else-if="preferences" class="space-y-3">
-					<!-- Daily comeback -->
 					<div
 						class="bg-cb-quaternary-950 border-cb-quinary-900/70 flex items-center justify-between gap-4 rounded-2xl border p-4"
 					>
@@ -260,7 +252,6 @@
 						/>
 					</div>
 
-					<!-- Weekly recap -->
 					<div
 						class="bg-cb-quaternary-950 border-cb-quinary-900/70 flex items-center justify-between gap-4 rounded-2xl border p-4"
 					>
@@ -290,7 +281,6 @@
 						/>
 					</div>
 
-					<!-- Followed artist alerts -->
 					<div
 						class="bg-cb-quaternary-950 border-cb-quinary-900/70 flex items-center justify-between gap-4 rounded-2xl border p-4"
 					>
@@ -320,7 +310,6 @@
 			</div>
 		</section>
 
-		<!-- Followed artists -->
 		<section
 			class="bg-cb-secondary-950 border-cb-quinary-900/70 rounded-[28px] border p-6 shadow-xl"
 		>
@@ -340,7 +329,6 @@
 					</div>
 				</div>
 
-				<!-- Skeleton -->
 				<div v-if="followsLoading" class="grid gap-3 sm:grid-cols-2">
 					<div
 						v-for="n in 4"
@@ -349,7 +337,6 @@
 					/>
 				</div>
 
-				<!-- Followed artists list -->
 				<div v-else-if="followedArtists.length" class="grid gap-3 sm:grid-cols-2">
 					<div
 						v-for="artist in followedArtists"
@@ -397,7 +384,6 @@
 					</div>
 				</div>
 
-				<!-- Empty state -->
 				<div
 					v-else
 					class="bg-cb-quaternary-950 border-cb-quinary-900/70 rounded-2xl border p-6 text-center"

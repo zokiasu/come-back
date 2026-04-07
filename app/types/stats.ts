@@ -51,7 +51,7 @@ export interface StatsFilters {
 	endDate?: Date
 }
 
-// Interfaces pour les statistiques spécifiques
+// Interfaces for specific statistics
 
 export interface ArtistCollaboration {
 	artist_id: string
@@ -151,7 +151,7 @@ export interface EcosystemStats {
 	connections: number
 }
 
-// Interface principale pour toutes les statistiques
+// Primary interface for all statistics
 export interface DashboardStats {
 	general: StatSection
 	artists: StatSection
@@ -159,7 +159,7 @@ export interface DashboardStats {
 	music: StatSection
 }
 
-// Interface pour les paramètres de requête
+// Interface for query parameters
 export interface StatsQueryParams extends StatsFilters {
 	limit?: number
 	offset?: number

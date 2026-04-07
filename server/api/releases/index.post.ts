@@ -21,7 +21,7 @@ export default defineEventHandler(async (event) => {
 
 	const supabase = useServerSupabase()
 
-	// 1. Créer la release
+	// 1. Create the release
 	const { data: release, error: releaseError } = await supabase
 		.from('releases')
 		.insert(body.release)
@@ -30,7 +30,7 @@ export default defineEventHandler(async (event) => {
 
 	if (releaseError) throw handleSupabaseError(releaseError, 'releases.create')
 
-	// 2. Lier les artistes
+	// 2. Link the artists
 	const { error: artistError } = await supabase.from('artist_releases').insert(
 		body.artistIds.map((artistId, index) => ({
 			release_id: release.id,
@@ -40,12 +40,14 @@ export default defineEventHandler(async (event) => {
 	)
 
 	if (artistError) {
-		// Rollback : supprimer la release créée
+		// A release without its artist junctions is not usable in the app, so
+		// roll back the parent row instead of returning a partial success.
+		// Rollback: delete the newly created release
 		await supabase.from('releases').delete().eq('id', release.id)
 		throw handleSupabaseError(artistError, 'releases.create.artists')
 	}
 
-	// 3. Ajouter les liens de plateformes
+	// 3. Add the platform links
 	if (body.platformLinks?.length) {
 		const { error: platformError } = await supabase
 			.from('release_platform_links')
@@ -53,11 +55,12 @@ export default defineEventHandler(async (event) => {
 
 		if (platformError) {
 			console.error('Error adding platform links:', platformError)
-			// Non-fatal, on continue
+			// Non-fatal: keep the release even if platform links fail.
 		}
 	}
 
-	// 4. Notifier les followers des artistes liés (non-fatal)
+	// 4. Notify followers of related artists (non-fatal)
+	// Fire-and-forget notifications so release creation does not wait on push delivery.
 	notifyFollowersOfNewRelease(release.id, release.name, body.artistIds).catch((err) =>
 		console.error('Error notifying followers:', err),
 	)

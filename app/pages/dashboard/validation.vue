@@ -7,7 +7,6 @@
 	const { getArtistsByPage, approveArtist } = useSupabaseArtist()
 	const { getCreatorsForArtists } = useSupabaseUserArtistContributions()
 
-	// Data state
 	const artistsList = ref<Artist[]>([])
 	const isLoading = ref(false)
 	const totalArtists = ref(0)
@@ -15,7 +14,6 @@
 		Map<string, { id: string; name: string; email: string; photo_url: string | null }>
 	>(new Map())
 
-	// Action states
 	const approvingId = ref<string | null>(null)
 
 	// Filters state
@@ -24,7 +22,6 @@
 	const genderFilter = ref<string>('ALL')
 	const onlyWithStyles = ref(false)
 
-	// Sorting state
 	const sortColumn = ref<string>('created_at')
 	const sortDirection = ref<'asc' | 'desc'>('desc')
 
@@ -304,7 +301,6 @@
 
 <template>
 	<div class="scrollBarLight h-full space-y-4 overflow-y-auto p-6">
-		<!-- Header with stats -->
 		<div class="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
 			<div>
 				<h1 class="text-2xl font-bold">Artist Validation</h1>
@@ -313,7 +309,6 @@
 				</p>
 			</div>
 
-			<!-- Stats cards -->
 			<div class="flex flex-wrap gap-2">
 				<div class="rounded-lg bg-amber-900/30 px-3 py-1.5 text-center">
 					<p class="text-lg font-bold text-amber-400">{{ totalArtists }}</p>
@@ -322,7 +317,6 @@
 			</div>
 		</div>
 
-		<!-- Filters -->
 		<div class="bg-cb-quaternary-950 space-y-3 rounded-lg p-4">
 			<div class="flex flex-wrap items-center gap-3">
 				<UInput
@@ -391,7 +385,6 @@
 			</div>
 		</div>
 
-		<!-- Top Pagination -->
 		<div
 			v-if="totalPages > 1"
 			class="border-cb-quinary-900 bg-cb-quaternary-950 flex items-center justify-between rounded-lg border px-4 py-3"
@@ -406,14 +399,11 @@
 			/>
 		</div>
 
-		<!-- Artists List -->
 		<div class="bg-cb-quaternary-950 overflow-hidden rounded-lg">
-			<!-- Loading state -->
 			<div v-if="isLoading && artistsList.length === 0" class="space-y-2 p-4">
 				<SkeletonDefault v-for="i in 5" :key="i" class="h-16 w-full rounded-lg" />
 			</div>
 
-			<!-- Empty state -->
 			<div v-else-if="!isLoading && artistsList.length === 0" class="py-16 text-center">
 				<UIcon
 					name="i-lucide-badge-check"
@@ -422,7 +412,6 @@
 				<p class="text-cb-tertiary-500 mt-4">No artist pending validation</p>
 			</div>
 
-			<!-- Artists -->
 			<div v-else class="divide-cb-quinary-900 divide-y">
 				<div
 					v-for="artist in artistsList"
@@ -430,7 +419,6 @@
 					class="hover:bg-cb-quinary-900/30 group flex items-center gap-4 p-3 transition-colors"
 					:class="{ 'bg-gray-900/20': getMissingData(artist).length > 0 }"
 				>
-					<!-- Image -->
 					<NuxtLink :to="`/artist/${artist.id}`" class="shrink-0" target="_blank">
 						<NuxtImg
 							v-if="artist.image"
@@ -447,7 +435,6 @@
 						</div>
 					</NuxtLink>
 
-					<!-- Info -->
 					<div class="min-w-0 flex-1">
 						<div class="flex flex-wrap items-center gap-2">
 							<NuxtLink
@@ -469,7 +456,6 @@
 							</UBadge>
 						</div>
 
-						<!-- Description excerpt -->
 						<p
 							v-if="artist.description"
 							class="text-cb-tertiary-500 mt-0.5 line-clamp-1 text-xs"
@@ -478,7 +464,6 @@
 							{{ artist.description }}
 						</p>
 
-						<!-- Styles -->
 						<div
 							v-if="artist.styles && artist.styles.length"
 							class="mt-1 flex flex-wrap gap-1"
@@ -495,7 +480,6 @@
 							</span>
 						</div>
 
-						<!-- General tags -->
 						<div
 							v-if="artist.general_tags && artist.general_tags.length"
 							class="mt-1 flex flex-wrap gap-1"
@@ -534,7 +518,6 @@
 							</span>
 						</div>
 
-						<!-- Birth & Debut dates -->
 						<div class="mt-1 flex flex-wrap items-center gap-3 text-xs">
 							<span
 								class="flex items-center gap-1"
@@ -556,9 +539,7 @@
 							</span>
 						</div>
 
-						<!-- Missing data indicators & counts -->
 						<div class="mt-1 flex flex-wrap items-center gap-2">
-							<!-- Missing description -->
 							<span
 								v-if="getMissingData(artist).includes('desc')"
 								class="text-xs text-gray-400"
@@ -567,7 +548,6 @@
 								<UIcon name="i-lucide-file-text" class="size-3.5" />
 								desc
 							</span>
-							<!-- Missing styles -->
 							<span
 								v-if="getMissingData(artist).includes('styles')"
 								class="text-xs text-gray-400"
@@ -576,7 +556,6 @@
 								<UIcon name="i-lucide-tag" class="size-3.5" />
 								styles
 							</span>
-							<!-- Socials count or missing -->
 							<span
 								v-if="artist.social_links && artist.social_links.length > 0"
 								class="text-xs text-green-500"
@@ -589,7 +568,6 @@
 								<UIcon name="i-lucide-share-2" class="size-3.5" />
 								socials
 							</span>
-							<!-- Platforms count or missing -->
 							<span
 								v-if="artist.platform_links && artist.platform_links.length > 0"
 								class="text-xs text-green-500"
@@ -611,7 +589,6 @@
 							Incomplete
 						</span>
 
-						<!-- Creator info -->
 						<div class="mt-1 flex items-center gap-1.5">
 							<UIcon
 								name="i-lucide-circle-user-round"
@@ -626,12 +603,10 @@
 						</div>
 					</div>
 
-					<!-- Dates -->
 					<div class="text-cb-tertiary-500 hidden text-right text-xs lg:block">
 						<p>Created: {{ formatDate(artist.created_at) }}</p>
 					</div>
 
-					<!-- Actions -->
 					<div class="flex shrink-0 items-center gap-1">
 						<UButton
 							icon="i-lucide-check"
@@ -695,7 +670,6 @@
 				</div>
 			</div>
 
-			<!-- Pagination -->
 			<div
 				v-if="totalPages > 1"
 				class="border-cb-quinary-900 flex items-center justify-between border-t px-4 py-3"
@@ -711,7 +685,6 @@
 			</div>
 		</div>
 
-		<!-- Delete Confirmation Modal -->
 		<ModalConfirmDeleteArtist
 			:is-open="isDeleteModalOpen"
 			:artist-id="deletingArtist?.id || ''"
@@ -720,7 +693,6 @@
 			@confirm="confirmReject"
 		/>
 
-		<!-- Ban Confirmation Modal -->
 		<ModalBanArtist
 			:is-open="isBanModalOpen"
 			:artist-id="banningArtist?.id || ''"

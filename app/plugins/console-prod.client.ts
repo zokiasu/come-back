@@ -1,5 +1,5 @@
 export default defineNuxtPlugin(() => {
-	// Désactiver les console.log en production uniquement côté client
+	// Disable the console.log in production only client-side
 	if (import.meta.client && import.meta.env.PROD) {
 		// eslint-disable-next-line no-console
 		console.log = () => {}
@@ -7,7 +7,7 @@ export default defineNuxtPlugin(() => {
 		console.info = () => {}
 		// eslint-disable-next-line no-console
 		console.debug = () => {}
-		// Garder console.warn et console.error pour les vrais problèmes
+		// Keep console.warn and console.error for real issues
 
 		console.warn('🚀 Mode production: console.log désactivés')
 	}

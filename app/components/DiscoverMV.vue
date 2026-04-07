@@ -9,7 +9,7 @@
 		},
 	})
 
-	// État local pour le MV actuellement sélectionné
+	// Local state for the selected music video
 	const currentMVIndex = ref(0)
 	const hoveredMVIndex = ref<number | null>(null)
 	const imageLoaded = ref(false)
@@ -22,27 +22,27 @@
 	const playerContainer = useTemplateRef('playerContainer')
 	const isPlayerReady = ref(false)
 
-	// MV actuellement affiché
+	// Currently displayed music video
 	const currentMV = computed(() => props.mvs[currentMVIndex.value])
 
-	// MV pour les infos (hover ou current)
+	// Music video used for details (hovered or current)
 	const displayedMV = computed(() =>
 		hoveredMVIndex.value !== null ? props.mvs[hoveredMVIndex.value] : currentMV.value,
 	)
 
-	// Fonctions pour changer de MV
+	// Handlers to switch the selected music video
 	const selectMV = async (index: number) => {
 		if (index === currentMVIndex.value) return
 
 		currentMVIndex.value = index
 		imageLoaded.value = false
 
-		// Si le player existe, arrêter la vidéo actuelle
+		// Stop the current video if the player already exists
 		if (player.value && isPlayerReady.value) {
 			player.value.stopVideo()
 		}
 
-		// Lancer directement la nouvelle vidéo
+		// Start the new video immediately
 		const newMV = props.mvs[index]
 		if (newMV?.id_youtube_music) {
 			showThumbnail.value = false
@@ -51,7 +51,7 @@
 		}
 	}
 
-	// Fonctions pour le survol
+	// Hover handlers
 	const onThumbnailHover = (index: number) => {
 		hoveredMVIndex.value = index
 	}
@@ -68,7 +68,7 @@
 		}, 700)
 	}
 
-	// Charger l'API YouTube
+	// Load the YouTube API
 	const loadYouTubeAPI = () => {
 		return new Promise<void>((resolve, reject) => {
 			console.warn('🔍 Checking if YouTube API is available...')
@@ -87,11 +87,11 @@
 				firstScriptTag.parentNode.insertBefore(tag, firstScriptTag)
 			}
 
-			// Créer un callback sécurisé pour éviter la pollution globale
+			// Use a scoped callback to avoid leaking a global handler
 			const originalCallback = window.onYouTubeIframeAPIReady
 			const callbackHandler = () => {
 				console.warn('✅ YouTube API loaded successfully')
-				// Restaurer le callback original s'il existait
+				// Restore the original callback when one already exists
 				if (originalCallback) {
 					window.onYouTubeIframeAPIReady = originalCallback
 				} else {
@@ -100,7 +100,7 @@
 				resolve()
 			}
 
-			// Si l'API est déjà prête, exécuter directement
+			// Run immediately if the API is already ready
 			if (window.onYouTubeIframeAPIReady) {
 				window.onYouTubeIframeAPIReady()
 			} else {
@@ -112,7 +112,7 @@
 				reject(new Error('Failed to load YouTube API'))
 			}
 
-			// Timeout de 10 secondes
+			// Abort after 10 seconds
 			setTimeout(() => {
 				if (!window.YT || !window.YT.Player) {
 					console.error('❌ YouTube API load timeout')
@@ -122,7 +122,7 @@
 		})
 	}
 
-	// Créer le lecteur YouTube
+	// Create the YouTube player
 	const createYouTubePlayer = async (videoId: string) => {
 		try {
 			console.warn('🎬 Creating YouTube player for video:', videoId)
@@ -141,7 +141,7 @@
 				return
 			}
 
-			// Générer un ID unique pour éviter les conflits
+			// Generate a unique ID to avoid collisions
 			const playerId = 'youtube-player-' + Date.now()
 			playerContainer.value.id = playerId
 
@@ -196,7 +196,7 @@
 		}
 	}
 
-	// Lancer la vidéo
+	// Start the video
 	const playCurrentMV = async () => {
 		console.warn('🎯 Play button clicked')
 		console.warn('📹 Current MV:', currentMV.value)
@@ -214,17 +214,17 @@
 			return
 		}
 
-		// D'abord basculer vers le mode vidéo pour que le container soit disponible
+		// Switch to video mode first so the container exists
 		showThumbnail.value = false
 
-		// Attendre que le DOM se mette à jour
+		// Wait for the DOM to update
 		await nextTick()
 		console.warn('📍 Player container after nextTick:', playerContainer.value)
 
 		createYouTubePlayer(currentMV.value.id_youtube_music)
 	}
 
-	// Arrêter la vidéo et revenir au thumbnail
+	// Stop the video and switch back to the thumbnail
 	const stopVideo = () => {
 		if (player.value && isPlayerReady.value) {
 			player.value.stopVideo()
@@ -238,7 +238,7 @@
 		return artists?.map((artist) => artist.name).join(', ') || ''
 	}
 
-	// Générer les URLs des thumbnails YouTube
+	// Generate YouTube thumbnail URLs
 	const getYouTubeThumbnail = (
 		videoId: string,
 		quality:
@@ -251,12 +251,12 @@
 		return `https://img.youtube.com/vi/${videoId}/${quality}.jpg`
 	}
 
-	// Thumbnail principale (haute qualité)
+	// Primary thumbnail (high quality)
 	const getMainThumbnail = (videoId: string) => {
 		return getYouTubeThumbnail(videoId, 'maxresdefault')
 	}
 
-	// Thumbnail pour navigation (qualité moyenne)
+	// Navigation thumbnail (medium quality)
 	const getNavThumbnail = (videoId: string) => {
 		return getYouTubeThumbnail(videoId, 'mqdefault')
 	}
@@ -277,7 +277,7 @@
 		{ immediate: true },
 	)
 
-	// Nettoyage à la destruction du composant
+	// Clean up on component unmount
 	onUnmounted(() => {
 		if (player.value) {
 			player.value.destroy()
@@ -290,9 +290,7 @@
 
 <template>
 	<div v-if="mvs.length > 0" class="space-y-4">
-		<!-- Main Video Player -->
 		<div class="relative mx-auto w-full max-w-6xl">
-			<!-- Thumbnail (affiché quand pas en lecture) -->
 			<UButton
 				v-if="currentMV && showThumbnail"
 				class="group bg-cb-quinary-900 text-cb-tertiary-200 hover:text-cb-tertiary-100 relative aspect-video w-full overflow-hidden rounded-lg !p-0 drop-shadow-lg"
@@ -337,13 +335,11 @@
 				</div>
 			</UButton>
 
-			<!-- Lecteur YouTube (affiché pendant la lecture) -->
 			<div
 				v-if="!showThumbnail"
 				class="relative aspect-video w-full overflow-hidden rounded-lg drop-shadow-lg"
 			>
 				<div ref="playerContainer" class="h-full w-full"></div>
-				<!-- Bouton stop -->
 				<button
 					class="absolute top-4 right-4 rounded-full bg-black/50 p-2 transition-colors hover:bg-black/70"
 					title="Stop video"
@@ -354,7 +350,6 @@
 			</div>
 		</div>
 
-		<!-- Thumbnails Navigation -->
 		<div
 			class="scrollBarLight flex justify-start gap-3 overflow-x-auto p-1 pb-1"
 			:class="{ 'is-scrolling': isThumbsScrolling }"
@@ -387,7 +382,6 @@
 						<UIcon name="i-lucide-play" class="text-cb-tertiary-400 h-4 w-4" />
 					</div>
 				</div>
-				<!-- Overlay for active state -->
 				<div
 					v-if="index !== currentMVIndex"
 					class="bg-cb-quinary-900/50 absolute inset-0 flex items-center justify-center"
@@ -397,7 +391,6 @@
 			</button>
 		</div>
 
-		<!-- MV Info -->
 		<div
 			v-if="displayedMV"
 			class="min-h-[5.5rem] space-y-1 text-center transition-all duration-200"
@@ -411,7 +404,6 @@
 			<p v-if="displayedMV.date" class="text-cb-tertiary-500 min-h-[1rem] text-xs">
 				Released: {{ new Date(displayedMV.date).toLocaleDateString('sv-SE') }}
 			</p>
-			<!-- Indicateur de survol -->
 			<div
 				class="text-cb-tertiary-400 text-xs italic"
 				:class="
@@ -425,7 +417,6 @@
 		</div>
 	</div>
 
-	<!-- Loading State -->
 	<div v-else class="space-y-4">
 		<SkeletonDefault class="aspect-video w-full rounded-lg" />
 		<div

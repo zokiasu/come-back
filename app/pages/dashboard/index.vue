@@ -45,7 +45,7 @@
 	const recentReleases = ref<DashboardOverview['recentReleases']>([])
 	const recentNews = ref<DashboardOverview['recentNews']>([])
 
-	// SSR-compatible data fetching pour dashboard admin (client-only)
+	// SSR-compatible data fetching for dashboard admin (client-only)
 	const { data: dashboardData, pending: loading } = await useFetch<DashboardOverview>(
 		'/api/dashboard/overview',
 		{
@@ -67,7 +67,7 @@
 		},
 	)
 
-	// Utiliser les données fetchées de manière réactive
+	// Use fetched data reactively
 	watchEffect(() => {
 		if (dashboardData.value) {
 			stats.value = dashboardData.value.stats
@@ -80,13 +80,11 @@
 
 <template>
 	<div class="h-full space-y-6 overflow-y-auto p-6">
-		<!-- En-tête -->
 		<div>
 			<h1 class="text-3xl font-bold text-white">Dashboard</h1>
 			<p class="text-cb-tertiary-200 mt-1 text-sm">Welcome to your Comeback dashboard</p>
 		</div>
 
-		<!-- Indicateur de chargement -->
 		<div v-if="loading" class="bg-cb-quaternary-950 rounded-lg p-8">
 			<div class="flex flex-col items-center space-y-4">
 				<div
@@ -96,11 +94,8 @@
 			</div>
 		</div>
 
-		<!-- Contenu principal -->
 		<div v-else class="space-y-6">
-			<!-- Cartes de statistiques -->
 			<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-				<!-- Total Artistes -->
 				<NuxtLink
 					to="/dashboard/artist"
 					class="bg-cb-quinary-900 hover:bg-cb-quinary-800 group rounded-lg p-6 transition-all duration-200"
@@ -123,7 +118,6 @@
 					</div>
 				</NuxtLink>
 
-				<!-- Total Releases -->
 				<NuxtLink
 					to="/dashboard/release"
 					class="bg-cb-quinary-900 hover:bg-cb-quinary-800 group rounded-lg p-6 transition-all duration-200"
@@ -146,7 +140,6 @@
 					</div>
 				</NuxtLink>
 
-				<!-- Total News -->
 				<NuxtLink
 					to="/dashboard/news"
 					class="bg-cb-quinary-900 hover:bg-cb-quinary-800 group rounded-lg p-6 transition-all duration-200"
@@ -167,7 +160,6 @@
 					</div>
 				</NuxtLink>
 
-				<!-- Total Companies -->
 				<NuxtLink
 					to="/dashboard/companies"
 					class="bg-cb-quinary-900 hover:bg-cb-quinary-800 group rounded-lg p-6 transition-all duration-200"
@@ -191,9 +183,7 @@
 				</NuxtLink>
 			</div>
 
-			<!-- Sections récentes -->
 			<div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-				<!-- Artistes récents -->
 				<div class="bg-cb-quinary-900 rounded-lg p-6">
 					<div class="mb-4 flex items-center justify-between">
 						<h2 class="text-lg font-semibold text-white">Recent artists</h2>
@@ -223,7 +213,6 @@
 					</div>
 				</div>
 
-				<!-- Releases récentes -->
 				<div class="bg-cb-quinary-900 rounded-lg p-6">
 					<div class="mb-4 flex items-center justify-between">
 						<h2 class="text-lg font-semibold text-white">Recent releases</h2>
@@ -263,7 +252,6 @@
 				</div>
 			</div>
 
-			<!-- News récentes -->
 			<div class="bg-cb-quinary-900 rounded-lg p-6">
 				<div class="mb-4 flex items-center justify-between">
 					<h2 class="text-lg font-semibold text-white">Recent news</h2>

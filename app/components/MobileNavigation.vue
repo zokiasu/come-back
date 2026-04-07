@@ -97,7 +97,6 @@
 			class="bg-cb-secondary-950/95 w-full overflow-hidden border border-zinc-700/80 shadow-lg shadow-black/30 backdrop-blur transition-all duration-300"
 			:class="navRadiusClass"
 		>
-			<!-- Expanded more panel -->
 			<Transition
 				enter-active-class="transition-all duration-200 ease-out"
 				leave-active-class="transition-all duration-150 ease-in"
@@ -106,7 +105,6 @@
 			>
 				<div v-if="isMoreOpen" class="px-3 pb-2 pt-3">
 					<div class="grid grid-cols-4 gap-1">
-						<!-- Explore rankings -->
 						<NuxtLink
 							to="/ranking/explore"
 							class="cb-no-select text-cb-tertiary-200 hover:bg-cb-quinary-950 hover:text-white flex flex-col items-center gap-1.5 rounded-2xl p-3 transition"
@@ -118,7 +116,6 @@
 							>
 						</NuxtLink>
 
-						<!-- Explore music -->
 						<NuxtLink
 							to="/music"
 							class="cb-no-select text-cb-tertiary-200 hover:bg-cb-quinary-950 hover:text-white flex flex-col items-center gap-1.5 rounded-2xl p-3 transition"
@@ -130,7 +127,6 @@
 							>
 						</NuxtLink>
 
-						<!-- Settings -->
 						<NuxtLink
 							to="/settings"
 							class="cb-no-select text-cb-tertiary-200 hover:bg-cb-quinary-950 hover:text-white flex flex-col items-center gap-1.5 rounded-2xl p-3 transition"
@@ -142,7 +138,6 @@
 							>
 						</NuxtLink>
 
-						<!-- Notifications (logged in) -->
 						<button
 							v-if="isUserLoggedIn && isClient"
 							type="button"
@@ -163,7 +158,6 @@
 							>
 						</button>
 
-						<!-- Sign in (not logged in) -->
 						<button
 							v-if="!isUserLoggedIn && isClient"
 							type="button"
@@ -176,7 +170,6 @@
 							>
 						</button>
 
-						<!-- Admin dashboard -->
 						<NuxtLink
 							v-if="isAdminStore && isClient"
 							to="/dashboard/artist"
@@ -189,7 +182,6 @@
 							>
 						</NuxtLink>
 
-						<!-- New comeback -->
 						<button
 							v-if="isUserLoggedIn && isClient"
 							type="button"
@@ -205,10 +197,8 @@
 				</div>
 			</Transition>
 
-			<!-- Separator -->
 			<div v-if="isMoreOpen" class="mx-3 border-t border-zinc-700/50" />
 
-			<!-- Main tab bar -->
 			<div class="flex w-full items-center justify-between">
 				<NuxtLink
 					to="/"
@@ -262,7 +252,6 @@
 			</div>
 		</div>
 
-		<!-- Search modal -->
 		<UModal
 			v-model:open="isSearchOpen"
 			:ui="{
@@ -284,7 +273,6 @@
 			</template>
 		</UModal>
 
-		<!-- Modal notifications mobile -->
 		<UModal
 			v-model:open="isNotifOpen"
 			:ui="{

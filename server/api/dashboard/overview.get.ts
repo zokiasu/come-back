@@ -2,22 +2,21 @@ export default defineEventHandler(async () => {
 	const supabase = useServerSupabase()
 
 	try {
-		// Récupérer les données en parallèle
-		// Séparé en 2 groupes : totaux (avec count) et éléments récents
+		// Fetch data in parallel
+		// Split into 2 groups: totals (with counts) and recent items
 		const [
-			// Totaux pour statistiques (avec count exact)
+			// Totaux for statistiques (with count exact)
 			totalArtistsResult,
 			totalReleasesResult,
 			totalNewsResult,
 			activeArtistsResult,
 			companiesResult,
-			// Éléments récents pour affichage
+			// Recent items for display
 			recentArtistsResult,
 			recentReleasesResult,
 			recentNewsResult,
 		] = await Promise.all([
-			// === TOTAUX (avec count) ===
-			// Total artistes
+			// Total artists
 			supabase.from('artists').select('*', { count: 'exact', head: true }),
 
 			// Total releases
@@ -26,24 +25,23 @@ export default defineEventHandler(async () => {
 			// Total news
 			supabase.from('news').select('*', { count: 'exact', head: true }),
 
-			// Artistes actifs
+			// artists actifs
 			supabase
 				.from('artists')
 				.select('id', { count: 'exact', head: true })
 				.eq('active_career', true),
 
-			// Toutes les companies (pour count + verified)
+			// All companies (for count + verified)
 			supabase.from('companies').select('id, verified'),
 
-			// === ÉLÉMENTS RÉCENTS (avec limit) ===
-			// Artistes récents (5 derniers)
+			// Recent artists (last 5)
 			supabase
 				.from('artists')
 				.select('*')
 				.order('created_at', { ascending: false })
 				.limit(5),
 
-			// Releases récentes avec artistes (5 dernières)
+			// Recent releases with artists (last 5)
 			supabase
 				.from('releases')
 				.select(
@@ -57,7 +55,7 @@ export default defineEventHandler(async () => {
 				.order('created_at', { ascending: false })
 				.limit(5),
 
-			// News récentes avec artistes (5 dernières)
+			// Recent news with artists (last 5)
 			supabase
 				.from('news')
 				.select(
@@ -72,7 +70,7 @@ export default defineEventHandler(async () => {
 				.limit(5),
 		])
 
-		// Vérifier les erreurs
+		// Check for errors
 		if (totalArtistsResult.error) throw totalArtistsResult.error
 		if (totalReleasesResult.error) throw totalReleasesResult.error
 		if (totalNewsResult.error) throw totalNewsResult.error
@@ -82,14 +80,14 @@ export default defineEventHandler(async () => {
 		if (recentReleasesResult.error) throw recentReleasesResult.error
 		if (recentNewsResult.error) throw recentNewsResult.error
 
-		// Calculer les releases récentes (30 derniers jours)
+		// Calculate recent releases (last 30 days)
 		const thirtyDaysAgo = new Date()
 		thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 		const recentReleasesCount = (recentReleasesResult.data || []).filter((r) => {
 			return new Date(r.created_at || '') > thirtyDaysAgo
 		}).length
 
-		// Calculer les statistiques avec les vrais totaux
+		// Calculate statistics with real totals
 		const companies = companiesResult.data || []
 		const stats = {
 			totalArtists: totalArtistsResult.count || 0,
@@ -101,13 +99,13 @@ export default defineEventHandler(async () => {
 			verifiedCompanies: companies.filter((c) => c.verified).length,
 		}
 
-		// Transformer les releases pour extraire les artistes
+		// Transform releases to extract artists
 		const transformedReleases = (recentReleasesResult.data || []).map((release) => ({
 			...release,
 			artists: transformJunction(release.artists, 'artist'),
 		}))
 
-		// Transformer les news pour extraire les artistes
+		// Transform news to extract artists
 		const transformedNews = (recentNewsResult.data || []).map((news) => ({
 			...news,
 			artists: transformJunction(news.artists, 'artist'),

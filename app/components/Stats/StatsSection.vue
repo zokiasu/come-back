@@ -5,7 +5,6 @@
 				{{ section.title }}
 			</h2>
 			<div class="flex items-center space-x-3">
-				<!-- Period Indicator -->
 				<div
 					v-if="periodDisplay"
 					class="rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 dark:border-blue-800 dark:bg-blue-900/20"
@@ -20,7 +19,6 @@
 						</p>
 					</div>
 				</div>
-				<!-- Loading Indicator -->
 				<div v-if="loading" class="flex items-center space-x-2">
 					<LoadingIndicator size="sm" />
 					<span class="text-sm text-gray-500 dark:text-gray-400">Loading...</span>
@@ -28,16 +26,13 @@
 			</div>
 		</div>
 
-		<!-- Cards -->
 		<div v-if="section.cards && section.cards.length > 0" class="mb-8">
 			<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
 				<StatsCard v-for="card in section.cards" :key="card.title" :card="card" />
 			</div>
 		</div>
 
-		<!-- Charts and Lists Grid -->
 		<div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-			<!-- Charts -->
 			<div v-if="section.charts && section.charts.length > 0" class="space-y-6">
 				<div
 					v-for="chart in section.charts"
@@ -57,7 +52,6 @@
 				</div>
 			</div>
 
-			<!-- Top Lists -->
 			<div v-if="section.topLists && section.topLists.length > 0" class="space-y-6">
 				<div
 					v-for="list in section.topLists"
@@ -72,7 +66,6 @@
 			</div>
 		</div>
 
-		<!-- Empty State -->
 		<div v-if="isEmpty && !loading" class="py-12 text-center">
 			<div class="mb-2 text-gray-400 dark:text-gray-500">
 				<Icon name="i-lucide-chart-column" class="mx-auto h-12 w-12" />
@@ -90,7 +83,7 @@
 <script setup lang="ts">
 	import type { StatSection } from '~/types/stats'
 
-	// Imports explicites pour Nuxt 4 + Nuxt UI 3.3.4
+	// Imports explicites for Nuxt 4 + Nuxt UI 3.3.4
 	import StatsCard from '~/components/Stats/StatsCard.vue'
 	import StatsChart from '~/components/Stats/StatsChart.vue'
 	import TopList from '~/components/Stats/TopList.vue'

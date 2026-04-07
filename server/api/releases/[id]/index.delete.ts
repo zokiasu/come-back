@@ -14,7 +14,7 @@ export default defineEventHandler(async (event) => {
 	}
 
 	try {
-		// Vérifier que la release existe
+	// Check that the release exists
 		const { data: release, error: fetchError } = await supabase
 			.from('releases')
 			.select('id')
@@ -28,7 +28,7 @@ export default defineEventHandler(async (event) => {
 			})
 		}
 
-		// Récupérer les IDs des musiques liées à cette release
+		// Fetch the ids of musics linked to this release
 		const { data: musicRelations } = await supabase
 			.from('music_releases')
 			.select('music_id')
@@ -39,7 +39,7 @@ export default defineEventHandler(async (event) => {
 		// Track errors for reporting
 		const deletionErrors: { table: string; error: string }[] = []
 
-		// Supprimer les relations avec les artistes
+		// Delete artist relations
 		const { error: artistRelError } = await supabase
 			.from('artist_releases')
 			.delete()
@@ -50,7 +50,7 @@ export default defineEventHandler(async (event) => {
 			deletionErrors.push({ table: 'artist_releases', error: artistRelError.message })
 		}
 
-		// Supprimer les relations avec les musiques
+		// Delete music relations
 		const { error: musicRelError } = await supabase
 			.from('music_releases')
 			.delete()
@@ -61,7 +61,7 @@ export default defineEventHandler(async (event) => {
 			deletionErrors.push({ table: 'music_releases', error: musicRelError.message })
 		}
 
-		// Supprimer les liens de plateforme
+		// Delete platform links
 		const { error: platformLinksError } = await supabase
 			.from('release_platform_links')
 			.delete()
@@ -75,9 +75,9 @@ export default defineEventHandler(async (event) => {
 			})
 		}
 
-		// Supprimer les musiques orphelines (non liées à d'autres releases)
+		// Delete orphaned musics that are no longer linked to other releases
 		if (musicIds.length > 0) {
-			// Trouver les musiques encore liées à d'autres releases
+			// Find musics that are still linked to other releases
 			const { data: stillLinkedMusics } = await supabase
 				.from('music_releases')
 				.select('music_id')
@@ -85,11 +85,11 @@ export default defineEventHandler(async (event) => {
 
 			const stillLinkedMusicIds = new Set(stillLinkedMusics?.map((r) => r.music_id) || [])
 
-			// Musiques orphelines = celles qui ne sont plus liées à aucune release
+			// Orphaned musics are no longer linked to any release
 			const orphanMusicIds = musicIds.filter((id) => !stillLinkedMusicIds.has(id))
 
 			if (orphanMusicIds.length > 0) {
-				// Supprimer les relations music_artists des musiques orphelines
+				// Delete music_artists relations for orphaned musics
 				const { error: musicArtistsError } = await supabase
 					.from('music_artists')
 					.delete()
@@ -103,7 +103,7 @@ export default defineEventHandler(async (event) => {
 					})
 				}
 
-				// Supprimer les musiques orphelines
+				// Delete orphaned musics
 				const { error: deleteMusicsError } = await supabase
 					.from('musics')
 					.delete()
@@ -116,7 +116,7 @@ export default defineEventHandler(async (event) => {
 			}
 		}
 
-		// Supprimer la release
+		// Delete the release
 		const { error: deleteError } = await supabase
 			.from('releases')
 			.delete()
@@ -126,7 +126,7 @@ export default defineEventHandler(async (event) => {
 			throw deleteError
 		}
 
-		// Return success with any partial errors reported
+		// Return success while reporting any partial errors
 		return {
 			success: true,
 			partialErrors: deletionErrors.length > 0 ? deletionErrors : undefined,

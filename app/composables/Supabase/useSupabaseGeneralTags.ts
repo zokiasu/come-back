@@ -5,7 +5,7 @@ export function useSupabaseGeneralTags() {
 	const supabase = useSupabaseClient<Database>()
 	const { runMutation } = useMutationTimeout()
 
-	// Crée un nouveau tag
+	// Creates a nouveau tag
 	const createGeneralTag = async (
 		data: TablesInsert<'general_tags'>,
 	): Promise<GeneralTag> => {
@@ -22,7 +22,7 @@ export function useSupabaseGeneralTags() {
 		return tag as GeneralTag
 	}
 
-	// Met à jour un tag
+	// Updates a tag
 	const updateGeneralTag = async (
 		id: string,
 		updates: TablesUpdate<'general_tags'>,
@@ -40,7 +40,7 @@ export function useSupabaseGeneralTags() {
 		return data as GeneralTag
 	}
 
-	// Supprime un tag
+	// Deletes a tag
 	const deleteGeneralTag = async (name: string) => {
 		const { error } = await runMutation(
 			supabase.from('general_tags').delete().eq('name', name),
@@ -55,7 +55,7 @@ export function useSupabaseGeneralTags() {
 		return true
 	}
 
-	// Récupère tous les tags
+	// Fetch all tags
 	const getAllGeneralTags = async (
 		options?: QueryOptions & FilterOptions,
 	): Promise<GeneralTag[]> => {
@@ -91,7 +91,7 @@ export function useSupabaseGeneralTags() {
 		return data as GeneralTag[]
 	}
 
-	// Récupère un tag par son ID
+	// Fetch a tag by ID
 	const getGeneralTagById = async (id: string): Promise<GeneralTag> => {
 		const { data, error } = await supabase
 			.from('general_tags')

@@ -6,7 +6,7 @@ type DynamicQuery = {
 }
 
 /**
- * Interface pour les options de pagination
+ * Interface for pagination options
  */
 export interface PaginationOptions {
 	page: number
@@ -14,7 +14,7 @@ export interface PaginationOptions {
 }
 
 /**
- * Interface pour les options de tri
+ * Interface for sorting options
  */
 export interface SortOptions<T> {
 	orderBy?: keyof T
@@ -22,7 +22,7 @@ export interface SortOptions<T> {
 }
 
 /**
- * Interface pour les options de filtre de base
+ * Interface for base filter options
  */
 export interface BaseFilterOptions {
 	search?: string
@@ -30,7 +30,7 @@ export interface BaseFilterOptions {
 }
 
 /**
- * Options pour la gestion des erreurs
+ * Options for error handling
  */
 export interface ErrorHandlerOptions {
 	showToast?: boolean
@@ -39,7 +39,7 @@ export interface ErrorHandlerOptions {
 }
 
 /**
- * Composable pour construire des requêtes Supabase de manière réutilisable
+ * Composable to build reusable Supabase queries
  */
 export const useSupabaseQueryBuilder = () => {
 	const supabase = useSupabaseClient<Database>()
@@ -47,7 +47,7 @@ export const useSupabaseQueryBuilder = () => {
 	const { runMutation } = useMutationTimeout()
 
 	/**
-	 * Gestion centralisée des erreurs
+	 * Centralized error handling
 	 */
 	const handleError = (
 		error: unknown,
@@ -72,14 +72,14 @@ export const useSupabaseQueryBuilder = () => {
 	}
 
 	/**
-	 * Calcule l'offset pour la pagination
+	 * Calculates the pagination offset
 	 */
 	const calculateOffset = (page: number, limit: number): number => {
 		return (page - 1) * limit
 	}
 
 	/**
-	 * Applique la pagination à une requête
+	 * Applies pagination to a query
 	 */
 	const applyPagination = <T extends { range: (from: number, to: number) => T }>(
 		query: T,
@@ -90,7 +90,7 @@ export const useSupabaseQueryBuilder = () => {
 	}
 
 	/**
-	 * Applique le tri à une requête
+	 * Applies sorting to a query
 	 */
 	const applySorting = <
 		T extends { order: (column: string, options?: { ascending?: boolean }) => T },
@@ -109,7 +109,7 @@ export const useSupabaseQueryBuilder = () => {
 	}
 
 	/**
-	 * Applique un filtre de recherche textuelle (ilike)
+	 * Applies a text search filter with `ilike`
 	 */
 	const applySearchFilter = <T extends { ilike: (column: string, pattern: string) => T }>(
 		query: T,
@@ -123,7 +123,7 @@ export const useSupabaseQueryBuilder = () => {
 	}
 
 	/**
-	 * Formate une réponse paginée
+	 * Formats a paginated response
 	 */
 	const formatPaginatedResponse = <T>(
 		data: T[],
@@ -141,8 +141,8 @@ export const useSupabaseQueryBuilder = () => {
 	}
 
 	/**
-	 * Met à jour les relations d'une table de jonction
-	 * Supprime les anciennes relations et insère les nouvelles
+	 * Updates relations in a junction table
+	 * Deletes old relations and inserts the new ones
 	 */
 	const updateJunctionTable = async <T extends keyof Database['public']['Tables']>(
 		tableName: T,
@@ -186,7 +186,7 @@ export const useSupabaseQueryBuilder = () => {
 	}
 
 	/**
-	 * Insère des éléments liés avec l'ID parent
+	 * Inserts related items with the parent ID
 	 */
 	const insertLinkedItems = async <T extends keyof Database['public']['Tables']>(
 		tableName: T,
@@ -216,7 +216,7 @@ export const useSupabaseQueryBuilder = () => {
 	}
 
 	/**
-	 * Récupère un élément par son ID
+	 * Fetches an item by ID
 	 */
 	const getById = async <T extends keyof Database['public']['Tables']>(
 		tableName: T,
@@ -237,7 +237,7 @@ export const useSupabaseQueryBuilder = () => {
 	}
 
 	/**
-	 * Vérifie si un élément existe
+	 * Checks whether an item exists
 	 */
 	const exists = async <T extends keyof Database['public']['Tables']>(
 		tableName: T,
@@ -258,7 +258,7 @@ export const useSupabaseQueryBuilder = () => {
 	}
 
 	/**
-	 * Supprime les éléments liés avant suppression du parent
+	 * Deletes related items before deleting the parent
 	 */
 	const deleteLinkedItems = async <T extends keyof Database['public']['Tables']>(
 		tableName: T,
@@ -282,7 +282,7 @@ export const useSupabaseQueryBuilder = () => {
 	}
 
 	/**
-	 * Exécute une requête avec gestion des erreurs
+	 * Executes a query with error handling
 	 */
 	const executeQuery = async <T>(
 		queryFn: () => Promise<{ data: T | null; error: unknown }>,
@@ -299,19 +299,17 @@ export const useSupabaseQueryBuilder = () => {
 	}
 
 	return {
-		// Client Supabase pour les cas spécifiques
+		// Supabase client for specific cases
 		supabase,
-		// Gestion des erreurs
+		// Handle errors
 		handleError,
 		// Pagination
 		calculateOffset,
 		applyPagination,
 		formatPaginatedResponse,
-		// Tri
+		// sorting
 		applySorting,
-		// Filtres
 		applySearchFilter,
-		// Relations
 		updateJunctionTable,
 		insertLinkedItems,
 		deleteLinkedItems,

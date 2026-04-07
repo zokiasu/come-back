@@ -5,15 +5,15 @@ export default defineNuxtRouteMiddleware(async (_to, _from) => {
 	const supabase = useSupabaseClient()
 	const userStore = useUserStore()
 
-	// SSR: Laisser passer, la vérification complète se fait côté client
+	// SSR: allow through; the full check runs client-side
 	if (import.meta.server) {
 		return
 	}
 
-	// Client: Attendre l'initialisation
+	// Client: Wait for the initialisation
 	const { ensureAuthInitialized, userData } = useAuth()
 
-	// Attendre l'initialisation de l'auth (restauration session + localStorage)
+	// Wait for the initialisation the auth (restauration session + localStorage)
 	try {
 		await Promise.race([
 			ensureAuthInitialized(),
@@ -22,7 +22,7 @@ export default defineNuxtRouteMiddleware(async (_to, _from) => {
 			),
 		])
 	} catch {
-		// Timeout - continuer avec les vérifications
+		// On timeout, continue with the remaining checks
 	}
 
 	let sessionUserId = user.value?.id ?? null
@@ -32,7 +32,7 @@ export default defineNuxtRouteMiddleware(async (_to, _from) => {
 			const { data } = await supabase.auth.getSession()
 			sessionUserId = data.session?.user?.id ?? null
 		} catch {
-			// On s'appuie alors sur le store persisté.
+			// Use the persisted store as the fallback source.
 		}
 	}
 

@@ -54,7 +54,7 @@ export interface UpdateArtistParams {
 }
 
 /**
- * Crée un nouvel artiste avec toutes ses relations
+ * Creates a new artist with all related records
  */
 export async function createArtistRecord(
 	supabase: SupabaseClientType,
@@ -75,7 +75,7 @@ export async function createArtistRecord(
 		companiesCount: companies?.length ?? 0,
 	})
 
-	// Vérifier si l'artiste existe déjà
+	// Check whether the artist already exists
 	if (data.id_youtube_music) {
 		logArtistCreateTrace('checking duplicate YouTube Music ID', {
 			idYoutubeMusic: data.id_youtube_music,
@@ -95,7 +95,7 @@ export async function createArtistRecord(
 		})
 	}
 
-	// Créer l'artiste
+	// Create the artist
 	logArtistCreateTrace('inserting artist row')
 	const { data: artist, error } = await runMutation(
 		supabase.from('artists').insert(data).select().single(),
@@ -117,7 +117,7 @@ export async function createArtistRecord(
 		elapsedMs: Date.now() - startedAt,
 	})
 
-	// Ajouter les relations en parallèle
+	// Add relations in parallel
 	logArtistCreateTrace('starting relation inserts', {
 		artistId: artist.id,
 		socialLinksCount: socialLinks.length,
@@ -155,7 +155,7 @@ export async function createArtistRecord(
 }
 
 /**
- * Met à jour un artiste avec toutes ses relations
+ * Updates an artist with all related records
  */
 export async function updateArtistRecord(
 	supabase: SupabaseClientType,
@@ -187,7 +187,7 @@ export async function updateArtistRecord(
 		}
 	}
 
-	// Mettre à jour l'artiste
+	// Update the artist
 	const { data: artist, error } = await runMutation(
 		supabase.from('artists').update(updates).eq('id', artistId).select().single(),
 		'Updating the artist timed out. Please try again.',
@@ -203,7 +203,7 @@ export async function updateArtistRecord(
 		throw new Error("Erreur lors de la mise à jour de l'artiste")
 	}
 
-	// Mettre à jour les liens si fournis
+	// Update links when provided
 	if (socialLinks !== undefined) {
 		await updateSocialLinks(supabase, artist.id, socialLinks)
 	}
@@ -212,7 +212,7 @@ export async function updateArtistRecord(
 		await updatePlatformLinks(supabase, artist.id, platformLinks)
 	}
 
-	// Mettre à jour les relations artiste
+	// Update the relations artist
 	await deleteArtistRelations(supabase, artist.id)
 
 	if (groups?.length) {
@@ -223,7 +223,7 @@ export async function updateArtistRecord(
 		await insertMemberRelations(supabase, artist.id, members)
 	}
 
-	// Mettre à jour les compagnies
+	// Update the companies
 	await deleteCompanyRelations(supabase, artist.id)
 
 	if (companies?.length) {
@@ -238,7 +238,7 @@ export async function updateArtistRecord(
 }
 
 /**
- * Analyse les impacts de la suppression d'un artiste
+ * Analyzes the impact of deleting an artist
  */
 export async function analyzeArtistDeletionImpact(
 	supabase: SupabaseClientType,
@@ -265,7 +265,7 @@ export async function analyzeArtistDeletionImpact(
 }
 
 /**
- * Supprime un artiste de manière sécurisée (avec analyse d'impact)
+ * Deletes an artist safely, with impact analysis
  */
 export async function deleteArtistSafely(
 	supabase: SupabaseClientType,
@@ -304,7 +304,7 @@ export async function deleteArtistSafely(
 }
 
 /**
- * Supprime un artiste de manière simple (sans analyse poussée)
+ * Deletes an artist with the simple flow, without deep impact analysis
  */
 export async function deleteArtistSimply(
 	supabase: SupabaseClientType,

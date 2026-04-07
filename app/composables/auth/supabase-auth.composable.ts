@@ -8,7 +8,7 @@ export const useSupabaseAuth = () => {
 		error.value = null
 
 		try {
-			// Utiliser le client Supabase global
+			// Use the global Supabase client.
 			const supabase = useSupabaseClient()
 			const origin = import.meta.client ? window.location.origin : useRequestURL().origin
 			const {
@@ -142,7 +142,7 @@ export const useSupabaseAuth = () => {
 					if (!event.data || event.data.type !== 'comeback-auth') return
 
 					if (event.data.status === 'success') {
-						// Hydrater le client Supabase de la fenêtre principale avec la session de la popup
+						// Hydrate the main-window Supabase client with the popup session.
 						if (event.data.session?.access_token) {
 							try {
 								await supabase.auth.setSession({
@@ -170,7 +170,7 @@ export const useSupabaseAuth = () => {
 							reason?: string
 						}
 						if (payload.status === 'success') {
-							// Hydrater le client Supabase de la fenêtre principale avec la session de la popup
+							// Hydrate the main-window Supabase client with the popup session.
 							if (payload.session?.access_token) {
 								try {
 									await supabase.auth.setSession({
@@ -184,7 +184,7 @@ export const useSupabaseAuth = () => {
 							await handleAuthSuccess()
 						}
 					} catch {
-						// ignore malformed payloads
+						// Ignore malformed payloads.
 					} finally {
 						cleanupListeners()
 						localStorage.removeItem('comeback-auth')
@@ -206,7 +206,7 @@ export const useSupabaseAuth = () => {
 				window.addEventListener('focus', focusHandler)
 				document.addEventListener('visibilitychange', visibilityHandler)
 
-				// Fallback: poll session in case postMessage can't be delivered (COOP/COEP)
+				// Fallback: poll the session when postMessage cannot be delivered (COOP/COEP).
 				const maxWaitMs = 60_000
 				const startedAt = Date.now()
 				interval = setInterval(async () => {
@@ -236,7 +236,7 @@ export const useSupabaseAuth = () => {
 			const { ensureUserProfile } = useAuth()
 
 			if (user.value) {
-				// Synchroniser le profil utilisateur
+				// Sync the user profile.
 				await ensureUserProfile()
 
 				await navigateTo('/')

@@ -2,8 +2,8 @@
 	import 'animate.css'
 	import { useIntersectionObserver } from '@vueuse/core'
 
-	// L'initialisation de l'auth est gérée par useAuth() dans le plugin auth-init.client.ts
-	// Ne pas synchroniser useSupabaseUser() ici pour éviter les race conditions
+	// Auth initialization is handled by useAuth() in the auth-init client plugin
+	// Do not sync useSupabaseUser() here to avoid race conditions
 
 	const isPlayingVideo = useIsPlayingVideo()
 	const route = useRoute()

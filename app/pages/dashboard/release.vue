@@ -20,7 +20,6 @@
 	type DashboardArtistLike = { id: string; name: string }
 	type DashboardMusicLike = { id: string }
 
-	// Data state
 	const releasesList = ref<DashboardRelease[]>([])
 	const isLoading = ref(false)
 	const totalReleases = ref(0)
@@ -32,7 +31,6 @@
 	const selectedArtists = ref<string[]>([])
 	const selectedArtistsWithLabel = ref<ArtistMenuItem[]>([])
 
-	// Sorting state
 	const sortColumn = ref<keyof Release>('date')
 	const sortDirection = ref<'asc' | 'desc'>('desc')
 
@@ -77,7 +75,6 @@
 		{ label: '100 per page', id: 100 },
 	]
 
-	// Statistics
 	const stats = computed(() => {
 		let singles = 0
 		let albums = 0
@@ -286,7 +283,7 @@
 		}
 	}
 
-	// Clear artist selection
+	// Reset the selected artists
 	const clearArtistSelection = () => {
 		selectedArtists.value = []
 		selectedArtistsWithLabel.value = []
@@ -350,7 +347,6 @@
 
 <template>
 	<div class="scrollBarLight h-full space-y-4 overflow-y-auto p-6">
-		<!-- Header with stats -->
 		<div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 			<div class="flex items-center gap-4">
 				<div>
@@ -361,7 +357,6 @@
 				</div>
 			</div>
 
-			<!-- Stats cards -->
 			<div class="flex flex-wrap gap-2">
 				<div class="bg-cb-quaternary-950 rounded-lg px-3 py-1.5 text-center">
 					<p class="text-lg font-bold">{{ stats.total }}</p>
@@ -389,9 +384,7 @@
 			</div>
 		</div>
 
-		<!-- Filters -->
 		<div class="bg-cb-quaternary-950 space-y-3 rounded-lg p-4">
-			<!-- Row 1: Search + Type + Verified -->
 			<div class="flex flex-wrap items-center gap-3">
 				<UInput
 					v-model="search"
@@ -454,7 +447,6 @@
 				/>
 			</div>
 
-			<!-- Row 2: Artist filter -->
 			<div class="flex items-center gap-3">
 				<ArtistSearchSelect
 					v-model="selectedArtistsWithLabel"
@@ -480,14 +472,11 @@
 			</div>
 		</div>
 
-		<!-- Releases List -->
 		<div class="bg-cb-quaternary-950 overflow-hidden rounded-lg">
-			<!-- Loading state -->
 			<div v-if="isLoading && releasesList.length === 0" class="space-y-2 p-4">
 				<SkeletonDefault v-for="i in 5" :key="i" class="h-20 w-full rounded-lg" />
 			</div>
 
-			<!-- Empty state -->
 			<div v-else-if="!isLoading && releasesList.length === 0" class="py-16 text-center">
 				<UIcon
 					name="i-lucide-music"
@@ -496,7 +485,6 @@
 				<p class="text-cb-tertiary-500 mt-4">No release found</p>
 			</div>
 
-			<!-- Releases -->
 			<div v-else class="divide-cb-quinary-900 divide-y">
 				<div
 					v-for="release in releasesList"
@@ -504,7 +492,6 @@
 					class="hover:bg-cb-quinary-900/30 group flex items-center gap-4 p-3 transition-colors"
 					:class="isReleaseFlagged(release) ? 'bg-red-900/10' : ''"
 				>
-					<!-- Image -->
 					<NuxtLink :to="`/release/${release.id}`" class="shrink-0">
 						<NuxtImg
 							v-if="release.image"
@@ -521,7 +508,6 @@
 						</div>
 					</NuxtLink>
 
-					<!-- Info -->
 					<div class="min-w-0 flex-1">
 						<div class="flex items-center gap-2">
 							<NuxtLink
@@ -557,7 +543,6 @@
 						</div>
 					</div>
 
-					<!-- Musics count -->
 					<div
 						v-if="release.musics?.length"
 						class="text-cb-tertiary-500 hidden text-center md:block"
@@ -566,7 +551,6 @@
 						<p class="text-xs">tracks</p>
 					</div>
 
-					<!-- Actions -->
 					<div
 						class="flex shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100"
 					>
@@ -596,7 +580,6 @@
 				</div>
 			</div>
 
-			<!-- Pagination -->
 			<div
 				v-if="totalPages > 1"
 				class="border-cb-quinary-900 flex items-center justify-between border-t px-4 py-3"
@@ -612,7 +595,6 @@
 			</div>
 		</div>
 
-		<!-- Edit Modal -->
 		<UModal
 			v-model:open="isEditModalOpen"
 			title="Edit release"
@@ -708,7 +690,6 @@
 			</template>
 		</UModal>
 
-		<!-- Delete Confirmation Modal -->
 		<UModal v-model:open="isDeleteModalOpen">
 			<template #content>
 				<div class="bg-cb-secondary-950 space-y-5 p-6">

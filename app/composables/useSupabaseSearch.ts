@@ -26,14 +26,14 @@ interface SearchOptions {
 	type?: ArtistType
 }
 
-// Type pour les données brutes de l'artiste avec relations
+// Type for the data brutes the artist with relations
 type ArtistWithRelationsRaw = Tables<'artists'> & {
 	social_links?: Tables<'artist_social_links'>[] | null
 	platform_links?: Tables<'artist_platform_links'>[] | null
 	companies?: (Tables<'artist_companies'> & { company: Tables<'companies'> })[] | null
 }
 
-// Type pour les paramètres RPC
+// Type for RPC parameters
 interface SearchArtistsRpcParams {
 	search_query: string
 	result_limit: number
@@ -82,7 +82,7 @@ export function useSupabaseSearch() {
 			throw error
 		}
 
-		// Transformer les données pour assurer que les tableaux sont toujours définis
+		// Transform data to ensure arrays are always defined
 		const transformedData = (data || []).map((artist: ArtistWithRelationsRaw) => ({
 			...artist,
 			social_links: artist.social_links || [],
@@ -124,7 +124,7 @@ export function useSupabaseSearch() {
 			}
 
 			if (rpcData) {
-				// Transformer les données JSON en objets
+				// Transform the data JSON in objects
 				const transformedData = rpcData.map((artist: ArtistWithRelationsRaw) => ({
 					...artist,
 					social_links: artist.social_links || [],

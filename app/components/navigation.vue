@@ -14,12 +14,12 @@
 
 	const navbar = useTemplateRef('navbar')
 
-	// Computed pour vérifier si l'utilisateur est connecté
+	// Computed state to check whether the user is signed in
 	const isUserLoggedIn = computed(() => {
 		return Boolean(supabaseUser.value?.id) || (isHydrated.value && isLoginStore.value)
 	})
 
-	// Computed pour vérifier si l'utilisateur est admin
+	// Computed state to check whether the user is an admin
 	const isUserAdmin = computed(() => {
 		return isHydrated.value && isAdminStore.value
 	})
@@ -104,10 +104,10 @@
 		return groups
 	})
 
-	// Utiliser le composable Nuxt pour le scroll
+	// Use the Nuxt composable for scroll state
 	const { y: scrollY } = useWindowScroll()
 
-	// Watcher réactif pour le scroll
+	// Reactive watcher for scroll state
 	watch(
 		scrollY,
 		(newScrollY) => {
@@ -180,7 +180,6 @@
 					>
 						Rankings
 					</NuxtLink>
-					<!-- Liens utilisateur connecté rendus uniquement côté client pour éviter les problèmes d'hydratation SSR -->
 					<ClientOnly>
 						<NuxtLink
 							v-if="isUserAdmin"
@@ -197,7 +196,6 @@
 						placeholder="Search artists, releases, musics..."
 						container-class="w-full"
 					/>
-					<!-- Éléments utilisateur rendus côté client uniquement -->
 					<ClientOnly>
 						<ModalNewsCreation v-if="isUserLoggedIn" />
 						<UDropdownMenu

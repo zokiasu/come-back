@@ -4,7 +4,6 @@
 	import type { Company } from '~/types'
 	import { useInfiniteScroll } from '@vueuse/core'
 
-	// Types
 	interface FilterState {
 		onlyUnverified: boolean
 		onlyWithoutWebsite: boolean
@@ -12,7 +11,6 @@
 		onlyWithoutDescription: boolean
 	}
 
-	// État
 	const toast = useToast()
 	const { getAllCompanies, deleteCompany, getCompaniesStats, companyTypes } =
 		useSupabaseCompanies()
@@ -41,7 +39,6 @@
 		typeDistribution: {} as Record<string, number>,
 	})
 
-	// Filtres
 	const filterState = reactive<FilterState>({
 		onlyUnverified: false,
 		onlyWithoutWebsite: false,
@@ -49,26 +46,22 @@
 		onlyWithoutDescription: false,
 	})
 
-	// Computed
 	const observerTarget = useTemplateRef('observerTarget')
 
-	// État pour le modal de confirmation
 	const deleteModal = reactive({
 		isOpen: false,
 		companyId: '',
 		companyName: '',
 	})
 
-	// État pour le modal de création/édition
 	const editModal = reactive({
 		isOpen: false,
 		company: null as Company | null,
 		isCreating: true,
 	})
 
-	// Fonctions
 	/**
-	 * Charge les statistiques
+	 * Load the statistics
 	 */
 	const loadStats = async () => {
 		try {
@@ -100,21 +93,21 @@
 	}
 
 	/**
-	 * Confirme la suppression et met à jour la liste locale
+	 * Confirm deletion and update the local list
 	 */
 	const confirmDelete = async (): Promise<void> => {
 		try {
 			await deleteCompany(deleteModal.companyId)
 
-			// Supprimer la company de la liste locale
+			// Remove the company from the local list
 			companiesFetch.value = companiesFetch.value.filter(
 				(c) => c.id !== deleteModal.companyId,
 			)
 
-			// Mettre à jour le compteur total
+			// Update the total counter
 			totalCompanies.value = Math.max(0, totalCompanies.value - 1)
 
-			// Recharger les statistiques
+			// Recharger the statistiques
 			await loadStats()
 
 			closeDeleteModal()
@@ -124,7 +117,7 @@
 	}
 
 	/**
-	 * Ouvre le modal de création
+	 * Open the creation modal
 	 */
 	const openCreateModal = (): void => {
 		editModal.company = null
@@ -133,7 +126,7 @@
 	}
 
 	/**
-	 * Ouvre le modal d'édition
+	 * Open the edit modal
 	 */
 	const openEditModal = (company: Company): void => {
 		editModal.company = { ...company }
@@ -142,7 +135,7 @@
 	}
 
 	/**
-	 * Ferme le modal de création/édition
+	 * Close the create/edit modal
 	 */
 	const closeEditModal = (): void => {
 		editModal.isOpen = false
@@ -150,7 +143,7 @@
 	}
 
 	/**
-	 * Callback après création/modification réussie
+	 * Callback after a successful create or update
 	 */
 	const onCompanyUpdated = async (): Promise<void> => {
 		closeEditModal()
@@ -159,7 +152,7 @@
 	}
 
 	/**
-	 * Récupère les companies depuis Supabase
+	 * Fetch companies from Supabase
 	 */
 	const getCompanies = async (firstCall = false): Promise<void> => {
 		if (isLoading.value) return
@@ -207,27 +200,26 @@
 	}
 
 	/**
-	 * Change l'état des filtres "only without"
+	 * Toggle the "only without" filters
 	 */
 	const changeOnlyFilter = (filter: keyof FilterState): void => {
-		// Réinitialise tous les filtres
 		Object.keys(filterState).forEach((key) => {
 			filterState[key as keyof FilterState] = false
 		})
 
-		// Active uniquement le filtre sélectionné
+		// Keep only the selected filter active
 		filterState[filter] = !filterState[filter]
 	}
 
 	/**
-	 * Recherche avec debounce
+	 * Debounced search
 	 */
 	const performSearch = useDebounce(async () => {
 		await getCompanies(true)
 	}, 300)
 
 	/**
-	 * Charge toutes les companies restantes
+	 * Load all remaining companies
 	 */
 	const loadAllCompanies = async (): Promise<void> => {
 		while (currentPage.value <= totalPages.value && !isLoading.value) {
@@ -236,7 +228,7 @@
 	}
 
 	/**
-	 * Trie la liste des companies en fonction des critères
+	 * Sort the companies list based on the selected criteria
 	 */
 	const filteredCompaniesList = computed(() => {
 		if (!companiesFetch.value) return companiesFetch.value
@@ -287,7 +279,6 @@
 		await Promise.all([getCompanies(true), loadStats()])
 	})
 
-	// Watchers
 	watch(
 		[
 			limitFetch,
@@ -308,7 +299,7 @@
 		},
 	)
 
-	// Watcher pour la recherche
+	// Watcher for search input
 	watch(search, () => {
 		// Reset page to 1 when search changes
 		if (page.value !== 1) page.value = 1
@@ -318,7 +309,7 @@
 	definePageMeta({
 		middleware: ['admin'],
 		layout: 'dashboard',
-		ssr: false, // Dashboard admin en SPA
+		ssr: false, // Dashboard admin in SPA
 	})
 </script>
 
@@ -327,7 +318,6 @@
 		ref="scrollContainer"
 		class="scrollBarLight relative h-full space-y-3 overflow-hidden overflow-y-scroll p-6"
 	>
-		<!-- Statistics header -->
 		<section class="bg-cb-secondary-950 sticky top-0 z-20 w-full space-y-4 pb-4">
 			<div class="grid grid-cols-2 gap-2 md:grid-cols-4">
 				<div class="bg-cb-quinary-900 rounded p-3 text-center">
@@ -348,7 +338,6 @@
 				</div>
 			</div>
 
-			<!-- Search bar and add button -->
 			<div class="flex gap-2">
 				<div class="relative flex-1">
 					<input
@@ -367,7 +356,6 @@
 				</button>
 			</div>
 
-			<!-- Filters -->
 			<div class="flex w-full flex-col gap-2 sm:flex-row sm:justify-between">
 				<div class="flex w-fit flex-wrap justify-between gap-2 sm:flex-nowrap">
 					<button
@@ -448,7 +436,6 @@
 			</div>
 		</section>
 
-		<!-- Company list -->
 		<transition-group
 			v-if="filteredCompaniesList.length > 0"
 			id="companies-list"
@@ -485,7 +472,6 @@
 
 		<div ref="observerTarget" class="mb-4 h-4 w-full"></div>
 
-		<!-- Pagination info -->
 		<div
 			v-if="
 				filteredCompaniesList.length > 0 &&
@@ -511,7 +497,6 @@
 			</p>
 		</div>
 
-		<!-- Delete confirmation modal -->
 		<UModal v-model:open="deleteModal.isOpen">
 			<template #content>
 				<ModalConfirmDeleteCompany
@@ -523,7 +508,6 @@
 			</template>
 		</UModal>
 
-		<!-- Create/edit modal -->
 		<UModal v-model:open="editModal.isOpen">
 			<template #content>
 				<ModalCreateEditCompany

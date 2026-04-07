@@ -1,11 +1,11 @@
-// Ce plugin s'assure que le store utilisateur est hydraté après la restauration Pinia
-// pinia-plugin-persistedstate/nuxt gère automatiquement la restauration via afterHydrate
+// Ensure the user store is hydrated after Pinia state restoration
+// pinia-plugin-persistedstate/nuxt restores state automatically via afterHydrate
 export default defineNuxtPlugin(() => {
 	if (import.meta.client) {
 		const userStore = useUserStore()
 
-		// Si le store n'est pas encore hydraté (pas de données dans localStorage),
-		// marquer comme hydraté maintenant
+		// If the store is still not hydrated (no data in localStorage),
+		// mark it as hydrated now
 		if (!userStore.isHydrated) {
 			userStore.isHydrated = true
 		}

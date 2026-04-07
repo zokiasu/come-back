@@ -7,9 +7,7 @@
 			</p>
 		</div>
 
-		<!-- Onglets -->
 		<UTabs v-model="activeTab" :items="tabItems" class="w-full">
-			<!-- Recherche de musiques existantes -->
 			<template #search>
 				<div class="space-y-4">
 					<UInputMenu
@@ -87,7 +85,6 @@
 				</div>
 			</template>
 
-			<!-- Création de nouvelle musique -->
 			<template #create>
 				<UForm
 					:schema="musicSchema"
@@ -133,7 +130,6 @@
 						</UFormField>
 					</div>
 
-					<!-- IDs externes optionnels -->
 					<UAccordion
 						:items="[{ label: 'Advanced information (optional)', slot: 'advanced' }]"
 						variant="soft"
@@ -219,7 +215,6 @@
 		'id' | 'name' | 'description' | 'duration' | 'type' | 'artists'
 	>
 
-	// Props
 	interface Props {
 		releaseId: string
 		artistId: string
@@ -230,7 +225,6 @@
 		loading: false,
 	})
 
-	// Emits
 	const emit = defineEmits<{
 		'music-added': [music: Music]
 		'music-created': [music: Music]
@@ -240,7 +234,7 @@
 	const { getAllMusics, createMusic } = useSupabaseMusic()
 	const toast = useToast()
 
-	// Schema de validation
+	// Schema of validation
 	const musicSchema = z.object({
 		name: z.string().min(1, 'Title is required'),
 		type: z.enum(['SONG']).optional(),
@@ -254,7 +248,6 @@
 		verified: z.boolean().default(false),
 	})
 
-	// Onglets
 	const tabItems = [
 		{
 			label: 'Search',
@@ -266,7 +259,6 @@
 		},
 	]
 
-	// État
 	const activeTab = ref(0)
 	const isSearching = ref(false)
 	const selectedMusic = ref<MusicOption | null>(null)
@@ -274,7 +266,7 @@
 	const musicOptions = ref<MusicOption[]>([])
 	const searchTerm = ref('')
 
-	// Transformer les options de musique pour le menu (null -> undefined)
+	// Transform the options of music for the menu (null -> undefined)
 	const musicOptionsForMenu = computed((): MusicMenuItem[] => {
 		const options = musicOptions.value as MusicOption[]
 		return options.map(
@@ -290,7 +282,7 @@
 		)
 	})
 
-	// Formulaire de création de musique
+	// Formulaire of creation of music
 	const newMusicForm = reactive({
 		name: '',
 		type: 'SONG' as const,
@@ -317,7 +309,6 @@
 		{ label: 'Other', value: 'OTHER' },
 	]
 
-	// Fonctions utilitaires
 	const formatDuration = (seconds: number) => {
 		const minutes = Math.floor(seconds / 60)
 		const remainingSeconds = seconds % 60
@@ -329,7 +320,6 @@
 		return artists.map((a) => a.name).join(', ')
 	}
 
-	// Recherche de musiques
 	const onSearchTermChange = async (query: string) => {
 		searchTerm.value = query
 
@@ -366,10 +356,9 @@
 		}
 	}
 
-	// Sélection de musique
 	const onMusicSelected = (item: MusicMenuItem | undefined) => {
 		selectedMusicItem.value = item
-		// Retrouver l'objet Music complet depuis musicOptions
+		// Recover the full Music object from musicOptions
 		if (item) {
 			selectedMusic.value = musicOptions.value.find((m) => m.id === item.id) ?? null
 		} else {
@@ -422,7 +411,7 @@
 		}
 	}
 
-	// Réinitialiser le formulaire
+	// Reset the formulaire
 	const resetNewMusicForm = () => {
 		Object.assign(newMusicForm, {
 			name: '',

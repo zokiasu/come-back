@@ -15,7 +15,7 @@ export function useSupabaseCompanies() {
 	const { requireAuthHeaders } = useApiAuthHeaders()
 	const { runMutation } = useMutationTimeout()
 
-	// Types de companies disponibles (depuis les types Supabase constants)
+	// Available company types from the Supabase enum values
 	const companyTypes = [
 		'LABEL',
 		'PUBLISHER',
@@ -26,7 +26,7 @@ export function useSupabaseCompanies() {
 		'OTHER',
 	] as const
 
-	// Types de relations disponibles
+	// Available relation types
 	const relationshipTypes = [
 		'LABEL',
 		'PUBLISHER',
@@ -37,7 +37,7 @@ export function useSupabaseCompanies() {
 		'OTHER',
 	] as const
 
-	// Créer une nouvelle company
+	// Create a nouvelle company
 	const createCompany = async (
 		companyData: TablesInsert<'companies'>,
 	): Promise<Company> => {
@@ -70,7 +70,7 @@ export function useSupabaseCompanies() {
 		}
 	}
 
-	// Mettre à jour une company
+	// Update a company
 	const updateCompany = async (
 		companyId: string,
 		companyData: TablesUpdate<'companies'>,
@@ -104,7 +104,7 @@ export function useSupabaseCompanies() {
 		}
 	}
 
-	// Supprimer une company
+	// Delete a company
 	const deleteCompany = async (companyId: string) => {
 		try {
 			await runMutation(
@@ -134,7 +134,7 @@ export function useSupabaseCompanies() {
 		}
 	}
 
-	// Récupérer toutes les companies avec pagination et filtres
+	// Fetch all companies with pagination and filters
 	const getAllCompanies = async (
 		options?: QueryOptions &
 			FilterOptions & {
@@ -145,7 +145,6 @@ export function useSupabaseCompanies() {
 	): Promise<CompaniesResponse> => {
 		let query = supabase.from('companies').select('*', { count: 'exact' })
 
-		// Filtres
 		if (options?.type) {
 			query = query.eq('type', options.type)
 		}
@@ -160,7 +159,7 @@ export function useSupabaseCompanies() {
 			)
 		}
 
-		// Tri
+		// sorting
 		if (options?.orderBy) {
 			query = query.order(options.orderBy, {
 				ascending: options.orderDirection === 'asc',
@@ -198,7 +197,7 @@ export function useSupabaseCompanies() {
 		}
 	}
 
-	// Récupérer une company par ID
+	// Fetch a company by ID
 	const getCompanyById = async (companyId: string): Promise<Company> => {
 		const { data, error } = await supabase
 			.from('companies')
@@ -217,7 +216,7 @@ export function useSupabaseCompanies() {
 		return data as Company
 	}
 
-	// Vérifier si une company existe par nom
+	// Check whether a company exists by name
 	const companyExistsByName = async (name: string, excludeId?: string) => {
 		let query = supabase.from('companies').select('id').eq('name', name)
 
@@ -237,7 +236,7 @@ export function useSupabaseCompanies() {
 		return data && data.length > 0
 	}
 
-	// Lier une company à un artiste
+	// Link a company to an artist
 	const linkCompanyToArtist = async (
 		companyId: string,
 		artistId: string,
@@ -283,7 +282,7 @@ export function useSupabaseCompanies() {
 		}
 	}
 
-	// Supprimer une liaison company-artiste
+	// Delete a company-artist relation
 	const unlinkCompanyFromArtist = async (relationId: string) => {
 		try {
 			await runMutation(
@@ -313,7 +312,7 @@ export function useSupabaseCompanies() {
 		}
 	}
 
-	// Mettre à jour une relation company-artiste
+	// Update a relation company-artist
 	const updateCompanyArtistRelation = async (
 		relationId: string,
 		updates: TablesUpdate<'artist_companies'>,
@@ -347,7 +346,7 @@ export function useSupabaseCompanies() {
 		}
 	}
 
-	// Récupérer les artistes d'une company
+	// Fetch the artists of a company
 	const getCompanyArtists = async (companyId: string): Promise<CompanyArtist[]> => {
 		const { data, error } = await supabase
 			.from('artist_companies')
@@ -378,7 +377,7 @@ export function useSupabaseCompanies() {
 		return (data as CompanyArtist[]) || []
 	}
 
-	// Récupérer les companies d'un artiste
+	// Fetch the companies of a artist
 	const getArtistCompanies = async (artistId: string): Promise<CompanyArtist[]> => {
 		const { data, error } = await supabase
 			.from('artist_companies')
@@ -402,7 +401,7 @@ export function useSupabaseCompanies() {
 		return (data as CompanyArtist[]) || []
 	}
 
-	// Statistiques des companies
+	// Statistiques the companies
 	const getCompaniesStats = async () => {
 		const { data: totalCompanies } = await supabase
 			.from('companies')
@@ -424,7 +423,7 @@ export function useSupabaseCompanies() {
 
 		const { data: typeStats } = await supabase.from('companies').select('type')
 
-		// Compter par type
+		// Count by type
 		const typeDistribution =
 			typeStats?.reduce((acc: Record<string, number>, company) => {
 				const type = company.type || 'OTHER'
@@ -442,7 +441,6 @@ export function useSupabaseCompanies() {
 	}
 
 	return {
-		// CRUD operations
 		createCompany,
 		updateCompany,
 		deleteCompany,

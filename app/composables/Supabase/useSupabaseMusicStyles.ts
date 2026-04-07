@@ -5,7 +5,7 @@ export function useSupabaseMusicStyles() {
 	const supabase = useSupabaseClient<Database>()
 	const { runMutation } = useMutationTimeout()
 
-	// Crée un nouveau style
+	// Creates a nouveau style
 	const createMusicStyle = async (
 		data: TablesInsert<'music_styles'>,
 	): Promise<MusicStyle> => {
@@ -22,7 +22,7 @@ export function useSupabaseMusicStyles() {
 		return style as MusicStyle
 	}
 
-	// Met à jour un style
+	// Updates a style
 	const updateMusicStyle = async (
 		id: string,
 		updates: TablesUpdate<'music_styles'>,
@@ -40,7 +40,7 @@ export function useSupabaseMusicStyles() {
 		return data as MusicStyle
 	}
 
-	// Supprime un style
+	// Deletes a style
 	const deleteMusicStyle = async (name: string) => {
 		const { error } = await runMutation(
 			supabase.from('music_styles').delete().eq('name', name),
@@ -55,7 +55,7 @@ export function useSupabaseMusicStyles() {
 		return true
 	}
 
-	// Récupère tous les styles
+	// Fetch all styles
 	const getAllMusicStyles = async (
 		options?: QueryOptions & FilterOptions,
 	): Promise<MusicStyle[]> => {
@@ -91,7 +91,7 @@ export function useSupabaseMusicStyles() {
 		return data as MusicStyle[]
 	}
 
-	// Récupère un style par son ID
+	// Fetch a style by ID
 	const getMusicStyleById = async (id: string): Promise<MusicStyle> => {
 		const { data, error } = await supabase
 			.from('music_styles')
@@ -107,7 +107,7 @@ export function useSupabaseMusicStyles() {
 		return data as MusicStyle
 	}
 
-	// Récupère tous les noms de styles uniquement (optimisé pour les filtres)
+	// Fetches all style names only (optimized for filters)
 	const getAllMusicStyleNames = async (): Promise<string[]> => {
 		const { data, error } = await supabase
 			.from('music_styles')

@@ -69,7 +69,6 @@
 			class="bg-cb-secondary-950/95 border-cb-quinary-900/70 mx-auto flex h-full w-full flex-col overflow-hidden rounded-3xl border shadow-xl shadow-black/40 backdrop-blur sm:h-3/4 sm:max-h-[600px] sm:max-w-md"
 			@click.stop
 		>
-			<!-- Header -->
 			<div
 				class="border-cb-quinary-900/70 flex flex-shrink-0 items-center justify-between border-b px-5 py-4"
 			>
@@ -101,7 +100,6 @@
 				</div>
 			</div>
 
-			<!-- Playlist Content -->
 			<div class="flex min-h-0 flex-1 flex-col">
 				<div class="border-cb-quinary-900/70 flex-shrink-0 border-b px-4 py-3">
 					<UInput
@@ -112,7 +110,6 @@
 					/>
 				</div>
 
-				<!-- Empty State -->
 				<div
 					v-if="!playlistInfo.isActive || playlist.length === 0"
 					class="flex flex-1 flex-col items-center justify-center p-8 text-center"
@@ -135,7 +132,6 @@
 					No results for this search.
 				</div>
 
-				<!-- Playlist Items -->
 				<div
 					v-else
 					class="scrollbar-thin scrollbar-thumb-cb-quinary-900 scrollbar-track-transparent flex-1 overflow-y-auto"
@@ -298,7 +294,6 @@
 					</div>
 				</div>
 
-				<!-- Footer Info -->
 				<div
 					v-if="playlistInfo.isActive && playlist.length > 0"
 					class="border-cb-quinary-900/70 flex-shrink-0 border-t px-4 py-3"

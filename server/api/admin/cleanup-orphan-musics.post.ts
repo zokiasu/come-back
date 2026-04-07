@@ -9,7 +9,7 @@ export default defineEventHandler(async (event) => {
 	const dryRun = query.dryRun === 'true'
 
 	try {
-		// Récupérer toutes les musiques
+		// Fetch all musics
 		const { data: allMusics, error: musicsError } = await supabase
 			.from('musics')
 			.select('id, name')
@@ -23,7 +23,7 @@ export default defineEventHandler(async (event) => {
 
 		const totalMusics = allMusics?.length || 0
 
-		// Récupérer toutes les relations music_releases
+		// Fetch all music_releases relations
 		const { data: musicReleases, error: relError } = await supabase
 			.from('music_releases')
 			.select('music_id')
@@ -35,10 +35,10 @@ export default defineEventHandler(async (event) => {
 			})
 		}
 
-		// Créer un Set des music_id liées à des releases
+		// Create a set of music_id values linked to releases
 		const linkedMusicIds = new Set(musicReleases?.map((r) => r.music_id) || [])
 
-		// Trouver les musiques orphelines
+		// Find orphaned musics
 		const orphanMusics = allMusics?.filter((m) => !linkedMusicIds.has(m.id)) || []
 
 		if (orphanMusics.length === 0) {
@@ -67,14 +67,14 @@ export default defineEventHandler(async (event) => {
 					orphanMusics: orphanMusics.length,
 					deleted: 0,
 				},
-				orphanMusics: orphanMusics.slice(0, 20), // Limiter pour la preview
+				orphanMusics: orphanMusics.slice(0, 20), // Limit for the preview
 			}
 		}
 
 		// Track partial errors
 		const partialErrors: { table: string; error: string }[] = []
 
-		// Supprimer les relations music_artists
+		// Delete the relations music_artists
 		const { error: deleteArtistsError } = await supabase
 			.from('music_artists')
 			.delete()
@@ -85,7 +85,7 @@ export default defineEventHandler(async (event) => {
 			partialErrors.push({ table: 'music_artists', error: deleteArtistsError.message })
 		}
 
-		// Supprimer les musiques orphelines
+		// Delete orphaned musics
 		const { error: deleteMusicsError } = await supabase
 			.from('musics')
 			.delete()

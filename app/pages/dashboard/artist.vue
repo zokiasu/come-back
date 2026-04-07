@@ -18,7 +18,6 @@
 		console.warn(`[DashboardArtist] ${step}`)
 	}
 
-	// Data state
 	const artistsList = ref<Artist[]>([])
 	const isLoading = ref(false)
 	const totalArtists = ref(0)
@@ -34,7 +33,6 @@
 
 	const nationalitiesList = ref<Nationality[]>([])
 
-	// Sorting state
 	const sortColumn = ref<keyof Artist>('name')
 	const sortDirection = ref<'asc' | 'desc'>('asc')
 
@@ -118,7 +116,6 @@
 		{ label: '100 per page', id: 100 },
 	]
 
-	// Statistics
 	const stats = computed(() => {
 		let solos = 0
 		let groups = 0
@@ -293,8 +290,8 @@
 	}
 
 	const confirmDelete = () => {
-		// La suppression est gérée par le composant ModalConfirmDeleteArtist
-		// On ferme juste le modal et on refresh
+		// Deletion is handled by the ModalConfirmDeleteArtist component
+		// On ferme juste the modal and on refresh
 		isDeleteModalOpen.value = false
 		deletingArtist.value = null
 		fetchArtists()
@@ -402,7 +399,6 @@
 
 <template>
 	<div class="scrollBarLight h-full space-y-4 overflow-y-auto p-6">
-		<!-- Header with stats -->
 		<div class="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
 			<div>
 				<h1 class="text-2xl font-bold">Artist Management</h1>
@@ -411,7 +407,6 @@
 				</p>
 			</div>
 
-			<!-- Stats cards -->
 			<div class="flex flex-wrap gap-2">
 				<div class="bg-cb-quaternary-950 rounded-lg px-3 py-1.5 text-center">
 					<p class="text-lg font-bold">{{ stats.total }}</p>
@@ -443,9 +438,7 @@
 			</div>
 		</div>
 
-		<!-- Filters -->
 		<div class="bg-cb-quaternary-950 space-y-3 rounded-lg p-4">
-			<!-- Row 1: Search + Type + Gender + Style + Career -->
 			<div class="flex flex-wrap items-center gap-3">
 				<UInput
 					v-model="search"
@@ -496,7 +489,6 @@
 				/>
 			</div>
 
-			<!-- Row 2: Missing filter + Sort + Page size + Refresh -->
 			<div class="flex flex-wrap items-center gap-3">
 				<USelectMenu
 					v-model="missingFilter"
@@ -544,7 +536,6 @@
 			</div>
 		</div>
 
-		<!-- Top Pagination -->
 		<div
 			v-if="totalPages > 1"
 			class="border-cb-quinary-900 bg-cb-quaternary-950 flex items-center justify-between rounded-lg border px-4 py-3"
@@ -559,14 +550,11 @@
 			/>
 		</div>
 
-		<!-- Artists List -->
 		<div class="bg-cb-quaternary-950 overflow-hidden rounded-lg">
-			<!-- Loading state -->
 			<div v-if="isLoading && artistsList.length === 0" class="space-y-2 p-4">
 				<SkeletonDefault v-for="i in 5" :key="i" class="h-16 w-full rounded-lg" />
 			</div>
 
-			<!-- Empty state -->
 			<div v-else-if="!isLoading && artistsList.length === 0" class="py-16 text-center">
 				<UIcon
 					name="i-lucide-users"
@@ -575,7 +563,6 @@
 				<p class="text-cb-tertiary-500 mt-4">No artist found</p>
 			</div>
 
-			<!-- Artists -->
 			<div v-else class="divide-cb-quinary-900 divide-y">
 				<div
 					v-for="artist in artistsList"
@@ -583,7 +570,6 @@
 					class="hover:bg-cb-quinary-900/30 group flex items-center gap-4 p-3 transition-colors"
 					:class="{ 'bg-gray-900/20': getMissingData(artist).length > 0 }"
 				>
-					<!-- Image -->
 					<NuxtLink :to="`/artist/${artist.id}`" class="shrink-0">
 						<NuxtImg
 							v-if="artist.image"
@@ -600,7 +586,6 @@
 						</div>
 					</NuxtLink>
 
-					<!-- Info -->
 					<div class="min-w-0 flex-1">
 						<div class="flex flex-wrap items-center gap-2">
 							<NuxtLink
@@ -629,7 +614,6 @@
 							</UBadge>
 						</div>
 
-						<!-- Description excerpt -->
 						<p
 							v-if="artist.description"
 							class="text-cb-tertiary-500 mt-0.5 line-clamp-1 text-xs"
@@ -638,7 +622,6 @@
 							{{ artist.description }}
 						</p>
 
-						<!-- Styles -->
 						<div
 							v-if="artist.styles && artist.styles.length"
 							class="mt-1 flex flex-wrap gap-1"
@@ -655,7 +638,6 @@
 							</span>
 						</div>
 
-						<!-- Groups -->
 						<div
 							v-if="artist.groups && artist.groups.length"
 							class="mt-1 flex flex-wrap items-center gap-1"
@@ -671,9 +653,7 @@
 							</NuxtLink>
 						</div>
 
-						<!-- Missing data indicators & counts -->
 						<div class="mt-1 flex flex-wrap items-center gap-2">
-							<!-- Missing description -->
 							<span
 								v-if="getMissingData(artist).includes('desc')"
 								class="text-xs text-gray-400"
@@ -682,7 +662,6 @@
 								<UIcon name="i-lucide-file-text" class="size-3.5" />
 								desc
 							</span>
-							<!-- Missing styles -->
 							<span
 								v-if="getMissingData(artist).includes('styles')"
 								class="text-xs text-gray-400"
@@ -691,7 +670,6 @@
 								<UIcon name="i-lucide-tag" class="size-3.5" />
 								styles
 							</span>
-							<!-- Socials count or missing -->
 							<span
 								v-if="artist.social_links && artist.social_links.length > 0"
 								class="text-xs text-green-500"
@@ -704,7 +682,6 @@
 								<UIcon name="i-lucide-share-2" class="size-3.5" />
 								socials
 							</span>
-							<!-- Platforms count or missing -->
 							<span
 								v-if="artist.platform_links && artist.platform_links.length > 0"
 								class="text-xs text-green-500"
@@ -727,13 +704,11 @@
 						</span>
 					</div>
 
-					<!-- Dates -->
 					<div class="text-cb-tertiary-500 hidden text-right text-xs lg:block">
 						<p>Created: {{ formatDate(artist.created_at) }}</p>
 						<p>Updated: {{ formatDate(artist.updated_at) }}</p>
 					</div>
 
-					<!-- Actions -->
 					<div
 						class="flex shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100"
 					>
@@ -783,7 +758,6 @@
 				</div>
 			</div>
 
-			<!-- Pagination -->
 			<div
 				v-if="totalPages > 1"
 				class="border-cb-quinary-900 flex items-center justify-between border-t px-4 py-3"
@@ -799,7 +773,6 @@
 			</div>
 		</div>
 
-		<!-- Delete Confirmation Modal -->
 		<ModalConfirmDeleteArtist
 			:is-open="isDeleteModalOpen"
 			:artist-id="deletingArtist?.id || ''"
@@ -808,7 +781,6 @@
 			@confirm="confirmDelete"
 		/>
 
-		<!-- Ban Confirmation Modal -->
 		<ModalBanArtist
 			:is-open="isBanModalOpen"
 			:artist-id="banningArtist?.id || ''"

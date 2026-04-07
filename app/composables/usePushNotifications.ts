@@ -63,8 +63,8 @@ export function usePushNotifications() {
 				"L'abonnement aux notifications a expiré.",
 			)
 		} catch (err) {
-			// Le serveur n'a pas enregistré la subscription — annuler côté navigateur
-			// pour éviter une désynchronisation (browser abonné, backend sans enregistrement)
+			// The server did not persist the subscription, so cancel it in the browser
+			// to avoid desynchronization (subscribed browser, missing backend record)
 			await sub.unsubscribe()
 			throw err
 		}

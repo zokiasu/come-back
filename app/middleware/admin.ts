@@ -8,16 +8,16 @@ export default defineNuxtRouteMiddleware(async (_to, _from) => {
 	const user = useSupabaseUser()
 	const userStore = useUserStore()
 
-	// SSR: Laisser passer, la vérification complète se fait côté client
-	// Les pages dashboard sont en mode SPA (ssr: false) donc ce code ne devrait pas s'exécuter
+	// SSR: allow through; the full check runs client-side
+	// Dashboard pages run in SPA mode (ssr: false), so this code should not execute
 	if (import.meta.server) {
 		return
 	}
 
-	// Client: Vérifications complètes
+	// client-side checks
 	const { ensureAuthInitialized, userData } = useAuth()
 
-	// Attendre l'initialisation de l'auth (restauration session + localStorage)
+	// Wait for the initialisation the auth (restauration session + localStorage)
 	try {
 		await Promise.race([
 			ensureAuthInitialized(),
@@ -26,11 +26,11 @@ export default defineNuxtRouteMiddleware(async (_to, _from) => {
 			),
 		])
 	} catch {
-		// Timeout - continuer avec les vérifications
+		// On timeout, continue with the remaining checks
 	}
 
-	// Attendre que les données utilisateur soient disponibles
-	// (soit depuis Supabase, soit depuis localStorage via Pinia)
+	// Wait until user data is available
+	// (either from Supabase or from `localStorage` through Pinia)
 	let attempts = 0
 	while (
 		!userData.value &&
@@ -41,7 +41,7 @@ export default defineNuxtRouteMiddleware(async (_to, _from) => {
 		attempts++
 	}
 
-	// Vérifier la connexion (Supabase OU données persistées dans le store)
+	// Check authentication (Supabase or persisted store data)
 	const isAuthenticated =
 		!!user.value?.id || (!!userStore.userDataStore && userStore.isLoginStore)
 
@@ -49,7 +49,7 @@ export default defineNuxtRouteMiddleware(async (_to, _from) => {
 		return navigateTo('/?authError=auth_required')
 	}
 
-	// Vérifier les permissions admin
+	// Check the permissions admin
 	const isAdmin = userStore.isAdminStore || userData.value?.role === 'ADMIN'
 
 	if (!isAdmin) {

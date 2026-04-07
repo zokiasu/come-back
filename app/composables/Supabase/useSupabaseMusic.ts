@@ -8,7 +8,7 @@ import type {
 } from '~/types'
 import type { Database } from '~/types/supabase'
 
-// Types pour les données jointes
+// Types for the data jointes
 interface ArtistJunction {
 	artist: Artist
 }
@@ -36,7 +36,7 @@ export function useSupabaseMusic() {
 	const { requireAuthHeaders } = useApiAuthHeaders()
 	const { runMutation } = useMutationTimeout()
 
-	// Met à jour une musique
+	// Updates a music
 	const updateMusic = async (
 		id: string,
 		updates: Partial<Database['public']['Tables']['musics']['Update']>,
@@ -115,7 +115,7 @@ export function useSupabaseMusic() {
 		}
 	}
 
-	// Supprime une musique
+	// Deletes a music
 	const deleteMusic = async (id: string) => {
 		try {
 			await runMutation(
@@ -140,7 +140,7 @@ export function useSupabaseMusic() {
 		}
 	}
 
-	// Récupère toutes les musiques
+	// Fetch all musics
 	const getAllMusics = async (options?: QueryOptions & FilterOptions) => {
 		let query = supabase.from('musics').select('*')
 
@@ -149,8 +149,8 @@ export function useSupabaseMusic() {
 		}
 
 		if (options?.type) {
-			// Limitation : la colonne 'type' dans Supabase n'accepte que 'SONG'
-			// Cast temporaire car MusicType ne contient pas 'SONG' dans le projet
+			// Limitation : the colonne 'type' in Supabase n'accepte que 'SONG'
+			// Cast temporaire car MusicType ne contient not 'SONG' in the projet
 			if (options.type === 'SONG') {
 				query = query.eq('type', 'SONG')
 			}
@@ -186,12 +186,12 @@ export function useSupabaseMusic() {
 		return data as Music[]
 	}
 
-	// Récupère une musique avec tous ses détails
+	// Fetches a music with all details
 	const getMusicById = async (id: string) => {
 		if (!id) return null
 
 		try {
-			// Récupérer la musique
+			// Fetch the music
 			const { data: music, error: musicError } = await supabase
 				.from('musics')
 				.select('*')
@@ -200,7 +200,7 @@ export function useSupabaseMusic() {
 
 			if (musicError) throw musicError
 
-			// Récupérer les artistes associés
+			// Fetch related artists
 			const { data: artists, error: artistsError } = await supabase
 				.from('music_artists')
 				.select(
@@ -212,7 +212,7 @@ export function useSupabaseMusic() {
 
 			if (artistsError) throw artistsError
 
-			// Récupérer les releases associées
+			// Fetch related releases
 			const { data: releases, error: releasesError } = await supabase
 				.from('music_releases')
 				.select(
@@ -235,7 +235,7 @@ export function useSupabaseMusic() {
 		}
 	}
 
-	// Récupère une musique par son ID (version légère)
+	// Fetches a music by ID (lightweight version)
 	const getMusicByIdLight = async (id: string) => {
 		const { data, error } = await supabase
 			.from('musics')
@@ -251,7 +251,7 @@ export function useSupabaseMusic() {
 		return data as Music
 	}
 
-	// Récupère les dernières musiques ajoutées en temps réel
+	// Fetches the latest musics added in real time
 	const getRealtimeLatestMusicsAdded = async (
 		limitNumber: number,
 		callback: (musics: Music[]) => void,
@@ -270,10 +270,10 @@ export function useSupabaseMusic() {
 		callback(data as Music[])
 	}
 
-	// Récupère un nombre aléatoire de musiques
+	// Fetches random musics
 	const getRandomMusics = async (count: number) => {
 		try {
-			// 1. Récupérer des IDs aléatoires avec une requête SQL brute
+			// 1. Fetch random IDs with a raw SQL query
 			const { data: randomMusics, error: randomError } = await supabase.rpc(
 				'get_random_music_ids',
 				{ count_param: count },
@@ -289,7 +289,7 @@ export function useSupabaseMusic() {
 
 			const randomIds = (randomMusics as { id: string }[]).map((m) => m.id)
 
-			// 2. Récupérer les détails complets pour ces IDs spécifiques
+			// 2. Fetch full details for those specific IDs
 			const { data: detailedMusics, error: detailsError } = await supabase
 				.from('musics')
 				.select(
@@ -310,7 +310,7 @@ export function useSupabaseMusic() {
 				return []
 			}
 
-			// Transformer les données
+			// Transform the data
 			const formattedData = (detailedMusics as MusicWithRelations[]).map((music) => ({
 				...music,
 				artists: music.artists?.map((a: ArtistJunction) => a.artist) || [],
@@ -324,13 +324,13 @@ export function useSupabaseMusic() {
 		}
 	}
 
-	// Récupère un nombre aléatoire de musiques liées à un artiste
+	// Fetch random musics linked to an artist
 	const getRandomMusicsByArtistId = async (
 		artistId: string,
 		count: number,
 	): Promise<Music[]> => {
 		try {
-			// 1. Récupérer des IDs aléatoires de musiques liées à l'artiste
+			// 1. Fetch random IDs of musics linked to the artist
 			const { data: randomMusics, error: randomError } = await supabase.rpc(
 				'get_random_music_ids_by_artist',
 				{
@@ -349,7 +349,7 @@ export function useSupabaseMusic() {
 
 			const randomIds = (randomMusics as { id: string }[]).map((m) => m.id)
 
-			// 2. Récupérer les détails complets pour ces IDs spécifiques
+			// 2. Fetch full details for those specific IDs
 			const { data: detailedMusics, error: detailsError } = await supabase
 				.from('musics')
 				.select(
@@ -370,7 +370,7 @@ export function useSupabaseMusic() {
 				return []
 			}
 
-			// Transformer les données
+			// Transform the data
 			const formattedData = (detailedMusics as MusicWithRelations[]).map((music) => ({
 				...music,
 				artists: music.artists?.map((a: ArtistJunction) => a.artist) || [],
@@ -387,7 +387,7 @@ export function useSupabaseMusic() {
 		}
 	}
 
-	// Créer une musique avec relations artistes
+	// Create a music with relations artists
 	const createMusic = async (
 		musicData: Partial<Database['public']['Tables']['musics']['Insert']>,
 		artistIds: string[],
@@ -419,7 +419,7 @@ export function useSupabaseMusic() {
 		}
 	}
 
-	// Ajouter une musique à une release
+	// Add a music to a release
 	const addMusicToRelease = async (
 		musicId: string,
 		releaseId: string,
@@ -449,7 +449,7 @@ export function useSupabaseMusic() {
 		}
 	}
 
-	// Retirer une musique d'une release
+	// Remove a music of a release
 	const removeMusicFromRelease = async (
 		musicId: string,
 		releaseId: string,
@@ -478,7 +478,7 @@ export function useSupabaseMusic() {
 		}
 	}
 
-	// Récupère les musiques par page avec pagination et filtres avancés
+	// Fetches musics by page with pagination and advanced filters
 	const getMusicsByPage = async (
 		page: number,
 		limit: number,
@@ -498,7 +498,7 @@ export function useSupabaseMusic() {
 		},
 	) => {
 		try {
-			// Construire les query params
+			// Build the query params
 			const params: Record<string, string> = {
 				page: page.toString(),
 				limit: limit.toString(),
@@ -508,7 +508,7 @@ export function useSupabaseMusic() {
 				params.search = options.search
 			}
 
-			// Support pour multi-années OU année unique
+			// Support for multi-years or year unique
 			if (options?.years && options.years.length > 0) {
 				params.years = options.years.join(',')
 			} else if (options?.year !== undefined && options.year !== null) {
@@ -527,19 +527,19 @@ export function useSupabaseMusic() {
 				params.ismv = options.ismv.toString()
 			}
 
-			// Support pour multi-artistes OU artiste unique
+			// Support for multi-artists or artist unique
 			if (options?.artistIds && options.artistIds.length > 0) {
 				params.artistIds = options.artistIds.join(',')
 			} else if (options?.artistId) {
 				params.artistIds = options.artistId
 			}
 
-			// Support pour multi-styles
+			// Support for multi-styles
 			if (options?.styles && options.styles.length > 0) {
 				params.styles = options.styles.join(',')
 			}
 
-			// Appeler l'endpoint API optimisé
+			// Call the optimized API endpoint
 			const result = await $fetch<PaginatedMusicsResponse>('/api/musics/paginated', {
 				params,
 			})
@@ -551,7 +551,7 @@ export function useSupabaseMusic() {
 		}
 	}
 
-	// Récupère les derniers MV ajoutés
+	// Fetches the latest added MVs
 	const getLatestMVs = async (count: number = 7): Promise<Music[]> => {
 		try {
 			const { data, error } = await supabase

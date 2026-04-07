@@ -1,6 +1,5 @@
 <template>
 	<div class="container mx-auto min-h-screen p-5">
-		<!-- Loading state -->
 		<div v-if="isLoading" class="flex items-center justify-center py-20">
 			<UIcon
 				name="line-md:loading-twotone-loop"
@@ -8,7 +7,6 @@
 			/>
 		</div>
 
-		<!-- Not found state -->
 		<div
 			v-else-if="!ranking"
 			class="bg-cb-quaternary-950 flex flex-col items-center justify-center rounded-lg py-20"
@@ -21,9 +19,7 @@
 			<UButton label="Back to explore" color="primary" to="/ranking/explore" />
 		</div>
 
-		<!-- Ranking content -->
 		<div v-else>
-			<!-- Header -->
 			<div class="mb-6">
 				<div class="flex items-start gap-4">
 					<UButton
@@ -38,7 +34,6 @@
 							{{ ranking.description }}
 						</p>
 
-						<!-- User info -->
 						<div class="mt-3 flex items-center gap-2">
 							<NuxtImg
 								v-if="ranking.user?.photo_url"
@@ -65,7 +60,6 @@
 					</div>
 				</div>
 
-				<!-- Action buttons -->
 				<div class="mt-4 flex flex-wrap gap-2">
 					<UButton
 						icon="i-lucide-play"
@@ -85,7 +79,6 @@
 				</div>
 			</div>
 
-			<!-- Cover grid -->
 			<div class="mb-6 aspect-video max-w-md overflow-hidden rounded-lg">
 				<div class="grid h-full w-full grid-cols-2 grid-rows-2">
 					<div
@@ -108,7 +101,6 @@
 				</div>
 			</div>
 
-			<!-- Empty ranking -->
 			<div
 				v-if="ranking.items.length === 0"
 				class="bg-cb-quaternary-950 flex flex-col items-center justify-center rounded-lg py-12"
@@ -117,19 +109,16 @@
 				<p class="text-cb-tertiary-500 text-sm">This ranking is empty</p>
 			</div>
 
-			<!-- Music list -->
 			<div v-else class="space-y-2">
 				<div
 					v-for="(item, index) in ranking.items"
 					:key="item.id"
 					class="bg-cb-quaternary-950 hover:bg-cb-quinary-900 flex items-center gap-3 rounded-lg p-3 transition-colors"
 				>
-					<!-- Position -->
 					<div class="text-cb-tertiary-500 w-8 text-center text-lg font-bold">
 						{{ index + 1 }}
 					</div>
 
-					<!-- Thumbnail -->
 					<div
 						class="bg-cb-quinary-900 relative size-14 shrink-0 overflow-hidden rounded"
 					>
@@ -144,7 +133,6 @@
 						<div v-else class="flex h-full w-full items-center justify-center">
 							<UIcon name="i-lucide-music" class="text-cb-tertiary-500 size-6" />
 						</div>
-						<!-- MV badge -->
 						<div
 							v-if="item.music.ismv"
 							class="absolute right-0.5 bottom-0.5 rounded bg-black/70 px-1 py-0.5 text-[10px] font-medium"
@@ -153,7 +141,6 @@
 						</div>
 					</div>
 
-					<!-- Info -->
 					<div class="min-w-0 flex-1">
 						<h4 class="truncate font-medium">
 							{{ item.music.name || item.music.title }}
@@ -175,9 +162,7 @@
 						</div>
 					</div>
 
-					<!-- Actions -->
 					<div class="flex shrink-0 items-center gap-2">
-						<!-- MV button -->
 						<a
 							v-if="item.music.ismv && item.music.id_youtube_music"
 							:href="`https://www.youtube.com/watch?v=${item.music.id_youtube_music}`"
@@ -189,7 +174,6 @@
 							<span>MV</span>
 						</a>
 
-						<!-- Play button -->
 						<button
 							v-if="item.music.id_youtube_music"
 							class="flex size-10 items-center justify-center rounded-full transition-colors"

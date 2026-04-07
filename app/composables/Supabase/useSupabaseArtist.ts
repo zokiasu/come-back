@@ -29,12 +29,12 @@ export function useSupabaseArtist() {
 	const { requireAuthHeaders } = useApiAuthHeaders()
 	const { runMutation } = useMutationTimeout()
 
-	// Vérifie si un artiste existe avec l'ID YouTube Music
+	// Checks whether an artist exists with the YouTube Music ID
 	const artistExistInSupabase = (idYoutubeMusic: string | null): Promise<boolean> => {
 		return checkArtistExists(supabase, idYoutubeMusic)
 	}
 
-	// Crée un nouvel artiste
+	// Creates a nouvel artist
 	const createArtist = async (
 		data: TablesInsert<'artists'>,
 		artistSocials: Omit<TablesInsert<'artist_social_links'>, 'artist_id'>[],
@@ -93,7 +93,7 @@ export function useSupabaseArtist() {
 		}
 	}
 
-	// Met à jour un artiste
+	// Updates a artist
 	const updateArtist = async (
 		artistId: string,
 		updates: TablesUpdate<'artists'>,
@@ -134,14 +134,14 @@ export function useSupabaseArtist() {
 		}
 	}
 
-	// Analyse les impacts de la suppression d'un artiste
+	// Analyse the impacts the suppression of a artist
 	const getArtistDeletionImpact = async (id: string) => {
 		return $fetch(`/api/artists/${id}/analyze-deletion`, {
 			headers: requireAuthHeaders(),
 		})
 	}
 
-	// Supprime un artiste de manière sécurisée
+	// Delete an artist with the safe flow
 	const deleteArtist = async (id: string) => {
 		try {
 			const data = await runMutation(
@@ -173,7 +173,7 @@ export function useSupabaseArtist() {
 		}
 	}
 
-	// Supprime un artiste de manière simple
+	// Delete an artist with the simple flow
 	const deleteArtistSimple = async (id: string) => {
 		try {
 			const data = await runMutation(
@@ -213,7 +213,7 @@ export function useSupabaseArtist() {
 		}
 	}
 
-	// Fonction utilitaire pour choisir le mode de suppression
+	// Helper to choose the deletion mode
 	const deleteArtistWithMode = async (id: string, mode: 'safe' | 'simple' = 'safe') => {
 		if (mode === 'simple') {
 			return await deleteArtistSimple(id)
@@ -221,32 +221,32 @@ export function useSupabaseArtist() {
 		return await deleteArtist(id)
 	}
 
-	// Récupère tous les artistes
+	// Fetch all artists
 	const getAllArtists = (options?: QueryOptions & FilterOptions) => {
 		return fetchAllArtists(supabase, options)
 	}
 
-	// Récupère tous les artistes (version légère)
+	// Fetch all artists (lightweight version)
 	const getAllArtistsLight = () => {
 		return fetchAllArtistsLight(supabase)
 	}
 
-	// Récupère un artiste avec tous ses détails
+	// Fetches a artist with all details
 	const getFullArtistById = (id: string): Promise<Artist> => {
 		return fetchFullArtist(supabase, id)
 	}
 
-	// Récupère un artiste par son ID (version légère)
+	// Fetches a artist by ID (lightweight version)
 	const getArtistByIdLight = (id: string) => {
 		return fetchArtistById(supabase, id)
 	}
 
-	// Récupère les liens sociaux et de plateformes d'un artiste
+	// Fetches the social links and of platforms of a artist
 	const getSocialAndPlatformLinksByArtistId = (id: string) => {
 		return fetchArtistLinks(supabase, id)
 	}
 
-	// Récupère les derniers artistes ajoutés
+	// Fetches the latest added artists
 	const getRealtimeLatestArtistsAdded = async (
 		limitNumber: number,
 		callback: (artists: Artist[]) => void,
@@ -255,12 +255,12 @@ export function useSupabaseArtist() {
 		callback(artists)
 	}
 
-	// Récupère les artistes par page avec pagination
+	// Fetches artists by page with pagination
 	const getArtistsByPage = (page: number, limit: number, options?: ArtistPageOptions) => {
 		return fetchArtistsByPage(supabase, page, limit, options)
 	}
 
-	// Approuve un artiste (met verified = true) sans toucher aux relations
+	// Approves an artist by setting `verified` to `true` without touching related records
 	const approveArtist = async (artistId: string) => {
 		try {
 			await runMutation(

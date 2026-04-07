@@ -4,7 +4,7 @@ export default defineEventHandler(async (event) => {
 
 	const supabase = useServerSupabase()
 
-	// Vérifier que l'artiste existe
+	// Check that the artist exists
 	const { data: artist, error: artistError } = await supabase
 		.from('artists')
 		.select('id')

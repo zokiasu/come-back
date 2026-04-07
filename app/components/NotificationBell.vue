@@ -56,7 +56,6 @@
 
 		<template #content>
 			<div class="bg-cb-secondary-950 rounded-xl border border-zinc-700/60 shadow-xl">
-				<!-- Header -->
 				<div class="flex items-center justify-between border-b border-zinc-700/60 px-4 py-3">
 					<span class="text-sm font-semibold text-white">Notifications</span>
 					<button
@@ -69,20 +68,16 @@
 					</button>
 				</div>
 
-				<!-- List -->
 				<div class="max-h-96 overflow-y-auto">
-					<!-- Loader -->
 					<div v-if="isLoading" class="flex items-center justify-center py-8">
 						<UIcon name="i-lucide-loader-circle" class="size-5 animate-spin text-zinc-500" />
 					</div>
 
-					<!-- Empty -->
 					<div v-else-if="!notifications.length" class="px-4 py-8 text-center">
 						<UIcon name="i-lucide-bell" class="mx-auto size-8 text-zinc-600" />
 						<p class="mt-2 text-sm text-zinc-500">No notifications</p>
 					</div>
 
-					<!-- Notifications -->
 					<div v-else class="space-y-px p-2">
 						<button
 							v-for="notification in notifications"

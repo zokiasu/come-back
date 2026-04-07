@@ -23,7 +23,7 @@
 				return 'fixed bottom-6 left-1/2 -translate-x-1/2'
 			case 'responsive':
 			default:
-				// Top sur mobile (évite la navbar), bottom sur desktop
+				// Use top offset on mobile to avoid the navbar, bottom offset on desktop
 				return 'fixed left-1/2 -translate-x-1/2 top-20 md:top-auto md:bottom-6'
 		}
 	})
@@ -88,7 +88,7 @@
 </template>
 
 <style scoped>
-	/* Animations personnalisées pour le spinner */
+	/* Custom spinner animations */
 	@keyframes spin {
 		to {
 			transform: rotate(360deg);

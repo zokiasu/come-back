@@ -1,12 +1,11 @@
-// ===== TYPES SUPABASE =====
-// Import des types générés par Supabase (utilisés en interne uniquement)
+// Import Supabase-generated types for internal use only
 import type { Database, Tables, TablesInsert, TablesUpdate } from './supabase'
 
-// Note: Database, Tables, TablesInsert, TablesUpdate doivent être importés
-// directement depuis '~/types/supabase' dans vos fichiers pour éviter les duplications
-// Ces types ne sont PAS réexportés pour éviter les warnings de duplication
+// Note: Database, Tables, TablesInsert, and TablesUpdate must be imported
+// directly from ~/types/supabase in your files to avoid duplication
+// These types are not re-exported to avoid duplicate warnings
 
-// Types de base Supabase avec alias plus courts
+// Types of base Supabase with alias more courts
 export type User = Tables<'users'>
 export type Artist = Tables<'artists'> & {
 	social_links?: Tables<'artist_social_links'>[]
@@ -45,7 +44,7 @@ export type MusicRelease = Tables<'music_releases'>
 export type NewsArtist = Tables<'news_artists_junction'>
 export type Company = Tables<'companies'>
 
-// Types pour les rankings utilisateur
+// Types for the rankings user
 export interface UserRanking {
 	id: string
 	user_id: string
@@ -76,22 +75,21 @@ export interface UserRankingWithPreview extends UserRanking {
 	user?: User
 }
 
-// Types pour les insertions
+// Types for the insertions
 export type UserInsert = TablesInsert<'users'>
 export type ArtistInsert = TablesInsert<'artists'>
 export type ReleaseInsert = TablesInsert<'releases'>
 export type MusicInsert = TablesInsert<'musics'>
 export type NewsInsert = TablesInsert<'news'>
 
-// Types pour les mises à jour
+// Types for the updated
 export type UserUpdate = TablesUpdate<'users'>
 export type ArtistUpdate = TablesUpdate<'artists'>
 export type ReleaseUpdate = TablesUpdate<'releases'>
 export type MusicUpdate = TablesUpdate<'musics'>
 export type NewsUpdate = TablesUpdate<'news'>
 
-// ===== ENUMS ET TYPES PERSONNALISÉS =====
-// Utiliser les types Supabase directement avec des alias
+// Use the types Supabase directement with the alias
 export type UserRole = Database['public']['Enums']['user_role']
 export type ArtistType = Database['public']['Enums']['artist_type']
 export type ArtistGender = Database['public']['Enums']['gender']
@@ -108,14 +106,12 @@ export type CompanyType =
 	| 'STUDIO'
 	| 'OTHER'
 
-// ===== TYPES POUR LES COMPOSABLES =====
-// Types étendus pour les relations
+// Extended types for relations
 export type CompanyArtist = Tables<'artist_companies'> & {
 	company?: Company
 	artist?: Artist
 }
 
-// ===== TYPES POUR LES TABLES DE JONCTION =====
 /**
  * Generic type for junction table results from Supabase
  * When selecting with nested relations, Supabase returns objects like:
@@ -190,7 +186,6 @@ export interface RankingItemWithJunctions {
 	music?: MusicWithJunctions | null
 }
 
-// ===== TYPES UTILITAIRES =====
 export interface QueryOptions {
 	limit?: number
 	offset?: number
@@ -209,14 +204,12 @@ export interface FilterOptions {
 	isActive?: boolean
 }
 
-// ===== TYPES GLOBAUX =====
 declare global {
 	interface Window {
 		enableDevLogs?: () => void
 	}
 }
 
-// ===== TYPES COMPOSABLES =====
 export interface UseSupabaseReturn<T> {
 	data: Ref<T[]>
 	loading: Ref<boolean>
@@ -270,7 +263,7 @@ export interface PaginatedCompanyResponse extends Omit<
 	companies: Company[]
 }
 
-// Type pour les composants UI
+// Type for the composants UI
 export type InputMenuItem = {
 	id?: string
 	label?: string
@@ -280,8 +273,8 @@ export type InputMenuItem = {
 }
 
 /**
- * Type pour les items de menu Artist (compatible UInputMenu)
- * Extrait uniquement les champs nécessaires pour éviter les conflits de type
+ * Type for artist menu items, compatible with `UInputMenu`
+ * Extracts only the required fields to avoid type conflicts
  * (Artist.type = 'SOLO' | 'GROUP' vs UInputMenu type = 'label' | 'separator' | 'item')
  */
 export type ArtistMenuItem = {
@@ -293,9 +286,9 @@ export type ArtistMenuItem = {
 }
 
 /**
- * Type pour les items de menu Music (compatible UInputMenu)
- * Note: Exclut intentionnellement le champ `type` pour éviter le conflit
- * avec UInputMenu qui utilise `type: 'label' | 'separator' | 'item'`
+ * Type for music menu items, compatible with `UInputMenu`
+ * Note: intentionally excludes the `type` field to avoid conflicts
+ * with `UInputMenu`, which uses `type: 'label' | 'separator' | 'item'`
  */
 export type MusicMenuItem = {
 	id: string
@@ -303,16 +296,15 @@ export type MusicMenuItem = {
 	name: string
 	description?: string
 	duration?: number | null
-	musicType?: MusicType // Renommé pour éviter le conflit avec UInputMenu.type
+	musicType?: MusicType // Renamed to avoid a conflict with UInputMenu.type
 	artists?: Artist[]
 }
 
 /**
- * Type générique pour les items de menu avec label
+ * Generic type for labeled menu items
  */
 export type MenuItem<T> = T & { label: string }
 
-// ===== TYPES NOTIFICATIONS =====
 
 export interface PushPayload {
 	title: string

@@ -1,10 +1,8 @@
 <script setup lang="ts">
-	// External Packages
 	import { CalendarDate } from '@internationalized/date'
 	import { storeToRefs } from 'pinia'
 	import { useUserStore } from '~/stores/user'
 
-	// Internal Types
 	import type {
 		Artist,
 		MusicStyle,
@@ -25,7 +23,7 @@
 		label: string
 	}
 
-	// Type étendu pour l'artiste avec groupes et membres
+	// Extended type for an artist with groups and members
 	type ArtistWithRelations = Artist & {
 		groups?: Artist[]
 		members?: Artist[]
@@ -61,7 +59,7 @@
 	const stylesList = ref<MusicStyle[]>([])
 	const tagsList = ref<GeneralTag[]>([])
 	const nationalitiesList = ref<Nationality[]>([])
-	// Refs pour les v-model des UInputMenu - contiennent les objets sélectionnés
+	// Refs for the UInputMenu v-model values that contain the selected objects
 	const artistStyles = ref<MenuItem<MusicStyle>[]>([])
 	const artistTags = ref<MenuItem<GeneralTag>[]>([])
 	const artistNationalities = ref<MenuItem<Nationality>[]>([])
@@ -111,7 +109,6 @@
 		{ value: false, label: 'Inactive career' },
 	]
 
-	// État de la modal de création de company
 	const isCompanyModalOpen = ref(false)
 
 	const birthdayToDate = ref<Date | null>(null)
@@ -207,7 +204,6 @@
 		]
 	})
 
-	// --- Computed Properties for UInputMenu Items ---
 	const stylesForMenu = computed((): MenuItem<MusicStyle>[] => {
 		return stylesList.value.map(
 			(style): MenuItem<MusicStyle> => ({
@@ -299,7 +295,6 @@
 		)
 	})
 
-	// --- Helper to parse date string ---
 	const toCalendarDate = (date: Date | null | undefined): CalendarDate | undefined => {
 		if (!date) return undefined
 		try {
@@ -457,7 +452,7 @@
 
 			const updates: Partial<Artist> = {
 				name: artistToEdit.value?.name,
-				// image: artistToEdit.value?.image, // L'image n'est pas modifiable ici
+				// image: artistToEdit.value?.image, // the image n'est not modifiable ici
 				description: artistToEdit.value?.description,
 				id_youtube_music: artistToEdit.value?.id_youtube_music,
 				type: artistToEdit.value?.type,
@@ -550,7 +545,7 @@
 		companySearchResults.value = []
 	}
 
-	// Fonction pour gérer la mise à jour après création de company
+	// Handle updates after company creation
 	const handleCompanyUpdated = () => {
 		companySearchTerm.value = ''
 		companySearchResults.value = []
@@ -594,7 +589,7 @@
 						'Artist links loading timed out. Please try again.',
 					)
 
-					// S'assurer que les tableaux ne sont jamais undefined
+					// S'assurer que the tableaux ne sont jamais undefined
 					platformLinkManager.reset(
 						platformLinks && platformLinks.length > 0 ? platformLinks : [],
 					)
@@ -603,7 +598,7 @@
 					)
 				} catch (linkError) {
 					console.error('Error loading social and platform links:', linkError)
-					// Initialiser avec des tableaux vides en cas d'erreur
+					// Initialize with empty arrays if an error occurs
 					platformLinkManager.reset([])
 					socialLinkManager.reset([])
 					toast.add({
@@ -657,7 +652,7 @@
 						})
 						.filter((item): item is MenuItem<Nationality> => item !== null) || []
 
-				// Charger les compagnies liées à l'artiste
+				// Load companies linked to the artist
 				artistCompanies.value =
 					artist.value.companies?.map((companyRelation) => ({
 						company: companyRelation.company
@@ -676,7 +671,7 @@
 						is_current: companyRelation.is_current ?? true,
 					})) || []
 
-				// Initialiser les CalendarDate à partir des dates de l'artiste
+				// Initialize CalendarDate values from the artist dates
 				birthdayToDate.value = artist.value.birth_date
 					? new Date(artist.value.birth_date)
 					: null

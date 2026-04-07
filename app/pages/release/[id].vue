@@ -17,7 +17,7 @@
 	const title = ref<string>('Release Page')
 	const description = ref<string>('Release')
 
-	// SSR-compatible data fetching avec API complète
+	// SSR-compatible data fetching with the complete API
 	const { data: releaseData, pending: isFetchingRelease } = await useFetch(
 		`/api/releases/${route.params.id}/complete`,
 		{
@@ -29,7 +29,7 @@
 		},
 	)
 
-	// Réactivité des données
+	// Reactive data updates
 	const release = ref<Release | null>(null)
 	watch(
 		() => releaseData.value.release,
@@ -76,13 +76,13 @@
 		try {
 			await updateRelease(releaseId, releaseData)
 
-			// On utilise les musiques directement depuis release.value qui est réactif
+			// Use musics directly from the reactive release.value
 			const updatePromises =
 				release.value?.musics?.map(async (music: Music) => {
-					// Trouver la version originale de la musique
+					// Find the version originale the music
 					const originalMusic = musicList.value.find((m) => m.id === music.id)
 
-					// Vérifier si des modifications ont été apportées
+					// Check whether changes were made
 					if (
 						originalMusic &&
 						(music.name !== originalMusic.name ||
@@ -98,7 +98,7 @@
 					return Promise.resolve()
 				}) || []
 
-			// Attendre que toutes les mises à jour soient terminées
+			// Wait until all updates finish
 			await Promise.all(updatePromises)
 				.then(() => {
 					toast.add({ color: 'info', title: 'Release updated' })
@@ -147,7 +147,7 @@
 		music.id_youtube_music = String(value)
 	}
 
-	// Configuration des meta et images de façon réactive
+	// Configure meta tags and images reactively
 	watchEffect(() => {
 		if (release.value) {
 			title.value =
@@ -156,7 +156,7 @@
 				(release.value.artists?.[0]?.name || 'Unknown artist')
 			description.value = release.value.description || ''
 
-			// Copie profonde des musiques pour conserver l'état initial
+			// Deep-copy musics to preserve the initial state
 			musicList.value =
 				release.value.musics?.map((music) => ({
 					id: music.id,
@@ -191,9 +191,7 @@
 		</div>
 
 		<template v-else-if="release">
-			<!--  Header Release -->
 			<section class="relative h-fit">
-				<!-- Header Image -->
 				<div class="relative h-fit min-h-[20rem] lg:max-h-[30rem] lg:min-h-[30rem]">
 					<div
 						class="absolute inset-0 min-h-[20rem] w-full transition-all duration-700 ease-in-out lg:max-h-[30rem] lg:min-h-[30rem]"
@@ -209,7 +207,6 @@
 						@load="imageLoaded = true"
 					/>
 				</div>
-				<!-- Header Data-->
 				<div
 					class="md:bg-cb-secondary-950/50 z-10 flex flex-col justify-end space-y-3 p-5 transition-all duration-300 ease-in-out md:absolute md:inset-0 md:min-h-full md:justify-center"
 				>
@@ -353,7 +350,6 @@
 					</div>
 				</CardDefault>
 
-				<!-- Musics -->
 				<section
 					v-if="(release.musics?.length || 0) > 0 && release.artists"
 					class="space-y-2"
@@ -376,7 +372,6 @@
 					</CardDefault>
 				</section>
 
-				<!-- Suggestions -->
 				<section v-if="suggestedReleases.length && release.artists" class="space-y-2">
 					<CardDefault :name="`Other releases by ${release.artists[0]?.name}`">
 						<transition-group

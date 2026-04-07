@@ -8,7 +8,7 @@ import type {
 } from '~/types'
 import type { Database, TablesInsert, TablesUpdate } from '~/types/supabase'
 
-// Types pour les données jointes
+// Types for the data jointes
 interface ArtistJunction {
 	artist: Artist
 }
@@ -24,7 +24,7 @@ export function useSupabaseRelease() {
 	const { requireAuthHeaders } = useApiAuthHeaders()
 	const { runMutation } = useMutationTimeout()
 
-	// Met à jour une release
+	// Updates a release
 	const updateRelease = async (
 		id: string,
 		updates: TablesUpdate<'releases'>,
@@ -82,7 +82,7 @@ export function useSupabaseRelease() {
 		}
 	}
 
-	// Supprime une release
+	// Deletes a release
 	const deleteRelease = async (id: string) => {
 		try {
 			await runMutation(
@@ -107,7 +107,7 @@ export function useSupabaseRelease() {
 		}
 	}
 
-	// Récupère toutes les releases
+	// Fetch all releases
 	const getAllReleases = async (options?: QueryOptions & FilterOptions) => {
 		let query = supabase.from('releases').select('*')
 
@@ -157,12 +157,12 @@ export function useSupabaseRelease() {
 		return data as Release[]
 	}
 
-	// Récupère une release avec tous ses détails
+	// Fetches a release with all details
 	const getReleaseById = async (id: string) => {
 		if (!id) return null
 
 		try {
-			// Récupérer la release
+			// Fetch the release
 			const { data: release, error: releaseError } = await supabase
 				.from('releases')
 				.select('*')
@@ -171,7 +171,7 @@ export function useSupabaseRelease() {
 
 			if (releaseError) throw releaseError
 
-			// Récupérer les artistes associés
+			// Fetch related artists
 			const { data: artists, error: artistsError } = await supabase
 				.from('artist_releases')
 				.select(
@@ -183,7 +183,7 @@ export function useSupabaseRelease() {
 
 			if (artistsError) throw artistsError
 
-			// Récupérer les musiques associées avec l'ordre de track_number
+			// Fetch related musics ordered by track_number
 			const { data: musics, error: musicsError } = await supabase
 				.from('music_releases')
 				.select(
@@ -197,7 +197,7 @@ export function useSupabaseRelease() {
 
 			if (musicsError) throw musicsError
 
-			// Récupérer les liens de plateformes
+			// Fetch the platform links
 			const { data: platformLinks, error: platformLinksError } = await supabase
 				.from('release_platform_links')
 				.select('*')
@@ -217,7 +217,7 @@ export function useSupabaseRelease() {
 		}
 	}
 
-	// Récupère une release par son ID (version légère)
+	// Fetches a release by ID (lightweight version)
 	const getReleaseByIdLight = async (id: string) => {
 		const { data, error } = await supabase
 			.from('releases')
@@ -233,7 +233,7 @@ export function useSupabaseRelease() {
 		return data as Release
 	}
 
-	// Récupère les dernières releases ajoutées en temps réel
+	// Fetch the latest releases added in real time
 	const getRealtimeLatestReleasesAdded = async (
 		limitNumber: number,
 		callback: (releases: Release[]) => void,
@@ -261,7 +261,7 @@ export function useSupabaseRelease() {
 			return
 		}
 
-		// Transformer les données pour avoir un format plus simple à utiliser
+		// Transform the data into a simpler format
 		const transformedData = (data as ReleaseWithArtistJunctions[]).map((release) => ({
 			...release,
 			artists: release.artist_releases?.map((ar: ArtistJunction) => ar.artist) || [],
@@ -270,10 +270,10 @@ export function useSupabaseRelease() {
 		callback(transformedData)
 	}
 
-	// Récupère les releases d'un mois et d'une année spécifiques
+	// Fetches the releases of a month and of a year specific
 	const getReleasesByMonthAndYear = async (month: number, year: number) => {
 		try {
-			// Créer les dates de début et de fin du mois
+			// Create the start and end dates of the month
 			const startDate = new Date(year, month, 1)
 			const endDate = new Date(year, month + 1, 0)
 
@@ -300,7 +300,7 @@ export function useSupabaseRelease() {
 				throw error
 			}
 
-			// Transformer les données pour avoir un format plus simple
+			// Transform data into a simpler format
 			const formattedData = (data as ReleaseWithArtistJunctions[]).map((release) => ({
 				...release,
 				artists: release.artists?.map((ar: ArtistJunction) => ar.artist) || [],
@@ -326,7 +326,7 @@ export function useSupabaseRelease() {
 		}
 	}
 
-	// Récupère les suggestions de releases pour un artiste
+	// Fetches the suggestions of releases for a artist
 	const getSuggestedReleases = async (
 		artistId: string,
 		currentReleaseId: string,
@@ -347,7 +347,7 @@ export function useSupabaseRelease() {
 					)
 				`,
 				)
-				.neq('id', currentReleaseId) // Exclure la release actuelle
+				.neq('id', currentReleaseId) // Exclure the release actuelle
 				.eq('artist_releases.artist_id', artistId)
 				.order('date', { ascending: false })
 				.limit(limit)
@@ -357,7 +357,7 @@ export function useSupabaseRelease() {
 				return []
 			}
 
-			// Transformer les données pour avoir un format plus simple
+			// Transform data into a simpler format
 			const transformedData = (data as ReleaseWithArtistJunctions[]).map((release) => ({
 				...release,
 				artists: release.artist_releases?.map((ar: ArtistJunction) => ar.artist) || [],
@@ -370,7 +370,7 @@ export function useSupabaseRelease() {
 		}
 	}
 
-	// Récupère les releases par page avec pagination
+	// Fetches releases by page with pagination
 	const getReleasesByPage = async (
 		page: number,
 		limit: number,
@@ -384,7 +384,7 @@ export function useSupabaseRelease() {
 		},
 	) => {
 		try {
-			// Construire les query params
+			// Build the query params
 			const params: Record<string, string> = {
 				page: page.toString(),
 				limit: limit.toString(),
@@ -414,7 +414,7 @@ export function useSupabaseRelease() {
 				params.verified = String(options.verified)
 			}
 
-			// Appeler l'endpoint API optimisé
+			// Call the optimized API endpoint
 			const result = await $fetch('/api/releases/paginated', {
 				params,
 			})
@@ -426,7 +426,7 @@ export function useSupabaseRelease() {
 		}
 	}
 
-	// Créer une release avec relations artistes
+	// Create a release with relations artists
 	const createReleaseWithDetails = async (
 		releaseData: TablesInsert<'releases'>,
 		artistIds: string[],

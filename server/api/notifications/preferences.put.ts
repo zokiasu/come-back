@@ -17,8 +17,8 @@ export default defineEventHandler(async (event) => {
 
 	const supabase = useServerSupabase()
 
-	// Whitelister explicitement les champs pour éviter qu'un user_id soumis par le client
-	// ne vienne écraser l'utilisateur authentifié dans l'upsert
+	// Explicitly allow only known fields so a client-provided user_id cannot
+	// override the authenticated user during upsert
 	const safeBody: PreferencesBody = {}
 	if (body.push_enabled !== undefined) safeBody.push_enabled = body.push_enabled
 	if (body.daily_comeback !== undefined) safeBody.daily_comeback = body.daily_comeback

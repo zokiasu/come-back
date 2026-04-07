@@ -18,7 +18,7 @@ const logArtistCreateTrace = (step: string, details?: Record<string, unknown>) =
 }
 
 /**
- * Insère les liens sociaux pour un artiste
+ * Inserts social links for an artist
  */
 export async function insertSocialLinks(
 	supabase: SupabaseClientType,
@@ -61,7 +61,7 @@ export async function insertSocialLinks(
 }
 
 /**
- * Insère les liens de plateformes pour un artiste
+ * Inserts platform links for an artist
  */
 export async function insertPlatformLinks(
 	supabase: SupabaseClientType,
@@ -104,7 +104,7 @@ export async function insertPlatformLinks(
 }
 
 /**
- * Insère les relations avec les groupes (artiste comme membre)
+ * Inserts group relations where the artist is a member
  */
 export async function insertGroupRelations(
 	supabase: SupabaseClientType,
@@ -148,7 +148,7 @@ export async function insertGroupRelations(
 }
 
 /**
- * Insère les relations avec les membres (artiste comme groupe)
+ * Inserts member relations where the artist is the group
  */
 export async function insertMemberRelations(
 	supabase: SupabaseClientType,
@@ -192,7 +192,7 @@ export async function insertMemberRelations(
 }
 
 /**
- * Insère les relations avec les compagnies
+ * Inserts company relations
  */
 export async function insertCompanyRelations(
 	supabase: SupabaseClientType,
@@ -235,7 +235,7 @@ export async function insertCompanyRelations(
 }
 
 /**
- * Supprime tous les liens sociaux d'un artiste
+ * Deletes all social links for an artist
  */
 export async function deleteSocialLinks(
 	supabase: SupabaseClientType,
@@ -248,7 +248,7 @@ export async function deleteSocialLinks(
 }
 
 /**
- * Supprime tous les liens de plateformes d'un artiste
+ * Deletes all platform links for an artist
  */
 export async function deletePlatformLinks(
 	supabase: SupabaseClientType,
@@ -261,7 +261,7 @@ export async function deletePlatformLinks(
 }
 
 /**
- * Supprime toutes les relations d'un artiste (groupes et membres)
+ * Deletes all artist relations, including groups and members
  */
 export async function deleteArtistRelations(
 	supabase: SupabaseClientType,
@@ -277,7 +277,7 @@ export async function deleteArtistRelations(
 }
 
 /**
- * Supprime toutes les relations avec les compagnies d'un artiste
+ * Deletes all company relations for an artist
  */
 export async function deleteCompanyRelations(
 	supabase: SupabaseClientType,
@@ -290,7 +290,7 @@ export async function deleteCompanyRelations(
 }
 
 /**
- * Met à jour les liens sociaux (supprime et réinsère)
+ * Updates social links by deleting and reinserting them
  */
 export async function updateSocialLinks(
 	supabase: SupabaseClientType,
@@ -304,7 +304,7 @@ export async function updateSocialLinks(
 }
 
 /**
- * Met à jour les liens de plateformes (supprime et réinsère)
+ * Updates platform links by deleting and reinserting them
  */
 export async function updatePlatformLinks(
 	supabase: SupabaseClientType,

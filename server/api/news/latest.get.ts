@@ -4,8 +4,8 @@ export default defineEventHandler(async (event) => {
 
 	const supabase = useServerSupabase()
 
-	// Pour un site international, on utilise UTC avec une logique simple
-	// On prend le jour actuel UTC, ce qui est standard pour les apps internationales
+	// Use UTC here for a cross-timezone feed
+	// Use the current UTC day as the comparison baseline
 	const now = new Date()
 	const today = now.toISOString().split('T')[0]
 
@@ -20,8 +20,8 @@ export default defineEventHandler(async (event) => {
 		`,
 		)
 		.eq('artists.artist.verified', true)
-		.gte('date', today) // Seulement les news avec date >= aujourd'hui UTC
-		.order('date', { ascending: true }) // Ordre croissant pour les futures dates
+		.gte('date', today) // Only news dated today or later in UTC
+		.order('date', { ascending: true }) // Ascending order for upcoming dates
 
 	if (error) {
 		throw handleSupabaseError(error, 'news.latest')

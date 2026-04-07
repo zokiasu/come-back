@@ -5,7 +5,7 @@ export default defineEventHandler(async (event) => {
 
 	const supabase = useServerSupabase()
 
-	// Vérifier les relations existantes
+	// Check the relations existantes
 	const { data: relations } = await supabase
 		.from('artist_companies')
 		.select('artist_id')

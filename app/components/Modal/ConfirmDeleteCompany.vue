@@ -14,7 +14,6 @@
 
 	const isDeleting = ref(false)
 
-	// Fonctions
 	const handleClose = () => {
 		if (!isDeleting.value) {
 			emit('close')
@@ -37,7 +36,6 @@
 			<h2 class="text-lg font-semibold text-white">Confirm deletion</h2>
 		</template>
 
-		<!-- Contenu -->
 		<div class="mb-6">
 			<div class="mb-4 flex justify-center">
 				<div class="rounded-full bg-red-100 p-3">
@@ -66,7 +64,6 @@
 			</p>
 		</div>
 
-		<!-- Actions -->
 		<div class="flex justify-end space-x-3">
 			<button
 				class="bg-cb-quinary-700 hover:bg-cb-quinary-600 rounded px-4 py-2 text-white transition-colors"

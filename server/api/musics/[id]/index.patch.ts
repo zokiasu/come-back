@@ -18,7 +18,7 @@ export default defineEventHandler(async (event) => {
 
 	const supabase = useServerSupabase()
 
-	// 1. Mettre à jour les champs si fournis
+	// 1. Update the champs if provided
 	let updatedMusic = null
 	if (body.updates && Object.keys(body.updates).length > 0) {
 		const { data, error } = await supabase
@@ -32,7 +32,7 @@ export default defineEventHandler(async (event) => {
 		updatedMusic = data
 	}
 
-	// 2. Remplacer les artistes si fournis
+	// 2. Remplacer the artists if provided
 	if (body.artistIds !== undefined) {
 		const { error: deleteError } = await supabase
 			.from('music_artists')
@@ -55,7 +55,7 @@ export default defineEventHandler(async (event) => {
 		}
 	}
 
-	// 3. Remplacer les releases si fournis
+	// 3. Remplacer the releases if provided
 	if (body.releaseIds !== undefined) {
 		const { error: deleteError } = await supabase
 			.from('music_releases')

@@ -97,7 +97,6 @@
 
 	const isUploadingEdit = ref(false)
 
-	// --- Computed Properties for UInputMenu Items ---
 	const stylesForMenu = computed((): MenuItem<MusicStyle>[] => {
 		return stylesList.map(
 			(style): MenuItem<MusicStyle> => ({
@@ -247,7 +246,7 @@
 		}
 
 		try {
-			// Transformer les groupes et membres sélectionnés en objets Artist partiels
+			// Transform selected groups and members into partial Artist objects
 			const groups = selectedGroups.value.map((g) => ({
 				id: g.id,
 				name: g.name,
@@ -338,7 +337,6 @@
 
 <template>
 	<div class="space-y-5">
-		<!-- Picture -->
 		<div class="flex flex-col gap-2">
 			<div class="flex items-end gap-2">
 				<ComebackLabel label="Image" />
@@ -347,7 +345,6 @@
 				</p>
 			</div>
 		</div>
-		<!-- Name & Id -->
 		<div class="grid grid-cols-1 gap-5">
 			<ComebackInput v-model="artist.name" label="Name *" placeholder="Artist Name*" />
 			<ComebackInput
@@ -358,9 +355,7 @@
 				:hint="ytmIdMessage ?? undefined"
 			/>
 		</div>
-		<!-- Type & Active Career-->
 		<div class="grid grid-cols-1 gap-5">
-			<!-- Type -->
 			<div class="grid grid-cols-1 gap-1">
 				<ComebackLabel label="Type" />
 				<select
@@ -371,7 +366,6 @@
 					<option value="GROUP" class="text-cb-secondary-950">GROUP</option>
 				</select>
 			</div>
-			<!-- Active Career -->
 			<div class="grid grid-cols-1 gap-1">
 				<ComebackLabel label="Active Career" />
 				<select
@@ -383,9 +377,7 @@
 				</select>
 			</div>
 		</div>
-		<!-- Styles, Nationalities & General Tags -->
 		<div class="grid grid-cols-1 gap-5">
-			<!-- Styles -->
 			<div v-if="stylesList" class="flex flex-col gap-1">
 				<ComebackLabel label="Styles" />
 				<UInputMenu
@@ -403,7 +395,6 @@
 					}"
 				/>
 			</div>
-			<!-- Nationalities -->
 			<div v-if="nationalitiesList" class="flex flex-col gap-1">
 				<ComebackLabel label="Nationalities" />
 				<UInputMenu
@@ -421,7 +412,6 @@
 					}"
 				/>
 			</div>
-			<!-- General Tags -->
 			<div v-if="tagsList" class="flex flex-col gap-1">
 				<ComebackLabel label="General Tags" />
 				<UInputMenu
@@ -440,7 +430,6 @@
 				/>
 			</div>
 		</div>
-		<!-- Description -->
 		<div class="flex flex-col gap-1">
 			<ComebackLabel label="Description" />
 			<textarea
@@ -450,7 +439,6 @@
 				@input="adjustTextarea($event)"
 			/>
 		</div>
-		<!-- Group -->
 		<div class="flex flex-col gap-1">
 			<ComebackLabel label="Group" />
 			<UInputMenu
@@ -471,7 +459,6 @@
 				@update:search-term="onGroupSearchTermChange"
 			/>
 		</div>
-		<!-- Members -->
 		<div v-if="artist.type !== 'SOLO'" class="flex flex-col gap-1">
 			<ComebackLabel label="Members" />
 			<UInputMenu
@@ -492,9 +479,7 @@
 				@update:search-term="onMemberSearchTermChange"
 			/>
 		</div>
-		<!-- Platforms & Socials -->
 		<div class="space-y-2">
-			<!-- Platforms -->
 			<div class="w-full space-y-2">
 				<ComebackLabel label="Platforms" />
 				<div
@@ -532,7 +517,6 @@
 					Add Platforms
 				</button>
 			</div>
-			<!-- Socials -->
 			<div class="w-full space-y-2">
 				<ComebackLabel label="Socials" />
 				<div v-for="(social, index) in socialList" :key="index" class="flex w-full gap-2">

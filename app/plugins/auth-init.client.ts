@@ -1,27 +1,27 @@
 export default defineNuxtPlugin(async () => {
-	// Plugin d'initialisation de l'authentification côté client
+	// client-side authentication initialization plugin
 	if (import.meta.client) {
-		// Ne pas initialiser sur la page de callback pour éviter les conflits
+		// Do not initialize on the callback page to avoid conflicts
 		const route = useRoute()
 		if (route.path === '/auth/callback') {
 			return
 		}
 
-		// Attendre que Nuxt soit prêt
+		// Wait until Nuxt is ready
 		await nextTick()
 
 		try {
 			const supabase = useSupabaseClient()
-			// Initialiser l'authentification
+			// Initialize authentication
 			const { initializeAuth } = useAuth()
 			const { logInfo } = useErrorLogger()
 
 			logInfo('Starting authentication initialization')
 
-			// Initialisation complète pour éviter les états transitoires (connecté/déconnecté)
+			// Fully initialize auth to avoid transient signed-in or signed-out states
 			await initializeAuth()
 
-			// Écouter les changements d'auth (popup OAuth ou autres onglets)
+			// Listen for auth changes from the OAuth popup or other tabs
 			supabase.auth.onAuthStateChange(async (event) => {
 				logInfo(`Auth state changed: ${event}`)
 				const { ensureUserProfile } = useAuth()

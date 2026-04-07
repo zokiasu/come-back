@@ -2,7 +2,7 @@
 	import { Swiper, SwiperSlide } from 'swiper/vue'
 	import { Autoplay, EffectFade, Parallax } from 'swiper/modules'
 
-	// Import des styles Swiper
+	// Import the styles Swiper
 	import 'swiper/css'
 	import 'swiper/css/autoplay'
 	import 'swiper/css/effect-fade'
@@ -16,7 +16,7 @@
 	const todayDate = new Date()
 	const todayDateFormatted = todayDate.toLocaleDateString('sv-SE')
 
-	// Désactiver le loop si moins de 2 slides (évite le warning Swiper)
+	// Disable loop when there are fewer than 2 slides to avoid Swiper warnings
 	const enableLoop = computed(() => props.newsToday.length >= 2)
 </script>
 
@@ -95,12 +95,12 @@
 </template>
 
 <style scoped>
-	/* Définir les animations */
+	/* Define the animations */
 	.fade-enter-active,
 	.fade-leave-active {
 		transition: opacity 0.5s;
 	}
-	.fade-enter, .fade-leave-to /* .fade-leave-active dans <2.1.8 */ {
+	.fade-enter, .fade-leave-to /* .fade-leave-active in <2.1.8 */ {
 		opacity: 0;
 	}
 

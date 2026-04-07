@@ -20,7 +20,6 @@
 		deleteCompany: [id: string]
 	}>()
 
-	// Computed
 	const formattedLocation = computed(() => {
 		if (props.country && props.city) {
 			return `${props.city}, ${props.country}`
@@ -52,7 +51,6 @@
 		return props.logoUrl || 'https://i.ibb.co/wLhbFZx/Frame-255.png'
 	})
 
-	// Fonctions
 	const handleEdit = () => {
 		emit('editCompany', {
 			id: props.id,
@@ -85,7 +83,6 @@
 	<div
 		class="bg-cb-quinary-950 relative flex h-fit w-full flex-col rounded border-2 border-transparent p-4 transition-all duration-300 ease-in-out hover:border-white"
 	>
-		<!-- Header avec logo et statut de vérification -->
 		<div class="mb-3 flex items-start justify-between">
 			<div class="flex items-center space-x-3">
 				<img
@@ -122,7 +119,6 @@
 			</div>
 		</div>
 
-		<!-- Description -->
 		<div class="mb-3 flex-1">
 			<p
 				v-if="description"
@@ -134,7 +130,6 @@
 			<p v-else class="text-cb-tertiary-400 text-sm italic">No description</p>
 		</div>
 
-		<!-- Detailed information -->
 		<div class="mb-3 space-y-2 text-xs">
 			<div v-if="foundedYear" class="flex items-center space-x-2">
 				<span class="text-cb-tertiary-200">📅</span>
@@ -156,7 +151,6 @@
 			</div>
 		</div>
 
-		<!-- Footer avec dates et actions -->
 		<div class="border-cb-quinary-800 mt-auto border-t pt-3">
 			<div class="flex items-center justify-between">
 				<div class="text-cb-tertiary-400 text-xs">

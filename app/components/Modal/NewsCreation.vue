@@ -116,7 +116,6 @@
 	}
 
 	const closeModal = () => {
-		// Réinitialisation des états
 		artistListSelected.value = []
 		newsDate.value = null
 		newsMessage.value = ''

@@ -26,7 +26,7 @@
 	const impact = ref<DeletionImpact | null>(null)
 	const isModalOpen = ref(false)
 
-	// Synchroniser l'état local avec la prop
+	// Sync local state with the prop
 	watch(
 		() => props.isOpen,
 		(newValue) => {
@@ -37,7 +37,7 @@
 		},
 	)
 
-	// Émettre l'événement de fermeture quand l'état local change
+	// Emit the close events when local state changes
 	watch(isModalOpen, (newValue) => {
 		if (!newValue) {
 			emit('close')
@@ -92,7 +92,7 @@
 			emit('confirm')
 		} catch (error: unknown) {
 			console.error('Erreur lors de la suppression:', error)
-			// Les toasts sont maintenant gérés dans le composable
+			// Toasts are now handled in the composable
 		} finally {
 			isDeleting.value = false
 		}
@@ -115,7 +115,6 @@
 	>
 		<template #content>
 			<div class="bg-cb-secondary-950 w-full max-w-lg rounded-lg">
-				<!-- Header -->
 				<div class="flex items-center justify-between border-b border-zinc-700 p-4">
 					<div class="flex items-center gap-3">
 						<div
@@ -134,9 +133,7 @@
 					/>
 				</div>
 
-				<!-- Content -->
 				<div class="space-y-4 p-4">
-					<!-- Artist name card -->
 					<div
 						class="bg-cb-primary-900/10 border-cb-primary-900/30 rounded-lg border p-4"
 					>
@@ -144,7 +141,6 @@
 						<p class="mt-1 text-xl font-bold text-white">{{ artistName }}</p>
 					</div>
 
-					<!-- Loading state -->
 					<div v-if="isLoading" class="flex items-center justify-center gap-3 py-8">
 						<UIcon
 							name="i-lucide-refresh-cw"
@@ -153,9 +149,7 @@
 						<span class="text-sm text-zinc-400">Analyzing impact...</span>
 					</div>
 
-					<!-- Impact analysis -->
 					<div v-else-if="impact" class="space-y-4">
-						<!-- Impact section -->
 						<div class="bg-cb-quaternary-950 rounded-lg p-4">
 							<div class="mb-3 flex items-center gap-2">
 								<UIcon name="i-lucide-chart-column" class="h-5 w-5 text-amber-500" />
@@ -163,7 +157,6 @@
 							</div>
 
 							<div class="space-y-3">
-								<!-- Releases -->
 								<div class="flex items-center justify-between">
 									<div class="flex items-center gap-2">
 										<UIcon name="i-lucide-music" class="h-4 w-4 text-zinc-500" />
@@ -180,7 +173,6 @@
 										{{ impact.exclusiveReleases.length }}
 									</span>
 								</div>
-								<!-- Release list -->
 								<div v-if="impact.exclusiveReleases.length > 0" class="ml-6 space-y-1">
 									<p
 										v-for="release in impact.exclusiveReleases.slice(0, 3)"
@@ -197,7 +189,6 @@
 									</p>
 								</div>
 
-								<!-- Musics -->
 								<div class="flex items-center justify-between">
 									<div class="flex items-center gap-2">
 										<UIcon name="i-lucide-play" class="h-4 w-4 text-zinc-500" />
@@ -214,7 +205,6 @@
 										{{ impact.exclusiveMusics.length }}
 									</span>
 								</div>
-								<!-- Music list -->
 								<div v-if="impact.exclusiveMusics.length > 0" class="ml-6 space-y-1">
 									<p
 										v-for="music in impact.exclusiveMusics.slice(0, 3)"
@@ -231,7 +221,6 @@
 									</p>
 								</div>
 
-								<!-- News -->
 								<div class="flex items-center justify-between">
 									<div class="flex items-center gap-2">
 										<UIcon name="i-lucide-newspaper" class="h-4 w-4 text-zinc-500" />
@@ -248,7 +237,6 @@
 										{{ impact.exclusiveNews.length }}
 									</span>
 								</div>
-								<!-- News list -->
 								<div v-if="impact.exclusiveNews.length > 0" class="ml-6 space-y-1">
 									<p
 										v-for="news in impact.exclusiveNews.slice(0, 2)"
@@ -264,7 +252,6 @@
 							</div>
 						</div>
 
-						<!-- Preserved content info -->
 						<div class="bg-cb-quaternary-950 rounded-lg p-4">
 							<div class="flex items-start gap-3">
 								<div
@@ -284,7 +271,6 @@
 					</div>
 				</div>
 
-				<!-- Footer -->
 				<div class="flex items-center justify-end gap-3 border-t border-zinc-700 p-4">
 					<UButton
 						color="neutral"

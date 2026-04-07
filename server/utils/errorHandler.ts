@@ -20,7 +20,7 @@ export interface ApiErrorResponse {
  * @example
  * ```typescript
  * try {
- *   // ... operation
+ * // ... operation
  * } catch (error) {
  *   if (isPostgrestError(error)) {
  *     throw handleSupabaseError(error, 'context')
@@ -133,7 +133,7 @@ export const createBadRequestError = (message: string, details?: unknown) => {
  * @example
  * ```typescript
  * try {
- *   // ... operation
+ * // ... operation
  * } catch (error) {
  *   throw createInternalError('Failed to process data', error)
  * }

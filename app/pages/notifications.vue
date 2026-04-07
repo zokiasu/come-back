@@ -63,7 +63,6 @@
 
 <template>
 	<div class="mx-auto max-w-2xl space-y-6 px-1 pb-6 sm:px-0 w-full">
-		<!-- Header -->
 		<section
 			class="bg-cb-secondary-950 border-cb-quinary-900/70 rounded-[28px] border p-6 shadow-xl"
 		>
@@ -93,12 +92,10 @@
 			</div>
 		</section>
 
-		<!-- Loader -->
 		<div v-if="isLoading && !notifications.length" class="flex items-center justify-center py-16">
 			<UIcon name="i-lucide-loader-circle" class="size-6 animate-spin text-zinc-500" />
 		</div>
 
-		<!-- Empty -->
 		<section
 			v-else-if="!notifications.length"
 			class="bg-cb-secondary-950 border-cb-quinary-900/70 rounded-[28px] border p-12 text-center shadow-xl"
@@ -110,7 +107,6 @@
 			</p>
 		</section>
 
-		<!-- Groups by date -->
 		<template v-else>
 			<section
 				v-for="group in groups"
@@ -162,7 +158,6 @@
 				</div>
 			</section>
 
-			<!-- Load more -->
 			<div v-if="hasMore" class="flex justify-center pb-2">
 				<UButton
 					type="button"

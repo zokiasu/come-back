@@ -175,9 +175,7 @@
 		id="calendarPage"
 		class="container mx-auto h-fit min-h-screen w-full space-y-3 p-3 md:p-5"
 	>
-		<!-- Period Selector -->
 		<div>
-			<!-- Year Selector -->
 			<div
 				class="remove-scrollbar scrollBarLight flex w-full snap-x snap-mandatory gap-1 overflow-x-auto pb-1 text-xs font-semibold"
 			>
@@ -192,7 +190,6 @@
 					{{ year }}
 				</button>
 			</div>
-			<!-- Month Selector -->
 			<div
 				v-if="yearList.length"
 				class="remove-scrollbar scrollBarLight flex w-full snap-x snap-mandatory gap-1 overflow-x-auto pb-1 text-xs font-semibold"
@@ -210,7 +207,6 @@
 				</button>
 			</div>
 		</div>
-		<!-- Stats -->
 		<div class="border-cb-quaternary-950 space-y-2 border-y-2 py-3 text-xs">
 			<!-- <p class="text-base font-semibold text-center">
         {{ monthList[currentMonth].original }} {{ currentYear }}'s stats
@@ -266,8 +262,6 @@
 				</button>
 			</div>
 		</div>
-		<!-- <p class="text-sm italic text-cb-primary-900">Some troubles have been noticed with our release recovery API and are working to resolve them quickly. We apologize for the inconvenience.</p> -->
-		<!-- Releases -->
 		<div class="space-y-3">
 			<div class="flex items-center justify-between gap-3">
 				<div>

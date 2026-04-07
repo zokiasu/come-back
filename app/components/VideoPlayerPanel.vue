@@ -7,7 +7,6 @@
 		<div
 			class="bg-cb-secondary-950 aspect-video w-80 max-w-md min-w-[20rem] overflow-hidden rounded-lg shadow-xl lg:h-72"
 		>
-			<!-- Header -->
 			<div class="border-cb-tertiary-700 flex items-center justify-between border-b p-3">
 				<h3 class="text-sm font-semibold">Video player</h3>
 				<button
@@ -18,7 +17,6 @@
 				</button>
 			</div>
 
-			<!-- Video Container -->
 			<div id="globalPlayerContainer" class="h-full w-full flex-1"></div>
 		</div>
 	</div>

@@ -14,7 +14,6 @@
 	} = useSupabaseNews()
 	const { searchArtistsFullText } = useSupabaseSearch()
 
-	// Data state
 	const newsList = ref<News[]>([])
 	const isLoading = ref(false)
 	const totalNews = ref(0)
@@ -24,7 +23,6 @@
 	const filterVerifiedValue = ref<'all' | 'verified' | 'pending'>('all')
 	const filterPeriodValue = ref<'all' | 'today' | 'week' | 'month'>('all')
 
-	// Sorting state
 	const sortColumn = ref<'date' | 'created_at' | 'artist'>('date')
 	const sortDirection = ref<'asc' | 'desc'>('desc')
 
@@ -67,7 +65,6 @@
 	const isDeleteModalOpen = ref(false)
 	const deletingNewsId = ref<string | null>(null)
 
-	// Statistics
 	const stats = computed(() => {
 		const verified = newsList.value.filter((n) => n.verified).length
 		const pending = newsList.value.filter((n) => !n.verified).length
@@ -324,7 +321,6 @@
 		}
 	}
 
-	// Watchers
 	watch(searchArtist, (value) => {
 		if (value.length > 2) {
 			debouncedSearch(value)
@@ -364,7 +360,6 @@
 
 <template>
 	<div class="scrollBarLight h-full space-y-4 overflow-y-auto p-6">
-		<!-- Header with stats -->
 		<div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 			<div>
 				<h1 class="text-2xl font-bold">News Management</h1>
@@ -373,7 +368,6 @@
 				</p>
 			</div>
 
-			<!-- Stats cards -->
 			<div class="flex gap-3">
 				<div class="bg-cb-quaternary-950 rounded-lg px-4 py-2 text-center">
 					<p class="text-2xl font-bold">{{ stats.total }}</p>
@@ -390,9 +384,7 @@
 			</div>
 		</div>
 
-		<!-- Filters -->
 		<div class="bg-cb-quaternary-950 flex flex-wrap items-center gap-3 rounded-lg p-4">
-			<!-- Search -->
 			<UInput
 				v-model="search"
 				placeholder="Search..."
@@ -401,7 +393,6 @@
 				:ui="{ base: 'bg-cb-quinary-900' }"
 			/>
 
-			<!-- Filter by status -->
 			<USelectMenu
 				v-model="filterVerifiedValue"
 				:items="verifiedOptions"
@@ -410,7 +401,6 @@
 				:ui="{ base: 'bg-cb-quinary-900' }"
 			/>
 
-			<!-- Filter by period -->
 			<USelectMenu
 				v-model="filterPeriodValue"
 				:items="periodOptions"
@@ -419,7 +409,6 @@
 				:ui="{ base: 'bg-cb-quinary-900' }"
 			/>
 
-			<!-- Items per page -->
 			<USelectMenu
 				v-model="pageSizeValue"
 				:items="pageSizeOptions"
@@ -428,7 +417,6 @@
 				:ui="{ base: 'bg-cb-quinary-900' }"
 			/>
 
-			<!-- Refresh button -->
 			<UButton
 				icon="i-lucide-refresh-cw"
 				color="neutral"
@@ -438,7 +426,6 @@
 			/>
 		</div>
 
-		<!-- Table -->
 		<div class="bg-cb-quaternary-950 overflow-hidden rounded-lg">
 			<UTable
 				:data="newsList"
@@ -453,7 +440,6 @@
 					td: 'px-4 py-3 text-sm',
 				}"
 			>
-				<!-- Artists column -->
 				<template #artists-header>
 					<button
 						class="flex items-center gap-1 hover:text-white"
@@ -487,14 +473,12 @@
 					</div>
 				</template>
 
-				<!-- Message column -->
 				<template #message-cell="{ row }">
 					<span class="line-clamp-2 max-w-[300px]">
 						{{ row.original.message || '-' }}
 					</span>
 				</template>
 
-				<!-- Date column -->
 				<template #date-header>
 					<button
 						class="flex items-center gap-1 hover:text-white"
@@ -514,7 +498,6 @@
 					{{ formatDate(row.original.date) }}
 				</template>
 
-				<!-- Verified column -->
 				<template #verified-cell="{ row }">
 					<UBadge
 						:color="row.original.verified ? 'success' : 'warning'"
@@ -525,7 +508,6 @@
 					</UBadge>
 				</template>
 
-				<!-- User column -->
 				<template #user-cell="{ row }">
 					<div class="flex items-center gap-2">
 						<NuxtImg
@@ -541,7 +523,6 @@
 					</div>
 				</template>
 
-				<!-- Actions column -->
 				<template #id-header>
 					<span class="sr-only">Actions</span>
 				</template>
@@ -564,7 +545,6 @@
 					</div>
 				</template>
 
-				<!-- Empty state -->
 				<template #empty>
 					<div class="text-cb-tertiary-500 py-10 text-center">
 						<UIcon name="i-lucide-file-search" class="mx-auto size-12 opacity-50" />
@@ -573,7 +553,6 @@
 				</template>
 			</UTable>
 
-			<!-- Pagination -->
 			<div
 				v-if="totalPages > 1"
 				class="border-cb-quinary-900 flex items-center justify-between border-t px-4 py-3"
@@ -589,7 +568,6 @@
 			</div>
 		</div>
 
-		<!-- Edit Modal -->
 		<UModal v-model:open="isEditModalOpen">
 			<template #content>
 				<div class="bg-cb-secondary-950 space-y-5 p-6">
@@ -603,7 +581,6 @@
 						/>
 					</div>
 
-					<!-- Artist search -->
 					<div class="relative">
 						<UInput
 							v-model="searchArtist"
@@ -631,7 +608,6 @@
 						</div>
 					</div>
 
-					<!-- Selected artists -->
 					<div v-if="artistListSelected.length" class="space-y-2">
 						<p class="text-cb-tertiary-400 text-sm">Selected artists</p>
 						<div class="flex flex-wrap gap-2">
@@ -649,7 +625,6 @@
 						</div>
 					</div>
 
-					<!-- Date picker -->
 					<div class="space-y-2">
 						<p class="text-cb-tertiary-400 text-sm">Date</p>
 						<UCalendar
@@ -663,7 +638,6 @@
 						/>
 					</div>
 
-					<!-- Message -->
 					<UTextarea
 						v-model="editNewsMessage"
 						label="Message"
@@ -671,7 +645,6 @@
 						:rows="3"
 					/>
 
-					<!-- Actions -->
 					<div class="flex gap-3">
 						<UButton
 							label="Cancel"
@@ -692,7 +665,6 @@
 			</template>
 		</UModal>
 
-		<!-- Delete Confirmation Modal -->
 		<UModal v-model:open="isDeleteModalOpen">
 			<template #content>
 				<div class="bg-cb-secondary-950 space-y-5 p-6">

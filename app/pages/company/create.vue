@@ -15,7 +15,7 @@
 
 	const isUploadingEdit = ref<boolean>(false)
 
-	// Formulaire de la compagnie
+	// Formulaire the company
 	const companyName = ref<string>('')
 	const companyDescription = ref<string>('')
 	const companyType = ref<string>('LABEL')
@@ -58,7 +58,7 @@
 				description: `${companyName.value} has been created successfully`,
 				color: 'success',
 			})
-			// Rediriger vers la page de la compagnie créée
+			// Redirect to the created company page
 			await router.push(`/company/${newCompany.id}`)
 		} catch (error: unknown) {
 			const errorMessage = error instanceof Error ? error.message : 'Unknown error'
@@ -126,7 +126,6 @@
 		</div>
 
 		<div class="grid grid-cols-1 gap-5 md:grid-cols-2">
-			<!-- Logo Preview -->
 			<div class="flex flex-col gap-2">
 				<div class="flex items-end gap-2">
 					<ComebackLabel label="Logo Preview" />
@@ -151,7 +150,6 @@
 				</div>
 			</div>
 
-			<!-- Basic Information -->
 			<div class="space-y-4">
 				<ComebackInput v-model="companyName" label="Name *" placeholder="Company Name*" />
 				<ComebackInput
@@ -165,9 +163,7 @@
 					placeholder="https://company.com"
 				/>
 
-				<!-- Type and Year -->
 				<div class="grid grid-cols-2 gap-4">
-					<!-- Company Type -->
 					<div class="grid w-full grid-cols-1 gap-1">
 						<ComebackLabel label="Type *" />
 						<select
@@ -180,7 +176,6 @@
 						</select>
 					</div>
 
-					<!-- Founded Year -->
 					<div class="grid w-full grid-cols-1 gap-1">
 						<ComebackLabel label="Founded Year" />
 						<select
@@ -198,13 +193,11 @@
 		</div>
 
 		<div class="space-y-5 lg:space-y-10">
-			<!-- Location -->
 			<div class="grid grid-cols-1 gap-5 md:grid-cols-2">
 				<ComebackInput v-model="companyCountry" label="Country" placeholder="France" />
 				<ComebackInput v-model="companyCity" label="City" placeholder="Paris" />
 			</div>
 
-			<!-- Description -->
 			<div class="flex flex-col gap-1">
 				<ComebackLabel label="Description" />
 				<textarea
@@ -215,7 +208,6 @@
 				/>
 			</div>
 
-			<!-- Company Info Card -->
 			<div class="bg-cb-quinary-900 rounded-lg p-4">
 				<h3 class="mb-4 text-lg font-semibold">Preview</h3>
 				<div class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">

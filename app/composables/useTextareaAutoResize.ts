@@ -1,9 +1,9 @@
 /**
- * Composable pour gérer l'auto-redimensionnement des textareas
+ * Composable to handle textarea auto-resizing
  */
 export const useTextareaAutoResize = () => {
 	/**
-	 * Ajuste la hauteur d'un textarea en fonction de son contenu (via Event)
+	 * Adjusts a textarea height based on its content from an event
 	 */
 	const adjustTextarea = (event: Event) => {
 		const textarea = event.target as HTMLTextAreaElement
@@ -14,7 +14,7 @@ export const useTextareaAutoResize = () => {
 	}
 
 	/**
-	 * Ajuste la hauteur d'un textarea en fonction de son contenu (référence directe)
+	 * Adjusts a textarea height based on its content from a direct reference
 	 */
 	const adjustTextareaDirect = (textarea: HTMLTextAreaElement) => {
 		textarea.style.height = 'auto'
@@ -22,7 +22,7 @@ export const useTextareaAutoResize = () => {
 	}
 
 	/**
-	 * Crée un handler réactif pour un textarea avec une ref
+	 * Creates a reactive handler for a textarea ref
 	 */
 	const createTextareaHandler = (textareaRef: Ref<HTMLTextAreaElement | null>) => {
 		const adjust = () => {
@@ -31,7 +31,7 @@ export const useTextareaAutoResize = () => {
 			}
 		}
 
-		// Ajuster au prochain tick pour s'assurer que le DOM est mis à jour
+		// Adjust on the next tick to ensure the DOM is updated
 		const adjustNextTick = async () => {
 			await nextTick()
 			adjust()

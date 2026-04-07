@@ -50,7 +50,7 @@
 		artists: Artist[]
 	}>()
 
-	// Filtrer les artistes pour ne garder que ceux avec les propriétés requises
+	// Filter artists to keep only entries with the required properties
 	const validArtists = computed(() => {
 		if (!props.artists || !Array.isArray(props.artists)) return []
 		return props.artists.filter(
@@ -60,7 +60,7 @@
 
 	const imageLoaded = ref(false)
 
-	// Gérer les erreurs de chargement d'image
+	// Handle image loading errors
 	const handleImageError = () => {
 		console.warn("Erreur de chargement d'image pour un artiste")
 		imageLoaded.value = true

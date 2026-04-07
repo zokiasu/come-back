@@ -1,6 +1,5 @@
 <template>
 	<div class="container mx-auto min-h-screen p-5">
-		<!-- Header -->
 		<div class="mb-6 flex items-center justify-between">
 			<div>
 				<h1 class="text-2xl font-bold">My rankings</h1>
@@ -16,7 +15,6 @@
 			/>
 		</div>
 
-		<!-- Loading state -->
 		<div v-if="isLoading" class="flex items-center justify-center py-20">
 			<UIcon
 				name="line-md:loading-twotone-loop"
@@ -24,7 +22,6 @@
 			/>
 		</div>
 
-		<!-- Empty state -->
 		<div
 			v-else-if="rankings.length === 0"
 			class="bg-cb-quaternary-950 flex flex-col items-center justify-center rounded-lg py-20"
@@ -42,7 +39,6 @@
 			/>
 		</div>
 
-		<!-- Rankings grid -->
 		<div
 			v-else
 			class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
@@ -53,7 +49,6 @@
 				:to="`/ranking/music/${ranking.id}`"
 				class="bg-cb-quaternary-950 hover:bg-cb-quinary-900 group relative overflow-hidden rounded-lg transition-colors"
 			>
-				<!-- Cover (4 thumbnails grid) -->
 				<div class="aspect-square">
 					<div class="grid h-full w-full grid-cols-2 grid-rows-2">
 						<div
@@ -76,7 +71,6 @@
 					</div>
 				</div>
 
-				<!-- Info -->
 				<div class="p-3">
 					<div class="flex items-start justify-between">
 						<div class="min-w-0 flex-1">
@@ -108,7 +102,6 @@
 					</p>
 				</div>
 
-				<!-- Actions (visible on hover) -->
 				<div
 					class="absolute top-2 right-2 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100"
 				>
@@ -132,7 +125,6 @@
 			</NuxtLink>
 		</div>
 
-		<!-- Create Modal -->
 		<UModal v-model:open="isCreateModalOpen">
 			<template #content>
 				<div class="bg-cb-secondary-950 p-6">
@@ -173,7 +165,6 @@
 			</template>
 		</UModal>
 
-		<!-- Edit Modal -->
 		<UModal v-model:open="isEditModalOpen">
 			<template #content>
 				<div class="bg-cb-secondary-950 p-6">
@@ -217,7 +208,6 @@
 			</template>
 		</UModal>
 
-		<!-- Delete Confirmation Modal -->
 		<UModal v-model:open="isDeleteModalOpen">
 			<template #content>
 				<div class="bg-cb-secondary-950 p-6">
@@ -252,7 +242,6 @@
 	const { getUserRankings, createRanking, updateRanking, deleteRanking } =
 		useSupabaseRanking()
 
-	// State
 	const rankings = ref<UserRankingWithPreview[]>([])
 	const isLoading = ref(true)
 

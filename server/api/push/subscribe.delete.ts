@@ -16,7 +16,7 @@ export default defineEventHandler(async (event) => {
 
 	if (error) throw handleSupabaseError(error, 'push_subscriptions.delete')
 
-	// Mettre push_enabled à false si plus aucune subscription
+	// Set push_enabled to false when no subscriptions remain
 	const { count } = await supabase
 		.from('push_subscriptions')
 		.select('id', { count: 'exact', head: true })

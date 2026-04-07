@@ -41,7 +41,6 @@
 		:class="{ 'opacity-75': isPast }"
 	>
 		<NuxtLink :to="`/company/${company.id}`" class="block">
-			<!-- Company logo/image -->
 			<div class="aspect-square w-full overflow-hidden">
 				<NuxtImg
 					v-if="company.logo_url"
@@ -59,7 +58,6 @@
 				</div>
 			</div>
 
-			<!-- Company info overlay -->
 			<div
 				class="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/80 via-transparent to-transparent p-3"
 			>
@@ -68,7 +66,6 @@
 						{{ company.name }}
 					</h3>
 					<div class="flex flex-wrap items-center gap-1">
-						<!-- Type de relation ou type de compagnie -->
 						<span
 							class="rounded px-2 py-1 text-xs font-medium text-white"
 							:class="
@@ -81,7 +78,6 @@
 						>
 							{{ relationshipType || getCompanyTypeLabel(company.type) }}
 						</span>
-						<!-- Badge vérifié -->
 						<span
 							v-if="showVerified && company.verified"
 							class="rounded bg-green-600 px-1 py-1 text-xs font-medium text-white"
@@ -89,14 +85,12 @@
 							✓
 						</span>
 					</div>
-					<!-- Localisation si pas de relationshipType (pour la liste company) -->
 					<p
 						v-if="!relationshipType && formatLocation(company.city, company.country)"
 						class="text-xs text-gray-300"
 					>
 						{{ formatLocation(company.city, company.country) }}
 					</p>
-					<!-- Année de fondation si pas de relationshipType -->
 					<p
 						v-if="!relationshipType && company.founded_year"
 						class="text-xs text-gray-400"

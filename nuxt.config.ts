@@ -60,7 +60,7 @@ export default defineNuxtConfig({
 		secretKey: supabaseSecretKey,
 		redirect: false,
 		types: '~/types/supabase.ts',
-		// Active la gestion des cookies SSR pour persister la session
+		// Enable SSR cookie handling to persist the session
 		cookieOptions: {
 			secure: process.env.NODE_ENV === 'production',
 			sameSite: 'lax',
@@ -78,33 +78,33 @@ export default defineNuxtConfig({
 	routeRules: {
 		...(!isDev
 			? {
-					// Page d'accueil : ISR avec cache de 1 heure
+					// Page of accueil : ISR with cache of 1 heure
 					'/': { isr: 3600 },
 
-					// Calendrier : SSG (peu de changements)
+					// Calendrier : SSG (peu of changements)
 					'/calendar': { prerender: true },
 				}
 			: {}),
 
-		// Pages d'authentification : SPA
+		// Authentication pages: SPA
 		'/auth/callback': { ssr: false },
 
-		// Dashboard admin : SPA (données sensibles + interactif)
+		// admin dashboard: SPA (sensitive data + interactive UI)
 		'/dashboard/**': { ssr: false },
 		'/newdashboard/**': { ssr: false },
 		'/music': { ssr: false },
 
-		// Pages d'édition : SPA (auth requise, pas de SEO)
+		// Edit pages: SPA (auth required, no SEO)
 		'/artist/create': { ssr: false },
 		'/artist/edit/**': { ssr: false },
 
-		// Pages de paramètres : Hybride
+		// Settings pages: hybrid
 		'/settings': { ssr: true },
 		'/settings/notification': { ssr: false },
 		'/settings/**': { ssr: true },
 		'/notifications': { ssr: false },
 
-		// API : CORS activé
+		// API: CORS enabled
 		'/api/**': {
 			cors: true,
 			headers: {
@@ -112,7 +112,7 @@ export default defineNuxtConfig({
 			},
 		},
 
-		// Ancienne page client de creation de release : redirige vers l'admin
+		// Legacy client-side release creation page: redirect to the admin flow
 		'/release/create': { redirect: '/dashboard/release' },
 	},
 

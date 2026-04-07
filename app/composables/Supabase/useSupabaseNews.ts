@@ -17,7 +17,7 @@ export function useSupabaseNews() {
 	const { requireAuthHeaders } = useApiAuthHeaders()
 	const { runMutation } = useMutationTimeout()
 
-	// Crée une nouvelle news
+	// Creates a nouvelle news
 	const createNews = async (
 		data: TablesInsert<'news'>,
 		artistIds: string[],
@@ -40,7 +40,7 @@ export function useSupabaseNews() {
 		)
 	}
 
-	// Met à jour une news
+	// Updates a news
 	const updateNews = async (
 		id: string,
 		updates: TablesUpdate<'news'>,
@@ -93,7 +93,7 @@ export function useSupabaseNews() {
 		}
 	}
 
-	// Supprime une news
+	// Deletes a news
 	const deleteNews = async (id: string) => {
 		try {
 			await runMutation(
@@ -118,7 +118,7 @@ export function useSupabaseNews() {
 		}
 	}
 
-	// Récupère toutes les news
+	// Fetch all news
 	const getAllNews = async (
 		options?: QueryOptions & FilterOptions,
 	): Promise<NewsResponse> => {
@@ -151,13 +151,13 @@ export function useSupabaseNews() {
 			query = query.eq('verified', options.verified)
 		}
 
-		// Gérer le tri spécifiquement
+		// Handle sorting explicitly
 		if (options?.orderBy) {
 			if (options.orderBy === 'artist') {
-				// Pour le tri par artiste, on récupère toutes les données et on trie côté client
+				// For artist sorting, fetch all data and sort it client-side
 				query = query.order('id', { ascending: true })
 			} else {
-				// Pour les autres champs, on utilise le tri côté serveur
+				// for the autres champs, on utilise the sorting server-side
 				query = query.order(options.orderBy, {
 					ascending: options.orderDirection === 'asc',
 				})
@@ -187,7 +187,7 @@ export function useSupabaseNews() {
 			}
 		}
 
-		// Transformer les données pour avoir directement les artistes et l'utilisateur
+		// Transform data to expose artists and user directly
 		const transformedData = data?.map((news) => ({
 			...news,
 			artists:
@@ -197,7 +197,7 @@ export function useSupabaseNews() {
 			user: news.contributions?.[0]?.user || null,
 		}))
 
-		// Si le tri est par artiste, on trie manuellement les résultats
+		// if sorting is by artist, so sort the results manually
 		let sortedData = transformedData as News[]
 		if (options?.orderBy === 'artist') {
 			console.warn('Tri par artiste appliqué côté client')
@@ -219,7 +219,7 @@ export function useSupabaseNews() {
 		}
 	}
 
-	// Récupère une news avec tous ses détails
+	// Fetches a news with all details
 	const getNewsById = async (id: string): Promise<News | null> => {
 		if (!id) return null
 
@@ -241,7 +241,7 @@ export function useSupabaseNews() {
 			return null
 		}
 
-		// Transformer la structure pour avoir directement les artistes
+		// Transform the structure to expose artists directly
 		if (data) {
 			const transformedData = {
 				...data,
@@ -253,13 +253,13 @@ export function useSupabaseNews() {
 		return null
 	}
 
-	// Récupère les dernières news ajoutées en temps réel
+	// Fetch the latest news added in real time
 	const getRealtimeLatestNewsAdded = async (callback: (news: News[]) => void) => {
-		// Obtenir la date du jour à minuit
+		// Get today's date at midnight
 		const today = new Date()
 		today.setHours(0, 0, 0, 0)
 
-		// Récupération initiale des données
+		// Initial data fetch
 		const { data, error } = await supabase
 			.from('news')
 			.select(
@@ -278,7 +278,7 @@ export function useSupabaseNews() {
 			return
 		}
 
-		// Transformer les données pour avoir directement les artistes
+		// Transform data to expose artists directly
 		const transformedData =
 			data?.map((news) => ({
 				...news,
@@ -288,10 +288,10 @@ export function useSupabaseNews() {
 					) || [],
 			})) || []
 
-		// Appeler le callback avec les données transformées
+		// Call the callback with the transformed data
 		callback(transformedData as News[])
 
-		// Mettre en place la souscription en temps réel
+		// Mettre in place the souscription in real time
 		const subscription = supabase
 			.channel('news_changes')
 			.on(
@@ -302,7 +302,7 @@ export function useSupabaseNews() {
 					table: 'news',
 				},
 				async (_payload) => {
-					// Récupérer à nouveau les données après un changement
+					// Fetch the data again after a change
 					const { data: updatedData, error: updatedError } = await supabase
 						.from('news')
 						.select(
@@ -317,7 +317,7 @@ export function useSupabaseNews() {
 						.order('date', { ascending: true })
 
 					if (!updatedError && updatedData) {
-						// Transformer les données mises à jour
+						// Transform the updated data
 						const transformedUpdatedData =
 							updatedData?.map((news) => ({
 								...news,
@@ -333,7 +333,7 @@ export function useSupabaseNews() {
 			)
 			.subscribe()
 
-		// Retourner la fonction de nettoyage
+		// Return the cleanup function
 		return () => {
 			subscription.unsubscribe()
 		}

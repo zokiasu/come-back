@@ -46,7 +46,7 @@
 	const showMultipleArtistModal = ref(false)
 	const { open: openAuthModal } = useAuthModal()
 
-	// SSR-compatible data fetching avec API complète
+	// SSR-compatible data fetching with the complete API
 	const { data: artistData, pending: isFetchingArtist } = await useFetch(
 		`/api/artists/${route.params.id}/complete`,
 		{
@@ -60,13 +60,13 @@
 		},
 	)
 
-	// Réactivité des données
+	// Reactive data updates
 	const artist = computed(() => artistData.value.artist)
 	const socialLinksList = computed(() => artistData.value.social_links)
 	const platformLinksList = computed(() => artistData.value.platform_links)
 	const musicDiscover = computed(() => artistData.value.random_musics)
 
-	// Configuration des meta et images de façon réactive
+	// Configure meta tags and images reactively
 	watchEffect(() => {
 		if (artist.value) {
 			title.value = artist.value.name
@@ -554,7 +554,6 @@
 				</CardDefault>
 			</div>
 
-			<!-- Current companies -->
 			<div v-if="currentCompanies.length && !isFetchingArtist">
 				<CardDefault :name="`Current companies (${currentCompanies.length})`">
 					<transition-group
@@ -573,7 +572,6 @@
 				</CardDefault>
 			</div>
 
-			<!-- Past companies -->
 			<div v-if="pastCompanies.length && !isFetchingArtist">
 				<CardDefault :name="`Past companies (${pastCompanies.length})`">
 					<transition-group

@@ -134,7 +134,6 @@
 	>
 		<template #content>
 			<div class="bg-cb-secondary-950 w-full max-w-lg rounded-lg">
-				<!-- Header -->
 				<div class="flex items-center justify-between border-b border-zinc-700 p-4">
 					<div class="flex items-center gap-3">
 						<div
@@ -153,9 +152,7 @@
 					/>
 				</div>
 
-				<!-- Content -->
 				<div class="space-y-4 p-4">
-					<!-- Artist info card -->
 					<div class="rounded-lg border border-amber-500/30 bg-amber-500/10 p-4">
 						<p class="text-sm text-zinc-400">You are about to ban this artist:</p>
 						<p class="mt-1 text-xl font-bold text-white">{{ artistName }}</p>
@@ -165,7 +162,6 @@
 						</p>
 					</div>
 
-					<!-- Ban reason -->
 					<div>
 						<label class="mb-1.5 block text-sm font-medium text-zinc-300">
 							Ban reason (optional)
@@ -179,7 +175,6 @@
 						/>
 					</div>
 
-					<!-- Warning -->
 					<div class="rounded-lg border border-red-500/30 bg-red-500/10 p-3">
 						<div class="flex items-start gap-2">
 							<UIcon
@@ -193,7 +188,6 @@
 						</div>
 					</div>
 
-					<!-- Loading state -->
 					<div v-if="isLoading" class="flex items-center justify-center gap-3 py-8">
 						<UIcon
 							name="i-lucide-refresh-cw"
@@ -202,7 +196,6 @@
 						<span class="text-sm text-zinc-400">Analyzing impact...</span>
 					</div>
 
-					<!-- Impact analysis -->
 					<div v-else-if="impact" class="space-y-4">
 						<div class="bg-cb-quaternary-950 rounded-lg p-4">
 							<div class="mb-3 flex items-center gap-2">
@@ -211,7 +204,6 @@
 							</div>
 
 							<div class="space-y-3">
-								<!-- Releases -->
 								<div class="flex items-center justify-between">
 									<div class="flex items-center gap-2">
 										<UIcon name="i-lucide-music" class="h-4 w-4 text-zinc-500" />
@@ -244,7 +236,6 @@
 									</p>
 								</div>
 
-								<!-- Musics -->
 								<div class="flex items-center justify-between">
 									<div class="flex items-center gap-2">
 										<UIcon name="i-lucide-play" class="h-4 w-4 text-zinc-500" />
@@ -277,7 +268,6 @@
 									</p>
 								</div>
 
-								<!-- News -->
 								<div class="flex items-center justify-between">
 									<div class="flex items-center gap-2">
 										<UIcon name="i-lucide-newspaper" class="h-4 w-4 text-zinc-500" />
@@ -316,7 +306,6 @@
 					</div>
 				</div>
 
-				<!-- Footer -->
 				<div class="flex items-center justify-end gap-3 border-t border-zinc-700 p-4">
 					<UButton
 						color="neutral"

@@ -7,7 +7,7 @@ export default defineEventHandler(async (event) => {
 	const month = parseInt((query.month as string) || String(new Date().getMonth()), 10)
 	const year = parseInt((query.year as string) || String(new Date().getFullYear()), 10)
 
-	// Valider les paramètres (month is 0-based from frontend)
+	// Validate parameters (month is 0-based from the frontend)
 	if (month < 0 || month > 11) {
 		throw createError({
 			statusCode: 400,
@@ -22,7 +22,7 @@ export default defineEventHandler(async (event) => {
 		})
 	}
 
-	// Créer les dates de début et fin du mois (month is 0-based)
+	// Create the start and end dates of the month (month is 0-based)
 	const startDate = new Date(year, month, 1).toISOString().split('T')[0]
 	const endDate = new Date(year, month + 1, 0).toISOString().split('T')[0]
 
@@ -45,7 +45,7 @@ export default defineEventHandler(async (event) => {
 		throw handleSupabaseError(error, 'calendar.releases')
 	}
 
-	// Transformer les données pour correspondre au format attendu
+	// Transform the data to match the expected format
 	const transformedData = (data || []).map((release) => ({
 		...release,
 		artists: transformJunction(release.artists, 'artist'),

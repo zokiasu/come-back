@@ -5,7 +5,6 @@
 			:key="item.id"
 			class="bg-cb-quaternary-900 hover:bg-cb-quaternary-850 flex items-center space-x-4 rounded-lg p-3 transition-colors duration-200"
 		>
-			<!-- Ranking Number -->
 			<div class="flex-shrink-0">
 				<div
 					class="flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold"
@@ -15,7 +14,6 @@
 				</div>
 			</div>
 
-			<!-- Item Image -->
 			<div v-if="item.image" class="flex-shrink-0">
 				<img
 					:src="item.image"
@@ -24,7 +22,6 @@
 				/>
 			</div>
 
-			<!-- Item Content -->
 			<div class="min-w-0 flex-1">
 				<div class="flex items-center justify-between">
 					<div class="min-w-0 flex-1">
@@ -49,7 +46,6 @@
 			</div>
 		</div>
 
-		<!-- Show More Button -->
 		<div v-if="canShowMore" class="text-center">
 			<UButton
 				variant="ghost"
@@ -65,7 +61,6 @@
 			</UButton>
 		</div>
 
-		<!-- Empty State -->
 		<div v-if="items.length === 0" class="py-8 text-center">
 			<div class="text-cb-tertiary-200 mb-2">
 				<Icon name="i-lucide-list" class="mx-auto h-8 w-8" />

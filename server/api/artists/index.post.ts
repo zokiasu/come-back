@@ -20,7 +20,7 @@ export default defineEventHandler(async (event) => {
 
 	const supabase = useServerSupabase()
 
-	// Vérifier duplicate YouTube Music ID
+	// Check duplicate YouTube Music ID
 	if (body.data.id_youtube_music) {
 		const { data: existing } = await supabase
 			.from('artists')
@@ -37,7 +37,7 @@ export default defineEventHandler(async (event) => {
 		}
 	}
 
-	// 1. Créer l'artiste
+	// 1. Create the artist
 	const { data: artist, error: artistError } = await supabase
 		.from('artists')
 		.insert(body.data)
@@ -48,7 +48,7 @@ export default defineEventHandler(async (event) => {
 
 	const artistId = artist.id
 
-	// 2. Insérer les liens sociaux
+	// 2. Insert social links
 	if (body.socialLinks?.length) {
 		const { error } = await supabase
 			.from('artist_social_links')
@@ -57,7 +57,7 @@ export default defineEventHandler(async (event) => {
 		if (error) console.error('Error inserting social links:', error)
 	}
 
-	// 3. Insérer les liens plateformes
+	// 3. Insert platform links
 	if (body.platformLinks?.length) {
 		const { error } = await supabase
 			.from('artist_platform_links')
@@ -66,7 +66,7 @@ export default defineEventHandler(async (event) => {
 		if (error) console.error('Error inserting platform links:', error)
 	}
 
-	// 4. Insérer les relations de groupe (l'artiste est membre de ces groupes)
+	// 4. Insert group relations where the artist is a member of those groups
 	if (body.groupIds?.length) {
 		const { error } = await supabase.from('artist_relations').insert(
 			body.groupIds.map((groupId) => ({
@@ -79,7 +79,7 @@ export default defineEventHandler(async (event) => {
 		if (error) console.error('Error inserting group relations:', error)
 	}
 
-	// 5. Insérer les relations membres (l'artiste est le groupe)
+	// 5. Insert member relations where the artist is the group
 	if (body.memberIds?.length) {
 		const { error } = await supabase.from('artist_relations').insert(
 			body.memberIds.map((memberId) => ({
@@ -92,7 +92,7 @@ export default defineEventHandler(async (event) => {
 		if (error) console.error('Error inserting member relations:', error)
 	}
 
-	// 6. Insérer les companies
+	// 6. Insert companies
 	if (body.companies?.length) {
 		const { error } = await supabase
 			.from('artist_companies')

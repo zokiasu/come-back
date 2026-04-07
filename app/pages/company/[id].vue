@@ -10,7 +10,7 @@
 	const route = useRoute()
 	const { open: openAuthModal } = useAuthModal()
 
-	// SSR-compatible data fetching avec API complète
+	// SSR-compatible data fetching with the complete API
 	const { data: companyData, pending: isFetchingCompany } = await useFetch(
 		`/api/companies/${route.params.id}/complete`,
 		{
@@ -22,13 +22,13 @@
 		},
 	)
 
-	// Réactivité des données
+	// Reactive data updates
 	const company = computed(() => companyData.value.company)
 	const companyArtists = computed(() => companyData.value.company_artists)
 	const imageBackground = ref<string | null>(null)
 	const imageBackLoaded = ref<boolean>(false)
 
-	// Configuration des meta et images de façon réactive
+	// Configure meta tags and images reactively
 	watchEffect(() => {
 		if (company.value) {
 			imageBackground.value = company.value.logo_url || null
@@ -88,7 +88,6 @@
 		<section
 			class="background-top relative h-[30vh] overflow-hidden bg-white bg-cover bg-no-repeat lg:h-[40vh] xl:h-[50vh] 2xl:h-[70vh]"
 		>
-			<!-- Image de fond si disponible -->
 			<NuxtImg
 				v-if="imageBackground"
 				:src="imageBackground"
@@ -98,7 +97,6 @@
 				class="absolute inset-0 h-full w-full object-cover"
 				@load="imageBackLoaded = true"
 			/>
-			<!-- Background avec la première lettre si pas d'image -->
 			<div
 				v-else-if="company?.name"
 				class="bg-cb-quaternary-950 absolute inset-0 flex items-center justify-center"

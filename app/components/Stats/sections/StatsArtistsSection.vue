@@ -14,7 +14,6 @@
 		</div>
 
 		<div class="space-y-6">
-			<!-- Graphique des genres musicaux -->
 			<div v-if="genreChart" class="bg-cb-quaternary-950 rounded-lg p-4">
 				<h3 class="mb-4 text-lg font-medium text-white">
 					{{ genreChart.title }}
@@ -25,7 +24,6 @@
 				</p>
 			</div>
 
-			<!-- Graphiques de répartition Hommes/Femmes -->
 			<div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
 				<div
 					v-for="chart in genderCharts"
@@ -42,7 +40,6 @@
 				</div>
 			</div>
 
-			<!-- Graphique qualité et top lists -->
 			<div class="grid grid-cols-1 gap-4 xl:grid-cols-3">
 				<div v-if="qualityChart" class="bg-cb-quaternary-950 rounded-lg p-4">
 					<h3 class="mb-4 text-lg font-medium text-white">
