@@ -72,16 +72,9 @@ export const useAuth = () => {
 				)
 				if (sessionAuthUser?.id) return sessionAuthUser
 
-				const { data: userData, error } = await withTimeout(
-					supabase.auth.getUser(),
-					3000,
-					{ data: { user: null }, error: null } as Awaited<
-						ReturnType<typeof supabase.auth.getUser>
-					>,
-				)
-				const sessionUser = userData.user
-
-				if (error || !sessionUser?.id) return null
+				const result = await withTimeout(supabase.auth.getUser(), 3000, null)
+				if (!result || result.error || !result.data.user?.id) return null
+				const sessionUser = result.data.user
 
 				return {
 					id: sessionUser.id,
