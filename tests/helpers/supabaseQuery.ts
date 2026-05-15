@@ -15,12 +15,14 @@ type ChainMethod<TData> = (...args: unknown[]) => SupabaseQueryMock<TData>
 
 export type SupabaseQueryMock<TData = unknown> = {
 	calls: SupabaseQueryCall[]
+	delete: ChainMethod<TData>
 	select: ChainMethod<TData>
 	eq: ChainMethod<TData>
 	gt: ChainMethod<TData>
 	gte: ChainMethod<TData>
 	ilike: ChainMethod<TData>
 	in: ChainMethod<TData>
+	insert: ChainMethod<TData>
 	limit: ChainMethod<TData>
 	lt: ChainMethod<TData>
 	lte: ChainMethod<TData>
@@ -28,6 +30,10 @@ export type SupabaseQueryMock<TData = unknown> = {
 	order: ChainMethod<TData>
 	overlaps: ChainMethod<TData>
 	range: ChainMethod<TData>
+	single: () => Promise<SupabaseQueryResult<TData>>
+	maybeSingle: () => Promise<SupabaseQueryResult<TData>>
+	update: ChainMethod<TData>
+	upsert: ChainMethod<TData>
 	then: <TResult1 = SupabaseQueryResult<TData>, TResult2 = never>(
 		onfulfilled?:
 			| ((value: SupabaseQueryResult<TData>) => TResult1 | PromiseLike<TResult1>)
@@ -54,12 +60,14 @@ export const createSupabaseQueryMock = <TData = unknown>(
 
 	Object.assign(query, {
 		calls,
+		delete: chain('delete'),
 		select: chain('select'),
 		eq: chain('eq'),
 		gt: chain('gt'),
 		gte: chain('gte'),
 		ilike: chain('ilike'),
 		in: chain('in'),
+		insert: chain('insert'),
 		limit: chain('limit'),
 		lt: chain('lt'),
 		lte: chain('lte'),
@@ -67,6 +75,10 @@ export const createSupabaseQueryMock = <TData = unknown>(
 		order: chain('order'),
 		overlaps: chain('overlaps'),
 		range: chain('range'),
+		single: vi.fn(async () => result),
+		maybeSingle: vi.fn(async () => result),
+		update: chain('update'),
+		upsert: chain('upsert'),
 		then,
 	})
 
