@@ -32,6 +32,7 @@ export type SupabaseQueryMock<TData = unknown> = {
 	range: ChainMethod<TData>
 	single: () => Promise<SupabaseQueryResult<TData>>
 	maybeSingle: () => Promise<SupabaseQueryResult<TData>>
+	neq: ChainMethod<TData>
 	update: ChainMethod<TData>
 	upsert: ChainMethod<TData>
 	then: <TResult1 = SupabaseQueryResult<TData>, TResult2 = never>(
@@ -77,6 +78,7 @@ export const createSupabaseQueryMock = <TData = unknown>(
 		range: chain('range'),
 		single: vi.fn(async () => result),
 		maybeSingle: vi.fn(async () => result),
+		neq: chain('neq'),
 		update: chain('update'),
 		upsert: chain('upsert'),
 		then,
