@@ -4,6 +4,9 @@ import { defineConfig } from 'vitest/config'
 const rootDir = fileURLToPath(new URL('.', import.meta.url))
 const appDir = fileURLToPath(new URL('./app', import.meta.url))
 const serverDir = fileURLToPath(new URL('./server', import.meta.url))
+const supabaseServerMock = fileURLToPath(
+	new URL('./tests/mocks/supabaseServer.ts', import.meta.url),
+)
 
 export default defineConfig({
 	resolve: {
@@ -13,6 +16,7 @@ export default defineConfig({
 			'~~': rootDir,
 			'@@': rootDir,
 			'#server': serverDir,
+			'#supabase/server': supabaseServerMock,
 		},
 	},
 	test: {

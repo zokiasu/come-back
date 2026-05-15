@@ -23,8 +23,10 @@ export default defineEventHandler(async (event) => {
 	}
 
 	// Create the start and end dates of the month (month is 0-based)
-	const startDate = new Date(year, month, 1).toISOString().split('T')[0]
-	const endDate = new Date(year, month + 1, 0).toISOString().split('T')[0]
+	const monthNumber = String(month + 1).padStart(2, '0')
+	const lastDayOfMonth = String(new Date(year, month + 1, 0).getDate()).padStart(2, '0')
+	const startDate = `${year}-${monthNumber}-01`
+	const endDate = `${year}-${monthNumber}-${lastDayOfMonth}`
 
 	const { data, error } = await supabase
 		.from('releases')
