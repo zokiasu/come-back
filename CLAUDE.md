@@ -14,12 +14,15 @@ npm run build        # Build production
 npm run lint:fix     # ESLint + Prettier auto-fix
 npm run format       # Prettier uniquement
 npm run typecheck    # Vérification TypeScript
-npm run check        # Lint + Typecheck (CI)
+npm run test         # Vitest en mode watch
+npm run test:run     # Vitest une seule fois
+npm run test:coverage # Couverture Vitest
+npm run check        # Lint + Typecheck + tests (CI)
 npm run generate     # Génération statique
 npm run preview      # Preview du build
 ```
 
-Pas de suite de tests configurée (ni Vitest ni Jest).
+Suite Vitest configurée. Les tests unitaires serveur utilisent l'environnement `node` par défaut ; `@nuxt/test-utils` est disponible pour les tests nécessitant l'environnement Nuxt.
 
 ## Variables d'environnement
 

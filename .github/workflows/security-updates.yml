@@ -15,7 +15,7 @@ permissions:
 jobs:
   security-audit:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -34,11 +34,11 @@ jobs:
         run: |
           # Audit de sécurité et capture des vulnérabilités
           npm audit --audit-level=moderate --json > audit-results.json || true
-          
+
           # Vérifier s'il y a des vulnérabilités
           VULNERABILITIES=$(cat audit-results.json | jq '.metadata.vulnerabilities.total // 0')
           echo "vulnerabilities_count=$VULNERABILITIES" >> $GITHUB_OUTPUT
-          
+
           if [ "$VULNERABILITIES" -gt 0 ]; then
             echo "security_issues=true" >> $GITHUB_OUTPUT
             # Créer un résumé des vulnérabilités
@@ -52,7 +52,7 @@ jobs:
         run: |
           # Tenter de corriger automatiquement les vulnérabilités
           npm audit fix --force || true
-          
+
           # Vérifier si des changements ont été apportés
           if [ -n "$(git status --porcelain)" ]; then
             echo "fixes_applied=true" >> $GITHUB_OUTPUT
@@ -63,7 +63,8 @@ jobs:
       - name: Test after security fixes
         if: steps.audit.outputs.security_issues == 'true'
         run: |
-          npm run build || echo "Build failed after security fixes"
+          npm run check
+          npm run build
 
       - name: Create Security PR
         if: steps.audit.outputs.security_issues == 'true'
@@ -74,27 +75,27 @@ jobs:
           title: '🔒 Corrections de sécurité automatiques'
           body: |
             ## 🛡️ Corrections de sécurité
-            
+
             Cette PR contient des corrections automatiques pour les vulnérabilités de sécurité détectées.
-            
+
             ### Vulnérabilités critiques/élevées détectées:
             $(cat security_summary.txt || echo "Voir les détails dans l'audit complet")
-            
+
             ### 🔧 Actions effectuées:
             - [x] Audit de sécurité complet
             - [x] Application des corrections automatiques
-            - [x] Test de build
-            
+            - [x] Lint, typecheck, tests et build
+
             ### ⚠️ ATTENTION:
             - [ ] **Testez soigneusement** l'application après ces changements
             - [ ] Vérifiez que toutes les fonctionnalités critiques fonctionnent
             - [ ] Exécutez la suite de tests complète
-            
+
             ### 📊 Résumé de l'audit:
             - Vulnérabilités totales: ${{ steps.audit.outputs.vulnerabilities_count }}
-            
+
             ---
-            
+
             🤖 PR générée automatiquement par l'audit de sécurité.
           branch: security-fixes-${{ github.run_number }}
           delete-branch: true
@@ -115,7 +116,7 @@ jobs:
             } catch (e) {
               vulnerabilities = 'Voir les résultats de l\'audit pour plus de détails.';
             }
-            
+
             github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,

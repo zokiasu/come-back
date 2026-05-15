@@ -1,0 +1,16 @@
+{
+	"extends": "./.nuxt/tsconfig.json",
+	"compilerOptions": {
+		"noEmit": true,
+		"types": ["vitest/importMeta"]
+	},
+	"include": [
+		"tests/**/*.ts",
+		"server/utils/errorHandler.ts",
+		"server/utils/queryFilters.ts",
+		"server/utils/transformers.ts",
+		"server/utils/validation.ts",
+		"server/utils/youtubeMvMatcher.ts",
+		"vitest.config.ts"
+	]
+}

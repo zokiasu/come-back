@@ -117,7 +117,10 @@ npm run preview      # Preview du build
 npm run lint:fix     # ESLint + Prettier
 npm run format       # Prettier uniquement
 npm run typecheck    # Vérification TypeScript
-npm run check        # Lint + Typecheck (CI)
+npm run test         # Vitest en mode watch
+npm run test:run     # Vitest une seule fois
+npm run test:coverage # Couverture Vitest
+npm run check        # Lint + Typecheck + tests (CI)
 ```
 
 ## Stratégie de Rendu
