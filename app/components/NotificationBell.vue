@@ -1,8 +1,14 @@
 <script setup lang="ts">
 	import type { AppNotification } from '~/composables/useNotifications'
 
-	const { notifications, unreadCount, isLoading, fetchNotifications, markAsRead, markAllAsRead } =
-		useNotifications()
+	const {
+		notifications,
+		unreadCount,
+		isLoading,
+		fetchNotifications,
+		markAsRead,
+		markAllAsRead,
+	} = useNotifications()
 
 	const isOpen = ref(false)
 
@@ -33,7 +39,10 @@
 		if (hours < 24) return `${hours}h ago`
 		const days = Math.floor(hours / 24)
 		if (days < 30) return `${days}d ago`
-		return new Date(dateStr).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })
+		return new Date(dateStr).toLocaleDateString('en-US', {
+			day: 'numeric',
+			month: 'short',
+		})
 	}
 </script>
 
@@ -48,7 +57,7 @@
 			<UIcon name="i-lucide-bell" class="size-4" />
 			<span
 				v-if="unreadCount > 0"
-				class="bg-cb-primary-500 absolute -right-0.5 -top-0.5 flex size-4 items-center justify-center rounded-full text-[10px] font-bold text-white"
+				class="bg-cb-primary-500 absolute -top-0.5 -right-0.5 flex size-4 items-center justify-center rounded-full text-[10px] font-bold text-white"
 			>
 				{{ unreadCount > 9 ? '9+' : unreadCount }}
 			</span>
@@ -56,7 +65,9 @@
 
 		<template #content>
 			<div class="bg-cb-secondary-950 rounded-xl border border-zinc-700/60 shadow-xl">
-				<div class="flex items-center justify-between border-b border-zinc-700/60 px-4 py-3">
+				<div
+					class="flex items-center justify-between border-b border-zinc-700/60 px-4 py-3"
+				>
 					<span class="text-sm font-semibold text-white">Notifications</span>
 					<button
 						v-if="unreadCount > 0"
@@ -70,7 +81,10 @@
 
 				<div class="max-h-96 overflow-y-auto">
 					<div v-if="isLoading" class="flex items-center justify-center py-8">
-						<UIcon name="i-lucide-loader-circle" class="size-5 animate-spin text-zinc-500" />
+						<UIcon
+							name="i-lucide-loader-circle"
+							class="size-5 animate-spin text-zinc-500"
+						/>
 					</div>
 
 					<div v-else-if="!notifications.length" class="px-4 py-8 text-center">

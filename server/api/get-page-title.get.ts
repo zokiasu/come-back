@@ -69,7 +69,7 @@ export default defineEventHandler(async (event) => {
 			})
 		}
 
-	// Check that the domain is in the allowlist for SSRF protection
+		// Check that the domain is in the allowlist for SSRF protection
 		if (!isDomainAllowed(urlObj.hostname)) {
 			throw createError({
 				statusCode: 403,

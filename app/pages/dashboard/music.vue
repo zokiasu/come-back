@@ -1161,7 +1161,10 @@
 						<UButton
 							color="neutral"
 							variant="soft"
-							@click="isDeleteModalOpen = false; deletingMusic = null"
+							@click="
+								isDeleteModalOpen = false
+								deletingMusic = null
+							"
 						>
 							Cancel
 						</UButton>

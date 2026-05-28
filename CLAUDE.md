@@ -229,18 +229,18 @@ const { data } = await useFetch('/api/releases/paginated', {
 
 ## Stratégie de Rendu
 
-| Route                               | Mode     | Détails                              |
-| ----------------------------------- | -------- | ------------------------------------ |
-| `/`                                 | ISR      | 3600s revalidation                   |
-| `/calendar`                         | SSG      | Prerender                            |
-| `/auth/callback`                    | SPA      | Client-side only                     |
-| `/dashboard/**`, `/newdashboard/**` | SPA      | Client-side only                     |
-| `/music`                            | SPA      | Client-side only                     |
-| `/artist/create`, `/artist/edit/**` | SPA      | Client-side only (auth requise)      |
-| `/release/create`                   | Redirect | → `/dashboard/release`               |
-| `/settings/**`                      | SSR      | Hybride (`/notification` en SPA)     |
-| `/notifications`                    | SPA      | Client-side only                     |
-| `/api/**`                           | —        | CORS activé + cache headers          |
+| Route                               | Mode     | Détails                          |
+| ----------------------------------- | -------- | -------------------------------- |
+| `/`                                 | ISR      | 3600s revalidation               |
+| `/calendar`                         | SSG      | Prerender                        |
+| `/auth/callback`                    | SPA      | Client-side only                 |
+| `/dashboard/**`, `/newdashboard/**` | SPA      | Client-side only                 |
+| `/music`                            | SPA      | Client-side only                 |
+| `/artist/create`, `/artist/edit/**` | SPA      | Client-side only (auth requise)  |
+| `/release/create`                   | Redirect | → `/dashboard/release`           |
+| `/settings/**`                      | SSR      | Hybride (`/notification` en SPA) |
+| `/notifications`                    | SPA      | Client-side only                 |
+| `/api/**`                           | —        | CORS activé + cache headers      |
 
 ## Formatage & Linting
 

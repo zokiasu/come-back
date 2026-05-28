@@ -45,11 +45,7 @@ export const useAuth = () => {
 		}
 	}
 
-	const withTimeout = <T>(
-		promise: Promise<T>,
-		ms: number,
-		fallback: T,
-	): Promise<T> => {
+	const withTimeout = <T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> => {
 		return Promise.race([
 			promise,
 			new Promise<T>((resolve) => setTimeout(() => resolve(fallback), ms)),
@@ -65,11 +61,7 @@ export const useAuth = () => {
 			try {
 				// Prefer the session snapshot first because it is cheaper and avoids
 				// some transient `getUser()` races during refresh or OAuth redirects.
-				const sessionAuthUser = await withTimeout(
-					getSessionAuthUser(),
-					3000,
-					null,
-				)
+				const sessionAuthUser = await withTimeout(getSessionAuthUser(), 3000, null)
 				if (sessionAuthUser?.id) return sessionAuthUser
 
 				const result = await withTimeout(supabase.auth.getUser(), 3000, null)

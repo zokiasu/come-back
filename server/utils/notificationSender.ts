@@ -76,7 +76,7 @@ export async function sendDailyNotifications(): Promise<{
 	const count = releases.length
 
 	const payload = {
-		title: '🎵 Today\'s comebacks',
+		title: "🎵 Today's comebacks",
 		body:
 			count === 1
 				? `${artistName} releases today!`
@@ -289,7 +289,11 @@ export async function sendFollowedArtistNotifications(): Promise<{
 			release.artist_releases.find((ar) => ar.artists.id === follow.artist_id)?.artists
 				.name ?? ''
 
-		userReleaseMap.set(follow.user_id, { release, artistName, artistId: follow.artist_id })
+		userReleaseMap.set(follow.user_id, {
+			release,
+			artistName,
+			artistId: follow.artist_id,
+		})
 	}
 
 	if (!userReleaseMap.size) return { sent: 0, expired: 0 }

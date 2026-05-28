@@ -58,9 +58,7 @@
 					icon: 'i-lucide-user-round-plus',
 					to: '/artist/create',
 					class: isActive ? activeItemClass : '',
-					ui: isActive
-						? { itemLeadingIcon: activeIconClass }
-						: undefined,
+					ui: isActive ? { itemLeadingIcon: activeIconClass } : undefined,
 				},
 			])
 		}
@@ -77,18 +75,14 @@
 				icon: 'i-lucide-bell',
 				to: '/notifications',
 				class: isNotifActive ? activeItemClass : '',
-				ui: isNotifActive
-					? { itemLeadingIcon: activeIconClass }
-					: undefined,
+				ui: isNotifActive ? { itemLeadingIcon: activeIconClass } : undefined,
 			},
 			{
 				label: 'Settings',
 				icon: 'i-lucide-settings',
 				to: '/settings/profile',
 				class: isSettingsActive ? activeItemClass : '',
-				ui: isSettingsActive
-					? { itemLeadingIcon: activeIconClass }
-					: undefined,
+				ui: isSettingsActive ? { itemLeadingIcon: activeIconClass } : undefined,
 			},
 		])
 
@@ -212,7 +206,7 @@
 							>
 								<span
 									v-if="unreadCount > 0"
-									class="bg-cb-primary-500 absolute -right-0.5 -top-0.5 flex size-4 items-center justify-center rounded-full text-[10px] font-bold text-white"
+									class="bg-cb-primary-500 absolute -top-0.5 -right-0.5 flex size-4 items-center justify-center rounded-full text-[10px] font-bold text-white"
 								>
 									{{ unreadCount > 9 ? '9+' : unreadCount }}
 								</span>
