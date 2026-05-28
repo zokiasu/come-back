@@ -2,8 +2,7 @@
 import tailwindcss from '@tailwindcss/vite'
 
 const isDev = process.env.NODE_ENV === 'development'
-const supabaseSecretKey =
-	process.env.SUPABASE_SECRET_KEY ?? process.env.NUXT_PUBLIC_SUPABASE_SECRET_KEY ?? ''
+const supabaseSecretKey = process.env.SUPABASE_SECRET_KEY ?? ''
 
 export default defineNuxtConfig({
 	compatibilityDate: '2025-05-27',
@@ -42,11 +41,11 @@ export default defineNuxtConfig({
 
 	runtimeConfig: {
 		SUPABASE_SECRET_KEY: supabaseSecretKey,
+		YOUTUBE_API_KEY: process.env.YOUTUBE_API_KEY,
 		VAPID_PRIVATE_KEY: process.env.VAPID_PRIVATE_KEY,
 		VAPID_SUBJECT: process.env.VAPID_SUBJECT ?? 'mailto:admin@come-back.app',
 		CRON_SECRET: process.env.CRON_SECRET,
 		public: {
-			YOUTUBE_API_KEY: process.env.YOUTUBE_API_KEY,
 			SUPABASE_URL: process.env.SUPABASE_URL,
 			SUPABASE_KEY: process.env.NUXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
 			SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY,
@@ -91,7 +90,6 @@ export default defineNuxtConfig({
 
 		// admin dashboard: SPA (sensitive data + interactive UI)
 		'/dashboard/**': { ssr: false },
-		'/newdashboard/**': { ssr: false },
 		'/music': { ssr: false },
 
 		// Edit pages: SPA (auth required, no SEO)

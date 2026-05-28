@@ -88,7 +88,7 @@ export default defineEventHandler(async (event) => {
 	}
 
 	const config = useRuntimeConfig()
-	const apiKey = config.public.YOUTUBE_API_KEY
+	const apiKey = config.YOUTUBE_API_KEY
 
 	if (apiKey) {
 		try {

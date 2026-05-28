@@ -29,7 +29,7 @@ Suite Vitest configurée. Les tests unitaires serveur utilisent l'environnement 
 ```
 SUPABASE_URL
 NUXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
-NUXT_PUBLIC_SUPABASE_SECRET_KEY    # Service role key (serveur)
+SUPABASE_SECRET_KEY               # Service role key (serveur uniquement)
 SUPABASE_ANON_KEY
 YOUTUBE_API_KEY
 VAPID_PUBLIC_KEY                   # Push notifications (client)
@@ -234,7 +234,7 @@ const { data } = await useFetch('/api/releases/paginated', {
 | `/`                                 | ISR      | 3600s revalidation               |
 | `/calendar`                         | SSG      | Prerender                        |
 | `/auth/callback`                    | SPA      | Client-side only                 |
-| `/dashboard/**`, `/newdashboard/**` | SPA      | Client-side only                 |
+| `/dashboard/**`                     | SPA      | Client-side only                 |
 | `/music`                            | SPA      | Client-side only                 |
 | `/artist/create`, `/artist/edit/**` | SPA      | Client-side only (auth requise)  |
 | `/release/create`                   | Redirect | → `/dashboard/release`           |

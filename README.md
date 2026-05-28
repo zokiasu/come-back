@@ -69,7 +69,7 @@ npm run build
 ```bash
 SUPABASE_URL=                          # URL du projet Supabase
 NUXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=  # Clé publique Supabase
-NUXT_PUBLIC_SUPABASE_SECRET_KEY=       # Clé service role (server-side)
+SUPABASE_SECRET_KEY=                   # Clé service role (server-side uniquement)
 YOUTUBE_API_KEY=                       # API YouTube Data v3
 ```
 

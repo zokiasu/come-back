@@ -24,9 +24,7 @@ const setupGlobals = (body: unknown, youtubeApiKey?: string) => {
 	)
 	vi.stubGlobal('createError', createError)
 	vi.stubGlobal('useRuntimeConfig', () => ({
-		public: {
-			YOUTUBE_API_KEY: youtubeApiKey,
-		},
+		YOUTUBE_API_KEY: youtubeApiKey,
 	}))
 
 	return { setHeader }
