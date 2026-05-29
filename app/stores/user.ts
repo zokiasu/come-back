@@ -7,7 +7,6 @@ import type { SupabaseAuthUser } from '~/types/auth'
 export const useUserStore = defineStore(
 	'userStore',
 	() => {
-		const supabaseUserStore = ref<SupabaseAuthUser | null>(null)
 		const isLoginStore = ref<boolean>(false)
 		const userDataStore = ref<User | null>(null)
 
@@ -22,10 +21,6 @@ export const useUserStore = defineStore(
 			userDataStore.value = user
 		}
 
-		const setSupabaseUser = (user: SupabaseAuthUser | null) => {
-			supabaseUserStore.value = user
-		}
-
 		const setIsLogin = (isLogin: boolean) => {
 			isLoginStore.value = isLogin
 		}
@@ -37,11 +32,9 @@ export const useUserStore = defineStore(
 			if (authUser && userData) {
 				setUserData(userData)
 				setIsLogin(true)
-				setSupabaseUser(authUser)
 			} else {
 				setUserData(null)
 				setIsLogin(false)
-				setSupabaseUser(null)
 			}
 			isHydrated.value = true
 		}
@@ -49,7 +42,6 @@ export const useUserStore = defineStore(
 		const resetStore = () => {
 			setUserData(null)
 			setIsLogin(false)
-			setSupabaseUser(null)
 			isHydrated.value = true
 		}
 
@@ -62,13 +54,11 @@ export const useUserStore = defineStore(
 		}
 
 		return {
-			supabaseUserStore,
 			userDataStore,
 			isLoginStore,
 			isAdminStore,
 			isHydrated,
 			setUserData,
-			setSupabaseUser,
 			setIsLogin,
 			syncUserProfile,
 			resetStore,

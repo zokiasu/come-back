@@ -11,6 +11,7 @@
 
 <script setup lang="ts">
 	import type { User as SupabaseUser } from '@supabase/supabase-js'
+	import { upsertUserProfile } from '~/composables/Supabase/helpers/user/upsertUserProfile'
 
 	const statusMessage = ref('Verifying session...')
 
@@ -196,72 +197,19 @@
 			log('Syncing user profile with session data...')
 
 			try {
-				// Check if user exists in database
-				const { data: existingUser, error: fetchError } = await supabase
-					.from('users')
-					.select('*')
-					.eq('id', sessionUser.id)
-					.single()
+				// Upsert via the shared helper so the callback and useAuth never diverge.
+				log('Upserting user profile...')
+				const dbUser = await upsertUserProfile(
+					supabase,
+					{
+						id: sessionUser.id,
+						email: sessionUser.email,
+						user_metadata: sessionUser.user_metadata,
+					},
+					runMutation,
+				)
 
-				if (fetchError && fetchError.code !== 'PGRST116') {
-					log(`Error fetching user: ${fetchError.message}`)
-					throw fetchError
-				}
-
-				const userData = {
-					id: sessionUser.id,
-					email: sessionUser.email || '',
-					name:
-						sessionUser.user_metadata?.full_name ||
-						sessionUser.user_metadata?.name ||
-						'Utilisateur',
-					photo_url:
-						sessionUser.user_metadata?.avatar_url ||
-						sessionUser.user_metadata?.picture ||
-						'',
-					role: existingUser?.role || 'USER',
-					updated_at: new Date().toISOString(),
-				}
-
-				let dbUser
-				if (!existingUser) {
-					log('Creating new user in database...')
-					const { data: newUser, error: createError } = await runMutation(
-						supabase
-							.from('users')
-							.insert([{ ...userData, created_at: new Date().toISOString() }])
-							.select()
-							.single(),
-						'Creating the user profile timed out. Please try again.',
-					)
-
-					if (createError) {
-						log(`Error creating user: ${createError.message}`)
-						throw createError
-					}
-					dbUser = newUser
-					log('User created successfully!')
-				} else {
-					log('Updating existing user in database...')
-					const { data: updatedUser, error: updateError } = await runMutation(
-						supabase
-							.from('users')
-							.update(userData)
-							.eq('id', sessionUser.id)
-							.select()
-							.single(),
-						'Updating the user profile timed out. Please try again.',
-					)
-
-					if (updateError) {
-						log(`Error updating user: ${updateError.message}`)
-						throw updateError
-					}
-					dbUser = updatedUser
-					log('User updated successfully!')
-				}
-
-				// Update the store with user data
+				// Update the store with user data (used by the non-popup fallback path).
 				log('Updating user store...')
 				await userStore.syncUserProfile(sessionUser, dbUser)
 				log('Store updated successfully!')
