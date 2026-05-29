@@ -2,7 +2,10 @@
 	"extends": "./.nuxt/tsconfig.json",
 	"compilerOptions": {
 		"noEmit": true,
-		"types": ["vitest/importMeta"]
+		// "nuxt/app" exposes the Nuxt ImportMeta augmentation (import.meta.dev, etc.)
+		// from node_modules without pulling the whole app component graph into the
+		// test program (which an .nuxt/nuxt.d.ts include would do).
+		"types": ["vitest/importMeta", "nuxt/app"]
 	},
 	"include": [
 		"tests/**/*.ts",

@@ -9,6 +9,12 @@ const supabaseServerMock = fileURLToPath(
 )
 
 export default defineConfig({
+	// Tests run in a development-like context, so Nuxt's statically-injected
+	// import.meta.dev resolves to true (matches @nuxt/test-utils behaviour and
+	// keeps dev-only branches, e.g. detailed error payloads, under test).
+	define: {
+		'import.meta.dev': 'true',
+	},
 	resolve: {
 		alias: {
 			'~': appDir,

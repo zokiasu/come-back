@@ -32,25 +32,33 @@
 
 ## 🟡 Niveau 2 — Petites corrections ciblées (< 1 h chacune)
 
-- [ ] **Masquer les détails d'erreur Supabase en production** 🟡
+- [x] **Masquer les détails d'erreur Supabase en production** 🟡
   - Fichier : `server/utils/errorHandler.ts`
   - Action : ne renvoyer `error.hint` / `error.details` / `error.code` que si `import.meta.dev`. En prod : message générique + log serveur complet.
+  - ✅ Fait — en prod, `statusMessage`/`message` génériques, plus de `data`. Le log serveur complet (code/hint/details) reste inchangé.
+  - 🔧 Tooling associé : `tsconfig.test.json` utilise `types: ["vitest/importMeta", "nuxt/app"]` (au lieu d'inclure l'artefact généré `.nuxt/nuxt.d.ts`) pour typer `import.meta.dev` ; `vitest.config.ts` ajoute `define: { 'import.meta.dev': 'true' }` (contexte de dev) pour que les tests couvrent la branche détaillée.
 
-- [ ] **Valider le token OAuth avant `setSession` (storage event)** 🟡
+- [x] **Valider le token OAuth avant `setSession`** 🟡
   - Fichier : `app/composables/auth/supabase-auth.composable.ts`
   - Action : dans `storageHandler`, valider le token (`supabase.auth.getUser(token)`) avant `setSession`. Ne plus avaler silencieusement les erreurs de `setSession` (logguer + rejeter).
+  - ✅ Fait — helper `hydrateSession()` partagé par les handlers `message` ET `storage` : vérifie le token côté serveur (`getUser(access_token)`) avant `setSession`.
+  - 🔁 **Corrigé après revue adversariale** : la 1re version *bloquait* `handleAuthSuccess` si la validation échouait + faisait `cleanupListeners()` → un utilisateur **légitime** était éjecté sur un simple échec réseau transitoire de `getUser` (régression HIGH). `hydrateSession` est désormais **best-effort** : il valide avant `setSession` (un token forgé n'est jamais injecté) mais ne *gate* plus le flux ; `handleAuthSuccess()` est toujours appelé et récupère via la session déjà persistée (cookies/localStorage). Résilience d'origine restaurée + bénéfice sécurité conservé.
 
-- [ ] **Whitelist du paramètre `mode` (suppression d'artiste)** 🟡
+- [x] **Whitelist du paramètre `mode` (suppression d'artiste)** 🟡
   - Fichier : `server/api/artists/[id]/index.delete.ts`
   - Action : restreindre `mode` à une liste blanche (`['safe', 'simple']`), défaut `safe`.
+  - ✅ Fait — `query.mode === 'simple' ? 'simple' : 'safe'`.
 
-- [ ] **Caching cohérent + projections sur les endpoints `complete`** 🟡
-  - Fichiers : `server/api/artists/[id]/complete.get.ts`, `server/api/releases/[id]/complete.get.ts`
-  - Action : ajouter un `Cache-Control` aligné sur les autres GET ; remplacer les `select('*')` par des projections de colonnes explicites pour réduire le payload.
+- [x] **Caching cohérent sur les endpoints `complete`** 🟡
+  - Fichiers : `server/api/releases/[id]/complete.get.ts`
+  - ✅ Fait (partiel) — cache explicite long (`max-age=3600`) sur `releases/complete` (contenu statique).
+  - ℹ️ Constat : le route rule global `/api/**` applique déjà `s-maxage=300` à TOUS les endpoints → « aucun cache » était inexact.
+  - ⏭️ `artists/complete` laissé sur le défaut court : il renvoie des musiques **aléatoires**, un cache long figerait l'aléatoire.
+  - ⏭️ **Projections (`select('*')`)** : reporté volontairement — remplacer par des colonnes explicites risque de casser des conscommateurs client ; à faire après audit des champs réellement utilisés.
 
-- [ ] **Robustesse de `transformJunction` sur null** 🔵
+- [x] **Robustesse de `transformJunction` sur null** 🔵
   - Fichier : `server/utils/transformers.ts`
-  - Action : confirmer/clarifier le filtrage des relations nulles ; documenter le comportement (perte silencieuse possible) ou logguer en dev.
+  - ✅ Vérifié — le code filtre déjà null ET undefined (`item != null`). Aucun changement nécessaire (le risque signalé par l'agent n'existe pas).
 
 ---
 

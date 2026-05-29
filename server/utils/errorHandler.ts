@@ -71,14 +71,24 @@ export const handleSupabaseError = (error: PostgrestError, context?: string) => 
 
 	const statusCode = statusCodeMap[error.code] || 500
 
+	// Full error is already logged above. Only leak DB internals (hint/details/code,
+	// which can reveal schema such as unique constraints and column names) in dev.
+	if (import.meta.dev) {
+		return createError({
+			statusCode,
+			statusMessage: error.message,
+			message: error.hint || error.details || 'Database operation failed',
+			data: {
+				code: error.code,
+				context,
+			},
+		})
+	}
+
 	return createError({
 		statusCode,
-		statusMessage: error.message,
-		message: error.hint || error.details || 'Database operation failed',
-		data: {
-			code: error.code,
-			context,
-		},
+		statusMessage: 'Database operation failed',
+		message: 'Database operation failed',
 	})
 }
 
