@@ -11,20 +11,21 @@
 	const fallbackDiscoverMusicImage = '/slider-placeholder.webp'
 	const failedDiscoverMusicImages = ref<Record<string, boolean>>({})
 
-	// SSR fetch used by the homepage realtime refresh flow.
-	const { data: comebacks, pending: newsFetching } = await useFetch(
-		() => `/api/news/latest?_t=${refreshTimestamp.value}`,
-		{
+	// Run the four SSR fetches in parallel so the homepage blocks on the slowest
+	// request, not the sum of all of them.
+	const [
+		{ data: comebacks, pending: newsFetching },
+		{ data: releases, pending: releasesFetching },
+		{ data: artists, pending: artistsFetching },
+		{ data: mvs, pending: mvsFetching },
+	] = await Promise.all([
+		// The API already returns news sorted by ascending comeback date.
+		useFetch(() => `/api/news/latest?_t=${refreshTimestamp.value}`, {
 			default: () => [],
 			server: true,
 			key: 'news-latest',
-			// The API already returns items sorted by ascending comeback date.
-		},
-	)
-
-	const { data: releases, pending: releasesFetching } = await useFetch(
-		'/api/releases/latest',
-		{
+		}),
+		useFetch('/api/releases/latest', {
 			default: () => [],
 			server: true,
 			query: { limit: 10 },
@@ -32,12 +33,8 @@
 				(data as ReleaseListItem[]).sort(
 					(a, b) => new Date(b.date || '').getTime() - new Date(a.date || '').getTime(),
 				),
-		},
-	)
-
-	const { data: artists, pending: artistsFetching } = await useFetch(
-		'/api/artists/latest',
-		{
+		}),
+		useFetch('/api/artists/latest', {
 			default: () => [],
 			server: true,
 			query: { limit: 10 },
@@ -47,8 +44,13 @@
 						new Date(b.created_at || '').getTime() -
 						new Date(a.created_at || '').getTime(),
 				),
-		},
-	)
+		}),
+		useFetch('/api/musics/latest-mvs', {
+			default: () => [],
+			server: true,
+			query: { limit: 14 },
+		}),
+	])
 
 	// Keep discovery tracks client-only so each visit can return different results.
 	const {
@@ -67,12 +69,6 @@
 	})
 
 	const discoverMusicAutoRetried = ref(false)
-
-	const { data: mvs, pending: mvsFetching } = await useFetch('/api/musics/latest-mvs', {
-		default: () => [],
-		server: true,
-		query: { limit: 14 },
-	})
 
 	const getUtcDayTimestamp = (dateValue: string | Date) => {
 		const date = dateValue instanceof Date ? dateValue : new Date(dateValue)
