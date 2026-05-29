@@ -1162,7 +1162,7 @@
 							color="neutral"
 							variant="soft"
 							@click="
-								isDeleteModalOpen = false
+								isDeleteModalOpen = false;
 								deletingMusic = null
 							"
 						>
