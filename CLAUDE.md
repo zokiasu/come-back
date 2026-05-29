@@ -136,7 +136,7 @@ L'auth fonctionne en couches avec synchronisation entre Supabase, Pinia et local
 
 ### Pinia Store (`user.ts`)
 
-Persiste `userDataStore` et `isLoginStore` en localStorage (clé `userStore`). `isAdminStore` n'est PAS persisté — il est recalculé dans `afterHydrate` depuis `userDataStore.role`. Le flag `isHydrated` empêche les erreurs de désynchronisation SSR/client.
+Persiste `userDataStore` et `isLoginStore` en localStorage (clé `userStore`). `isAdminStore` est un **getter dérivé** de `userDataStore.role` (jamais persisté ni écrit directement, donc impossible à désynchroniser). Le flag `isHydrated` empêche les erreurs de désynchronisation SSR/client.
 
 ### Base de Données
 

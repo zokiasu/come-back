@@ -232,11 +232,10 @@ export const useAuth = () => {
 		userStore.setSupabaseUser(authUser)
 		userStore.setIsLogin(true)
 
-		if (userDataStore.value?.id === authUser.id) {
-			userStore.setIsAdmin(userDataStore.value.role === 'ADMIN')
-		} else {
+		// isAdmin derives from the profile automatically; only drop a stale profile
+		// that belongs to a different user.
+		if (userDataStore.value?.id !== authUser.id) {
 			userStore.setUserData(null)
-			userStore.setIsAdmin(false)
 		}
 
 		userStore.isHydrated = true
@@ -358,11 +357,7 @@ export const useAuth = () => {
 			userDataStore.value &&
 			userDataStore.value.id === user.value.id
 		) {
-			// Keep isAdmin synchronized with the role in userDataStore
-			const shouldBeAdmin = userDataStore.value.role === 'ADMIN'
-			if (isAdminStore.value !== shouldBeAdmin) {
-				userStore.setIsAdmin(shouldBeAdmin)
-			}
+			// Profile already matches the session; isAdmin derives automatically.
 			return true
 		}
 
@@ -380,10 +375,6 @@ export const useAuth = () => {
 		// if on a valid data in the store (restored from localStorage)
 		// but Supabase is still not initialized, keep this data
 		if (userDataStore.value && isLoginStore.value) {
-			const shouldBeAdmin = userDataStore.value.role === 'ADMIN'
-			if (isAdminStore.value !== shouldBeAdmin) {
-				userStore.setIsAdmin(shouldBeAdmin)
-			}
 			return true
 		}
 

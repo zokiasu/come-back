@@ -1,6 +1,6 @@
 // store/user.ts
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import type { User } from '~/types'
 import type { SupabaseAuthUser } from '~/types/auth'
 
@@ -9,19 +9,17 @@ export const useUserStore = defineStore(
 	() => {
 		const supabaseUserStore = ref<SupabaseAuthUser | null>(null)
 		const isLoginStore = ref<boolean>(false)
-		const isAdminStore = ref<boolean>(false)
 		const userDataStore = ref<User | null>(null)
+
+		// Purely derived from the profile role. Never written directly, so it can
+		// never desync from userDataStore.role.
+		const isAdminStore = computed(() => userDataStore.value?.role === 'ADMIN')
 
 		// hydration state to avoid SSR/client mismatches
 		const isHydrated = ref(false)
 
 		const setUserData = (user: User | null) => {
 			userDataStore.value = user
-			if (user) {
-				setIsAdmin(user.role === 'ADMIN')
-			} else {
-				setIsAdmin(false)
-			}
 		}
 
 		const setSupabaseUser = (user: SupabaseAuthUser | null) => {
@@ -30,10 +28,6 @@ export const useUserStore = defineStore(
 
 		const setIsLogin = (isLogin: boolean) => {
 			isLoginStore.value = isLogin
-		}
-
-		const setIsAdmin = (isAdmin: boolean) => {
-			isAdminStore.value = isAdmin
 		}
 
 		const syncUserProfile = async (
@@ -56,7 +50,6 @@ export const useUserStore = defineStore(
 			setUserData(null)
 			setIsLogin(false)
 			setSupabaseUser(null)
-			setIsAdmin(false)
 			isHydrated.value = true
 		}
 
@@ -77,7 +70,6 @@ export const useUserStore = defineStore(
 			setUserData,
 			setSupabaseUser,
 			setIsLogin,
-			setIsAdmin,
 			syncUserProfile,
 			resetStore,
 			initializeStore,
@@ -87,16 +79,10 @@ export const useUserStore = defineStore(
 		persist: {
 			// localStorage key
 			key: 'userStore',
-			// Note: isAdminStore is not persisted because it is derived from userDataStore.role
-			// It is recalculated during hydration via afterHydrate
+			// isAdminStore is a derived getter (never persisted); it recomputes
+			// automatically once userDataStore is rehydrated.
 			pick: ['userDataStore', 'isLoginStore'],
 			afterHydrate: (ctx) => {
-				const userData = ctx.store.userDataStore
-				if (userData && userData.role) {
-					ctx.store.setIsAdmin(userData.role === 'ADMIN')
-				} else {
-					ctx.store.setIsAdmin(false)
-				}
 				ctx.store.isHydrated = true
 			},
 		},
