@@ -64,19 +64,20 @@
 
 ## 🟠 Niveau 3 — Refactors structurés (quelques heures à 1 j)
 
-- [ ] **Mutations artistes transactionnelles (le point le plus important)** 🔴
-  - Fichiers : `server/api/artists/index.post.ts:57-101`, `server/api/artists/[id]/index.patch.ts`
+- [x] **Mutations artistes transactionnelles (le point le plus important)** 🔴
+  - Fichiers : `server/api/artists/index.post.ts`, `server/api/artists/[id]/index.patch.ts`, `supabase/migrations/20260529000001_artist_transactional_mutations.sql`
   - Problème : artiste créé/màj même si les liens (sociaux/plateformes/relations/companies) échouent → données partielles, réponse `200` trompeuse.
-  - Action : envelopper création + relations dans une fonction RPC Postgres transactionnelle (sur le modèle de `delete_artist_safely`), OU rollback applicatif si une relation échoue. Remonter une vraie erreur au client.
-  - Étendre la même logique aux mutations `releases` / `musics` / `news` si concernées.
+  - ✅ Fait — 2 RPC Postgres atomiques `create_artist_with_relations` / `update_artist_with_relations` (insert/update artiste + toutes relations en une transaction ; rollback complet si une étape échoue ; EXECUTE restreint à `service_role`). Endpoints refactorés pour les appeler (erreurs propagées, plus de swallow ; 404 si introuvable à l'update). Migration **appliquée en prod via MCP**, types TS régénérés, **testée en live (transaction rollback)** contre le vrai schéma, advisors sécurité OK (aucune nouvelle alerte). Tests ajoutés (create/update).
+  - ⏭️ Reste à faire si souhaité : appliquer la même logique transactionnelle aux mutations `releases` / `musics` / `news` (les endpoints releases ont déjà un rollback applicatif partiel).
 
-- [ ] **Polling bloquant du middleware admin** 🟡
+- [x] **Polling bloquant du middleware admin** 🟡
   - Fichier : `app/middleware/admin.ts`
-  - Action : remplacer le busy-wait `setTimeout` 100 ms × 30 (jusqu'à 3 s d'écran blanc) par l'attente de la Promise `ensureAuthInitialized()` déjà existante. Aligner `auth.ts` et `admin.ts` sur le même mécanisme.
+  - Action : remplacer le busy-wait `setTimeout` 100 ms × 30 (jusqu'à 3 s d'écran blanc) par l'attente de la Promise `ensureAuthInitialized()` déjà existante.
+  - ✅ Fait (commit `5cb0e16`) — `watch` réactif sur `userData` (résout dès l'arrivée de la donnée), plafonné à `AUTH_MAX_WAIT_TIME_MS`. Sémantique préservée (test admin 3/3).
 
-- [ ] **Créer `server/api/artists/paginated`** 🟡
-  - Fichiers : nouvel endpoint serveur + `app/composables/Supabase/helpers/artist/artistQueries.ts`
-  - Action : déplacer la logique de pagination/filtrage des artistes (actuellement côté client, accès Supabase direct) vers un endpoint serveur, par symétrie avec `musics/paginated` et `releases/paginated`. Le composable client consomme l'endpoint.
+- [x] **Créer `server/api/artists/paginated`** 🟡
+  - Fichiers : `server/api/artists/paginated.get.ts` (nouveau) + `app/composables/Supabase/useSupabaseArtist.ts`
+  - ✅ Fait — endpoint serveur répliquant fidèlement `fetchArtistsByPage` (tous les filtres + filtrage relation côté page), service-role (cohérent avec les autres endpoints paginés). Lister les artistes **non vérifiés** requiert `requireContributor` (durcissement). `getArtistsByPage` consomme l'endpoint ; les 3 pages (`artist/index`, `dashboard/artist`, `dashboard/validation`) restent inchangées.
 
 ---
 

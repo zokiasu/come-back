@@ -1,4 +1,4 @@
-import type { TablesInsert, TablesUpdate } from '~/types/supabase'
+import type { Json, TablesInsert, TablesUpdate } from '~/types/supabase'
 
 interface UpdateArtistBody {
 	updates: TablesUpdate<'artists'>
@@ -39,93 +39,25 @@ export default defineEventHandler(async (event) => {
 		}
 	}
 
-	// 1. Update the artist
-	let updatedArtist = null
-	if (body.updates && Object.keys(body.updates).length > 0) {
-		const { data, error } = await supabase
-			.from('artists')
-			.update(body.updates)
-			.eq('id', artistId)
-			.select()
-			.single()
+	// Atomic update: the artist row and the provided relation sets are updated in
+	// a single transaction (RPC). A SQL NULL means "leave this set untouched"; a
+	// (possibly empty) array means "replace it". Either everything applies or the
+	// whole change rolls back.
+	const { data: updated, error } = await supabase.rpc('update_artist_with_relations', {
+		p_artist_id: artistId,
+		p_updates:
+			body.updates && Object.keys(body.updates).length > 0
+				? (body.updates as unknown as Json)
+				: undefined,
+		p_social_links: body.socialLinks as unknown as Json | undefined,
+		p_platform_links: body.platformLinks as unknown as Json | undefined,
+		p_group_ids: body.groupIds as unknown as Json | undefined,
+		p_member_ids: body.memberIds as unknown as Json | undefined,
+		p_companies: body.companies as unknown as Json | undefined,
+	})
 
-		if (error) throw handleSupabaseError(error, 'artists.update')
-		updatedArtist = data
-	}
+	if (error) throw handleSupabaseError(error, 'artists.update')
+	if (!updated) throw createNotFoundError('Artist', artistId)
 
-	// 2. Update the social links if provided
-	if (body.socialLinks !== undefined) {
-		await supabase.from('artist_social_links').delete().eq('artist_id', artistId)
-
-		if (body.socialLinks.length > 0) {
-			const { error } = await supabase
-				.from('artist_social_links')
-				.insert(body.socialLinks.map((l) => ({ ...l, artist_id: artistId })))
-
-			if (error) console.error('Error updating social links:', error)
-		}
-	}
-
-	// 3. Update platform links when provided
-	if (body.platformLinks !== undefined) {
-		await supabase.from('artist_platform_links').delete().eq('artist_id', artistId)
-
-		if (body.platformLinks.length > 0) {
-			const { error } = await supabase
-				.from('artist_platform_links')
-				.insert(body.platformLinks.map((l) => ({ ...l, artist_id: artistId })))
-
-			if (error) console.error('Error updating platform links:', error)
-		}
-	}
-
-	// 4. Update the relations artist if groupIds/memberIds provided
-	if (body.groupIds !== undefined || body.memberIds !== undefined) {
-		// Delete all existing relations
-		await supabase
-			.from('artist_relations')
-			.delete()
-			.or(`group_id.eq.${artistId},member_id.eq.${artistId}`)
-
-		// Re-insert groups
-		if (body.groupIds?.length) {
-			const { error } = await supabase.from('artist_relations').insert(
-				body.groupIds.map((groupId) => ({
-					group_id: groupId,
-					member_id: artistId,
-					relation_type: 'MEMBER' as const,
-				})),
-			)
-
-			if (error) console.error('Error updating group relations:', error)
-		}
-
-		// Re-insert members
-		if (body.memberIds?.length) {
-			const { error } = await supabase.from('artist_relations').insert(
-				body.memberIds.map((memberId) => ({
-					group_id: artistId,
-					member_id: memberId,
-					relation_type: 'GROUP' as const,
-				})),
-			)
-
-			if (error) console.error('Error updating member relations:', error)
-		}
-	}
-
-	// 5. Update the companies if provided
-	if (body.companies !== undefined) {
-		await supabase.from('artist_companies').delete().eq('artist_id', artistId)
-
-		if (body.companies.length > 0) {
-			const { error } = await supabase
-				.from('artist_companies')
-				.insert(body.companies.map((c) => ({ ...c, artist_id: artistId })))
-
-			if (error) console.error('Error updating company relations:', error)
-		}
-	}
-
-	return updatedArtist ?? { id: artistId }
+	return updated
 })

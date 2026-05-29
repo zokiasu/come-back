@@ -1052,6 +1052,42 @@ export type Database = {
 				Returns: boolean
 			}
 			cleanup_orphaned_contributions: { Args: never; Returns: undefined }
+			create_artist_with_relations: {
+				Args: {
+					p_artist: Json
+					p_companies?: Json
+					p_group_ids?: Json
+					p_member_ids?: Json
+					p_platform_links?: Json
+					p_social_links?: Json
+				}
+				Returns: {
+					active_career: boolean | null
+					birth_date: string | null
+					check_tier: string
+					created_at: string | null
+					debut_date: string | null
+					description: string | null
+					gender: Database['public']['Enums']['gender'] | null
+					general_tags: string[] | null
+					id: string
+					id_youtube_music: string | null
+					image: string | null
+					last_checked_at: string | null
+					name: string
+					nationalities: string[] | null
+					styles: string[] | null
+					type: Database['public']['Enums']['artist_type'] | null
+					updated_at: string | null
+					verified: boolean | null
+				}
+				SetofOptions: {
+					from: '*'
+					to: 'artists'
+					isOneToOne: true
+					isSetofReturn: false
+				}
+			}
 			delete_artist_safely: { Args: { artist_id_param: string }; Returns: Json }
 			delete_artist_simple: { Args: { artist_id_param: string }; Returns: Json }
 			firebase_id_to_uuid: { Args: { firebase_id: string }; Returns: string }
@@ -1379,6 +1415,43 @@ export type Database = {
 						}[]
 				  }
 			text_to_bytea: { Args: { data: string }; Returns: string }
+			update_artist_with_relations: {
+				Args: {
+					p_artist_id: string
+					p_companies?: Json
+					p_group_ids?: Json
+					p_member_ids?: Json
+					p_platform_links?: Json
+					p_social_links?: Json
+					p_updates?: Json
+				}
+				Returns: {
+					active_career: boolean | null
+					birth_date: string | null
+					check_tier: string
+					created_at: string | null
+					debut_date: string | null
+					description: string | null
+					gender: Database['public']['Enums']['gender'] | null
+					general_tags: string[] | null
+					id: string
+					id_youtube_music: string | null
+					image: string | null
+					last_checked_at: string | null
+					name: string
+					nationalities: string[] | null
+					styles: string[] | null
+					type: Database['public']['Enums']['artist_type'] | null
+					updated_at: string | null
+					verified: boolean | null
+				}
+				SetofOptions: {
+					from: '*'
+					to: 'artists'
+					isOneToOne: true
+					isSetofReturn: false
+				}
+			}
 			urlencode:
 				| { Args: { data: Json }; Returns: string }
 				| {

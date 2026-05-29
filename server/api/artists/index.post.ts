@@ -1,4 +1,4 @@
-import type { TablesInsert } from '~/types/supabase'
+import type { Json, TablesInsert } from '~/types/supabase'
 
 interface CreateArtistBody {
 	data: TablesInsert<'artists'>
@@ -37,69 +37,19 @@ export default defineEventHandler(async (event) => {
 		}
 	}
 
-	// 1. Create the artist
-	const { data: artist, error: artistError } = await supabase
-		.from('artists')
-		.insert(body.data)
-		.select()
-		.single()
+	// Atomic create: the artist and every relation are inserted in a single
+	// transaction (RPC). If any relation fails, the whole thing rolls back and
+	// the error surfaces — no more partially-created artists returned as 200.
+	const { data: artist, error } = await supabase.rpc('create_artist_with_relations', {
+		p_artist: body.data as unknown as Json,
+		p_social_links: (body.socialLinks ?? []) as unknown as Json,
+		p_platform_links: (body.platformLinks ?? []) as unknown as Json,
+		p_group_ids: (body.groupIds ?? []) as unknown as Json,
+		p_member_ids: (body.memberIds ?? []) as unknown as Json,
+		p_companies: (body.companies ?? []) as unknown as Json,
+	})
 
-	if (artistError) throw handleSupabaseError(artistError, 'artists.create')
-
-	const artistId = artist.id
-
-	// 2. Insert social links
-	if (body.socialLinks?.length) {
-		const { error } = await supabase
-			.from('artist_social_links')
-			.insert(body.socialLinks.map((l) => ({ ...l, artist_id: artistId })))
-
-		if (error) console.error('Error inserting social links:', error)
-	}
-
-	// 3. Insert platform links
-	if (body.platformLinks?.length) {
-		const { error } = await supabase
-			.from('artist_platform_links')
-			.insert(body.platformLinks.map((l) => ({ ...l, artist_id: artistId })))
-
-		if (error) console.error('Error inserting platform links:', error)
-	}
-
-	// 4. Insert group relations where the artist is a member of those groups
-	if (body.groupIds?.length) {
-		const { error } = await supabase.from('artist_relations').insert(
-			body.groupIds.map((groupId) => ({
-				group_id: groupId,
-				member_id: artistId,
-				relation_type: 'MEMBER' as const,
-			})),
-		)
-
-		if (error) console.error('Error inserting group relations:', error)
-	}
-
-	// 5. Insert member relations where the artist is the group
-	if (body.memberIds?.length) {
-		const { error } = await supabase.from('artist_relations').insert(
-			body.memberIds.map((memberId) => ({
-				group_id: artistId,
-				member_id: memberId,
-				relation_type: 'GROUP' as const,
-			})),
-		)
-
-		if (error) console.error('Error inserting member relations:', error)
-	}
-
-	// 6. Insert companies
-	if (body.companies?.length) {
-		const { error } = await supabase
-			.from('artist_companies')
-			.insert(body.companies.map((c) => ({ ...c, artist_id: artistId })))
-
-		if (error) console.error('Error inserting company relations:', error)
-	}
+	if (error) throw handleSupabaseError(error, 'artists.create')
 
 	return artist
 })

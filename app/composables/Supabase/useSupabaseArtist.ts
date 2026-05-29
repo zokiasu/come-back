@@ -7,9 +7,9 @@ import {
 	fetchArtistById,
 	fetchFullArtist,
 	fetchArtistLinks,
-	fetchArtistsByPage,
 	fetchLatestArtists,
 	type ArtistPageOptions,
+	type ArtistPageResult,
 } from './helpers/artist'
 
 const logArtistCreateTrace = (step: string, details?: Record<string, unknown>) => {
@@ -26,7 +26,7 @@ const logArtistCreateTrace = (step: string, details?: Record<string, unknown>) =
 export function useSupabaseArtist() {
 	const supabase = useSupabaseClient<Database>()
 	const toast = useToast()
-	const { requireAuthHeaders } = useApiAuthHeaders()
+	const { requireAuthHeaders, getAuthHeaders } = useApiAuthHeaders()
 	const { runMutation } = useMutationTimeout()
 
 	// Checks whether an artist exists with the YouTube Music ID
@@ -255,9 +255,39 @@ export function useSupabaseArtist() {
 		callback(artists)
 	}
 
-	// Fetches artists by page with pagination
-	const getArtistsByPage = (page: number, limit: number, options?: ArtistPageOptions) => {
-		return fetchArtistsByPage(supabase, page, limit, options)
+	// Fetches artists by page through the server endpoint (single source of truth
+	// for pagination/filtering, shared with the rest of the catalog).
+	const getArtistsByPage = (
+		page: number,
+		limit: number,
+		options?: ArtistPageOptions,
+	): Promise<ArtistPageResult> => {
+		const query: Record<string, string | number> = { page, limit }
+
+		if (options?.search) query.search = options.search
+		if (options?.type) query.type = options.type
+		if (options?.gender) query.gender = options.gender
+		if (options?.orderBy) query.orderBy = String(options.orderBy)
+		if (options?.orderDirection) query.orderDirection = options.orderDirection
+		if (options?.general_tags?.length) query.general_tags = options.general_tags.join(',')
+		if (options?.nationalities?.length)
+			query.nationalities = options.nationalities.join(',')
+		if (options?.styles?.length) query.styles = options.styles.join(',')
+		if (options?.isActive !== undefined) query.isActive = String(options.isActive)
+		if (options?.verified !== undefined) {
+			query.verified = options.verified === null ? 'null' : String(options.verified)
+		}
+		if (options?.onlyWithoutDesc) query.onlyWithoutDesc = 'true'
+		if (options?.onlyWithoutSocials) query.onlyWithoutSocials = 'true'
+		if (options?.onlyWithoutPlatforms) query.onlyWithoutPlatforms = 'true'
+		if (options?.onlyWithoutStyles) query.onlyWithoutStyles = 'true'
+		if (options?.onlyWithStyles) query.onlyWithStyles = 'true'
+		if (options?.skipYoutubeMusicFilter) query.skipYoutubeMusicFilter = 'true'
+
+		return $fetch<ArtistPageResult>('/api/artists/paginated', {
+			query,
+			headers: getAuthHeaders(),
+		})
 	}
 
 	// Approves an artist by setting `verified` to `true` without touching related records
