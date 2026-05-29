@@ -2,11 +2,9 @@ import { storeToRefs } from 'pinia'
 import type { SupabaseAuthUser, UserInsertData, UserUpdateData } from '~/types/auth'
 
 // Keep auth initialization single-flight across every composable instance.
-let authWatcherBound = false
 let authInitialized = false
 let sharedInitPromise: Promise<boolean> | null = null
 let sharedTrustedAuthUserPromise: Promise<SupabaseAuthUser | null> | null = null
-let sharedIsLoggingOutFlag = false
 
 export const useAuth = () => {
 	const user = useSupabaseUser()
@@ -327,25 +325,18 @@ export const useAuth = () => {
 		}
 	}
 
-	// Track whether the next auth change comes from an explicit sign-out.
-	// Sign out the current user.
+	// Sign out the current user. Always clear local state and leave, even if the
+	// remote signOut fails, to avoid a zombie "logged-in locally but signed-out
+	// remotely" state.
 	const logout = async () => {
+		const supabase = useSupabaseClient()
 		try {
-			sharedIsLoggingOutFlag = true
-			const supabase = useSupabaseClient()
-			const { error: logoutError } = await supabase.auth.signOut()
-
-			if (logoutError) {
-				throw logoutError
-			}
-
-			// Reset the store
-			await resetStore()
-
-			await navigateTo('/')
+			await supabase.auth.signOut()
 		} catch (err: unknown) {
 			console.error('Erreur lors de la déconnexion:', err)
-			sharedIsLoggingOutFlag = false
+		} finally {
+			await resetStore()
+			await navigateTo('/')
 		}
 	}
 
@@ -400,41 +391,12 @@ export const useAuth = () => {
 		return await sharedInitPromise
 	}
 
-	if (!authWatcherBound) {
-		authWatcherBound = true
-
-		watch(
-			user,
-			async (newUser, oldUser) => {
-				// One-time initialization at startup
-				if (!authInitialized) {
-					await initializeAuth()
-					return
-				}
-
-				// Ignore transient Supabase v2 states where the user has no id yet.
-				if (newUser && !newUser.id) {
-					return
-				}
-
-				// Handle auth changes after initialization.
-				if (newUser?.id && !oldUser?.id) {
-					await ensureUserProfile()
-				} else if (!newUser && oldUser) {
-					// The Supabase user disappeared.
-					// Reset only when this is a real sign-out, not when Supabase briefly
-					// loses the user during a refresh while local state is still valid.
-					if (sharedIsLoggingOutFlag || (!userDataStore.value && !isLoginStore.value)) {
-						await resetStore()
-						sharedIsLoggingOutFlag = false
-					}
-				} else if (newUser?.id && oldUser?.id && newUser.id !== oldUser.id) {
-					await ensureUserProfile()
-				}
-			},
-			{ immediate: true },
-		)
-	}
+	// The single reactive auth subscriber lives in the auth-init plugin
+	// (supabase.auth.onAuthStateChange). It is the sole writer reacting to auth
+	// events; every user-ref change corresponds to such an event, so a duplicate
+	// watch(user) here would only double the sync cascade. Startup init is driven
+	// by the plugin's initializeAuth() call, and middlewares fall back to
+	// ensureAuthInitialized().
 
 	// Ensure auth is initialized (for the middlewares)
 	const ensureAuthInitialized = async (): Promise<boolean> => {
