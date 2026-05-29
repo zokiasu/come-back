@@ -100,13 +100,14 @@
   - Bonus : suppression du code mort `useLastRoomYouTryToJoined`.
   - ⚠️ **À faire par toi avant déploiement** : test manuel des flux OAuth (login Google popup + fallback, refresh de session, logout succès/erreur réseau, multi-onglets) — non couverts par les tests automatisés.
 
-- [ ] **Simplifier `musics/paginated.get.ts`** 🟡
-  - Fichier : `server/api/musics/paginated.get.ts` (~450 lignes)
-  - Action : réduire le chemin RPC → re-fetch → tri client → requêtes « boundary ». Viser 1–2 requêtes par page, tri côté BDD. Couvrir par des tests avant refactor.
+- [⊘] **Simplifier `musics/paginated.get.ts`** 🟡 — *écarté : code complexe mais correct*
+  - Investigation : la logique « boundary dates » (lignes 293-406) assure une **pagination stable par date** (le tri secondaire release→artiste→musique est fait côté client car PostgREST ne peut pas trier sur ces relations). Un même groupe de date à cheval sur 2 pages serait incohérent sans elle.
+  - Les **tests ne couvrent pas** ce chemin (`orderBy:'name'` et RPC styles le court-circuitent) → « simplifier » donnerait des tests verts tout en supprimant une vraie fonctionnalité = régression masquée.
+  - La seule vraie simplification = nouvelle RPC de tri/pagination 100% serveur (gros changement prod + **décision produit** sur l'ordre de tri des ex-æquo). Non fait : risque > valeur pour un non-bug.
 
-- [ ] **Découper les pages dashboard monolithiques** 🟡
-  - Fichiers : `app/pages/dashboard/artist.vue`, `music.vue`, `release.vue` (600–850 lignes chacune)
-  - Action : extraire les sous-composants réutilisables `Table` / `Filters` / `Modal` ; factoriser la logique filtres+pagination dupliquée (composable partagé). Réduit la surface de régression.
+- [~] **Découper les pages dashboard monolithiques** 🟡 — *commencé (slice sûr), reste = manuel*
+  - [x] `Card/Dashboard/ArtistStats.vue` extrait de `dashboard/artist.vue` (présentationnel, props in, 0 emit/v-model — zéro risque). *(commit `a74c0cf`)*
+  - [ ] Reste : extraire `Filters` (7 `v-model` + watchers couplés au fetch) et `Table` (actions edit/delete/ban) pour artist/music/release. ⚠️ **UI sans aucun test** → vérifiable uniquement au typecheck + **test manuel** ; risque de bugs de réactivité ; peu réutilisable (options non uniformes entre pages). Pur gain de maintenabilité (0 bug/perf/sécurité). À faire avec validation manuelle.
 
 ---
 
