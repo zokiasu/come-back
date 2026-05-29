@@ -1,13 +1,11 @@
 <script setup lang="ts">
-	import { storeToRefs } from 'pinia'
 	import { useAuthModal } from '@/composables/useAuthModal'
 	import type { AppNotification } from '~/composables/useNotifications'
 
 	const isMobileNavDocked = useState<boolean>('mobileNavDocked', () => false)
 
-	const userStore = useUserStore()
-	const { isLoginStore, isAdminStore, isHydrated } = storeToRefs(userStore)
-	const supabaseUser = useSupabaseUser()
+	// Single source of truth for auth state (see useAuth).
+	const { isLoggedIn, isAdmin } = useAuth()
 
 	const isClient = ref(false)
 	const isMoreOpen = ref(false)
@@ -75,7 +73,7 @@
 
 	const isUserLoggedIn = computed(() => {
 		if (!isClient.value) return false
-		return Boolean(supabaseUser.value?.id) || (isHydrated.value && isLoginStore.value)
+		return isLoggedIn.value
 	})
 
 	const bottomOffsetClass = computed(() => {
@@ -174,7 +172,7 @@
 						</button>
 
 						<NuxtLink
-							v-if="isAdminStore && isClient"
+							v-if="isAdmin && isClient"
 							to="/dashboard/artist"
 							class="cb-no-select text-cb-tertiary-200 hover:bg-cb-quinary-950 flex flex-col items-center gap-1.5 rounded-2xl p-3 transition hover:text-white"
 							@click="isMoreOpen = false"

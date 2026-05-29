@@ -454,11 +454,21 @@ export const useAuth = () => {
 		return true
 	}
 
+	// Single source of truth for "is this user authenticated", combining the live
+	// Supabase session with the (hydrated) persisted store. Every consumer should
+	// read this instead of re-deriving the union locally.
+	const isReady = computed(() => userStore.isHydrated)
+	const isLoggedIn = computed(
+		() => !!user.value?.id || (userStore.isHydrated && isLoginStore.value),
+	)
+
 	return {
 		user,
 		userData: userDataStore,
 		isLogin: isLoginStore,
 		isAdmin: isAdminStore,
+		isLoggedIn,
+		isReady,
 		supabaseUser: supabaseUserStore,
 		isSyncing: readonly(isSyncing),
 		syncError: readonly(syncError),

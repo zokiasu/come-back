@@ -1,28 +1,19 @@
 <script setup lang="ts">
-	import { storeToRefs } from 'pinia'
-	import { useUserStore } from '@/stores/user'
 	import { useWindowScroll } from '@vueuse/core'
 	import { useAuthModal } from '@/composables/useAuthModal'
 	import { useAuth } from '@/composables/useAuth'
 	import type { DropdownMenuItem } from '@nuxt/ui'
 
-	const userStore = useUserStore()
-	const { isAdminStore, isLoginStore, isHydrated } = storeToRefs(userStore)
-	const supabaseUser = useSupabaseUser()
+	// Single source of truth for auth state (see useAuth).
+	const { isLoggedIn, isAdmin, isReady } = useAuth()
 
 	const route = useRoute()
 
 	const navbar = useTemplateRef('navbar')
 
-	// Computed state to check whether the user is signed in
-	const isUserLoggedIn = computed(() => {
-		return Boolean(supabaseUser.value?.id) || (isHydrated.value && isLoginStore.value)
-	})
-
-	// Computed state to check whether the user is an admin
-	const isUserAdmin = computed(() => {
-		return isHydrated.value && isAdminStore.value
-	})
+	const isUserLoggedIn = isLoggedIn
+	// Admin UI also waits for hydration to avoid an SSR/persisted-state flash.
+	const isUserAdmin = computed(() => isReady.value && isAdmin.value)
 
 	const routeIsIndex = computed(() => route.name === 'index')
 	const routeIsCalendar = computed(() => route.name === 'calendar')
