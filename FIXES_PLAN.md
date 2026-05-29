@@ -83,22 +83,22 @@
 
 ## 🔴 Niveau 4 — Chantiers lourds (plusieurs jours)
 
-- [~] **Unifier l'état d'authentification (source de vérité unique)** 🟠 — *en cours, plan en 10 étapes*
-  - Problème : vérité d'auth éclatée sur 5 sources (`useSupabaseUser()`, 4 slots du store Pinia, localStorage, cookie brut lu par `useApiAuthHeaders`, serveur). La plupart des lecteurs combinent 2-4 sources avec un OU logique → aucun invariant de cohérence.
-  - **Cible** : la session Supabase est la source de vérité ; le store devient un **cache dérivé** (`profile` + `status`) ; lecture unique via `useAuth(){ isLoggedIn, isAdmin }` ; un seul abonné réactif (`onAuthStateChange`) ; upsert profil unique partagé.
-  - Plan d'implémentation incrémental (issu d'une cartographie + design multi-agents) :
-    - [x] **Étape 3 — `isAdmin` devient un getter dérivé** ✅ Fait. `isAdminStore = computed(() => userDataStore.role === 'ADMIN')` dans le store ; suppression de `setIsAdmin` + des écritures redondantes (store, `afterHydrate`, `preserveAuthenticatedState`, `runInitializeAuth`). Plus aucune désync possible. Tous les lecteurs (via `storeToRefs`) inchangés. Vérifié par tests middleware + typecheck.
-    - [ ] Étape 1 — exposer `isLoggedIn` (computed unique) dans `useAuth` (low). *Sûr.*
-    - [ ] Étape 2 — migrer les composants/pages d'affichage vers `useAuth().isLoggedIn/isAdmin` (medium). ⚠️ attention au garde `isHydrated` (flash SSR) dans `navigation`/`MobileNavigation` — à préserver.
-    - [ ] Étape 4 — extraire l'upsert profil dans un helper unique, l'utiliser dans `callback.vue` (supprime la 3ᵉ implémentation dupliquée) (medium).
-    - [ ] Étape 5 — aligner la stratégie d'attente des middlewares (un seul timeout). ⚠️ dépend de l'étape 7 pour être sûr (sinon réintroduit une race) ; le `watch` réactif ajouté au Niveau 3 est un bon intermédiaire.
-    - [ ] Étape 6 — `useApiAuthHeaders` : lire le token via `getSession()` au lieu de parser le cookie (medium). ⚠️ `getSession()` est async → ripple sur les appelants synchrones.
-    - [ ] **Étapes 7-10 — HAUT RISQUE, test manuel OAuth requis** (je ne les fais pas à l'aveugle) :
-      - 7 : unifier les 2 abonnés réactifs (`watch(user)` + `onAuthStateChange`) en un seul.
-      - 8 : réduire le store à `profile + status`, fusionner `preserve`/`sync` en une mutation atomique, remplacer `isHydrated` par `status`.
-      - 9 : durcir `logout` (pas d'état zombie), supprimer `sharedIsLoggingOutFlag`.
-      - 10 : simplifier le callback popup + supprimer les délais fixes empilés.
-  - Bonus fait : suppression du code mort `useLastRoomYouTryToJoined` (`useState.ts`).
+- [x] **Unifier l'état d'authentification (source de vérité unique)** 🟠 — *fait (cœur), 2 sous-points écartés avec justification*
+  - Problème : vérité d'auth éclatée sur 5 sources (`useSupabaseUser()`, 4 slots du store Pinia, localStorage, cookie brut lu par `useApiAuthHeaders`, serveur). La plupart des lecteurs combinaient 2-4 sources avec un OU logique → aucun invariant de cohérence.
+  - **Cible** : session Supabase = source de vérité ; store = cache dérivé ; lecture unique via `useAuth(){ isLoggedIn, isAdmin, isReady }` ; un seul abonné réactif ; upsert profil unique partagé.
+  - État des 10 étapes (cartographie + design multi-agents) :
+    - [x] **Étape 3** — `isAdmin` = getter dérivé (`computed(() => userDataStore.role === 'ADMIN')`) ; suppression de `setIsAdmin` + écritures redondantes. Désync impossible. *(commit `344f82d`)*
+    - [x] **Étape 1** — `isLoggedIn` + `isReady` exposés par `useAuth` (définition unique de l'union). *(commit `2684d1e`)*
+    - [x] **Étape 2** — `navigation.vue` + `MobileNavigation.vue` migrés vers `useAuth` (garde `isHydrated`/`isReady` préservée). Les lectures page-level de `isAdminStore` pointent déjà sur le getter unique → laissées (churn cosmétique évité). *(commit `2684d1e`)*
+    - [x] **Étape 7** — suppression du `watch(user)` de `useAuth` ; `onAuthStateChange` (plugin) devient l'unique abonné réactif (fin du double-cascade). *(commit `5e19226`)*
+    - [x] **Étape 9** — `logout` durci (clear + navigate en `finally`, plus d'état zombie) ; `sharedIsLoggingOutFlag` supprimé. *(commit `5e19226`)*
+    - [x] **Étape 8 (slice)** — suppression de `supabaseUserStore`/`setSupabaseUser` (source session-user dupliquée, write-only). *(commit `27ed0de`)*
+    - [x] **Étape 4** — upsert profil extrait en helper unique `helpers/user/upsertUserProfile.ts`, utilisé par `useAuth` ET `callback.vue` (fin de la triplication ; comportement unifié : backfill des champs vides + rôle préservé). *(commit `27ed0de`)*
+    - [⊘] **Étape 5 — écartée** : mon `watch` réactif du Niveau 3 dans `admin.ts` est déjà un bon mécanisme ; `auth.ts` (auth seule) et `admin.ts` (auth + rôle) sont légitimement différents. Aligner « un seul timeout » réintroduirait une attente moins fine. Constantes non mortes.
+    - [⊘] **Étape 6 — écartée** : le design la disait « isolée », mais `requireAuthHeaders()`/`getAuthHeaders()` sont appelés **synchronement dans ~50 endroits** ; passer à `getSession()` (async) force un `await` partout → churn massif/risqué pour zéro bug (format cookie Supabase stable).
+    - [⊘] **Étape 10 — écartée** : retirer les `sleep` défensifs du flux OAuth popup (non testable ici) risque des races de login pour un gain de perf marginal ; le « store write inutile » ne l'est pas (le fallback non-popup en dépend).
+  - Bonus : suppression du code mort `useLastRoomYouTryToJoined`.
+  - ⚠️ **À faire par toi avant déploiement** : test manuel des flux OAuth (login Google popup + fallback, refresh de session, logout succès/erreur réseau, multi-onglets) — non couverts par les tests automatisés.
 
 - [ ] **Simplifier `musics/paginated.get.ts`** 🟡
   - Fichier : `server/api/musics/paginated.get.ts` (~450 lignes)
