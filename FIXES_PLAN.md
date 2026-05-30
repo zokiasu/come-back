@@ -121,6 +121,20 @@
 
 ---
 
+## Revue PR #60 (CodeRabbit)
+
+Triage des commentaires de revue restés ouverts sur la branche :
+
+- [x] **#1 — `ArtistStats.vue` : `incomplete` pouvait dépasser le total.** Comptait la somme des champs manquants (desc + socials + plateformes + styles). Désormais : 1 par artiste ayant ≥1 champ manquant. *(commit `d2c2ad9`)*
+- [x] **#2 — `MobileNavigation.vue` : flash d'état auth.** UI connecté/admin gardée sur `isClient` seulement. Désormais sur `isClient && isReady && isAdmin` (parité avec `navigation.vue`). *(commit `d2c2ad9`)*
+- [x] **#6 — `artists/paginated.get.ts` : cache ambigu.** `Cache-Control: no-store` explicite (endpoint auth-gated + par-requête ; override de la règle globale `/api`). *(commit `d2c2ad9`)*
+- [x] **#8 — `artists/paginated` : `onlyWithoutSocials/Platforms` appliqués après `range()`** → `total`/pagination faux + pages courtes. Corrigé via RPC `get_paginated_artists` (tous les filtres en SQL, `NOT EXISTS` sur les jonctions, `count(*) OVER()` pour le total, `ORDER BY` par CASE sans SQL dynamique). Migration `20260530000003`, testée en live (totaux exacts, pagination sans chevauchement). REVOKE PUBLIC/anon/authenticated, service_role uniquement.
+- [⊘] **#7 — `verified=null` côté validation queue.** Faux positif : `null` = « non vérifiés » est intentionnel (file de modération).
+- [⊘] **#10a — ERRCODE de `reorder_ranking_items_atomic`.** Faux positif : `42501` (insufficient_privilege) est valide, vérifié en live.
+- [ ] **SSRF — `get-page-title`** : un redirect peut contourner l'allowlist de domaines et faire fetch des ressources internes par le serveur. En attente décision user.
+
+---
+
 ## Notes
 
 - Points **surévalués** lors de l'analyse (à NE PAS traiter comme critiques) :

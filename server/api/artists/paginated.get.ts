@@ -1,7 +1,6 @@
 import type { Database } from '~/types/supabase'
 import type { Artist } from '~/types'
 
-type ArtistGender = Database['public']['Enums']['gender']
 type ArtistType = Database['public']['Enums']['artist_type']
 
 const ALLOWED_ORDER_COLUMNS = [
@@ -20,6 +19,13 @@ const asBool = (value: unknown): boolean => value === 'true' || value === true
  * `fetchArtistsByPage` helper so the catalog and dashboard listings share a
  * single, RLS-bypassing source of truth (consistent with the other paginated
  * endpoints). Listing non-verified artists requires contributor rights.
+ *
+ * All filters — including the relation-presence ones (onlyWithoutSocials /
+ * onlyWithoutPlatforms, which require a NOT EXISTS over junction tables) — are
+ * applied inside the `get_paginated_artists` SQL function, so `total` and
+ * `totalPages` always match what the page actually contains. The RPC returns
+ * the ordered page of ids + the full filtered count; we then hydrate those ids
+ * with their relations in a second query and restore the RPC order.
  */
 export default defineEventHandler(async (event) => {
 	// This endpoint is auth-gated for non-public listings and returns
@@ -73,80 +79,71 @@ export default defineEventHandler(async (event) => {
 
 		const offset = (page - 1) * limit
 
-		let dataQuery = supabase.from('artists').select(
-			`
-				*,
-				social_links:artist_social_links(*),
-				platform_links:artist_platform_links(*),
-				companies:artist_companies(*, company:companies(*)),
-				groups:artist_relations!artist_relations_member_id_fkey(
-					group:artists!artist_relations_group_id_fkey(id, name, image)
-				)
-			`,
-			{ count: 'exact' },
+		// PostgREST wildcards were stripped client-side; the RPC does plain ILIKE.
+		const normalizedSearch = search ? search.replaceAll('*', '') : ''
+
+		const verifiedMode =
+			verified === undefined
+				? 'all'
+				: verified === true
+					? 'verified'
+					: verified === null
+						? 'unverified'
+						: 'false_only'
+
+		const activeMode =
+			isActive === true ? 'active' : isActive === false ? 'inactive' : 'any'
+
+		// 1) Resolve the ordered page of ids + the full filtered count in SQL.
+		const { data: pageRows, error: pageError } = await supabase.rpc(
+			'get_paginated_artists',
+			{
+				p_search: normalizedSearch || undefined,
+				p_type: type || undefined,
+				p_gender: gender || undefined,
+				p_general_tags: generalTags?.length ? generalTags : undefined,
+				p_nationalities: nationalities?.length ? nationalities : undefined,
+				p_styles: styles?.length ? styles : undefined,
+				p_active_mode: activeMode,
+				p_only_without_desc: onlyWithoutDesc,
+				p_only_without_styles: onlyWithoutStyles,
+				p_only_with_styles: onlyWithStyles,
+				p_only_without_socials: onlyWithoutSocials,
+				p_only_without_platforms: onlyWithoutPlatforms,
+				p_verified_mode: verifiedMode,
+				p_skip_ytm: skipYoutubeMusicFilter,
+				p_order_by: orderBy,
+				p_order_dir: orderDirection,
+				p_limit: limit,
+				p_offset: offset,
+			},
 		)
 
-		if (search) {
-			const normalizedSearch = search.replaceAll('*', '')
-			dataQuery = dataQuery.or(
-				`name.ilike.*${normalizedSearch}*,description.ilike.*${normalizedSearch}*`,
+		if (pageError) throw pageError
+
+		const rows = pageRows ?? []
+		const total = Number(rows[0]?.total_count ?? 0)
+		const ids = rows.map((r) => r.id)
+
+		if (ids.length === 0) {
+			return { artists: [], total, page, limit, totalPages: Math.ceil(total / limit) }
+		}
+
+		// 2) Hydrate the page ids with their relations.
+		const { data, error } = await supabase
+			.from('artists')
+			.select(
+				`
+					*,
+					social_links:artist_social_links(*),
+					platform_links:artist_platform_links(*),
+					companies:artist_companies(*, company:companies(*)),
+					groups:artist_relations!artist_relations_member_id_fkey(
+						group:artists!artist_relations_group_id_fkey(id, name, image)
+					)
+				`,
 			)
-		}
-
-		if (type) {
-			dataQuery = dataQuery.eq('type', type)
-		}
-
-		if (gender) {
-			dataQuery = dataQuery.eq('gender', gender as ArtistGender)
-		}
-
-		if (generalTags?.length) {
-			dataQuery = dataQuery.overlaps('general_tags', generalTags)
-		}
-
-		if (nationalities?.length) {
-			dataQuery = dataQuery.overlaps('nationalities', nationalities)
-		}
-
-		if (styles?.length) {
-			dataQuery = dataQuery.overlaps('styles', styles)
-		}
-
-		if (isActive === true) {
-			dataQuery = dataQuery.eq('active_career', true)
-		} else if (isActive === false) {
-			dataQuery = dataQuery.or('active_career.is.false,active_career.is.null')
-		}
-
-		if (onlyWithoutDesc) {
-			dataQuery = dataQuery.or('description.is.null,description.eq.')
-		}
-
-		if (onlyWithoutStyles) {
-			dataQuery = dataQuery.or('styles.is.null,styles.eq.{}')
-		}
-
-		if (onlyWithStyles) {
-			dataQuery = dataQuery.not('styles', 'is', null).not('styles', 'eq', '{}')
-		}
-
-		if (verified !== undefined) {
-			if (verified === null) {
-				dataQuery = dataQuery.or('verified.is.null,verified.eq.false')
-			} else {
-				dataQuery = dataQuery.eq('verified', verified)
-			}
-		}
-
-		if (!skipYoutubeMusicFilter) {
-			dataQuery = dataQuery.not('id_youtube_music', 'is', null)
-		}
-
-		dataQuery = dataQuery.order(orderBy, { ascending: orderDirection === 'asc' })
-		dataQuery = dataQuery.range(offset, offset + limit - 1)
-
-		const { data, error, count } = await dataQuery
+			.in('id', ids)
 
 		if (error) throw error
 
@@ -158,26 +155,17 @@ export default defineEventHandler(async (event) => {
 			groups?: RawGroup[]
 		}
 
-		let transformed = (data as RawArtist[]).map((artist) => ({
-			...artist,
-			social_links: artist.social_links || [],
-			platform_links: artist.platform_links || [],
-			companies: artist.companies || [],
-			groups: (artist.groups || []).map((g) => g.group).filter(Boolean),
-		}))
-
-		// Relation-presence filters are applied to the fetched page (parity with
-		// the previous client-side helper).
-		if (onlyWithoutSocials) {
-			transformed = transformed.filter((a) => !a.social_links || a.social_links.length === 0)
-		}
-		if (onlyWithoutPlatforms) {
-			transformed = transformed.filter(
-				(a) => !a.platform_links || a.platform_links.length === 0,
-			)
-		}
-
-		const total = count || 0
+		// Restore the RPC order (the `.in()` fetch does not preserve it).
+		const orderIndex = new Map(ids.map((id, index) => [id, index]))
+		const transformed = (data as RawArtist[])
+			.map((artist) => ({
+				...artist,
+				social_links: artist.social_links || [],
+				platform_links: artist.platform_links || [],
+				companies: artist.companies || [],
+				groups: (artist.groups || []).map((g) => g.group).filter(Boolean),
+			}))
+			.sort((a, b) => (orderIndex.get(a.id) ?? 0) - (orderIndex.get(b.id) ?? 0))
 
 		return {
 			artists: transformed as Artist[],

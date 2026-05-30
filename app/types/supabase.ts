@@ -1129,6 +1129,32 @@ export type Database = {
 					period_label: string
 				}[]
 			}
+			get_paginated_artists: {
+				Args: {
+					p_search?: string
+					p_type?: string
+					p_gender?: string
+					p_general_tags?: string[]
+					p_nationalities?: string[]
+					p_styles?: string[]
+					p_active_mode?: string
+					p_only_without_desc?: boolean
+					p_only_without_styles?: boolean
+					p_only_with_styles?: boolean
+					p_only_without_socials?: boolean
+					p_only_without_platforms?: boolean
+					p_verified_mode?: string
+					p_skip_ytm?: boolean
+					p_order_by?: string
+					p_order_dir?: string
+					p_limit?: number
+					p_offset?: number
+				}
+				Returns: {
+					id: string
+					total_count: number
+				}[]
+			}
 			get_paginated_musics_by_styles: {
 				Args: {
 					is_mv?: boolean
