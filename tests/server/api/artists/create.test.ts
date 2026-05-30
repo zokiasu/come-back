@@ -1,6 +1,7 @@
 import { createError } from 'h3'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createBadRequestError, handleSupabaseError } from '#server/utils/errorHandler'
+import { VALIDATION_LIMITS } from '#server/utils/validation'
 
 type PostgrestLikeError = { code: string; message: string; details: string; hint: string }
 
@@ -51,6 +52,7 @@ const setupGlobals = (body: unknown) => {
 	vi.stubGlobal('createBadRequestError', createBadRequestError)
 	vi.stubGlobal('handleSupabaseError', handleSupabaseError)
 	vi.stubGlobal('createError', createError)
+	vi.stubGlobal('VALIDATION_LIMITS', VALIDATION_LIMITS)
 }
 
 const fullBody = {

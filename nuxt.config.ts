@@ -4,6 +4,14 @@ import tailwindcss from '@tailwindcss/vite'
 const isDev = process.env.NODE_ENV === 'development'
 const supabaseSecretKey = process.env.SUPABASE_SECRET_KEY ?? ''
 
+// Fail the production build fast when the service-role key is missing, instead
+// of booting a broken server that 500s on every Supabase-backed request.
+if (!supabaseSecretKey && process.env.NODE_ENV === 'production') {
+	throw new Error(
+		'SUPABASE_SECRET_KEY is required for production builds. Set it in the deployment environment variables.',
+	)
+}
+
 export default defineNuxtConfig({
 	compatibilityDate: '2025-05-27',
 

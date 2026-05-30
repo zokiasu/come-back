@@ -19,6 +19,21 @@ export default defineEventHandler(async (event) => {
 		throw createBadRequestError('Request body is required')
 	}
 
+	// Bound relation arrays before handing them to the transactional RPC.
+	for (const [field, list] of Object.entries({
+		socialLinks: body.socialLinks,
+		platformLinks: body.platformLinks,
+		groupIds: body.groupIds,
+		memberIds: body.memberIds,
+		companies: body.companies,
+	})) {
+		if (Array.isArray(list) && list.length > VALIDATION_LIMITS.MAX_ARRAY_ITEMS) {
+			throw createBadRequestError(
+				`'${field}' exceeds the maximum of ${VALIDATION_LIMITS.MAX_ARRAY_ITEMS} items`,
+			)
+		}
+	}
+
 	const supabase = useServerSupabase()
 
 	// Check conflit YouTube Music ID

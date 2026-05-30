@@ -274,9 +274,10 @@ export function useSupabaseArtist() {
 			query.nationalities = options.nationalities.join(',')
 		if (options?.styles?.length) query.styles = options.styles.join(',')
 		if (options?.isActive !== undefined) query.isActive = String(options.isActive)
-		if (options?.verified !== undefined) {
-			query.verified = options.verified === null ? 'null' : String(options.verified)
-		}
+		// Default to the public (verified) catalog when unspecified, so this helper
+		// never trips the contributor-only guard on the server endpoint.
+		const verified = options?.verified === undefined ? true : options.verified
+		query.verified = verified === null ? 'null' : String(verified)
 		if (options?.onlyWithoutDesc) query.onlyWithoutDesc = 'true'
 		if (options?.onlyWithoutSocials) query.onlyWithoutSocials = 'true'
 		if (options?.onlyWithoutPlatforms) query.onlyWithoutPlatforms = 'true'

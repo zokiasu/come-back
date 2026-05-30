@@ -5,6 +5,7 @@ import {
 	createNotFoundError,
 	handleSupabaseError,
 } from '#server/utils/errorHandler'
+import { VALIDATION_LIMITS } from '#server/utils/validation'
 
 type PostgrestLikeError = { code: string; message: string; details: string; hint: string }
 
@@ -63,6 +64,7 @@ const setupGlobals = (body: unknown) => {
 	vi.stubGlobal('createNotFoundError', createNotFoundError)
 	vi.stubGlobal('handleSupabaseError', handleSupabaseError)
 	vi.stubGlobal('createError', createError)
+	vi.stubGlobal('VALIDATION_LIMITS', VALIDATION_LIMITS)
 }
 
 describe('PATCH /api/artists/[id]', () => {
