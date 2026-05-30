@@ -22,6 +22,11 @@ const asBool = (value: unknown): boolean => value === 'true' || value === true
  * endpoints). Listing non-verified artists requires contributor rights.
  */
 export default defineEventHandler(async (event) => {
+	// This endpoint is auth-gated for non-public listings and returns
+	// per-request results; never let it sit in a shared/CDN cache (overrides the
+	// global /api s-maxage rule).
+	setHeader(event, 'Cache-Control', 'no-store')
+
 	const query = getQuery(event)
 
 	// Tri-state verified: 'true' (public) | 'false' | 'null' | absent.

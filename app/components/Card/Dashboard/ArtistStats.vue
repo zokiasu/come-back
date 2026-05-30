@@ -11,20 +11,21 @@
 		let groups = 0
 		let active = 0
 		let inactive = 0
-		let noDesc = 0
-		let noSocials = 0
-		let noPlatforms = 0
-		let noStyles = 0
+		let incomplete = 0
 
 		for (const a of props.artists) {
 			if (a.type === 'SOLO') solos++
 			if (a.type === 'GROUP') groups++
 			if (a.active_career) active++
 			else inactive++
-			if (!a.description) noDesc++
-			if (!a.social_links || a.social_links.length === 0) noSocials++
-			if (!a.platform_links || a.platform_links.length === 0) noPlatforms++
-			if (!a.styles || a.styles.length === 0) noStyles++
+			// Count artists with at least one missing field (not every missing field),
+			// so "Incomplete" can never exceed the total.
+			const isIncomplete =
+				!a.description ||
+				!a.social_links?.length ||
+				!a.platform_links?.length ||
+				!a.styles?.length
+			if (isIncomplete) incomplete++
 		}
 
 		return {
@@ -33,7 +34,7 @@
 			groups,
 			active,
 			inactive,
-			incomplete: noDesc + noSocials + noPlatforms + noStyles,
+			incomplete,
 		}
 	})
 </script>
