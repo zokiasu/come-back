@@ -131,7 +131,7 @@ Triage des commentaires de revue restés ouverts sur la branche :
 - [x] **#8 — `artists/paginated` : `onlyWithoutSocials/Platforms` appliqués après `range()`** → `total`/pagination faux + pages courtes. Corrigé via RPC `get_paginated_artists` (tous les filtres en SQL, `NOT EXISTS` sur les jonctions, `count(*) OVER()` pour le total, `ORDER BY` par CASE sans SQL dynamique). Migration `20260530000003`, testée en live (totaux exacts, pagination sans chevauchement). REVOKE PUBLIC/anon/authenticated, service_role uniquement.
 - [⊘] **#7 — `verified=null` côté validation queue.** Faux positif : `null` = « non vérifiés » est intentionnel (file de modération).
 - [⊘] **#10a — ERRCODE de `reorder_ranking_items_atomic`.** Faux positif : `42501` (insufficient_privilege) est valide, vérifié en live.
-- [ ] **SSRF — `get-page-title`** : un redirect peut contourner l'allowlist de domaines et faire fetch des ressources internes par le serveur. En attente décision user.
+- [x] **SSRF — `get-page-title`** : `fetch()` suivait les redirections en ne validant que l'URL initiale → un `30x` depuis un domaine autorisé pouvait atteindre une ressource interne/privée (endpoint non authentifié). Corrigé : suivi manuel des redirections (`redirect: 'manual'`) avec revalidation protocole + allowlist à **chaque saut**, cap `MAX_REDIRECTS`, budget timeout global. *(commit `9cb2af3`)*
 
 ---
 
