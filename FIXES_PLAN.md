@@ -5,6 +5,16 @@
 
 ---
 
+## 🔴 Hors-niveaux — Faille RPC `SECURITY DEFINER` (découverte + corrigée après l'audit)
+
+- [x] **RPC `SECURITY DEFINER` exécutables par `anon`/`authenticated` sans garde** 🔴
+  - Constat (vérifié via `pg_proc` + appel anon réel en lecture) : `delete_artist_safely`, `delete_artist_simple`, `analyze_artist_deletion_impact`, `get_top_contributors` (fuite **emails**), `get_contributions_stats` étaient appelables directement via `/rest/v1/rpc/...` avec la clé anon publique → contournement total de `requireAdmin`. `reorder_ranking_items_atomic` : appelable par tout `authenticated` **sans garde d'appartenance** → réordonnancement du ranking d'autrui.
+  - ✅ Fait — migration `20260530000001_secure_exposed_rpcs.sql` **appliquée en prod** : `REVOKE EXECUTE FROM PUBLIC, anon, authenticated` (garder `service_role`) sur les 5 fonctions server-only/inutilisées ; **garde d'appartenance** (`auth.uid()` propriétaire) ajoutée à `reorder_ranking_items_atomic` (gardée `authenticated`).
+  - ✅ Vérifié : ACLs `pg_proc` post-fix corrects ; garde reorder testée en live (`42501 Not authorized`) ; advisors → les 5 fonctions ont disparu des alertes anon/authenticated. Code mort client supprimé (`artistCrud.ts` helpers RPC).
+  - ℹ️ Laissés volontairement : `is_admin`/`is_contributor_or_admin`/`get_user_role` (helpers utilisés par les policies RLS — ne PAS révoquer) ; `get_top_contributors` côté client (`getTopContributors`, mort, fallback gracieux).
+
+---
+
 ## 🟢 Niveau 1 — Quick wins (< 15 min chacun)
 
 - [x] **Supprimer le code mort `/newdashboard`** 🔵
