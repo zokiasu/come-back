@@ -430,20 +430,24 @@
 								/>
 							</div>
 						</div>
-						<div
-							v-else-if="musicsFetching"
-							class="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3"
-						>
-							<SkeletonDefault class="h-16 w-full rounded-lg" />
-							<SkeletonDefault class="h-16 w-full rounded-lg" />
-							<SkeletonDefault class="h-16 w-full rounded-lg" />
-							<SkeletonDefault class="h-16 w-full rounded-lg" />
-							<SkeletonDefault class="h-16 w-full rounded-lg" />
-							<SkeletonDefault class="h-16 w-full rounded-lg" />
-							<SkeletonDefault class="h-16 w-full rounded-lg" />
-							<SkeletonDefault class="h-16 w-full rounded-lg" />
-							<SkeletonDefault class="h-16 w-full rounded-lg" />
-						</div>
+						<template v-else-if="musicsFetching">
+							<!-- Mobile: square grid, matching the loaded mobile layout -->
+							<div class="grid grid-cols-3 gap-2 md:hidden">
+								<SkeletonDefault
+									v-for="i in 9"
+									:key="`discover-loading-m-${i}`"
+									class="aspect-square w-full rounded-lg"
+								/>
+							</div>
+							<!-- Desktop: compact cards, matching the loaded desktop layout -->
+							<div class="hidden grid-cols-1 gap-3 md:grid md:grid-cols-2 lg:grid-cols-3">
+								<SkeletonDefault
+									v-for="i in 9"
+									:key="`discover-loading-d-${i}`"
+									class="h-16 w-full rounded-lg"
+								/>
+							</div>
+						</template>
 						<div
 							v-else
 							class="border-cb-quinary-900 bg-cb-quinary-900/60 rounded-2xl border p-4 text-center"
@@ -481,11 +485,20 @@
 									disabled
 								/>
 							</div>
-							<div class="grid grid-cols-3 gap-2 md:grid-cols-3 lg:grid-cols-3">
+							<!-- Mobile: square grid, matching the loaded mobile layout -->
+							<div class="grid grid-cols-3 gap-2 md:hidden">
 								<SkeletonDefault
 									v-for="i in 9"
-									:key="`discover-skeleton-${i}`"
+									:key="`discover-skeleton-m-${i}`"
 									class="aspect-square w-full rounded-lg"
+								/>
+							</div>
+							<!-- Desktop: compact cards, matching the loaded desktop layout -->
+							<div class="hidden grid-cols-1 gap-3 md:grid md:grid-cols-2 lg:grid-cols-3">
+								<SkeletonDefault
+									v-for="i in 9"
+									:key="`discover-skeleton-d-${i}`"
+									class="h-16 w-full rounded-lg"
 								/>
 							</div>
 						</div>
