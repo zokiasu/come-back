@@ -1,10 +1,12 @@
-import { describe, it, expect } from 'vitest'
+import type { PostgrestError } from '@supabase/supabase-js'
+import { describe, expect, it, vi } from 'vitest'
 import {
+	handleSupabaseError,
 	isPostgrestError,
 	createNotFoundError,
 	createBadRequestError,
 	createInternalError,
-} from '../errorHandler'
+} from '#server/utils/errorHandler'
 
 describe('isPostgrestError', () => {
 	it('should return true for valid PostgrestError', () => {
@@ -108,7 +110,7 @@ describe('createBadRequestError', () => {
 		const error = createBadRequestError('Error message', null)
 
 		expect(error.statusCode).toBe(400)
-		expect(error.data).toBeNull()
+		expect(error.data).toBeUndefined()
 	})
 })
 
@@ -140,5 +142,41 @@ describe('createInternalError', () => {
 		const error2 = createInternalError('Message', objectError)
 
 		expect(error2.statusCode).toBe(500)
+	})
+})
+
+describe('handleSupabaseError', () => {
+	it('should map known Supabase error codes to HTTP statuses', () => {
+		const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+		const error = {
+			code: '23505',
+			message: 'duplicate key value violates unique constraint',
+			details: 'A unique value already exists',
+			hint: '',
+		} as PostgrestError
+
+		const result = handleSupabaseError(error, 'artists.create')
+
+		expect(result.statusCode).toBe(409)
+		expect(result.statusMessage).toBe('duplicate key value violates unique constraint')
+		expect(result.message).toBe('A unique value already exists')
+		expect(result.data).toEqual({ code: '23505', context: 'artists.create' })
+		expect(consoleSpy).toHaveBeenCalledOnce()
+	})
+
+	it('should default unknown Supabase errors to 500', () => {
+		const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+		const error = {
+			code: 'UNKNOWN',
+			message: 'Unexpected database error',
+			details: '',
+			hint: '',
+		} as PostgrestError
+
+		const result = handleSupabaseError(error)
+
+		expect(result.statusCode).toBe(500)
+		expect(result.message).toBe('Database operation failed')
+		expect(consoleSpy).toHaveBeenCalledOnce()
 	})
 })

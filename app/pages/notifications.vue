@@ -1,8 +1,17 @@
 <script setup lang="ts">
 	import type { AppNotification } from '~/composables/useNotifications'
 
-	const { notifications, unreadCount, isLoading, total, hasMore, fetchNotifications, loadMore, markAsRead, markAllAsRead } =
-		useNotifications()
+	const {
+		notifications,
+		unreadCount,
+		isLoading,
+		total,
+		hasMore,
+		fetchNotifications,
+		loadMore,
+		markAsRead,
+		markAllAsRead,
+	} = useNotifications()
 
 	onMounted(() => fetchNotifications())
 
@@ -62,7 +71,7 @@
 </script>
 
 <template>
-	<div class="mx-auto max-w-2xl space-y-6 px-1 pb-6 sm:px-0 w-full">
+	<div class="mx-auto w-full max-w-2xl space-y-6 px-1 pb-6 sm:px-0">
 		<section
 			class="bg-cb-secondary-950 border-cb-quinary-900/70 rounded-[28px] border p-6 shadow-xl"
 		>
@@ -92,7 +101,10 @@
 			</div>
 		</section>
 
-		<div v-if="isLoading && !notifications.length" class="flex items-center justify-center py-16">
+		<div
+			v-if="isLoading && !notifications.length"
+			class="flex items-center justify-center py-16"
+		>
 			<UIcon name="i-lucide-loader-circle" class="size-6 animate-spin text-zinc-500" />
 		</div>
 
@@ -114,7 +126,7 @@
 				class="bg-cb-secondary-950 border-cb-quinary-900/70 overflow-hidden rounded-[28px] border shadow-xl"
 			>
 				<div class="border-b border-zinc-700/60 px-6 py-3">
-					<p class="text-xs font-semibold uppercase tracking-widest text-zinc-500">
+					<p class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">
 						{{ group.label }}
 					</p>
 				</div>

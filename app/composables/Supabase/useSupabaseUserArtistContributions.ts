@@ -270,61 +270,6 @@ export function useSupabaseUserArtistContributions() {
 		return stats
 	}
 
-	// Fetch the contributeurs the more actifs
-	const getTopContributors = async (limit: number = 10) => {
-		const { data, error } = await supabase.rpc('get_top_contributors', {
-			contribution_limit: limit,
-		})
-
-		if (error) {
-			console.error('Erreur lors de la récupération des top contributeurs:', error)
-
-			// Fallback: manual query if the RPC function does not exist
-			const { data: fallbackData, error: fallbackError } = await supabase.from(
-				'user_artist_contributions',
-			).select(`
-					user_id,
-					contribution_type,
-					user:users!user_artist_contributions_user_id_fkey(
-						id,
-						name,
-						photo_url
-					)
-				`)
-
-			if (fallbackError) {
-				throw fallbackError
-			}
-
-			// Group and count results manually
-			const contributorMap = new Map()
-			fallbackData?.forEach((contrib) => {
-				const userId = contrib.user_id
-				if (!contributorMap.has(userId)) {
-					contributorMap.set(userId, {
-						user: contrib.user,
-						total: 0,
-						created: 0,
-						edited: 0,
-					})
-				}
-				const stats = contributorMap.get(userId)
-				stats.total++
-				if (contrib.contribution_type === 'CREATOR') {
-					stats.created++
-				} else {
-					stats.edited++
-				}
-			})
-
-			return Array.from(contributorMap.values())
-				.sort((a, b) => b.total - a.total)
-				.slice(0, limit)
-		}
-
-		return data || []
-	}
-
 	// Fetch creators for a list of artists (batch)
 	const getCreatorsForArtists = async (artistIds: string[]) => {
 		if (!artistIds.length) return []
@@ -360,7 +305,6 @@ export function useSupabaseUserArtistContributions() {
 		getUserContributions,
 		getArtistContributors,
 		getUserContributionStats,
-		getTopContributors,
 		getCreatorsForArtists,
 	}
 }

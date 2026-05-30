@@ -69,7 +69,7 @@ npm run build
 ```bash
 SUPABASE_URL=                          # URL du projet Supabase
 NUXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=  # Clé publique Supabase
-NUXT_PUBLIC_SUPABASE_SECRET_KEY=       # Clé service role (server-side)
+SUPABASE_SECRET_KEY=                   # Clé service role (server-side uniquement)
 YOUTUBE_API_KEY=                       # API YouTube Data v3
 ```
 
@@ -117,7 +117,10 @@ npm run preview      # Preview du build
 npm run lint:fix     # ESLint + Prettier
 npm run format       # Prettier uniquement
 npm run typecheck    # Vérification TypeScript
-npm run check        # Lint + Typecheck (CI)
+npm run test         # Vitest en mode watch
+npm run test:run     # Vitest une seule fois
+npm run test:coverage # Couverture Vitest
+npm run check        # Lint + Typecheck + tests (CI)
 ```
 
 ## Stratégie de Rendu

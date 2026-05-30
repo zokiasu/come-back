@@ -14,7 +14,7 @@ permissions:
 jobs:
   update-dependencies:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -35,11 +35,11 @@ jobs:
         run: |
           # Vérifier les mises à jour disponibles
           npx npm-check-updates --jsonUpgraded > updates.json
-          
+
           # Compter le nombre de mises à jour
           UPDATES_COUNT=$(cat updates.json | jq 'length')
           echo "updates_count=$UPDATES_COUNT" >> $GITHUB_OUTPUT
-          
+
           # Créer un résumé des mises à jour
           if [ "$UPDATES_COUNT" -gt 0 ]; then
             echo "updates_available=true" >> $GITHUB_OUTPUT
@@ -59,7 +59,7 @@ jobs:
         if: steps.check-updates.outputs.updates_available == 'true'
         run: |
           # Exécuter les vérifications de qualité
-          npm run lint || true
+          npm run check
           npm run build
 
       - name: Create Pull Request
@@ -71,24 +71,24 @@ jobs:
           title: '🔄 Mise à jour automatique des dépendances'
           body: |
             ## 📦 Mise à jour des dépendances
-            
+
             Cette PR a été créée automatiquement pour mettre à jour les dépendances du projet.
-            
+
             ### Mises à jour incluses:
             $(cat update_summary.txt)
-            
+
             ### ✅ Vérifications effectuées:
             - [x] Installation des nouvelles dépendances
-            - [x] Exécution du linting
+            - [x] Lint, typecheck et tests
             - [x] Build de production
-            
+
             ### 🔍 À vérifier manuellement:
             - [ ] Tests unitaires et d'intégration
             - [ ] Fonctionnalités critiques
             - [ ] Performance de l'application
-            
+
             ---
-            
+
             🤖 Cette PR a été générée automatiquement par GitHub Actions.
           branch: dependency-updates-${{ github.run_number }}
           delete-branch: true

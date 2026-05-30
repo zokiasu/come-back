@@ -1,3 +1,5 @@
+import { createError } from 'h3'
+
 /**
  * Validation constants for API inputs
  */

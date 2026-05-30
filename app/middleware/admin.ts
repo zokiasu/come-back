@@ -1,8 +1,4 @@
-import {
-	ADMIN_AUTH_INIT_TIMEOUT_MS,
-	AUTH_MAX_RETRY_ATTEMPTS,
-	AUTH_RETRY_DELAY_MS,
-} from '~/constants/auth'
+import { ADMIN_AUTH_INIT_TIMEOUT_MS, AUTH_MAX_WAIT_TIME_MS } from '~/constants/auth'
 
 export default defineNuxtRouteMiddleware(async (_to, _from) => {
 	const user = useSupabaseUser()
@@ -29,16 +25,25 @@ export default defineNuxtRouteMiddleware(async (_to, _from) => {
 		// On timeout, continue with the remaining checks
 	}
 
-	// Wait until user data is available
-	// (either from Supabase or from `localStorage` through Pinia)
-	let attempts = 0
-	while (
-		!userData.value &&
-		!userStore.userDataStore &&
-		attempts < AUTH_MAX_RETRY_ATTEMPTS
-	) {
-		await new Promise((resolve) => setTimeout(resolve, AUTH_RETRY_DELAY_MS))
-		attempts++
+	// Wait until user data is available (from Supabase sync or from localStorage
+	// through Pinia). Reactive wait: resolves as soon as the data lands instead of
+	// polling on a fixed interval, and is capped so a stuck sync cannot hang the route.
+	if (!userData.value && !userStore.userDataStore) {
+		await new Promise<void>((resolve) => {
+			const stop = watch(
+				() => userData.value || userStore.userDataStore,
+				(value) => {
+					if (value) {
+						stop()
+						resolve()
+					}
+				},
+			)
+			setTimeout(() => {
+				stop()
+				resolve()
+			}, AUTH_MAX_WAIT_TIME_MS)
+		})
 	}
 
 	// Check authentication (Supabase or persisted store data)
