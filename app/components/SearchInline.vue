@@ -321,11 +321,7 @@
 			:class="dropdownClass"
 		>
 			<div v-if="isLoading" class="space-y-2 px-1 py-2">
-				<div
-					v-for="i in 4"
-					:key="i"
-					class="flex items-center gap-3 rounded-lg px-3 py-2"
-				>
+				<div v-for="i in 4" :key="i" class="flex items-center gap-3 rounded-lg px-3 py-2">
 					<div class="skeleton-shimmer size-8 shrink-0 rounded-full" />
 					<div class="flex-1 space-y-1.5">
 						<div

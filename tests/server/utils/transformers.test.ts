@@ -1,5 +1,14 @@
-import { describe, it, expect } from 'vitest'
-import { transformJunction, batchTransform } from '../transformers'
+import { describe, expect, it } from 'vitest'
+import {
+	batchTransform,
+	transformArtistWithRelations,
+	transformJunction,
+	transformMusicWithRelations,
+	transformReleaseWithRelations,
+	type RawArtistData,
+	type RawMusicData,
+	type RawReleaseData,
+} from '#server/utils/transformers'
 
 describe('transformJunction', () => {
 	it('should extract entities from junction data', () => {
@@ -61,7 +70,10 @@ describe('transformJunction', () => {
 	})
 
 	it('should handle missing keys gracefully', () => {
-		const input = [{ someOtherKey: { id: '1' } }, { artist: { id: '2' } }]
+		const input = [
+			{ someOtherKey: { id: '1' } },
+			{ artist: { id: '2' } },
+		] as unknown as Array<{ artist: { id: string } | null }>
 		const result = transformJunction(input, 'artist')
 
 		expect(result).toHaveLength(1)
@@ -121,5 +133,63 @@ describe('batchTransform', () => {
 		expect(result).toHaveLength(2)
 		expect(result[0]).toEqual({ id: '1', doubled: 20 })
 		expect(result[1]).toEqual({ id: '2', doubled: 40 })
+	})
+})
+
+describe('relation transformers', () => {
+	it('should transform artist relations only when requested', () => {
+		const rawArtist = {
+			id: 'artist-1',
+			name: 'Artist 1',
+			groups: [{ group: { id: 'group-1', name: 'Group 1' } }],
+			members: [{ member: { id: 'member-1', name: 'Member 1' } }],
+			releases: [{ release: { id: 'release-1', name: 'Release 1' } }],
+		} as unknown as RawArtistData
+
+		const result = transformArtistWithRelations(rawArtist, {
+			includeGroups: true,
+			includeReleases: true,
+		})
+
+		expect(result.groups).toEqual([{ id: 'group-1', name: 'Group 1' }])
+		expect(result.releases).toEqual([{ id: 'release-1', name: 'Release 1' }])
+		expect(result.members).toBeUndefined()
+	})
+
+	it('should transform release artists, musics and platform links', () => {
+		const rawRelease = {
+			id: 'release-1',
+			name: 'Release 1',
+			artists: [{ artist: { id: 'artist-1', name: 'Artist 1' } }],
+			musics: [{ music: { id: 'music-1', name: 'Music 1' } }],
+			platform_links: [{ id: 'link-1', platform: 'spotify' }],
+		} as unknown as RawReleaseData
+
+		const result = transformReleaseWithRelations(rawRelease, {
+			includeArtists: true,
+			includeMusics: true,
+			includePlatformLinks: true,
+		})
+
+		expect(result.artists).toEqual([{ id: 'artist-1', name: 'Artist 1' }])
+		expect(result.musics).toEqual([{ id: 'music-1', name: 'Music 1' }])
+		expect(result.platform_links).toEqual([{ id: 'link-1', platform: 'spotify' }])
+	})
+
+	it('should transform music artists and releases', () => {
+		const rawMusic = {
+			id: 'music-1',
+			name: 'Music 1',
+			artists: [{ artist: { id: 'artist-1', name: 'Artist 1' } }],
+			releases: [{ release: { id: 'release-1', name: 'Release 1' } }],
+		} as unknown as RawMusicData
+
+		const result = transformMusicWithRelations(rawMusic, {
+			includeArtists: true,
+			includeReleases: true,
+		})
+
+		expect(result.artists).toEqual([{ id: 'artist-1', name: 'Artist 1' }])
+		expect(result.releases).toEqual([{ id: 'release-1', name: 'Release 1' }])
 	})
 })

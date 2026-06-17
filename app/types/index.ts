@@ -305,7 +305,6 @@ export type MusicMenuItem = {
  */
 export type MenuItem<T> = T & { label: string }
 
-
 export interface PushPayload {
 	title: string
 	body: string

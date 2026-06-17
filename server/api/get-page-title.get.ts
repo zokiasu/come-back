@@ -36,6 +36,9 @@ const ALLOWED_DOMAINS = [
 	'bilibili.com',
 ]
 
+// Cap on redirect hops we will follow while re-validating each one.
+const MAX_REDIRECTS = 5
+
 /**
  * Checks whether a domain is in the allowlist
  */
@@ -44,6 +47,26 @@ function isDomainAllowed(hostname: string): boolean {
 	return ALLOWED_DOMAINS.some(
 		(allowed) => domain === allowed || domain.endsWith(`.${allowed}`),
 	)
+}
+
+/**
+ * Validates a target URL before we fetch it: HTTP/HTTPS only and host in the
+ * allowlist. Called for the initial URL AND every redirect hop so a 30x from an
+ * allowed host can't bounce the server onto an internal/private target (SSRF).
+ */
+function assertUrlAllowed(target: URL): void {
+	if (!['http:', 'https:'].includes(target.protocol)) {
+		throw createError({
+			statusCode: 400,
+			statusMessage: 'Only HTTP and HTTPS URLs are allowed',
+		})
+	}
+	if (!isDomainAllowed(target.hostname)) {
+		throw createError({
+			statusCode: 403,
+			statusMessage: 'Domain not allowed',
+		})
+	}
 }
 
 export default defineEventHandler(async (event) => {
@@ -58,43 +81,55 @@ export default defineEventHandler(async (event) => {
 	}
 
 	try {
-		// Validation the URL
-		const urlObj = new URL(url)
+		// Validate the initial URL (throws on protocol/allowlist violation).
+		assertUrlAllowed(new URL(url))
 
-		// Restrict to HTTP/HTTPS protocols for safety
-		if (!['http:', 'https:'].includes(urlObj.protocol)) {
-			throw createError({
-				statusCode: 400,
-				statusMessage: 'Only HTTP and HTTPS URLs are allowed',
-			})
-		}
-
-	// Check that the domain is in the allowlist for SSRF protection
-		if (!isDomainAllowed(urlObj.hostname)) {
-			throw createError({
-				statusCode: 403,
-				statusMessage: 'Domain not allowed',
-			})
-		}
-
-		// Fetch the page with a timeout and appropriate headers
+		// Follow redirects manually so every hop is re-validated against the
+		// allowlist. fetch() follows redirects on its own and only the first URL
+		// was checked, so a 30x from an allowed host could otherwise reach an
+		// internal/private target (SSRF). 10s budget for the whole chain.
 		const controller = new AbortController()
-		const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 secondes timeout
+		const timeoutId = setTimeout(() => controller.abort(), 10000)
 
-		const response = await fetch(url, {
-			method: 'GET',
-			headers: {
-				'User-Agent': 'Mozilla/5.0 (compatible; ComebackBot/1.0)',
-				Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-				'Accept-Language': 'fr-FR,fr;q=0.9,en;q=0.8',
-			},
-			signal: controller.signal,
-		})
+		let currentUrl = new URL(url)
+		let response: Awaited<ReturnType<typeof fetch>> | undefined
+		let redirects = 0
 
-		clearTimeout(timeoutId)
+		try {
+			for (;;) {
+				assertUrlAllowed(currentUrl)
 
-		if (!response.ok) {
-			throw new Error(`HTTP ${response.status}`)
+				response = await fetch(currentUrl, {
+					method: 'GET',
+					redirect: 'manual',
+					headers: {
+						'User-Agent': 'Mozilla/5.0 (compatible; ComebackBot/1.0)',
+						Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+						'Accept-Language': 'fr-FR,fr;q=0.9,en;q=0.8',
+					},
+					signal: controller.signal,
+				})
+
+				// Not a redirect → this is the final response.
+				if (response.status < 300 || response.status >= 400) break
+
+				const location = response.headers.get('location')
+				if (!location) break // malformed redirect; handled by the checks below
+
+				if (++redirects > MAX_REDIRECTS) {
+					throw createError({ statusCode: 502, statusMessage: 'Too many redirects' })
+				}
+
+				// Resolve a relative Location against the current URL; the next
+				// loop iteration re-validates it before any fetch.
+				currentUrl = new URL(location, currentUrl)
+			}
+		} finally {
+			clearTimeout(timeoutId)
+		}
+
+		if (!response || !response.ok) {
+			throw new Error(`HTTP ${response?.status ?? 'no response'}`)
 		}
 
 		// Check the content-type

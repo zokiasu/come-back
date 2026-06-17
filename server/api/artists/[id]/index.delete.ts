@@ -5,7 +5,8 @@ export default defineEventHandler(async (event) => {
 
 	const artistId = validateRouteParam(event, 'id', 'Artist')
 	const query = getQuery(event)
-	const mode = (query.mode as string) || 'safe'
+	// Whitelist the mode: any value other than the two supported RPCs falls back to 'safe'.
+	const mode = query.mode === 'simple' ? 'simple' : 'safe'
 
 	const supabase = useServerSupabase()
 

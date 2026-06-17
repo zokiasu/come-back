@@ -56,7 +56,7 @@ export const transformJunction = <T, K extends string>(
 	key: K,
 ): T[] => {
 	if (!junctionData || junctionData.length === 0) return []
-	return junctionData.map((item) => item[key]).filter((item): item is T => item !== null)
+	return junctionData.map((item) => item[key]).filter((item): item is T => item != null)
 }
 
 /**

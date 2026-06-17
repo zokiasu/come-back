@@ -1,3 +1,4 @@
+import { timingSafeEqual } from 'node:crypto'
 import type { H3Event } from 'h3'
 import { serverSupabaseUser } from '#supabase/server'
 import type { Database } from '~/types/supabase'
@@ -158,8 +159,15 @@ export const requireCronSecret = (event: H3Event): void => {
 	}
 
 	const auth = getHeader(event, 'authorization')
+	const expected = `Bearer ${config.CRON_SECRET}`
 
-	if (!auth || auth !== `Bearer ${config.CRON_SECRET}`) {
+	const authBuffer = Buffer.from(auth ?? '')
+	const expectedBuffer = Buffer.from(expected)
+
+	if (
+		authBuffer.length !== expectedBuffer.length ||
+		!timingSafeEqual(authBuffer, expectedBuffer)
+	) {
 		throw createError({ statusCode: 401, statusMessage: 'Unauthorized' })
 	}
 }

@@ -11,20 +11,21 @@
 	const fallbackDiscoverMusicImage = '/slider-placeholder.webp'
 	const failedDiscoverMusicImages = ref<Record<string, boolean>>({})
 
-	// SSR fetch used by the homepage realtime refresh flow.
-	const { data: comebacks, pending: newsFetching } = await useFetch(
-		() => `/api/news/latest?_t=${refreshTimestamp.value}`,
-		{
+	// Run the four SSR fetches in parallel so the homepage blocks on the slowest
+	// request, not the sum of all of them.
+	const [
+		{ data: comebacks, pending: newsFetching },
+		{ data: releases, pending: releasesFetching },
+		{ data: artists, pending: artistsFetching },
+		{ data: mvs, pending: mvsFetching },
+	] = await Promise.all([
+		// The API already returns news sorted by ascending comeback date.
+		useFetch(() => `/api/news/latest?_t=${refreshTimestamp.value}`, {
 			default: () => [],
 			server: true,
 			key: 'news-latest',
-			// The API already returns items sorted by ascending comeback date.
-		},
-	)
-
-	const { data: releases, pending: releasesFetching } = await useFetch(
-		'/api/releases/latest',
-		{
+		}),
+		useFetch('/api/releases/latest', {
 			default: () => [],
 			server: true,
 			query: { limit: 10 },
@@ -32,12 +33,8 @@
 				(data as ReleaseListItem[]).sort(
 					(a, b) => new Date(b.date || '').getTime() - new Date(a.date || '').getTime(),
 				),
-		},
-	)
-
-	const { data: artists, pending: artistsFetching } = await useFetch(
-		'/api/artists/latest',
-		{
+		}),
+		useFetch('/api/artists/latest', {
 			default: () => [],
 			server: true,
 			query: { limit: 10 },
@@ -47,8 +44,13 @@
 						new Date(b.created_at || '').getTime() -
 						new Date(a.created_at || '').getTime(),
 				),
-		},
-	)
+		}),
+		useFetch('/api/musics/latest-mvs', {
+			default: () => [],
+			server: true,
+			query: { limit: 14 },
+		}),
+	])
 
 	// Keep discovery tracks client-only so each visit can return different results.
 	const {
@@ -67,12 +69,6 @@
 	})
 
 	const discoverMusicAutoRetried = ref(false)
-
-	const { data: mvs, pending: mvsFetching } = await useFetch('/api/musics/latest-mvs', {
-		default: () => [],
-		server: true,
-		query: { limit: 14 },
-	})
 
 	const getUtcDayTimestamp = (dateValue: string | Date) => {
 		const date = dateValue instanceof Date ? dateValue : new Date(dateValue)
@@ -434,20 +430,24 @@
 								/>
 							</div>
 						</div>
-						<div
-							v-else-if="musicsFetching"
-							class="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3"
-						>
-							<SkeletonDefault class="h-16 w-full rounded-lg" />
-							<SkeletonDefault class="h-16 w-full rounded-lg" />
-							<SkeletonDefault class="h-16 w-full rounded-lg" />
-							<SkeletonDefault class="h-16 w-full rounded-lg" />
-							<SkeletonDefault class="h-16 w-full rounded-lg" />
-							<SkeletonDefault class="h-16 w-full rounded-lg" />
-							<SkeletonDefault class="h-16 w-full rounded-lg" />
-							<SkeletonDefault class="h-16 w-full rounded-lg" />
-							<SkeletonDefault class="h-16 w-full rounded-lg" />
-						</div>
+						<template v-else-if="musicsFetching">
+							<!-- Mobile: square grid, matching the loaded mobile layout -->
+							<div class="grid grid-cols-3 gap-2 md:hidden">
+								<SkeletonDefault
+									v-for="i in 9"
+									:key="`discover-loading-m-${i}`"
+									class="aspect-square w-full rounded-lg"
+								/>
+							</div>
+							<!-- Desktop: compact cards, matching the loaded desktop layout -->
+							<div class="hidden grid-cols-1 gap-3 md:grid md:grid-cols-2 lg:grid-cols-3">
+								<SkeletonDefault
+									v-for="i in 9"
+									:key="`discover-loading-d-${i}`"
+									class="h-16 w-full rounded-lg"
+								/>
+							</div>
+						</template>
 						<div
 							v-else
 							class="border-cb-quinary-900 bg-cb-quinary-900/60 rounded-2xl border p-4 text-center"
@@ -485,11 +485,20 @@
 									disabled
 								/>
 							</div>
-							<div class="grid grid-cols-3 gap-2 md:grid-cols-3 lg:grid-cols-3">
+							<!-- Mobile: square grid, matching the loaded mobile layout -->
+							<div class="grid grid-cols-3 gap-2 md:hidden">
 								<SkeletonDefault
 									v-for="i in 9"
-									:key="`discover-skeleton-${i}`"
+									:key="`discover-skeleton-m-${i}`"
 									class="aspect-square w-full rounded-lg"
+								/>
+							</div>
+							<!-- Desktop: compact cards, matching the loaded desktop layout -->
+							<div class="hidden grid-cols-1 gap-3 md:grid md:grid-cols-2 lg:grid-cols-3">
+								<SkeletonDefault
+									v-for="i in 9"
+									:key="`discover-skeleton-d-${i}`"
+									class="h-16 w-full rounded-lg"
 								/>
 							</div>
 						</div>
