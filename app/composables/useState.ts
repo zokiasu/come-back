@@ -9,7 +9,3 @@ export const useAuthorNamePlaying = () =>
 	useState<string>('authorNamePlaying', () => 'Author Name')
 
 export const useIsPlayingVideo = () => useState<boolean>('isPlayingVideo', () => false)
-
-// Autres composables
-export const useLastRoomYouTryToJoined = () =>
-	useState<string>('lastRoomYouTryToJoined', () => '')

@@ -1,13 +1,11 @@
 <script setup lang="ts">
-	import { storeToRefs } from 'pinia'
 	import { useAuthModal } from '@/composables/useAuthModal'
 	import type { AppNotification } from '~/composables/useNotifications'
 
 	const isMobileNavDocked = useState<boolean>('mobileNavDocked', () => false)
 
-	const userStore = useUserStore()
-	const { isLoginStore, isAdminStore, isHydrated } = storeToRefs(userStore)
-	const supabaseUser = useSupabaseUser()
+	// Single source of truth for auth state (see useAuth).
+	const { isLoggedIn, isAdmin, isReady } = useAuth()
 
 	const isClient = ref(false)
 	const isMoreOpen = ref(false)
@@ -44,7 +42,10 @@
 		if (hours < 24) return `${hours}h ago`
 		const days = Math.floor(hours / 24)
 		if (days < 30) return `${days}d ago`
-		return new Date(dateStr).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })
+		return new Date(dateStr).toLocaleDateString('en-US', {
+			day: 'numeric',
+			month: 'short',
+		})
 	}
 
 	const handleNotificationClick = async (notification: AppNotification) => {
@@ -71,8 +72,8 @@
 	})
 
 	const isUserLoggedIn = computed(() => {
-		if (!isClient.value) return false
-		return Boolean(supabaseUser.value?.id) || (isHydrated.value && isLoginStore.value)
+		// Wait for client mount AND auth hydration to avoid flashing the wrong state.
+		return isClient.value && isReady.value && isLoggedIn.value
 	})
 
 	const bottomOffsetClass = computed(() => {
@@ -103,83 +104,83 @@
 				enter-from-class="opacity-0 translate-y-2"
 				leave-to-class="opacity-0 translate-y-2"
 			>
-				<div v-if="isMoreOpen" class="px-3 pb-2 pt-3">
+				<div v-if="isMoreOpen" class="px-3 pt-3 pb-2">
 					<div class="grid grid-cols-4 gap-1">
 						<NuxtLink
 							to="/ranking/explore"
-							class="cb-no-select text-cb-tertiary-200 hover:bg-cb-quinary-950 hover:text-white flex flex-col items-center gap-1.5 rounded-2xl p-3 transition"
+							class="cb-no-select text-cb-tertiary-200 hover:bg-cb-quinary-950 flex flex-col items-center gap-1.5 rounded-2xl p-3 transition hover:text-white"
 							@click="isMoreOpen = false"
 						>
 							<UIcon name="i-lucide-music" class="size-5" />
-							<span class="text-center text-[9px] font-semibold leading-tight"
-								>Rankings</span
-							>
+							<span class="text-center text-[9px] leading-tight font-semibold">
+								Rankings
+							</span>
 						</NuxtLink>
 
 						<NuxtLink
 							to="/music"
-							class="cb-no-select text-cb-tertiary-200 hover:bg-cb-quinary-950 hover:text-white flex flex-col items-center gap-1.5 rounded-2xl p-3 transition"
+							class="cb-no-select text-cb-tertiary-200 hover:bg-cb-quinary-950 flex flex-col items-center gap-1.5 rounded-2xl p-3 transition hover:text-white"
 							@click="isMoreOpen = false"
 						>
 							<UIcon name="i-lucide-circle-play" class="size-5" />
-							<span class="text-center text-[9px] font-semibold leading-tight"
-								>Music</span
-							>
+							<span class="text-center text-[9px] leading-tight font-semibold">
+								Music
+							</span>
 						</NuxtLink>
 
 						<NuxtLink
 							to="/settings"
-							class="cb-no-select text-cb-tertiary-200 hover:bg-cb-quinary-950 hover:text-white flex flex-col items-center gap-1.5 rounded-2xl p-3 transition"
+							class="cb-no-select text-cb-tertiary-200 hover:bg-cb-quinary-950 flex flex-col items-center gap-1.5 rounded-2xl p-3 transition hover:text-white"
 							@click="isMoreOpen = false"
 						>
 							<UIcon name="i-lucide-settings" class="size-5" />
-							<span class="text-center text-[9px] font-semibold leading-tight"
-								>Settings</span
-							>
+							<span class="text-center text-[9px] leading-tight font-semibold">
+								Settings
+							</span>
 						</NuxtLink>
 
 						<button
 							v-if="isUserLoggedIn && isClient"
 							type="button"
-							class="cb-no-select text-cb-tertiary-200 hover:bg-cb-quinary-950 hover:text-white relative flex flex-col items-center gap-1.5 rounded-2xl p-3 transition"
+							class="cb-no-select text-cb-tertiary-200 hover:bg-cb-quinary-950 relative flex flex-col items-center gap-1.5 rounded-2xl p-3 transition hover:text-white"
 							@click="openNotifications"
 						>
 							<span class="relative">
 								<UIcon name="i-lucide-bell" class="size-5" />
 								<span
 									v-if="unreadCount > 0"
-									class="bg-cb-primary-500 absolute -right-1 -top-1 flex size-3.5 items-center justify-center rounded-full text-[8px] font-bold text-white"
+									class="bg-cb-primary-500 absolute -top-1 -right-1 flex size-3.5 items-center justify-center rounded-full text-[8px] font-bold text-white"
 								>
 									{{ unreadCount > 9 ? '9+' : unreadCount }}
 								</span>
 							</span>
-							<span class="text-center text-[9px] font-semibold leading-tight"
-								>Notifs</span
-							>
+							<span class="text-center text-[9px] leading-tight font-semibold">
+								Notifs
+							</span>
 						</button>
 
 						<button
 							v-if="!isUserLoggedIn && isClient"
 							type="button"
-							class="cb-no-select text-cb-tertiary-200 hover:bg-cb-quinary-950 hover:text-white flex flex-col items-center gap-1.5 rounded-2xl p-3 transition"
+							class="cb-no-select text-cb-tertiary-200 hover:bg-cb-quinary-950 flex flex-col items-center gap-1.5 rounded-2xl p-3 transition hover:text-white"
 							@click="handleLoginClick"
 						>
 							<UIcon name="i-lucide-circle-user-round" class="size-5" />
-							<span class="text-center text-[9px] font-semibold leading-tight"
-								>Sign in</span
-							>
+							<span class="text-center text-[9px] leading-tight font-semibold">
+								Sign in
+							</span>
 						</button>
 
 						<NuxtLink
-							v-if="isAdminStore && isClient"
+							v-if="isClient && isReady && isAdmin"
 							to="/dashboard/artist"
-							class="cb-no-select text-cb-tertiary-200 hover:bg-cb-quinary-950 hover:text-white flex flex-col items-center gap-1.5 rounded-2xl p-3 transition"
+							class="cb-no-select text-cb-tertiary-200 hover:bg-cb-quinary-950 flex flex-col items-center gap-1.5 rounded-2xl p-3 transition hover:text-white"
 							@click="isMoreOpen = false"
 						>
 							<UIcon name="i-lucide-pencil" class="size-5" />
-							<span class="text-center text-[9px] font-semibold leading-tight"
-								>Admin</span
-							>
+							<span class="text-center text-[9px] leading-tight font-semibold">
+								Admin
+							</span>
 						</NuxtLink>
 
 						<button
@@ -189,9 +190,9 @@
 							@click="openNewsCreationModal"
 						>
 							<IconComeback class="size-5" />
-							<span class="text-center text-[9px] font-semibold leading-tight"
-								>Comeback</span
-							>
+							<span class="text-center text-[9px] leading-tight font-semibold">
+								Comeback
+							</span>
 						</button>
 					</div>
 				</div>
@@ -239,12 +240,12 @@
 						:name="isMoreOpen ? 'i-lucide-x' : 'i-lucide-ellipsis'"
 						class="h-5 w-5"
 					/>
-					<span class="text-[10px] font-semibold">{{
-						isMoreOpen ? 'Close' : 'More'
-					}}</span>
+					<span class="text-[10px] font-semibold">
+						{{ isMoreOpen ? 'Close' : 'More' }}
+					</span>
 					<span
 						v-if="!isMoreOpen && isClient && isUserLoggedIn && unreadCount > 0"
-						class="bg-cb-primary-500 absolute right-2 top-2 flex size-4 items-center justify-center rounded-full text-[9px] font-bold text-white"
+						class="bg-cb-primary-500 absolute top-2 right-2 flex size-4 items-center justify-center rounded-full text-[9px] font-bold text-white"
 					>
 						{{ unreadCount > 9 ? '9+' : unreadCount }}
 					</span>
@@ -328,10 +329,7 @@
 											: 'bg-cb-primary-900/20 text-cb-primary-400'
 									"
 								>
-									<UIcon
-										:name="notificationIcon(notification.type)"
-										class="size-3.5"
-									/>
+									<UIcon :name="notificationIcon(notification.type)" class="size-3.5" />
 								</div>
 								<div class="min-w-0 flex-1">
 									<p
@@ -340,10 +338,7 @@
 									>
 										{{ notification.title }}
 									</p>
-									<p
-										v-if="notification.message"
-										class="truncate text-xs text-zinc-500"
-									>
+									<p v-if="notification.message" class="truncate text-xs text-zinc-500">
 										{{ notification.message }}
 									</p>
 									<p class="mt-0.5 text-[10px] text-zinc-600">

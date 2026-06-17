@@ -11,8 +11,13 @@
 	const route = useRoute()
 	const artistId = computed(() => route.params.id as string)
 
-	const { followedIds, isLoading: isFollowsLoading, fetchFollowedArtists, followArtist, unfollowArtist } =
-		useFollowedArtists()
+	const {
+		followedIds,
+		isLoading: isFollowsLoading,
+		fetchFollowedArtists,
+		followArtist,
+		unfollowArtist,
+	} = useFollowedArtists()
 	const isFollowLoading = ref(false)
 
 	const isFollowing = computed(() => followedIds.value.has(artistId.value))
@@ -303,10 +308,7 @@
 									name="i-lucide-star"
 									class="text-cb-primary-500 size-3 group-hover:hidden"
 								/>
-								<UIcon
-									name="i-lucide-star-off"
-									class="hidden size-3 group-hover:block"
-								/>
+								<UIcon name="i-lucide-star-off" class="hidden size-3 group-hover:block" />
 								<span class="group-hover:hidden">Suivi</span>
 								<span class="hidden group-hover:inline">Ne plus suivre</span>
 							</template>

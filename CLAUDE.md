@@ -14,19 +14,22 @@ npm run build        # Build production
 npm run lint:fix     # ESLint + Prettier auto-fix
 npm run format       # Prettier uniquement
 npm run typecheck    # Vérification TypeScript
-npm run check        # Lint + Typecheck (CI)
+npm run test         # Vitest en mode watch
+npm run test:run     # Vitest une seule fois
+npm run test:coverage # Couverture Vitest
+npm run check        # Lint + Typecheck + tests (CI)
 npm run generate     # Génération statique
 npm run preview      # Preview du build
 ```
 
-Pas de suite de tests configurée (ni Vitest ni Jest).
+Suite Vitest configurée. Les tests unitaires serveur utilisent l'environnement `node` par défaut ; `@nuxt/test-utils` est disponible pour les tests nécessitant l'environnement Nuxt.
 
 ## Variables d'environnement
 
 ```
 SUPABASE_URL
 NUXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
-NUXT_PUBLIC_SUPABASE_SECRET_KEY    # Service role key (serveur)
+SUPABASE_SECRET_KEY               # Service role key (serveur uniquement)
 SUPABASE_ANON_KEY
 YOUTUBE_API_KEY
 VAPID_PUBLIC_KEY                   # Push notifications (client)
@@ -133,7 +136,7 @@ L'auth fonctionne en couches avec synchronisation entre Supabase, Pinia et local
 
 ### Pinia Store (`user.ts`)
 
-Persiste `userDataStore` et `isLoginStore` en localStorage (clé `userStore`). `isAdminStore` n'est PAS persisté — il est recalculé dans `afterHydrate` depuis `userDataStore.role`. Le flag `isHydrated` empêche les erreurs de désynchronisation SSR/client.
+Persiste `userDataStore` et `isLoginStore` en localStorage (clé `userStore`). `isAdminStore` est un **getter dérivé** de `userDataStore.role` (jamais persisté ni écrit directement, donc impossible à désynchroniser). Le flag `isHydrated` empêche les erreurs de désynchronisation SSR/client.
 
 ### Base de Données
 
@@ -226,18 +229,18 @@ const { data } = await useFetch('/api/releases/paginated', {
 
 ## Stratégie de Rendu
 
-| Route                               | Mode     | Détails                              |
-| ----------------------------------- | -------- | ------------------------------------ |
-| `/`                                 | ISR      | 3600s revalidation                   |
-| `/calendar`                         | SSG      | Prerender                            |
-| `/auth/callback`                    | SPA      | Client-side only                     |
-| `/dashboard/**`, `/newdashboard/**` | SPA      | Client-side only                     |
-| `/music`                            | SPA      | Client-side only                     |
-| `/artist/create`, `/artist/edit/**` | SPA      | Client-side only (auth requise)      |
-| `/release/create`                   | Redirect | → `/dashboard/release`               |
-| `/settings/**`                      | SSR      | Hybride (`/notification` en SPA)     |
-| `/notifications`                    | SPA      | Client-side only                     |
-| `/api/**`                           | —        | CORS activé + cache headers          |
+| Route                               | Mode     | Détails                          |
+| ----------------------------------- | -------- | -------------------------------- |
+| `/`                                 | ISR      | 3600s revalidation               |
+| `/calendar`                         | SSG      | Prerender                        |
+| `/auth/callback`                    | SPA      | Client-side only                 |
+| `/dashboard/**`                     | SPA      | Client-side only                 |
+| `/music`                            | SPA      | Client-side only                 |
+| `/artist/create`, `/artist/edit/**` | SPA      | Client-side only (auth requise)  |
+| `/release/create`                   | Redirect | → `/dashboard/release`           |
+| `/settings/**`                      | SSR      | Hybride (`/notification` en SPA) |
+| `/notifications`                    | SPA      | Client-side only                 |
+| `/api/**`                           | —        | CORS activé + cache headers      |
 
 ## Formatage & Linting
 

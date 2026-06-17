@@ -392,9 +392,7 @@
 					<p class="mt-3 text-sm font-medium text-zinc-400">
 						You are not following any artists yet.
 					</p>
-					<p class="mt-1 text-xs text-zinc-600">
-						Visit an artist's page to follow them.
-					</p>
+					<p class="mt-1 text-xs text-zinc-600">Visit an artist's page to follow them.</p>
 				</div>
 			</div>
 		</section>

@@ -13,6 +13,9 @@ export default defineEventHandler(async (event) => {
 		})
 	}
 
+	// Release detail is static content; cache longer than the global /api default.
+	setHeader(event, 'Cache-Control', 'public, max-age=3600, stale-while-revalidate=300')
+
 	try {
 		// 1. Fetch the release of base
 		const { data: release, error: releaseError } = await supabase

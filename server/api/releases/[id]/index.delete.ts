@@ -14,7 +14,7 @@ export default defineEventHandler(async (event) => {
 	}
 
 	try {
-	// Check that the release exists
+		// Check that the release exists
 		const { data: release, error: fetchError } = await supabase
 			.from('releases')
 			.select('id')

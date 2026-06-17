@@ -1,12 +1,11 @@
 import { storeToRefs } from 'pinia'
-import type { SupabaseAuthUser, UserInsertData, UserUpdateData } from '~/types/auth'
+import type { SupabaseAuthUser } from '~/types/auth'
+import { upsertUserProfile } from './Supabase/helpers/user/upsertUserProfile'
 
 // Keep auth initialization single-flight across every composable instance.
-let authWatcherBound = false
 let authInitialized = false
 let sharedInitPromise: Promise<boolean> | null = null
 let sharedTrustedAuthUserPromise: Promise<SupabaseAuthUser | null> | null = null
-let sharedIsLoggingOutFlag = false
 
 export const useAuth = () => {
 	const user = useSupabaseUser()
@@ -15,22 +14,10 @@ export const useAuth = () => {
 	const { runMutation } = useMutationTimeout()
 
 	// Use storeToRefs to preserve reactivity
-	const { userDataStore, isLoginStore, isAdminStore, supabaseUserStore } =
-		storeToRefs(userStore)
+	const { userDataStore, isLoginStore, isAdminStore } = storeToRefs(userStore)
 
 	// Destructure actions directly; storeToRefs is only needed for refs.
 	const { syncUserProfile, resetStore } = userStore
-
-	const getErrorCode = (error: unknown): string | undefined => {
-		if (typeof error === 'object' && error !== null && 'code' in error) {
-			return (error as { code?: string }).code
-		}
-		return undefined
-	}
-
-	const hasMeaningfulText = (value: string | null | undefined): value is string => {
-		return typeof value === 'string' && value.trim().length > 0
-	}
 
 	const getSessionAuthUser = async (): Promise<SupabaseAuthUser | null> => {
 		const { data } = await supabase.auth.getSession()
@@ -45,11 +32,7 @@ export const useAuth = () => {
 		}
 	}
 
-	const withTimeout = <T>(
-		promise: Promise<T>,
-		ms: number,
-		fallback: T,
-	): Promise<T> => {
+	const withTimeout = <T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> => {
 		return Promise.race([
 			promise,
 			new Promise<T>((resolve) => setTimeout(() => resolve(fallback), ms)),
@@ -65,11 +48,7 @@ export const useAuth = () => {
 			try {
 				// Prefer the session snapshot first because it is cheaper and avoids
 				// some transient `getUser()` races during refresh or OAuth redirects.
-				const sessionAuthUser = await withTimeout(
-					getSessionAuthUser(),
-					3000,
-					null,
-				)
+				const sessionAuthUser = await withTimeout(getSessionAuthUser(), 3000, null)
 				if (sessionAuthUser?.id) return sessionAuthUser
 
 				const result = await withTimeout(supabase.auth.getUser(), 3000, null)
@@ -92,143 +71,10 @@ export const useAuth = () => {
 		return await sharedTrustedAuthUserPromise
 	}
 
-	// Create or update a user profile.
-	const createOrUpdateUser = async (authUser: SupabaseAuthUser): Promise<User | null> => {
-		// Supabase v2 can expose a user without an id during initialization.
-		if (!authUser?.id) return null
-
-		try {
-			// Check whether the user already exists.
-			let existingUser: User | null = null
-			let fetchError: { code?: string } | Error | null = null
-
-			if (import.meta.dev) {
-				// Development-only timeout
-				const timeoutPromise = new Promise<never>((_, reject) => {
-					setTimeout(() => reject(new Error('Dev database timeout')), 2000)
-				})
-
-				const fetchPromise = supabase
-					.from('users')
-					.select('*')
-					.eq('id', authUser.id)
-					.single()
-
-				try {
-					const result = await Promise.race([fetchPromise, timeoutPromise])
-					existingUser = result.data as User
-					fetchError = result.error
-				} catch (error) {
-					fetchError = error instanceof Error ? error : new Error('Unknown error')
-				}
-			} else {
-				// Do not use a timeout in production.
-				const result = await supabase
-					.from('users')
-					.select('*')
-					.eq('id', authUser.id)
-					.single()
-
-				existingUser = result.data as User
-				fetchError = result.error
-			}
-
-			if (fetchError && getErrorCode(fetchError) !== 'PGRST116') {
-				console.error("Erreur lors de la récupération de l'utilisateur:", fetchError)
-				throw fetchError
-			}
-
-			if (!existingUser) {
-				// The local user profile creation is also a mutation flow:
-				// if Supabase does not answer, auth must fail clearly instead of hanging.
-				const insertData: UserInsertData = {
-					id: authUser.id,
-					email: authUser.email || '',
-					name:
-						authUser.user_metadata?.full_name ||
-						authUser.user_metadata?.name ||
-						'Utilisateur',
-					photo_url:
-						authUser.user_metadata?.avatar_url || authUser.user_metadata?.picture || '',
-					role: 'USER',
-					created_at: new Date().toISOString(),
-					updated_at: new Date().toISOString(),
-				}
-
-				const { data: newUser, error: createError } = await runMutation(
-					supabase.from('users').insert([insertData]).select().single(),
-					'Creating the user profile timed out. Please try again.',
-				)
-
-				if (createError) {
-					console.error("Erreur lors de la création de l'utilisateur:", createError)
-					const details = JSON.stringify({
-						message: (createError as { message?: string }).message,
-						code: (createError as { code?: string }).code,
-						details: (createError as { details?: string }).details,
-						hint: (createError as { hint?: string }).hint,
-					})
-					throw new Error(`create-user-failed: ${details}`)
-				}
-
-				return newUser as User
-			} else {
-				// Same idea for profile hydration updates: timeout -> explicit error,
-				// no endless "logged in but not really ready" state.
-				const nextEmail = hasMeaningfulText(authUser.email) ? authUser.email : null
-				const nextName =
-					authUser.user_metadata?.full_name || authUser.user_metadata?.name || null
-				const nextPhoto =
-					authUser.user_metadata?.avatar_url || authUser.user_metadata?.picture || null
-
-				const updateData: Partial<UserUpdateData> = {}
-
-				if (!hasMeaningfulText(existingUser.email) && nextEmail) {
-					updateData.email = nextEmail
-				}
-				if (!hasMeaningfulText(existingUser.name) && hasMeaningfulText(nextName)) {
-					updateData.name = nextName
-				}
-				if (!hasMeaningfulText(existingUser.photo_url) && hasMeaningfulText(nextPhoto)) {
-					updateData.photo_url = nextPhoto
-				}
-
-				if (!Object.keys(updateData).length) {
-					return existingUser as User
-				}
-
-				updateData.id = authUser.id
-				updateData.role = existingUser.role
-				updateData.updated_at = new Date().toISOString()
-
-				const { data: updatedUser, error: updateError } = await runMutation(
-					supabase
-						.from('users')
-						.update(updateData)
-						.eq('id', authUser.id)
-						.select()
-						.single(),
-					'Updating the user profile timed out. Please try again.',
-				)
-
-				if (updateError) {
-					console.error("Erreur lors de la mise à jour de l'utilisateur:", updateError)
-					const details = JSON.stringify({
-						message: (updateError as { message?: string }).message,
-						code: (updateError as { code?: string }).code,
-						details: (updateError as { details?: string }).details,
-						hint: (updateError as { hint?: string }).hint,
-					})
-					throw new Error(`update-user-failed: ${details}`)
-				}
-
-				return updatedUser as User
-			}
-		} catch (error) {
-			console.error('Erreur dans createOrUpdateUser:', error)
-			throw error
-		}
-	}
+	// Create or update the application profile. Delegates to the shared helper so
+	// this composable and the OAuth callback never diverge in their upsert logic.
+	const createOrUpdateUser = (authUser: SupabaseAuthUser): Promise<User | null> =>
+		upsertUserProfile(supabase, authUser, runMutation)
 
 	// Synchronization state
 	const isSyncing = useState('auth-is-syncing', () => false)
@@ -236,15 +82,14 @@ export const useAuth = () => {
 
 	const preserveAuthenticatedState = (authUser: SupabaseAuthUser) => {
 		// Mark the client as authenticated immediately while profile hydration
-		// catches up in the background.
-		userStore.setSupabaseUser(authUser)
+		// catches up in the background. The live session user comes from
+		// useSupabaseUser(); we no longer mirror it into the store.
 		userStore.setIsLogin(true)
 
-		if (userDataStore.value?.id === authUser.id) {
-			userStore.setIsAdmin(userDataStore.value.role === 'ADMIN')
-		} else {
+		// isAdmin derives from the profile automatically; only drop a stale profile
+		// that belongs to a different user.
+		if (userDataStore.value?.id !== authUser.id) {
 			userStore.setUserData(null)
-			userStore.setIsAdmin(false)
 		}
 
 		userStore.isHydrated = true
@@ -336,25 +181,18 @@ export const useAuth = () => {
 		}
 	}
 
-	// Track whether the next auth change comes from an explicit sign-out.
-	// Sign out the current user.
+	// Sign out the current user. Always clear local state and leave, even if the
+	// remote signOut fails, to avoid a zombie "logged-in locally but signed-out
+	// remotely" state.
 	const logout = async () => {
+		const supabase = useSupabaseClient()
 		try {
-			sharedIsLoggingOutFlag = true
-			const supabase = useSupabaseClient()
-			const { error: logoutError } = await supabase.auth.signOut()
-
-			if (logoutError) {
-				throw logoutError
-			}
-
-			// Reset the store
-			await resetStore()
-
-			await navigateTo('/')
+			await supabase.auth.signOut()
 		} catch (err: unknown) {
 			console.error('Erreur lors de la déconnexion:', err)
-			sharedIsLoggingOutFlag = false
+		} finally {
+			await resetStore()
+			await navigateTo('/')
 		}
 	}
 
@@ -366,11 +204,7 @@ export const useAuth = () => {
 			userDataStore.value &&
 			userDataStore.value.id === user.value.id
 		) {
-			// Keep isAdmin synchronized with the role in userDataStore
-			const shouldBeAdmin = userDataStore.value.role === 'ADMIN'
-			if (isAdminStore.value !== shouldBeAdmin) {
-				userStore.setIsAdmin(shouldBeAdmin)
-			}
+			// Profile already matches the session; isAdmin derives automatically.
 			return true
 		}
 
@@ -388,10 +222,6 @@ export const useAuth = () => {
 		// if on a valid data in the store (restored from localStorage)
 		// but Supabase is still not initialized, keep this data
 		if (userDataStore.value && isLoginStore.value) {
-			const shouldBeAdmin = userDataStore.value.role === 'ADMIN'
-			if (isAdminStore.value !== shouldBeAdmin) {
-				userStore.setIsAdmin(shouldBeAdmin)
-			}
 			return true
 		}
 
@@ -417,41 +247,12 @@ export const useAuth = () => {
 		return await sharedInitPromise
 	}
 
-	if (!authWatcherBound) {
-		authWatcherBound = true
-
-		watch(
-			user,
-			async (newUser, oldUser) => {
-				// One-time initialization at startup
-				if (!authInitialized) {
-					await initializeAuth()
-					return
-				}
-
-				// Ignore transient Supabase v2 states where the user has no id yet.
-				if (newUser && !newUser.id) {
-					return
-				}
-
-				// Handle auth changes after initialization.
-				if (newUser?.id && !oldUser?.id) {
-					await ensureUserProfile()
-				} else if (!newUser && oldUser) {
-					// The Supabase user disappeared.
-					// Reset only when this is a real sign-out, not when Supabase briefly
-					// loses the user during a refresh while local state is still valid.
-					if (sharedIsLoggingOutFlag || (!userDataStore.value && !isLoginStore.value)) {
-						await resetStore()
-						sharedIsLoggingOutFlag = false
-					}
-				} else if (newUser?.id && oldUser?.id && newUser.id !== oldUser.id) {
-					await ensureUserProfile()
-				}
-			},
-			{ immediate: true },
-		)
-	}
+	// The single reactive auth subscriber lives in the auth-init plugin
+	// (supabase.auth.onAuthStateChange). It is the sole writer reacting to auth
+	// events; every user-ref change corresponds to such an event, so a duplicate
+	// watch(user) here would only double the sync cascade. Startup init is driven
+	// by the plugin's initializeAuth() call, and middlewares fall back to
+	// ensureAuthInitialized().
 
 	// Ensure auth is initialized (for the middlewares)
 	const ensureAuthInitialized = async (): Promise<boolean> => {
@@ -471,12 +272,21 @@ export const useAuth = () => {
 		return true
 	}
 
+	// Single source of truth for "is this user authenticated", combining the live
+	// Supabase session with the (hydrated) persisted store. Every consumer should
+	// read this instead of re-deriving the union locally.
+	const isReady = computed(() => userStore.isHydrated)
+	const isLoggedIn = computed(
+		() => !!user.value?.id || (userStore.isHydrated && isLoginStore.value),
+	)
+
 	return {
 		user,
 		userData: userDataStore,
 		isLogin: isLoginStore,
 		isAdmin: isAdminStore,
-		supabaseUser: supabaseUserStore,
+		isLoggedIn,
+		isReady,
 		isSyncing: readonly(isSyncing),
 		syncError: readonly(syncError),
 
