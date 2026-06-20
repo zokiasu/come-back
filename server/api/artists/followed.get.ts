@@ -4,6 +4,7 @@ type ArtistRow = Pick<Tables<'artists'>, 'id' | 'name' | 'image' | 'verified' | 
 
 export default defineEventHandler(async (event) => {
 	const user = await requireAuth(event)
+	setHeader(event, 'Cache-Control', 'no-store')
 	const supabase = useServerSupabase()
 
 	const { data, error } = await supabase

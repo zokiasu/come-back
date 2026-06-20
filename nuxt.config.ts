@@ -111,10 +111,12 @@ export default defineNuxtConfig({
 		'/notifications': { ssr: false },
 
 		// API: CORS enabled
+		// Default to no-store: endpoints serving private/user data are protected by
+		// default. Public read-only endpoints override this with their own Cache-Control.
 		'/api/**': {
 			cors: true,
 			headers: {
-				'Cache-Control': 's-maxage=300, stale-while-revalidate=60',
+				'Cache-Control': 'no-store',
 			},
 		},
 
