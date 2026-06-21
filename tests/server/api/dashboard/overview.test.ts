@@ -16,6 +16,11 @@ const loadHandler = async () => {
 }
 
 const setupGlobals = () => {
+	vi.stubGlobal(
+		'requireAdmin',
+		vi.fn(async () => ({ id: 'admin-id', role: 'ADMIN' })),
+	)
+	vi.stubGlobal('setHeader', vi.fn())
 	vi.stubGlobal('createInternalError', createInternalError)
 	vi.stubGlobal('handleSupabaseError', handleSupabaseError)
 	vi.stubGlobal('isPostgrestError', isPostgrestError)

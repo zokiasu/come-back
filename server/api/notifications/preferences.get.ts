@@ -10,6 +10,7 @@ const DEFAULT_PREFERENCES: Omit<NotificationPreferences, 'user_id'> = {
 
 export default defineEventHandler(async (event) => {
 	const user = await requireAuth(event)
+	setHeader(event, 'Cache-Control', 'no-store')
 	const supabase = useServerSupabase()
 
 	const { data, error } = await supabase

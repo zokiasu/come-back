@@ -1,5 +1,6 @@
 export default defineEventHandler(async (event) => {
 	const user = await requireAuth(event)
+	setHeader(event, 'Cache-Control', 'no-store')
 	const query = getQuery(event)
 	const page = Math.max(1, Number(query.page) || 1)
 	const limit = 30

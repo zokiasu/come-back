@@ -7,6 +7,7 @@ const setupCommonGlobals = (artistId = 'artist-id') => {
 		'requireAuth',
 		vi.fn(async () => ({ id: 'user-id' })),
 	)
+	vi.stubGlobal('setHeader', vi.fn())
 	vi.stubGlobal(
 		'getRouterParam',
 		vi.fn(() => artistId),

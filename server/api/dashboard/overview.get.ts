@@ -1,4 +1,7 @@
-export default defineEventHandler(async () => {
+export default defineEventHandler(async (event) => {
+	await requireAdmin(event)
+	setHeader(event, 'Cache-Control', 'no-store')
+
 	const supabase = useServerSupabase()
 
 	try {
