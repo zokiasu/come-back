@@ -129,6 +129,15 @@
 						</NuxtLink>
 
 						<NuxtLink
+							to="/mvs"
+							class="cb-no-select text-cb-tertiary-200 hover:bg-cb-quinary-950 flex flex-col items-center gap-1.5 rounded-2xl p-3 transition hover:text-white"
+							@click="isMoreOpen = false"
+						>
+							<UIcon name="i-lucide-clapperboard" class="size-5" />
+							<span class="text-center text-[9px] leading-tight font-semibold">MVs</span>
+						</NuxtLink>
+
+						<NuxtLink
 							to="/settings"
 							class="cb-no-select text-cb-tertiary-200 hover:bg-cb-quinary-950 flex flex-col items-center gap-1.5 rounded-2xl p-3 transition hover:text-white"
 							@click="isMoreOpen = false"

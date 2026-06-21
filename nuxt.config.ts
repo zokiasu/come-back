@@ -99,6 +99,7 @@ export default defineNuxtConfig({
 		// admin dashboard: SPA (sensitive data + interactive UI)
 		'/dashboard/**': { ssr: false },
 		'/music': { ssr: false },
+		'/mvs': { ssr: false },
 
 		// Edit pages: SPA (auth required, no SEO)
 		'/artist/create': { ssr: false },
