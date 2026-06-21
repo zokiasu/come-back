@@ -7,6 +7,7 @@ const setupCommonGlobals = () => {
 		'requireAuth',
 		vi.fn(async () => ({ id: 'user-id' })),
 	)
+	vi.stubGlobal('setHeader', vi.fn())
 	vi.stubGlobal('handleSupabaseError', handleSupabaseError)
 	vi.stubGlobal(
 		'validateRouteParam',

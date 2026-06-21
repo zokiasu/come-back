@@ -23,6 +23,7 @@ const setupGlobals = (body: unknown = undefined) => {
 		'requireAuth',
 		vi.fn(async () => ({ id: 'user-id' })),
 	)
+	vi.stubGlobal('setHeader', vi.fn())
 	vi.stubGlobal(
 		'readBody',
 		vi.fn(async () => body),
