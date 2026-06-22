@@ -906,21 +906,7 @@
 					</div>
 				</div>
 
-				<div class="grid gap-4 px-6 py-5 sm:grid-cols-2 xl:grid-cols-4">
-					<div
-						v-for="stat in overviewStats"
-						:key="stat.label"
-						class="bg-cb-quaternary-950 border-cb-quinary-900/70 rounded-2xl border p-4"
-					>
-						<p
-							class="text-cb-quinary-700 text-xs font-semibold tracking-[0.25em] uppercase"
-						>
-							{{ stat.label }}
-						</p>
-						<p class="mt-3 text-2xl font-bold">{{ stat.value }}</p>
-						<p class="mt-1 text-sm text-gray-400">{{ stat.helper }}</p>
-					</div>
-				</div>
+				<ArtistOverviewStats :stats="overviewStats" />
 			</section>
 
 			<div class="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(320px,0.95fr)]">
@@ -1571,129 +1557,46 @@
 						</div>
 					</section>
 
-					<section
-						class="bg-cb-secondary-950 border-cb-quinary-900/70 rounded-[28px] border p-6 shadow-xl"
+					<ArtistQuickOverview
+						description="A few checkpoints to validate the draft before you create the profile."
+						:nationalities-count="artistNationalities.length"
+						:profile-type="artistType"
+						:birthday-label="formatDisplayDate(birthdayToDate)"
+						:debut-date-label="formatDisplayDate(debutDateToDate)"
+						:companies-count="artistCompanies.length"
+						:tags-count="artistTags.length"
+					/>
+
+					<ArtistSavePanel
+						description="Create the profile when the identity and relationships feel consistent."
 					>
-						<div class="mb-4 space-y-2">
-							<h2 class="text-xl font-semibold">Quick overview</h2>
-							<p class="text-sm leading-6 text-gray-400">
-								A few checkpoints to validate the draft before you create the profile.
-							</p>
-						</div>
-
-						<div class="space-y-3">
-							<div
-								class="bg-cb-quaternary-950 border-cb-quinary-900/70 flex items-center justify-between rounded-2xl border px-4 py-3"
-							>
-								<div>
-									<p
-										class="text-cb-quinary-700 text-xs font-semibold tracking-[0.2em] uppercase"
-									>
-										Nationalities
-									</p>
-									<p class="mt-1 font-medium">{{ artistNationalities.length }}</p>
-								</div>
-							</div>
-
-							<div
-								class="bg-cb-quaternary-950 border-cb-quinary-900/70 flex items-center justify-between rounded-2xl border px-4 py-3"
-							>
-								<div>
-									<p
-										class="text-cb-quinary-700 text-xs font-semibold tracking-[0.2em] uppercase"
-									>
-										{{ artistType === 'GROUP' ? 'Profile mode' : 'Birthday' }}
-									</p>
-									<p class="mt-1 font-medium">
-										{{
-											artistType === 'GROUP'
-												? 'Birthday hidden for group profiles'
-												: formatDisplayDate(birthdayToDate)
-										}}
-									</p>
-								</div>
-							</div>
-
-							<div
-								class="bg-cb-quaternary-950 border-cb-quinary-900/70 flex items-center justify-between rounded-2xl border px-4 py-3"
-							>
-								<div>
-									<p
-										class="text-cb-quinary-700 text-xs font-semibold tracking-[0.2em] uppercase"
-									>
-										Debut date
-									</p>
-									<p class="mt-1 font-medium">{{ formatDisplayDate(debutDateToDate) }}</p>
-								</div>
-							</div>
-
-							<div
-								class="bg-cb-quaternary-950 border-cb-quinary-900/70 flex items-center justify-between rounded-2xl border px-4 py-3"
-							>
-								<div>
-									<p
-										class="text-cb-quinary-700 text-xs font-semibold tracking-[0.2em] uppercase"
-									>
-										Company relations
-									</p>
-									<p class="mt-1 font-medium">{{ artistCompanies.length }}</p>
-								</div>
-							</div>
-
-							<div
-								class="bg-cb-quaternary-950 border-cb-quinary-900/70 flex items-center justify-between rounded-2xl border px-4 py-3"
-							>
-								<div>
-									<p
-										class="text-cb-quinary-700 text-xs font-semibold tracking-[0.2em] uppercase"
-									>
-										General tags
-									</p>
-									<p class="mt-1 font-medium">{{ artistTags.length }}</p>
-								</div>
-							</div>
-						</div>
-					</section>
-
-					<section
-						class="bg-cb-secondary-950 border-cb-quinary-900/70 rounded-[28px] border p-6 shadow-xl"
-					>
-						<div class="mb-4 space-y-2">
-							<h2 class="text-xl font-semibold">Save panel</h2>
-							<p class="text-sm leading-6 text-gray-400">
-								Create the profile when the identity and relationships feel consistent.
-							</p>
-						</div>
-
-						<div class="space-y-3">
-							<UButton
-								label="Create artist"
-								icon="i-lucide-save"
-								color="primary"
-								size="xl"
-								:loading="isUploadingEdit"
-								:disabled="!canCreateArtist"
-								class="!bg-cb-primary-900 hover:!bg-cb-primary-800 disabled:!bg-cb-primary-900 w-full cursor-pointer justify-center !text-white hover:!text-white disabled:!text-white"
-								@click="creationArtist"
-							/>
-							<UButton
-								label="Reset draft"
-								icon="i-lucide-rotate-ccw"
-								color="neutral"
-								variant="soft"
-								class="w-full cursor-pointer justify-center"
-								@click="resetForm"
-							/>
-							<UButton
-								label="Open validation queue"
-								icon="i-lucide-list-checks"
-								color="neutral"
-								variant="ghost"
-								class="w-full cursor-pointer justify-center"
-								to="/dashboard/validation"
-							/>
-						</div>
-					</section>
+						<UButton
+							label="Create artist"
+							icon="i-lucide-save"
+							color="primary"
+							size="xl"
+							:loading="isUploadingEdit"
+							:disabled="!canCreateArtist"
+							class="!bg-cb-primary-900 hover:!bg-cb-primary-800 disabled:!bg-cb-primary-900 w-full cursor-pointer justify-center !text-white hover:!text-white disabled:!text-white"
+							@click="creationArtist"
+						/>
+						<UButton
+							label="Reset draft"
+							icon="i-lucide-rotate-ccw"
+							color="neutral"
+							variant="soft"
+							class="w-full cursor-pointer justify-center"
+							@click="resetForm"
+						/>
+						<UButton
+							label="Open validation queue"
+							icon="i-lucide-list-checks"
+							color="neutral"
+							variant="ghost"
+							class="w-full cursor-pointer justify-center"
+							to="/dashboard/validation"
+						/>
+					</ArtistSavePanel>
 				</div>
 			</div>
 		</template>
