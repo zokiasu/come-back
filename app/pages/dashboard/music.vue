@@ -391,6 +391,11 @@
 		isDeleteModalOpen.value = true
 	}
 
+	const closeDeleteModal = () => {
+		isDeleteModalOpen.value = false
+		deletingMusic.value = null
+	}
+
 	const confirmDelete = async () => {
 		if (!deletingMusic.value) return
 
@@ -405,8 +410,7 @@
 				color: 'success',
 			})
 
-			isDeleteModalOpen.value = false
-			deletingMusic.value = null
+			closeDeleteModal()
 			await fetchMusics()
 		} catch (error) {
 			console.error('Error while deleting music:', error)
@@ -1150,14 +1154,7 @@
 					</p>
 
 					<div class="mt-6 flex justify-end gap-3">
-						<UButton
-							color="neutral"
-							variant="soft"
-							@click="
-								isDeleteModalOpen = false
-								deletingMusic = null
-							"
-						>
+						<UButton color="neutral" variant="soft" @click="closeDeleteModal">
 							Cancel
 						</UButton>
 						<UButton color="error" @click="confirmDelete">Delete</UButton>
