@@ -31,6 +31,8 @@ service-account.json
 
 .well-known
 
+supabase/migrations/
+
 .claude/
 
 # MCP configuration (contains secrets)
