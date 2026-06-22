@@ -300,7 +300,7 @@
 </script>
 
 <template>
-	<div class="scrollBarLight h-full space-y-4 overflow-y-auto p-6">
+	<DashboardPageShell>
 		<div class="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
 			<div>
 				<h1 class="text-2xl font-bold">Artist Validation</h1>
@@ -385,32 +385,23 @@
 			</div>
 		</div>
 
-		<div
-			v-if="totalPages > 1"
-			class="border-cb-quinary-900 bg-cb-quaternary-950 flex items-center justify-between rounded-lg border px-4 py-3"
-		>
-			<p class="text-cb-tertiary-500 text-sm">
-				Page {{ currentPage }} of {{ totalPages }}
-			</p>
-			<UPagination
-				v-model:page="currentPage"
-				:total="totalArtists"
-				:items-per-page="pageSizeValue"
-			/>
-		</div>
+		<DashboardPaginationBar
+			v-model:page="currentPage"
+			:total-pages="totalPages"
+			:total="totalArtists"
+			:items-per-page="pageSizeValue"
+		/>
 
 		<div class="bg-cb-quaternary-950 overflow-hidden rounded-lg">
 			<div v-if="isLoading && artistsList.length === 0" class="space-y-2 p-4">
 				<SkeletonDefault v-for="i in 5" :key="i" class="h-16 w-full rounded-lg" />
 			</div>
 
-			<div v-else-if="!isLoading && artistsList.length === 0" class="py-16 text-center">
-				<UIcon
-					name="i-lucide-badge-check"
-					class="text-cb-tertiary-500 mx-auto size-16 opacity-50"
-				/>
-				<p class="text-cb-tertiary-500 mt-4">No artist pending validation</p>
-			</div>
+			<DashboardEmptyState
+				v-else-if="!isLoading && artistsList.length === 0"
+				icon="i-lucide-badge-check"
+				title="No artist pending validation"
+			/>
 
 			<div v-else class="divide-cb-quinary-900 divide-y">
 				<div
@@ -670,19 +661,13 @@
 				</div>
 			</div>
 
-			<div
-				v-if="totalPages > 1"
-				class="border-cb-quinary-900 flex items-center justify-between border-t px-4 py-3"
-			>
-				<p class="text-cb-tertiary-500 text-sm">
-					Page {{ currentPage }} of {{ totalPages }}
-				</p>
-				<UPagination
-					v-model:page="currentPage"
-					:total="totalArtists"
-					:items-per-page="pageSizeValue"
-				/>
-			</div>
+			<DashboardPaginationBar
+				v-model:page="currentPage"
+				:total-pages="totalPages"
+				:total="totalArtists"
+				:items-per-page="pageSizeValue"
+				embedded
+			/>
 		</div>
 
 		<ModalConfirmDeleteArtist
@@ -701,5 +686,5 @@
 			@close="isBanModalOpen = false"
 			@confirm="confirmBan"
 		/>
-	</div>
+	</DashboardPageShell>
 </template>

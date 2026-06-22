@@ -1,8 +1,15 @@
 <script setup lang="ts">
-	import type { Release, ReleaseType } from '~/types'
+	import type { Music, Release, ReleaseType } from '~/types'
+	import { useSupabaseMusic } from '~/composables/Supabase/useSupabaseMusic'
 	import { useSupabaseRelease } from '~/composables/Supabase/useSupabaseRelease'
 
 	type ReleaseFormType = NonNullable<ReleaseType> | 'COMPILATION'
+	type EditableMusic = {
+		id: string
+		name: string
+		ismv: boolean
+		id_youtube_music: string
+	}
 
 	interface Props {
 		id: string
@@ -12,9 +19,12 @@
 		date: string
 		yearReleased: number
 		needToBeVerified: boolean
+		musics?: Music[]
 	}
 
-	const props = defineProps<Props>()
+	const props = withDefaults(defineProps<Props>(), {
+		musics: () => [],
+	})
 
 	interface Emits {
 		(e: 'saved', release: Release): void
@@ -25,6 +35,7 @@
 
 	const toast = useToast()
 	const { updateRelease } = useSupabaseRelease()
+	const { updateMusic } = useSupabaseMusic()
 	const currentYear = new Date().getFullYear()
 
 	// release types
@@ -81,6 +92,15 @@
 		id_youtube_music: props.idYoutubeMusic,
 	})
 
+	const createEditableMusic = (music: Music): EditableMusic => ({
+		id: music.id,
+		name: music.name,
+		ismv: music.ismv,
+		id_youtube_music: music.id_youtube_music ?? '',
+	})
+
+	const tracklist = ref(props.musics.map(createEditableMusic))
+	const originalTracklist = ref(props.musics.map(createEditableMusic))
 	const isLoading = ref(false)
 
 	const saveChanges = async () => {
@@ -108,12 +128,55 @@
 			const result = await updateRelease(props.id, updates)
 
 			if (result) {
+				const trackUpdates = tracklist.value.map(async (music) => {
+					const originalMusic = originalTracklist.value.find(
+						(original) => original.id === music.id,
+					)
+
+					if (
+						!originalMusic ||
+						(originalMusic.ismv === music.ismv &&
+							originalMusic.id_youtube_music === music.id_youtube_music)
+					) {
+						return null
+					}
+
+					const updatedMusic = await updateMusic(music.id, {
+						ismv: music.ismv,
+						id_youtube_music: music.id_youtube_music || null,
+					})
+
+					if (!updatedMusic) {
+						throw new Error(`Could not update track "${music.name}"`)
+					}
+
+					return updatedMusic
+				})
+
+				const updatedTracks = (await Promise.all(trackUpdates)).filter(
+					(music): music is Music => Boolean(music),
+				)
+
+				if (updatedTracks.length > 0) {
+					originalTracklist.value = tracklist.value.map((music) => ({ ...music }))
+				}
+
 				toast.add({
 					title: 'Release updated successfully',
 					color: 'success',
 				})
 
-				emit('saved', result)
+				emit('saved', {
+					...result,
+					musics:
+						tracklist.value.length > 0
+							? tracklist.value.map((music) => ({
+									...(props.musics.find((item) => item.id === music.id) as Music),
+									...music,
+									id_youtube_music: music.id_youtube_music || null,
+								}))
+							: result.musics,
+				})
 				emit('close')
 			} else {
 				throw new Error('Update failed')
@@ -139,6 +202,8 @@
 			formData.year = newProps.yearReleased
 			formData.verified = !newProps.needToBeVerified
 			formData.id_youtube_music = newProps.idYoutubeMusic
+			tracklist.value = newProps.musics.map(createEditableMusic)
+			originalTracklist.value = newProps.musics.map(createEditableMusic)
 		},
 		{ deep: true },
 	)
@@ -240,6 +305,42 @@
 								label="Verified release"
 								:disabled="isLoading"
 							/>
+						</div>
+					</section>
+
+					<section
+						v-if="tracklist.length > 0"
+						class="bg-cb-quaternary-950 border-cb-quinary-900/70 rounded-2xl border p-5"
+					>
+						<div class="mb-4">
+							<h4 class="font-semibold">Tracklist</h4>
+							<p class="text-cb-tertiary-500 text-sm">
+								Update MV flags and YouTube Music IDs for tracks attached to this release.
+							</p>
+						</div>
+
+						<div class="space-y-3">
+							<div
+								v-for="music in tracklist"
+								:key="music.id"
+								class="bg-cb-secondary-950 border-cb-quinary-900/70 space-y-3 rounded-xl border p-4"
+							>
+								<div
+									class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+								>
+									<p class="font-medium">{{ music.name }}</p>
+									<UCheckbox v-model="music.ismv" label="Has MV" :disabled="isLoading" />
+								</div>
+
+								<UFormField v-if="music.ismv" label="YouTube Music ID">
+									<UInput
+										v-model="music.id_youtube_music"
+										placeholder="Ex: MPREb_xxx"
+										:disabled="isLoading"
+										class="w-full"
+									/>
+								</UFormField>
+							</div>
 						</div>
 					</section>
 				</div>

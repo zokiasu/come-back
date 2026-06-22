@@ -77,22 +77,30 @@
 			window.open(props.website, '_blank')
 		}
 	}
+
+	const handleLogoError = (event: Event | string) => {
+		if (typeof event === 'string') return
+
+		const target = event.target as HTMLImageElement | null
+		if (!target) return
+
+		target.src = 'https://i.ibb.co/wLhbFZx/Frame-255.png'
+	}
 </script>
 
 <template>
 	<div
-		class="bg-cb-quinary-950 relative flex h-fit w-full flex-col rounded border-2 border-transparent p-4 transition-all duration-300 ease-in-out hover:border-white"
+		class="bg-cb-quinary-950 relative flex h-fit w-full flex-col rounded border-2 border-transparent p-4 transition-colors duration-300 ease-in-out hover:border-white"
 	>
 		<div class="mb-3 flex items-start justify-between">
 			<div class="flex items-center space-x-3">
-				<img
+				<NuxtImg
 					:src="logoDisplay"
 					:alt="`Logo of ${name}`"
+					format="webp"
+					loading="lazy"
 					class="h-12 w-12 rounded-full object-cover"
-					@error="
-						($event.target as HTMLImageElement).src =
-							'https://i.ibb.co/wLhbFZx/Frame-255.png'
-					"
+					@error="handleLogoError"
 				/>
 				<div>
 					<h3 class="max-w-[120px] truncate font-semibold text-white" :title="name">
@@ -102,20 +110,24 @@
 				</div>
 			</div>
 			<div class="flex items-center space-x-1">
-				<span
+				<UBadge
 					v-if="verified"
-					class="rounded-full bg-green-600 px-2 py-1 text-xs text-white"
+					color="success"
+					variant="subtle"
+					size="xs"
 					title="Verified company"
 				>
-					✓
-				</span>
-				<span
+					Verified
+				</UBadge>
+				<UBadge
 					v-else
-					class="rounded-full bg-yellow-600 px-2 py-1 text-xs text-white"
+					color="warning"
+					variant="subtle"
+					size="xs"
 					title="Unverified company"
 				>
-					?
-				</span>
+					Pending
+				</UBadge>
 			</div>
 		</div>
 
@@ -132,22 +144,27 @@
 
 		<div class="mb-3 space-y-2 text-xs">
 			<div v-if="foundedYear" class="flex items-center space-x-2">
-				<span class="text-cb-tertiary-200">📅</span>
+				<UIcon name="i-lucide-calendar" class="text-cb-tertiary-200 size-3.5" />
 				<span class="text-cb-tertiary-300">Founded in {{ foundedYear }}</span>
 			</div>
 			<div class="flex items-center space-x-2">
-				<span class="text-cb-tertiary-200">📍</span>
+				<UIcon name="i-lucide-map-pin" class="text-cb-tertiary-200 size-3.5" />
 				<span class="text-cb-tertiary-300">{{ formattedLocation }}</span>
 			</div>
 			<div v-if="website" class="flex items-center space-x-2">
-				<span class="text-cb-tertiary-200">🌐</span>
-				<button
-					class="text-cb-primary-400 hover:text-cb-primary-300 max-w-[120px] truncate underline"
+				<UIcon name="i-lucide-globe" class="text-cb-tertiary-200 size-3.5" />
+				<UButton
+					type="button"
+					color="primary"
+					variant="link"
+					size="xs"
+					class="max-w-[120px] truncate p-0"
 					:title="website"
+					aria-label="Open company website"
 					@click="openWebsite"
 				>
 					{{ website.replace(/^https?:\/\//, '') }}
-				</button>
+				</UButton>
 			</div>
 		</div>
 
@@ -157,31 +174,28 @@
 					<p>Created: {{ formattedDate }}</p>
 				</div>
 				<div class="flex space-x-2">
-					<button
-						class="bg-cb-primary-900 hover:bg-cb-primary-800 rounded px-2 py-1 text-xs text-white transition-colors"
+					<UButton
+						type="button"
+						icon="i-lucide-pencil"
+						color="primary"
+						variant="soft"
+						size="xs"
 						title="Edit company"
+						aria-label="Edit company"
 						@click="handleEdit"
-					>
-						✏️
-					</button>
-					<button
-						class="rounded bg-red-600 px-2 py-1 text-xs text-white transition-colors hover:bg-red-700"
+					/>
+					<UButton
+						type="button"
+						icon="i-lucide-trash-2"
+						color="error"
+						variant="soft"
+						size="xs"
 						title="Delete company"
+						aria-label="Delete company"
 						@click="handleDelete"
-					>
-						🗑️
-					</button>
+					/>
 				</div>
 			</div>
 		</div>
 	</div>
 </template>
-
-<style scoped>
-	.line-clamp-3 {
-		display: -webkit-box;
-		-webkit-line-clamp: 3;
-		-webkit-box-orient: vertical;
-		overflow: hidden;
-	}
-</style>
