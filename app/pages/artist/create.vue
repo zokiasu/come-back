@@ -46,16 +46,7 @@
 		reset: resetYtmCheck,
 	} = useYoutubeMusicIdCheck()
 
-	const logArtistCreateTrace = (step: string, details?: Record<string, unknown>) => {
-		if (!import.meta.dev) return
-
-		if (details) {
-			console.warn(`[ArtistCreate][Page] ${step}`, details)
-			return
-		}
-
-		console.warn(`[ArtistCreate][Page] ${step}`)
-	}
+	const { trace: logArtistCreateTrace } = useDevLogger('ArtistCreate][Page')
 
 	const title = ref('Create Artist Page')
 	const description = ref('Create Artist Page')

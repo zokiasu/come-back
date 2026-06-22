@@ -12,16 +12,7 @@
 	const { createNationality, getAllNationalities, deleteNationality } =
 		useSupabaseNationalities()
 
-	const logDashboardDatasTrace = (step: string, details?: Record<string, unknown>) => {
-		if (!import.meta.dev) return
-
-		if (details) {
-			console.warn(`[DashboardDatas] ${step}`, details)
-			return
-		}
-
-		console.warn(`[DashboardDatas] ${step}`)
-	}
+	const { trace: logDashboardDatasTrace } = useDevLogger('DashboardDatas')
 
 	const styleFetch = ref<MusicStyle[]>([])
 	const newStyle = ref('')

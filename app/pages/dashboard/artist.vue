@@ -7,16 +7,7 @@
 	const { getArtistsByPage } = useSupabaseArtist()
 	const { getAllNationalities } = useSupabaseNationalities()
 
-	const logDashboardArtistTrace = (step: string, details?: Record<string, unknown>) => {
-		if (!import.meta.dev) return
-
-		if (details) {
-			console.warn(`[DashboardArtist] ${step}`, details)
-			return
-		}
-
-		console.warn(`[DashboardArtist] ${step}`)
-	}
+	const { trace: logDashboardArtistTrace } = useDevLogger('DashboardArtist')
 
 	const artistsList = ref<Artist[]>([])
 	const isLoading = ref(false)

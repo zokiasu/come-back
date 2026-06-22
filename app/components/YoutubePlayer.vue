@@ -36,11 +36,13 @@
 	let originalConsoleError: typeof console.error | null = null
 	let youtubeErrorHandler: ((event: ErrorEvent) => void) | null = null
 
+	const { trace: logPlayerTrace } = useDevLogger('YoutubePlayer')
+
 	// Create the YouTube player
 	const createPlayer = () => {
 		if (!import.meta.client) return
 
-		console.warn('🎵 Création du lecteur YouTube avec vidéo:', idYoutubeVideo.value)
+		logPlayerTrace('Creating player', idYoutubeVideo.value)
 
 		try {
 			if (import.meta.client && window.YT) {
@@ -74,7 +76,7 @@
 				})
 			}
 		} catch (error) {
-			console.error('❌ Erreur lors de la création du lecteur YouTube:', error)
+			console.error('[YoutubePlayer] Failed to create YouTube player', error)
 			errorDetected.value = true
 			errorMessage.value = 'Error while loading the player'
 		}
@@ -82,7 +84,7 @@
 
 	// @ts-expect-error - YT namespace from YouTube IFrame API
 	const onPlayerReady = async (event: YT.PlayerEvent) => {
-		console.warn('✅ Lecteur YouTube prêt')
+		logPlayerTrace('Player ready')
 		isPlayerReady.value = true
 		duration.value = event.target.getDuration()
 		setVolume(volume.value)
@@ -103,7 +105,7 @@
 
 		// Handle playlist end-of-video events
 		if (event.data === window.YT.PlayerState.ENDED) {
-			console.warn('🎵 Fin de vidéo - tentative de lecture suivante')
+			logPlayerTrace('Video ended; trying next playlist item')
 			const { playNext } = usePlaylist()
 
 			// Give the iframe a short moment to settle before switching tracks,
@@ -111,7 +113,7 @@
 			setTimeout(() => {
 				const hasPlayedNext = playNext()
 				if (!hasPlayedNext) {
-					console.warn('🎵 Aucune musique suivante - fin de playlist')
+					logPlayerTrace('No next item in playlist')
 				}
 			}, 500)
 		}
@@ -125,12 +127,12 @@
 			[3]: 'mise en mémoire tampon',
 			[5]: "vidéo mise en file d'attente",
 		}
-		console.warn('🎵 État du lecteur:', states[event.data] || event.data)
+		logPlayerTrace('Player state', states[event.data] || event.data)
 	}
 
 	// @ts-expect-error - YT namespace from YouTube IFrame API
 	const onPlayerError = (event: YT.OnErrorEvent) => {
-		console.error('❌ Erreur du lecteur YouTube:', event.data)
+		console.error('[YoutubePlayer] YouTube player error', event.data)
 		errorDetected.value = true
 
 		switch (event.data) {
@@ -166,7 +168,7 @@
 				event.error.message.includes('postMessage') &&
 				event.error.message.includes('youtube.com')
 			) {
-				console.warn('🎵 Info: Communication YouTube iframe (normal en développement)')
+				logPlayerTrace('Ignored YouTube iframe postMessage error')
 				event.preventDefault()
 				return
 			}
@@ -179,7 +181,7 @@
 			const message = args.join(' ')
 			// Filter known non-critical YouTube postMessage errors
 			if (message.includes('postMessage') && message.includes('youtube.com')) {
-				console.warn('🎵 Info: Communication YouTube iframe (normal en localhost)')
+				logPlayerTrace('Ignored YouTube iframe console error')
 				return
 			}
 			if (originalConsoleError) {
@@ -208,7 +210,7 @@
 	const initYTPlayer = () => {
 		if (!import.meta.client) return
 
-		console.warn('🎵 Initialisation du lecteur YouTube...')
+		logPlayerTrace('Initializing player')
 
 		// Detect ad blockers more reliably
 		const detectAdBlocker = () => {
@@ -232,16 +234,16 @@
 		}
 
 		if (detectAdBlocker()) {
-			console.warn('⚠️ Bloqueur de publicités détecté')
+			logPlayerTrace('Ad blocker detected')
 			errorDetected.value = true
 			errorMessage.value = 'Ad blocker detected. The player may not work properly.'
 		}
 
 		if (window.YT && window.YT.Player) {
-			console.warn('✅ API YouTube déjà chargée')
+			logPlayerTrace('YouTube API already loaded')
 			createPlayer()
 		} else {
-			console.warn("📥 Chargement de l'API YouTube...")
+			logPlayerTrace('Loading YouTube API')
 
 			// Check whether the script is already present
 			const existingScript = document.querySelector(
@@ -249,17 +251,17 @@
 			)
 			if (existingScript) {
 				// Another player instance already requested the API script.
-				console.warn('⏳ Script YouTube déjà en cours de chargement...')
+				logPlayerTrace('YouTube API script is already loading')
 				return
 			}
 
 			const tag = document.createElement('script')
 			tag.src = 'https://www.youtube.com/iframe_api'
 			tag.onload = () => {
-				console.warn('✅ Script YouTube chargé')
+				logPlayerTrace('YouTube API script loaded')
 			}
 			tag.onerror = (error) => {
-				console.error("❌ Erreur lors du chargement de l'API YouTube:", error)
+				console.error('[YoutubePlayer] Failed to load YouTube API', error)
 				errorDetected.value = true
 				errorMessage.value = 'Unable to load YouTube. Check your ad blocker.'
 			}
@@ -273,14 +275,14 @@
 
 			// Callback global for the API YouTube with timeout
 			window.onYouTubeIframeAPIReady = () => {
-				console.warn('✅ API YouTube prête')
+				logPlayerTrace('YouTube API ready')
 				createPlayer()
 			}
 
 			// Safety timeout
 			setTimeout(() => {
 				if (!window.YT || !window.YT.Player) {
-					console.error('❌ Timeout: API YouTube non chargée après 10 secondes')
+					console.error('[YoutubePlayer] YouTube API timed out after 10 seconds')
 					errorDetected.value = true
 					errorMessage.value = 'YouTube timed out. Is an ad blocker active?'
 				}
@@ -297,7 +299,7 @@
 				currentTime.value = player.value?.getCurrentTime()
 			}
 		} catch (error) {
-			console.warn('⚠️ Erreur lors de la mise à jour du temps:', error)
+			logPlayerTrace('Failed to update current time', error)
 		}
 	}
 
@@ -305,14 +307,14 @@
 		idYoutubeVideo,
 		(newId) => {
 			if (player.value && isPlayerReady.value && newId) {
-				console.warn('🔄 Changement de vidéo:', newId)
+				logPlayerTrace('Changing video', newId)
 				try {
 					player.value?.loadVideoById(newId)
 					if (isPlaying.value) {
 						player.value?.playVideo()
 					}
 				} catch (error) {
-					console.error('❌ Erreur lors du changement de vidéo:', error)
+					console.error('[YoutubePlayer] Failed to change video', error)
 					errorDetected.value = true
 					errorMessage.value = 'Error while changing the video'
 				}
@@ -322,7 +324,7 @@
 	)
 
 	onMounted(() => {
-		console.warn('🎵 Montage du composant YoutubePlayer')
+		logPlayerTrace('Component mounted')
 		setupYouTubeErrorFiltering()
 		initYTPlayer()
 		intervalId = setInterval(updateCurrentTime, 1000)
@@ -358,7 +360,7 @@
 	})
 
 	onBeforeUnmount(() => {
-		console.warn('🎵 Démontage du composant YoutubePlayer')
+		logPlayerTrace('Component before unmount')
 
 		if (intervalId) {
 			clearInterval(intervalId)
@@ -368,7 +370,7 @@
 			try {
 				player.value?.destroy()
 			} catch (error) {
-				console.warn('⚠️ Erreur lors de la destruction du lecteur:', error)
+				logPlayerTrace('Failed to destroy player', error)
 			}
 		}
 
@@ -386,7 +388,7 @@
 				player.value?.playVideo()
 			}
 		} catch (error) {
-			console.error('❌ Erreur lors du toggle play/pause:', error)
+			console.error('[YoutubePlayer] Failed to toggle play/pause', error)
 		}
 	}
 
@@ -398,7 +400,7 @@
 			player.value?.seekTo(newTime, true)
 			currentTime.value = player.value?.getCurrentTime()
 		} catch (error) {
-			console.error('❌ Erreur lors du seek:', error)
+			console.error('[YoutubePlayer] Failed to seek', error)
 		}
 	}
 
@@ -414,7 +416,7 @@
 			player.value?.seekTo(newTime, true)
 			currentTime.value = newTime
 		} catch (error) {
-			console.error('❌ Erreur lors du seekTo:', error)
+			console.error('[YoutubePlayer] Failed to seek to position', error)
 		} finally {
 			isSeeking.value = false
 		}
@@ -428,7 +430,7 @@
 			player.value?.setVolume(newVolume)
 			volume.value = newVolume
 		} catch (error) {
-			console.error('❌ Erreur lors du réglage du volume:', error)
+			console.error('[YoutubePlayer] Failed to set volume', error)
 		}
 	}
 
@@ -445,7 +447,7 @@
 			}
 			volumeOn.value = !volumeOn.value
 		} catch (error) {
-			console.error('❌ Erreur lors du mute/unmute:', error)
+			console.error('[YoutubePlayer] Failed to toggle mute', error)
 		}
 	}
 
@@ -458,7 +460,7 @@
 			try {
 				player.value.pauseVideo()
 			} catch (error) {
-				console.error('❌ Erreur lors de la mise en pause avant ouverture vidéo:', error)
+				console.error('[YoutubePlayer] Failed to pause before opening preview', error)
 			}
 		}
 
@@ -466,7 +468,7 @@
 	}
 
 	const closeYTPlayer = () => {
-		console.warn('🎵 Fermeture du lecteur YouTube')
+		logPlayerTrace('Closing player')
 		isPlayingVideo.value = false
 		idYoutubeVideo.value = ''
 
@@ -478,7 +480,7 @@
 			try {
 				player.value?.destroy()
 			} catch (error) {
-				console.warn('⚠️ Erreur lors de la fermeture:', error)
+				logPlayerTrace('Failed to destroy player while closing', error)
 			}
 		}
 

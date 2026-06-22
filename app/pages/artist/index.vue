@@ -334,16 +334,7 @@
 	const { getAllMusicStyles } = useSupabaseMusicStyles()
 	const toast = useToast()
 
-	const logArtistIndexTrace = (step: string, details?: Record<string, unknown>) => {
-		if (!import.meta.dev) return
-
-		if (details) {
-			console.warn(`[ArtistIndex] ${step}`, details)
-			return
-		}
-
-		console.warn(`[ArtistIndex] ${step}`)
-	}
+	const { trace: logArtistIndexTrace } = useDevLogger('ArtistIndex')
 
 	// Enum values for template usage
 	const artistTypes: ArtistType[] = ['SOLO', 'GROUP']

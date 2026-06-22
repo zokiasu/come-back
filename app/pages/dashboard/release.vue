@@ -5,6 +5,8 @@
 	const { deleteRelease: deleteReleaseFunction, getReleasesByPage } = useSupabaseRelease()
 	const toast = useToast()
 
+	const { trace: logDashboardReleaseTrace } = useDevLogger('DashboardRelease')
+
 	type DashboardRelease = {
 		id: string
 		name: string
@@ -148,7 +150,7 @@
 				verifiedFilter.value === 'all' ? undefined : verifiedFilter.value === 'verified',
 		}
 
-		console.warn('🔍 fetchReleases appelé avec:', {
+		logDashboardReleaseTrace('fetchReleases', {
 			page: currentPage.value,
 			pageSize: pageSizeValue.value,
 			filters,

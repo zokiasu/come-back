@@ -22,6 +22,8 @@
 	const playerContainer = useTemplateRef('playerContainer')
 	const isPlayerReady = ref(false)
 
+	const { trace: logDiscoverTrace } = useDevLogger('DiscoverMV')
+
 	// Currently displayed music video
 	const currentMV = computed(() => props.mvs[currentMVIndex.value])
 
@@ -71,15 +73,15 @@
 	// Load the YouTube API
 	const loadYouTubeAPI = () => {
 		return new Promise<void>((resolve, reject) => {
-			console.warn('🔍 Checking if YouTube API is available...')
+			logDiscoverTrace('Checking if YouTube API is available')
 
 			if (window.YT && window.YT.Player) {
-				console.warn('✅ YouTube API already loaded')
+				logDiscoverTrace('YouTube API already loaded')
 				resolve()
 				return
 			}
 
-			console.warn('📥 Loading YouTube API...')
+			logDiscoverTrace('Loading YouTube API')
 			const tag = document.createElement('script')
 			tag.src = 'https://www.youtube.com/iframe_api'
 			const firstScriptTag = document.getElementsByTagName('script')[0]
@@ -90,7 +92,7 @@
 			// Use a scoped callback to avoid leaking a global handler
 			const originalCallback = window.onYouTubeIframeAPIReady
 			const callbackHandler = () => {
-				console.warn('✅ YouTube API loaded successfully')
+				logDiscoverTrace('YouTube API loaded successfully')
 				// Restore the original callback when one already exists
 				if (originalCallback) {
 					window.onYouTubeIframeAPIReady = originalCallback
@@ -108,14 +110,14 @@
 			}
 
 			tag.onerror = () => {
-				console.error('❌ Failed to load YouTube API')
+				console.error('[DiscoverMV] Failed to load YouTube API')
 				reject(new Error('Failed to load YouTube API'))
 			}
 
 			// Abort after 10 seconds
 			setTimeout(() => {
 				if (!window.YT || !window.YT.Player) {
-					console.error('❌ YouTube API load timeout')
+					console.error('[DiscoverMV] YouTube API load timeout')
 					reject(new Error('YouTube API load timeout'))
 				}
 			}, 10000)
@@ -125,19 +127,19 @@
 	// Create the YouTube player
 	const createYouTubePlayer = async (videoId: string) => {
 		try {
-			console.warn('🎬 Creating YouTube player for video:', videoId)
-			console.warn('📍 Player container:', playerContainer.value)
+			logDiscoverTrace('Creating YouTube player for video', videoId)
+			logDiscoverTrace('Player container', playerContainer.value)
 
 			await loadYouTubeAPI()
 
 			if (player.value) {
-				console.warn('🗑️ Destroying existing player')
+				logDiscoverTrace('Destroying existing player')
 				player.value.destroy()
 				player.value = null
 			}
 
 			if (!playerContainer.value) {
-				console.error('❌ Player container not found')
+				console.error('[DiscoverMV] Player container not found')
 				return
 			}
 
@@ -145,7 +147,7 @@
 			const playerId = 'youtube-player-' + Date.now()
 			playerContainer.value.id = playerId
 
-			console.warn('🎥 Initializing YouTube Player with ID:', playerId)
+			logDiscoverTrace('Initializing YouTube player', playerId)
 
 			player.value = new window.YT.Player(playerId, {
 				videoId: videoId,
@@ -163,34 +165,34 @@
 				events: {
 					// @ts-expect-error - YT namespace from YouTube IFrame API
 					onReady: (_event: YT.PlayerEvent) => {
-						console.warn('✅ YouTube player ready')
+						logDiscoverTrace('YouTube player ready')
 						isPlayerReady.value = true
 						isPlaying.value = true
 					},
 					// @ts-expect-error - YT namespace from YouTube IFrame API
 					onStateChange: (event: YT.OnStateChangeEvent) => {
-						console.warn('🔄 Player state changed:', event.data)
+						logDiscoverTrace('Player state changed', event.data)
 						if (event.data === window.YT.PlayerState.ENDED) {
-							console.warn('⏹️ Video ended')
+							logDiscoverTrace('Video ended')
 							showThumbnail.value = true
 							isPlaying.value = false
 						} else if (event.data === window.YT.PlayerState.PLAYING) {
-							console.warn('▶️ Video playing')
+							logDiscoverTrace('Video playing')
 							isPlaying.value = true
 						} else if (event.data === window.YT.PlayerState.PAUSED) {
-							console.warn('⏸️ Video paused')
+							logDiscoverTrace('Video paused')
 							isPlaying.value = false
 						}
 					},
 					onError: (event: { data?: unknown }) => {
-						console.error('❌ YouTube player error:', event.data)
+						console.error('[DiscoverMV] YouTube player error', event.data)
 						showThumbnail.value = true
 						isPlaying.value = false
 					},
 				},
 			})
 		} catch (error) {
-			console.error('❌ Error creating YouTube player:', error)
+			console.error('[DiscoverMV] Error creating YouTube player', error)
 			showThumbnail.value = true
 			isPlaying.value = false
 		}
@@ -198,19 +200,20 @@
 
 	// Start the video
 	const playCurrentMV = async () => {
-		console.warn('🎯 Play button clicked')
-		console.warn('📹 Current MV:', currentMV.value)
-		console.warn('🎬 Video ID:', currentMV.value?.id_youtube_music)
-		console.warn('📱 Is playing:', isPlaying.value)
-		console.warn('🖼️ Show thumbnail:', showThumbnail.value)
+		logDiscoverTrace('Play button clicked', {
+			currentMV: currentMV.value,
+			videoId: currentMV.value?.id_youtube_music,
+			isPlaying: isPlaying.value,
+			showThumbnail: showThumbnail.value,
+		})
 
 		if (!currentMV.value?.id_youtube_music) {
-			console.error('❌ No video ID found')
+			logDiscoverTrace('No video ID found')
 			return
 		}
 
 		if (isPlaying.value) {
-			console.warn('⚠️ Already playing')
+			logDiscoverTrace('Already playing')
 			return
 		}
 
@@ -219,7 +222,7 @@
 
 		// Wait for the DOM to update
 		await nextTick()
-		console.warn('📍 Player container after nextTick:', playerContainer.value)
+		logDiscoverTrace('Player container after nextTick', playerContainer.value)
 
 		createYouTubePlayer(currentMV.value.id_youtube_music)
 	}
