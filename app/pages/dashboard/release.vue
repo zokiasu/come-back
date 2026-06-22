@@ -5,6 +5,8 @@
 	const { deleteRelease: deleteReleaseFunction, getReleasesByPage } = useSupabaseRelease()
 	const toast = useToast()
 
+	const { trace: logDashboardReleaseTrace } = useDevLogger('DashboardRelease')
+
 	type DashboardRelease = {
 		id: string
 		name: string
@@ -148,7 +150,7 @@
 				verifiedFilter.value === 'all' ? undefined : verifiedFilter.value === 'verified',
 		}
 
-		console.warn('🔍 fetchReleases appelé avec:', {
+		logDashboardReleaseTrace('fetchReleases', {
 			page: currentPage.value,
 			pageSize: pageSizeValue.value,
 			filters,
@@ -346,7 +348,7 @@
 </script>
 
 <template>
-	<div class="scrollBarLight h-full space-y-4 overflow-y-auto p-6">
+	<DashboardPageShell>
 		<div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 			<div class="flex items-center gap-4">
 				<div>
@@ -477,13 +479,11 @@
 				<SkeletonDefault v-for="i in 5" :key="i" class="h-20 w-full rounded-lg" />
 			</div>
 
-			<div v-else-if="!isLoading && releasesList.length === 0" class="py-16 text-center">
-				<UIcon
-					name="i-lucide-music"
-					class="text-cb-tertiary-500 mx-auto size-16 opacity-50"
-				/>
-				<p class="text-cb-tertiary-500 mt-4">No release found</p>
-			</div>
+			<DashboardEmptyState
+				v-else-if="!isLoading && releasesList.length === 0"
+				icon="i-lucide-music"
+				title="No release found"
+			/>
 
 			<div v-else class="divide-cb-quinary-900 divide-y">
 				<div
@@ -580,19 +580,13 @@
 				</div>
 			</div>
 
-			<div
-				v-if="totalPages > 1"
-				class="border-cb-quinary-900 flex items-center justify-between border-t px-4 py-3"
-			>
-				<p class="text-cb-tertiary-500 text-sm">
-					Page {{ currentPage }} of {{ totalPages }}
-				</p>
-				<UPagination
-					v-model:page="currentPage"
-					:total="totalReleases"
-					:items-per-page="pageSizeValue"
-				/>
-			</div>
+			<DashboardPaginationBar
+				v-model:page="currentPage"
+				:total-pages="totalPages"
+				:total="totalReleases"
+				:items-per-page="pageSizeValue"
+				embedded
+			/>
 		</div>
 
 		<UModal
@@ -714,5 +708,5 @@
 				</div>
 			</template>
 		</UModal>
-	</div>
+	</DashboardPageShell>
 </template>

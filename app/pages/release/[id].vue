@@ -1,21 +1,16 @@
 <script setup lang="ts">
-	import { CalendarDate } from '@internationalized/date'
 	import { storeToRefs } from 'pinia'
 
 	import { useUserStore } from '@/stores/user'
-	import type { Release, Music } from '~/types'
-	import { useSupabaseRelease } from '~/composables/Supabase/useSupabaseRelease'
-	import { useSupabaseMusic } from '~/composables/Supabase/useSupabaseMusic'
+	import type { Release } from '~/types'
 
-	const { updateRelease } = useSupabaseRelease()
-	const { updateMusic } = useSupabaseMusic()
 	const userStore = useUserStore()
 	const { isLoginStore, isAdminStore } = storeToRefs(userStore)
-	const toast = useToast()
 	const route = useRoute()
 
 	const title = ref<string>('Release Page')
 	const description = ref<string>('Release')
+	const isEditReleaseModalOpen = ref(false)
 
 	// SSR-compatible data fetching with the complete API
 	const { data: releaseData, pending: isFetchingRelease } = await useFetch(
@@ -43,80 +38,6 @@
 	const suggestedReleases = computed(() => releaseData.value.suggested_releases)
 	const imageLoaded = ref<boolean>(false)
 	const isLoading = computed(() => isFetchingRelease.value)
-	const musicList = ref<Partial<Music>[]>([])
-
-	const parseToCalendarDate = (
-		dateString: string | null | undefined,
-	): CalendarDate | null => {
-		if (!dateString) return null
-		try {
-			const date = new Date(dateString)
-			if (isNaN(date.getTime())) return null
-			const year = date.getUTCFullYear()
-			const month = date.getUTCMonth() + 1
-			const day = date.getUTCDate()
-			return new CalendarDate(year, month, day)
-		} catch (e) {
-			console.error('Failed to parse date string:', dateString, e)
-			return null
-		}
-	}
-
-	const updateReleaseFunction = async (
-		releaseId: string,
-		releaseParam: Partial<Release>,
-	) => {
-		const releaseData: Partial<Release> = {
-			name: releaseParam.name,
-			type: releaseParam.type,
-			year: releaseParam.year,
-			date: releaseParam.date,
-		}
-
-		try {
-			await updateRelease(releaseId, releaseData)
-
-			// Use musics directly from the reactive release.value
-			const updatePromises =
-				release.value?.musics?.map(async (music: Music) => {
-					// Find the version originale the music
-					const originalMusic = musicList.value.find((m) => m.id === music.id)
-
-					// Check whether changes were made
-					if (
-						originalMusic &&
-						(music.name !== originalMusic.name ||
-							music.ismv !== originalMusic.ismv ||
-							music.id_youtube_music !== originalMusic.id_youtube_music)
-					) {
-						return updateMusic(music.id, {
-							name: music.name,
-							ismv: music.ismv,
-							id_youtube_music: music.id_youtube_music,
-						})
-					}
-					return Promise.resolve()
-				}) || []
-
-			// Wait until all updates finish
-			await Promise.all(updatePromises)
-				.then(() => {
-					toast.add({ color: 'info', title: 'Release updated' })
-				})
-				.catch(() => {
-					toast.add({
-						color: 'error',
-						title: 'An error occurred while updating',
-					})
-				})
-		} catch (error) {
-			console.error('Error updating release:', error)
-			toast.add({
-				color: 'error',
-				title: 'An error occurred while updating',
-			})
-		}
-	}
 
 	const formatDate = (date: string) => {
 		const dateObject = new Date(date)
@@ -126,25 +47,16 @@
 		return `${day}/${month}/${year}`
 	}
 
-	const updateReleaseYear = (value: string | number | null | undefined) => {
+	const handleReleaseSaved = (updatedRelease: Release) => {
 		if (!release.value) return
-		if (value === null || value === undefined || value === '') {
-			release.value.year = null
-			return
-		}
-		const parsed = Number(value)
-		release.value.year = Number.isNaN(parsed) ? null : parsed
-	}
 
-	const updateMusicYoutubeId = (
-		music: Music,
-		value: string | number | null | undefined,
-	) => {
-		if (value === null || value === undefined || value === '') {
-			music.id_youtube_music = null
-			return
+		release.value = {
+			...release.value,
+			...updatedRelease,
+			artists: updatedRelease.artists ?? release.value.artists,
+			musics: updatedRelease.musics ?? release.value.musics,
+			platform_links: updatedRelease.platform_links ?? release.value.platform_links,
 		}
-		music.id_youtube_music = String(value)
 	}
 
 	// Configure meta tags and images reactively
@@ -155,15 +67,6 @@
 				' par ' +
 				(release.value.artists?.[0]?.name || 'Unknown artist')
 			description.value = release.value.description || ''
-
-			// Deep-copy musics to preserve the initial state
-			musicList.value =
-				release.value.musics?.map((music) => ({
-					id: music.id,
-					name: music.name,
-					ismv: music.ismv,
-					id_youtube_music: music.id_youtube_music,
-				})) || []
 		}
 	})
 
@@ -244,9 +147,10 @@
 								</div>
 								<UModal
 									v-if="isAdminStore && isLoginStore"
+									v-model:open="isEditReleaseModalOpen"
 									:ui="{
 										overlay: 'bg-cb-quinary-950/75',
-										content: 'ring-cb-quinary-950',
+										content: 'bg-cb-secondary-950 w-full max-w-5xl ring-cb-quinary-950',
 									}"
 								>
 									<UButton
@@ -256,79 +160,18 @@
 									/>
 
 									<template #content>
-										<div class="space-y-3 p-3">
-											<ComebackInput v-model="release.name" label="Name" />
-
-											<div class="grid grid-cols-2 gap-3">
-												<div class="grid grid-cols-1 gap-1">
-													<ComebackLabel label="Type" />
-													<select
-														v-model="release.type"
-														class="bg-cb-quaternary-950 focus:border-cb-primary-900 rounded border border-transparent px-2 py-1.5 transition-all duration-150 ease-in-out hover:cursor-pointer focus:outline-none"
-													>
-														<option value="ALBUM">ALBUM</option>
-														<option value="EP">EP</option>
-														<option value="SINGLE">SINGLE</option>
-													</select>
-												</div>
-												<ComebackInput
-													:model-value="release.year ?? undefined"
-													label="Year"
-													@update:model-value="updateReleaseYear"
-												/>
-											</div>
-
-											<div class="flex flex-col gap-1">
-												<ComebackLabel label="Date" />
-												<UCalendar
-													class="bg-cb-quinary-900 rounded p-1"
-													:model-value="parseToCalendarDate(release.date)"
-													:min-date="new Date(1900, 0, 1)"
-													@update:model-value="
-														(value) => {
-															if (release) {
-																release.date = value ? value.toString() : ''
-															}
-														}
-													"
-												/>
-											</div>
-
-											<div class="flex flex-col gap-1">
-												<ComebackLabel label="Tracklist" />
-												<div class="space-y-2">
-													<div
-														v-for="music in release.musics"
-														:key="music.id"
-														class="bg-cb-quinary-900 space-y-1 rounded py-1 pr-1 pl-2"
-													>
-														<div class="flex w-full items-center justify-between gap-2">
-															<p>{{ music.name }}</p>
-															<div
-																class="bg-cb-quaternary-950 flex w-fit items-center gap-2 rounded px-2 py-1 text-xs"
-															>
-																<label class="whitespace-nowrap">Has MV</label>
-																<input v-model="music.ismv" type="checkbox" />
-															</div>
-														</div>
-														<ComebackInput
-															v-if="music.ismv"
-															:model-value="music.id_youtube_music ?? undefined"
-															@update:model-value="
-																(value) => updateMusicYoutubeId(music, value)
-															"
-														/>
-													</div>
-												</div>
-											</div>
-
-											<button
-												class="bg-cb-primary-900 w-full rounded py-2 font-semibold uppercase transition-all duration-300 ease-in-out hover:scale-105 hover:bg-red-900"
-												@click="updateReleaseFunction(release.id, release)"
-											>
-												<p>Update Release</p>
-											</button>
-										</div>
+										<FormEditRelease
+											:id="release.id"
+											:name="release.name"
+											:type="release.type || ''"
+											:id-youtube-music="release.id_youtube_music || ''"
+											:date="release.date || ''"
+											:year-released="release.year || 0"
+											:need-to-be-verified="!release.verified"
+											:musics="release.musics || []"
+											@saved="handleReleaseSaved"
+											@close="isEditReleaseModalOpen = false"
+										/>
 									</template>
 								</UModal>
 							</div>

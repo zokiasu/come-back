@@ -3,25 +3,9 @@
 	import { storeToRefs } from 'pinia'
 	import { useUserStore } from '~/stores/user'
 
-	import type {
-		Artist,
-		MusicStyle,
-		GeneralTag,
-		Nationality,
-		ArtistMenuItem,
-		Company,
-	} from '~/types'
-	import type { TablesInsert } from '~/types/supabase'
+	import type { Artist } from '~/types'
+	import type { CompanyMenuItem } from '~/composables/useArtistEditorForm'
 	import { useMutationTimeout } from '~/composables/useMutationTimeout'
-
-	// Creates a generic type that adds 'label' to an existing type T
-	type MenuItem<T> = T & { label: string }
-	type CompanyMenuItem = {
-		id: string
-		name: string
-		description?: string
-		label: string
-	}
 
 	// Extended type for an artist with groups and members
 	type ArtistWithRelations = Artist & {
@@ -36,17 +20,63 @@
 	const userStore = useUserStore()
 	const { isAdminStore } = storeToRefs(userStore)
 
-	const {
-		getAllArtists,
-		getFullArtistById,
-		updateArtist,
-		getSocialAndPlatformLinksByArtistId,
-	} = useSupabaseArtist()
+	const { getFullArtistById, updateArtist, getSocialAndPlatformLinksByArtistId } =
+		useSupabaseArtist()
 	const { getAllMusicStyles } = useSupabaseMusicStyles()
 	const { getAllGeneralTags } = useSupabaseGeneralTags()
 	const { getAllNationalities } = useSupabaseNationalities()
-	const { getAllCompanies, relationshipTypes } = useSupabaseCompanies()
 	const { runMutation } = useMutationTimeout()
+
+	const {
+		stylesList,
+		tagsList,
+		nationalitiesList,
+		artistStyles,
+		artistTags,
+		artistNationalities,
+		artistCompanies,
+		artistGroups,
+		artistMembers,
+		groupSearchTerm,
+		memberSearchTerm,
+		companySearchTerm,
+		isSearchingGroups,
+		isSearchingMembers,
+		isSearchingCompanies,
+		isCompanyModalOpen,
+		platformLinkManager,
+		socialLinkManager,
+		artistPlatformList,
+		artistSocialList,
+		genderLabels,
+		artistTypeLabels,
+		genderOptions,
+		artistTypeOptions,
+		careerOptions,
+		relationshipTypes,
+		stylesForMenu,
+		tagsForMenu,
+		nationalitiesForMenu,
+		companiesForMenu,
+		groupsForMenu,
+		membersForMenu,
+		birthdayToDate,
+		debutDateToDate,
+		birthdayInputValue,
+		debutDateInputValue,
+		formatDisplayDate,
+		buildArtistRefs,
+		buildCompanyRelationsPayload,
+		onGroupSearchTermChange,
+		onMemberSearchTermChange,
+		onCompanySearchTermChange,
+		addCompanyRelation,
+		removeCompanyRelation,
+		updateCompanyInRelation,
+		handleCompanyUpdated,
+		applyOptions,
+		applyArtistSelections,
+	} = useArtistEditorForm()
 
 	const title = ref('Edit Artist Page')
 	const description = ref('Edit Artist Page')
@@ -56,89 +86,15 @@
 	const bootstrapError = ref<string | null>(null)
 
 	const artist = ref<ArtistWithRelations | null>(null)
-	const stylesList = ref<MusicStyle[]>([])
-	const tagsList = ref<GeneralTag[]>([])
-	const nationalitiesList = ref<Nationality[]>([])
-	// Refs for the UInputMenu v-model values that contain the selected objects
-	const artistStyles = ref<MenuItem<MusicStyle>[]>([])
-	const artistTags = ref<MenuItem<GeneralTag>[]>([])
-	const artistNationalities = ref<MenuItem<Nationality>[]>([])
-	const artistCompanies = ref<
-		{
-			company: CompanyMenuItem | undefined
-			relationship_type: string
-			start_date?: string
-			end_date?: string
-			is_current: boolean
-		}[]
-	>([])
-	const artistGroups = ref<ArtistMenuItem[]>([])
-	const artistMembers = ref<ArtistMenuItem[]>([])
-	const groupSearchTerm = ref('')
-	const memberSearchTerm = ref('')
-	const groupSearchResults = ref<Artist[]>([])
-	const memberSearchResults = ref<Artist[]>([])
-	const isSearchingGroups = ref(false)
-	const isSearchingMembers = ref(false)
-	const companySearchTerm = ref('')
-	const companySearchResults = ref<Company[]>([])
-	const isSearchingCompanies = ref(false)
-
-	const validGenders = ['MALE', 'FEMALE', 'MIXTE', 'UNKNOWN'] as const
-	const artistTypes = ['SOLO', 'GROUP'] as const
-	const genderLabels: Record<(typeof validGenders)[number], string> = {
-		MALE: 'Male',
-		FEMALE: 'Female',
-		MIXTE: 'Mixed',
-		UNKNOWN: 'Unknown',
-	}
-	const artistTypeLabels: Record<(typeof artistTypes)[number], string> = {
-		SOLO: 'Solo artist',
-		GROUP: 'Group',
-	}
-	const genderOptions = validGenders.map((gender) => ({
-		value: gender,
-		label: genderLabels[gender],
-	}))
-	const artistTypeOptions = artistTypes.map((type) => ({
-		value: type,
-		label: artistTypeLabels[type],
-	}))
-	const careerOptions = [
-		{ value: true, label: 'Active career' },
-		{ value: false, label: 'Inactive career' },
-	]
-
-	const isCompanyModalOpen = ref(false)
-
-	const birthdayToDate = ref<Date | null>(null)
-	const debutDateToDate = ref<Date | null>(null)
 
 	const artistToEdit = ref<Partial<Artist>>()
-
-	const { createLinkListManager } = useLinkManager()
-	const platformLinkManager = createLinkListManager()
-	const socialLinkManager = createLinkListManager()
-	const artistPlatformList = platformLinkManager.links
-	const artistSocialList = socialLinkManager.links
 
 	const imageFile = ref<File | null>(null)
 	const imagePreview = ref<string | null>(null)
 	const isDragging = ref(false)
 	const fileInput = ref<HTMLInputElement | null>(null)
-
-	const formatDisplayDate = (value: string | Date | null | undefined) => {
-		if (!value) return 'Not set'
-
-		const date = value instanceof Date ? value : new Date(value)
-		if (Number.isNaN(date.getTime())) return 'Not set'
-
-		return new Intl.DateTimeFormat('en-GB', {
-			day: '2-digit',
-			month: 'short',
-			year: 'numeric',
-		}).format(date)
-	}
+	const birthdayInputDate = useTemplateRef('birthdayInputDate')
+	const debutInputDate = useTemplateRef('debutInputDate')
 
 	const heroImageSrc = computed(() => {
 		return imagePreview.value || artistToEdit.value?.image || artist.value?.image || null
@@ -203,207 +159,6 @@
 			},
 		]
 	})
-
-	const stylesForMenu = computed((): MenuItem<MusicStyle>[] => {
-		return stylesList.value.map(
-			(style): MenuItem<MusicStyle> => ({
-				...style,
-				label: style.name,
-			}),
-		)
-	})
-
-	const tagsForMenu = computed((): MenuItem<GeneralTag>[] => {
-		return tagsList.value.map(
-			(tag): MenuItem<GeneralTag> => ({
-				...tag,
-				label: tag.name,
-			}),
-		)
-	})
-
-	const nationalitiesForMenu = computed((): MenuItem<Nationality>[] => {
-		return nationalitiesList.value.map(
-			(nationality): MenuItem<Nationality> => ({
-				...nationality,
-				label: nationality.name,
-			}),
-		)
-	})
-
-	const companiesForMenu = computed((): CompanyMenuItem[] => {
-		return mergeCompanyMenuItems(
-			companySearchResults.value.map(mapCompanyToMenuItem),
-			selectedCompanyItems.value,
-		)
-	})
-
-	const mapArtistToMenuItem = (artist: Artist): ArtistMenuItem => ({
-		id: artist.id,
-		label: artist.name,
-		name: artist.name,
-		description: artist.description ?? undefined,
-		image: artist.image,
-	})
-
-	const mergeMenuItems = (base: ArtistMenuItem[], selected: ArtistMenuItem[]) => {
-		const merged = new Map<string, ArtistMenuItem>()
-		for (const item of base) merged.set(item.id, item)
-		for (const item of selected) merged.set(item.id, item)
-		return Array.from(merged.values())
-	}
-
-	const mapCompanyToMenuItem = (company: Company): CompanyMenuItem => ({
-		id: company.id,
-		name: company.name,
-		label: company.name,
-		description: company.description ?? undefined,
-	})
-
-	const mergeCompanyMenuItems = (
-		base: CompanyMenuItem[],
-		selected: CompanyMenuItem[],
-	) => {
-		const merged = new Map<string, CompanyMenuItem>()
-		for (const item of base) merged.set(item.id, item)
-		for (const item of selected) merged.set(item.id, item)
-		return Array.from(merged.values())
-	}
-
-	const selectedCompanyItems = computed(() => {
-		return artistCompanies.value
-			.map((relation) => relation.company)
-			.filter((company): company is CompanyMenuItem => Boolean(company))
-	})
-
-	const buildArtistRefs = (items: ArtistMenuItem[]): Artist[] => {
-		const uniqueIds = new Set(items.map((item) => item.id))
-		return Array.from(uniqueIds).map((id) => ({ id }) as Artist)
-	}
-
-	const groupsForMenu = computed((): ArtistMenuItem[] => {
-		return mergeMenuItems(
-			groupSearchResults.value.map(mapArtistToMenuItem),
-			artistGroups.value,
-		)
-	})
-
-	const membersForMenu = computed((): ArtistMenuItem[] => {
-		return mergeMenuItems(
-			memberSearchResults.value.map(mapArtistToMenuItem),
-			artistMembers.value,
-		)
-	})
-
-	const toCalendarDate = (date: Date | null | undefined): CalendarDate | undefined => {
-		if (!date) return undefined
-		try {
-			const year = date.getUTCFullYear()
-			const month = date.getUTCMonth() + 1
-			const day = date.getUTCDate()
-			return new CalendarDate(year, month, day)
-		} catch (e) {
-			console.error('Failed to parse date:', date, e)
-			return undefined
-		}
-	}
-
-	const birthdayInputValue = computed<CalendarDate | undefined>({
-		get: () => toCalendarDate(birthdayToDate.value),
-		set: (value) => {
-			birthdayToDate.value = value ? new Date(value.toString()) : null
-		},
-	})
-
-	const debutDateInputValue = computed<CalendarDate | undefined>({
-		get: () => toCalendarDate(debutDateToDate.value),
-		set: (value) => {
-			debutDateToDate.value = value ? new Date(value.toString()) : null
-		},
-	})
-
-	const birthdayInputDate = useTemplateRef('birthdayInputDate')
-	const debutInputDate = useTemplateRef('debutInputDate')
-
-	const debouncedGroupSearch = useDebounce(async (query: string) => {
-		if (!query || query.length < 2) {
-			groupSearchResults.value = []
-			isSearchingGroups.value = false
-			return
-		}
-
-		isSearchingGroups.value = true
-		try {
-			groupSearchResults.value = await getAllArtists({
-				search: query.trim(),
-				limit: 15,
-				type: 'GROUP',
-			})
-		} catch (error) {
-			console.error('Group search error:', error)
-			groupSearchResults.value = []
-		} finally {
-			isSearchingGroups.value = false
-		}
-	}, 300)
-
-	const debouncedMemberSearch = useDebounce(async (query: string) => {
-		if (!query || query.length < 2) {
-			memberSearchResults.value = []
-			isSearchingMembers.value = false
-			return
-		}
-
-		isSearchingMembers.value = true
-		try {
-			memberSearchResults.value = await getAllArtists({
-				search: query.trim(),
-				limit: 15,
-			})
-		} catch (error) {
-			console.error('Member search error:', error)
-			memberSearchResults.value = []
-		} finally {
-			isSearchingMembers.value = false
-		}
-	}, 300)
-
-	const onGroupSearchTermChange = (query: string) => {
-		groupSearchTerm.value = query
-		debouncedGroupSearch(query)
-	}
-
-	const onMemberSearchTermChange = (query: string) => {
-		memberSearchTerm.value = query
-		debouncedMemberSearch(query)
-	}
-
-	const debouncedCompanySearch = useDebounce(async (query: string) => {
-		if (!query || query.trim().length < 2) {
-			companySearchResults.value = []
-			isSearchingCompanies.value = false
-			return
-		}
-
-		isSearchingCompanies.value = true
-		try {
-			const { companies } = await getAllCompanies({
-				search: query.trim(),
-				limit: 15,
-			})
-			companySearchResults.value = companies
-		} catch (error) {
-			console.error('Company search error:', error)
-			companySearchResults.value = []
-		} finally {
-			isSearchingCompanies.value = false
-		}
-	}, 300)
-
-	const onCompanySearchTermChange = (query: string) => {
-		companySearchTerm.value = query
-		debouncedCompanySearch(query)
-	}
 
 	function onFileChange(e: Event) {
 		const files = (e.target as HTMLInputElement).files
@@ -471,16 +226,7 @@
 				nationalities: artistNationalities.value.map((nationality) => nationality.name),
 			}
 
-			const selectedCompanies: TablesInsert<'artist_companies'>[] = artistCompanies.value
-				.filter((relation) => Boolean(relation.company))
-				.map((relation) => ({
-					artist_id: currentArtistId,
-					company_id: relation.company!.id,
-					relationship_type: relation.relationship_type,
-					start_date: relation.start_date,
-					end_date: relation.end_date,
-					is_current: relation.is_current,
-				}))
+			const selectedCompanies = buildCompanyRelationsPayload()
 
 			// Filter out empty platform and social links before sending
 			const validPlatformLinks = platformLinkManager.getValidLinks()
@@ -521,37 +267,6 @@
 	}
 	const { adjustTextareaDirect } = useTextareaAutoResize()
 
-	// Functions to manage company relations
-	const addCompanyRelation = () => {
-		artistCompanies.value.push({
-			company: undefined,
-			relationship_type: 'LABEL',
-			is_current: true,
-		})
-	}
-
-	const removeCompanyRelation = (index: number) => {
-		artistCompanies.value.splice(index, 1)
-	}
-
-	const updateCompanyInRelation = (
-		index: number,
-		company: CompanyMenuItem | null | undefined,
-	) => {
-		if (artistCompanies.value[index]) {
-			artistCompanies.value[index].company = company ?? undefined
-		}
-		companySearchTerm.value = ''
-		companySearchResults.value = []
-	}
-
-	// Handle updates after company creation
-	const handleCompanyUpdated = () => {
-		companySearchTerm.value = ''
-		companySearchResults.value = []
-		isCompanyModalOpen.value = false
-	}
-
 	const handleNationalitiesUpdated = async () => {
 		nationalitiesList.value = await getAllNationalities()
 	}
@@ -574,9 +289,7 @@
 			)
 
 			artist.value = fullArtist
-			stylesList.value = styles
-			tagsList.value = tags
-			nationalitiesList.value = nationalities
+			applyOptions({ styles, tags, nationalities })
 
 			if (artist.value) {
 				artistToEdit.value = { ...artist.value }
@@ -607,69 +320,7 @@
 						color: 'warning',
 					})
 				}
-				artistGroups.value =
-					artist.value.groups?.map((group) => ({
-						id: group.id,
-						label: group.name,
-						name: group.name,
-						description: group.description ?? undefined,
-						image: group.image,
-					})) || []
-				artistMembers.value =
-					artist.value.members?.map((member) => ({
-						id: member.id,
-						label: member.name,
-						name: member.name,
-						description: member.description ?? undefined,
-						image: member.image,
-					})) || []
-
-				artistStyles.value =
-					artist.value.styles
-						?.map((styleName) => {
-							const style = stylesList.value.find((s) => s.name === styleName)
-							return style
-								? ({ ...style, label: style.name } as MenuItem<MusicStyle>)
-								: null
-						})
-						.filter((item): item is MenuItem<MusicStyle> => item !== null) || []
-				artistTags.value =
-					artist.value.general_tags
-						?.map((tagName) => {
-							const tag = tagsList.value.find((t) => t.name === tagName)
-							return tag ? ({ ...tag, label: tag.name } as MenuItem<GeneralTag>) : null
-						})
-						.filter((item): item is MenuItem<GeneralTag> => item !== null) || []
-				artistNationalities.value =
-					artist.value.nationalities
-						?.map((nationalityName) => {
-							const nationality = nationalitiesList.value.find(
-								(item) => item.name === nationalityName,
-							)
-							return nationality
-								? ({ ...nationality, label: nationality.name } as MenuItem<Nationality>)
-								: null
-						})
-						.filter((item): item is MenuItem<Nationality> => item !== null) || []
-
-				// Load companies linked to the artist
-				artistCompanies.value =
-					artist.value.companies?.map((companyRelation) => ({
-						company: companyRelation.company
-							? {
-									id: companyRelation.company.id,
-									name: companyRelation.company.name,
-									label: companyRelation.company.name,
-									description: companyRelation.company.description ?? undefined,
-								}
-							: undefined,
-						relationship_type: companyRelation.relationship_type || 'LABEL',
-						...(companyRelation.start_date
-							? { start_date: companyRelation.start_date }
-							: {}),
-						...(companyRelation.end_date ? { end_date: companyRelation.end_date } : {}),
-						is_current: companyRelation.is_current ?? true,
-					})) || []
+				applyArtistSelections(artist.value)
 
 				// Initialize CalendarDate values from the artist dates
 				birthdayToDate.value = artist.value.birth_date
@@ -871,21 +522,7 @@
 				</div>
 			</div>
 
-			<div class="grid gap-4 px-6 py-5 sm:grid-cols-2 xl:grid-cols-4">
-				<div
-					v-for="stat in overviewStats"
-					:key="stat.label"
-					class="bg-cb-quaternary-950 border-cb-quinary-900/70 rounded-2xl border p-4"
-				>
-					<p
-						class="text-cb-quinary-700 text-xs font-semibold tracking-[0.25em] uppercase"
-					>
-						{{ stat.label }}
-					</p>
-					<p class="mt-3 text-2xl font-bold">{{ stat.value }}</p>
-					<p class="mt-1 text-sm text-gray-400">{{ stat.helper }}</p>
-				</div>
-			</div>
+			<ArtistOverviewStats :stats="overviewStats" />
 		</section>
 
 		<div class="grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(320px,0.95fr)]">
@@ -1573,107 +1210,36 @@
 					</div>
 				</section>
 
-				<section
-					class="bg-cb-secondary-950 border-cb-quinary-900/70 rounded-[28px] border p-6 shadow-xl"
+				<ArtistQuickOverview
+					description="Useful checkpoints before publishing your edits."
+					:nationalities-count="artistNationalities.length"
+					:profile-type="artistToEdit.type"
+					:birthday-label="formatDisplayDate(birthdayToDate)"
+					:debut-date-label="formatDisplayDate(debutDateToDate)"
+					:tags-count="artistTags.length"
+				/>
+
+				<ArtistSavePanel
+					description="Use this primary action once the profile feels consistent."
 				>
-					<div class="mb-4 space-y-2">
-						<h2 class="text-xl font-semibold">Quick overview</h2>
-						<p class="text-sm leading-6 text-gray-400">
-							Useful checkpoints before publishing your edits.
-						</p>
-					</div>
-
-					<div class="space-y-3">
-						<div
-							class="bg-cb-quaternary-950 border-cb-quinary-900/70 flex items-center justify-between rounded-2xl border px-4 py-3"
-						>
-							<div>
-								<p
-									class="text-cb-quinary-700 text-xs font-semibold tracking-[0.2em] uppercase"
-								>
-									Nationalities
-								</p>
-								<p class="mt-1 font-medium">{{ artistNationalities.length }}</p>
-							</div>
-						</div>
-
-						<div
-							class="bg-cb-quaternary-950 border-cb-quinary-900/70 flex items-center justify-between rounded-2xl border px-4 py-3"
-						>
-							<div>
-								<p
-									class="text-cb-quinary-700 text-xs font-semibold tracking-[0.2em] uppercase"
-								>
-									{{ artistToEdit.type === 'GROUP' ? 'Profile mode' : 'Birthday' }}
-								</p>
-								<p class="mt-1 font-medium">
-									{{
-										artistToEdit.type === 'GROUP'
-											? 'Birthday hidden for group profiles'
-											: formatDisplayDate(birthdayToDate)
-									}}
-								</p>
-							</div>
-						</div>
-
-						<div
-							class="bg-cb-quaternary-950 border-cb-quinary-900/70 flex items-center justify-between rounded-2xl border px-4 py-3"
-						>
-							<div>
-								<p
-									class="text-cb-quinary-700 text-xs font-semibold tracking-[0.2em] uppercase"
-								>
-									Debut date
-								</p>
-								<p class="mt-1 font-medium">{{ formatDisplayDate(debutDateToDate) }}</p>
-							</div>
-						</div>
-
-						<div
-							class="bg-cb-quaternary-950 border-cb-quinary-900/70 flex items-center justify-between rounded-2xl border px-4 py-3"
-						>
-							<div>
-								<p
-									class="text-cb-quinary-700 text-xs font-semibold tracking-[0.2em] uppercase"
-								>
-									General tags
-								</p>
-								<p class="mt-1 font-medium">{{ artistTags.length }}</p>
-							</div>
-						</div>
-					</div>
-				</section>
-
-				<section
-					class="bg-cb-secondary-950 border-cb-quinary-900/70 rounded-[28px] border p-6 shadow-xl"
-				>
-					<div class="mb-4 space-y-2">
-						<h2 class="text-xl font-semibold">Save panel</h2>
-						<p class="text-sm leading-6 text-gray-400">
-							Use this primary action once the profile feels consistent.
-						</p>
-					</div>
-
-					<div class="space-y-3">
-						<UButton
-							label="Save changes"
-							icon="i-lucide-save"
-							color="primary"
-							size="xl"
-							:loading="isUploadingEdit"
-							class="!bg-cb-primary-900 hover:!bg-cb-primary-800 disabled:!bg-cb-primary-900 w-full cursor-pointer justify-center !text-white hover:!text-white disabled:!text-white"
-							@click="sendUpdateArtist"
-						/>
-						<UButton
-							label="Return to artist page"
-							icon="i-lucide-arrow-left"
-							color="neutral"
-							variant="soft"
-							class="w-full cursor-pointer justify-center"
-							:to="`/artist/${artist.id}`"
-						/>
-					</div>
-				</section>
+					<UButton
+						label="Save changes"
+						icon="i-lucide-save"
+						color="primary"
+						size="xl"
+						:loading="isUploadingEdit"
+						class="!bg-cb-primary-900 hover:!bg-cb-primary-800 disabled:!bg-cb-primary-900 w-full cursor-pointer justify-center !text-white hover:!text-white disabled:!text-white"
+						@click="sendUpdateArtist"
+					/>
+					<UButton
+						label="Return to artist page"
+						icon="i-lucide-arrow-left"
+						color="neutral"
+						variant="soft"
+						class="w-full cursor-pointer justify-center"
+						:to="`/artist/${artist.id}`"
+					/>
+				</ArtistSavePanel>
 			</div>
 		</div>
 	</div>

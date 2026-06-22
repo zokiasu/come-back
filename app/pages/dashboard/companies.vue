@@ -26,7 +26,7 @@
 	const scrollContainer = useTemplateRef('scrollContainer')
 	const sort = ref<keyof Company>('name')
 	const limitFetch = ref(48)
-	const typeFilter = ref<Company['type'] | ''>('')
+	const typeFilter = ref<NonNullable<Company['type']> | ''>('')
 	const verifiedFilter = ref<'all' | 'verified' | 'unverified'>('all')
 	const isLoading = ref(false)
 
@@ -59,6 +59,35 @@
 		company: null as Company | null,
 		isCreating: true,
 	})
+
+	const companyTypeOptions = computed(() => [
+		{ label: 'All types', id: '' },
+		...companyTypes.map((type) => ({ label: type, id: type })),
+	])
+
+	const verifiedOptions = [
+		{ label: 'All statuses', id: 'all' },
+		{ label: 'Verified', id: 'verified' },
+		{ label: 'Unverified', id: 'unverified' },
+	]
+
+	const sortOptions = [
+		{ label: 'Name', id: 'name' },
+		{ label: 'Type', id: 'type' },
+		{ label: 'Founded year', id: 'founded_year' },
+		{ label: 'Creation date', id: 'created_at' },
+		{ label: 'Last update', id: 'updated_at' },
+	]
+
+	const quickFilterOptions: {
+		label: string
+		id: keyof FilterState
+	}[] = [
+		{ label: 'Unverified', id: 'onlyUnverified' },
+		{ label: 'No website', id: 'onlyWithoutWebsite' },
+		{ label: 'No logo', id: 'onlyWithoutLogo' },
+		{ label: 'No description', id: 'onlyWithoutDescription' },
+	]
 
 	/**
 	 * Load the statistics
@@ -203,12 +232,13 @@
 	 * Toggle the "only without" filters
 	 */
 	const changeOnlyFilter = (filter: keyof FilterState): void => {
+		const wasActive = filterState[filter]
+
 		Object.keys(filterState).forEach((key) => {
 			filterState[key as keyof FilterState] = false
 		})
 
-		// Keep only the selected filter active
-		filterState[filter] = !filterState[filter]
+		filterState[filter] = !wasActive
 	}
 
 	/**
@@ -233,7 +263,22 @@
 	const filteredCompaniesList = computed(() => {
 		if (!companiesFetch.value) return companiesFetch.value
 
-		return [...companiesFetch.value].sort((a, b) => {
+		let companies = [...companiesFetch.value]
+
+		if (filterState.onlyUnverified) {
+			companies = companies.filter((company) => !company.verified)
+		}
+		if (filterState.onlyWithoutWebsite) {
+			companies = companies.filter((company) => !company.website)
+		}
+		if (filterState.onlyWithoutLogo) {
+			companies = companies.filter((company) => !company.logo_url)
+		}
+		if (filterState.onlyWithoutDescription) {
+			companies = companies.filter((company) => !company.description)
+		}
+
+		return companies.sort((a, b) => {
 			if (sort.value === 'created_at') {
 				return invertSort.value
 					? new Date(b.created_at ?? '').getTime() -
@@ -339,99 +384,74 @@
 			</div>
 
 			<div class="flex gap-2">
-				<div class="relative flex-1">
-					<input
-						id="search-input"
-						v-model="search"
-						type="text"
-						placeholder="Search companies..."
-						class="bg-cb-quinary-900 placeholder-cb-tertiary-200 focus:bg-cb-tertiary-200 focus:text-cb-quinary-900 focus:placeholder-cb-quinary-900 w-full rounded border-none px-5 py-2 drop-shadow-xl transition-all duration-300 ease-in-out focus:outline-none"
-					/>
-				</div>
-				<button
-					class="bg-cb-primary-900 hover:bg-cb-primary-800 rounded px-4 py-2 text-white transition-colors"
+				<UInput
+					v-model="search"
+					name="dashboard-company-search"
+					placeholder="Search companies..."
+					icon="i-lucide-search"
+					class="flex-1"
+					:ui="{ base: 'bg-cb-quinary-900' }"
+				/>
+				<UButton
+					type="button"
+					icon="i-lucide-plus"
+					color="primary"
 					@click="openCreateModal"
 				>
-					+ Add
-				</button>
+					Add
+				</UButton>
 			</div>
 
 			<div class="flex w-full flex-col gap-2 sm:flex-row sm:justify-between">
 				<div class="flex w-fit flex-wrap justify-between gap-2 sm:flex-nowrap">
-					<button
-						class="w-full rounded px-2 py-1 text-xs uppercase hover:bg-zinc-500 lg:text-nowrap"
-						:class="
-							filterState.onlyUnverified ? 'bg-cb-primary-900' : 'bg-cb-quinary-900'
-						"
-						@click="changeOnlyFilter('onlyUnverified')"
+					<UButton
+						v-for="filter in quickFilterOptions"
+						:key="filter.id"
+						type="button"
+						size="sm"
+						:color="filterState[filter.id] ? 'primary' : 'neutral'"
+						:variant="filterState[filter.id] ? 'solid' : 'soft'"
+						:aria-pressed="filterState[filter.id]"
+						class="lg:text-nowrap"
+						@click="changeOnlyFilter(filter.id)"
 					>
-						Unverified
-					</button>
-					<button
-						class="w-full rounded px-2 py-1 text-xs uppercase hover:bg-zinc-500 lg:text-nowrap"
-						:class="
-							filterState.onlyWithoutWebsite ? 'bg-cb-primary-900' : 'bg-cb-quinary-900'
-						"
-						@click="changeOnlyFilter('onlyWithoutWebsite')"
-					>
-						No website
-					</button>
-					<button
-						class="w-full rounded px-2 py-1 text-xs uppercase hover:bg-zinc-500 lg:text-nowrap"
-						:class="
-							filterState.onlyWithoutLogo ? 'bg-cb-primary-900' : 'bg-cb-quinary-900'
-						"
-						@click="changeOnlyFilter('onlyWithoutLogo')"
-					>
-						No logo
-					</button>
-					<button
-						class="w-full rounded px-2 py-1 text-xs uppercase hover:bg-zinc-500 lg:text-nowrap"
-						:class="
-							filterState.onlyWithoutDescription
-								? 'bg-cb-primary-900'
-								: 'bg-cb-quinary-900'
-						"
-						@click="changeOnlyFilter('onlyWithoutDescription')"
-					>
-						No description
-					</button>
-					<select
+						{{ filter.label }}
+					</UButton>
+					<USelectMenu
 						v-model="typeFilter"
-						class="bg-cb-quinary-900 placeholder-cb-tertiary-200 rounded border-none p-2 text-xs uppercase transition-all duration-300 ease-in-out focus:outline-none sm:w-fit"
-					>
-						<option value="">All types</option>
-						<option v-for="type in companyTypes" :key="type" :value="type">
-							{{ type }}
-						</option>
-					</select>
-					<select
+						:items="companyTypeOptions"
+						value-key="id"
+						class="w-full sm:w-40"
+						:ui="{ base: 'bg-cb-quinary-900' }"
+					/>
+					<USelectMenu
 						v-model="verifiedFilter"
-						class="bg-cb-quinary-900 placeholder-cb-tertiary-200 rounded border-none p-2 text-xs uppercase transition-all duration-300 ease-in-out focus:outline-none sm:w-fit"
-					>
-						<option value="all">All</option>
-						<option value="verified">Verified</option>
-						<option value="unverified">Unverified</option>
-					</select>
+						:items="verifiedOptions"
+						value-key="id"
+						class="w-full sm:w-40"
+						:ui="{ base: 'bg-cb-quinary-900' }"
+					/>
 				</div>
 				<div class="flex space-x-2">
-					<select
+					<USelectMenu
 						v-model="sort"
-						class="bg-cb-quinary-900 placeholder-cb-tertiary-200 hover:bg-cb-tertiary-200 hover:text-cb-quinary-900 w-full rounded border-none p-2 text-xs uppercase drop-shadow-xl transition-all duration-300 ease-in-out focus:outline-none sm:w-fit"
-					>
-						<option value="name">Name</option>
-						<option value="type">Type</option>
-						<option value="founded_year">Founded year</option>
-						<option value="created_at">Creation date</option>
-						<option value="updated_at">Last update</option>
-					</select>
-					<button
-						class="bg-cb-quinary-900 placeholder-cb-tertiary-200 hover:bg-cb-tertiary-200 hover:text-cb-quinary-900 rounded border-none p-2 drop-shadow-xl transition-all duration-300 ease-in-out focus:outline-none"
+						:items="sortOptions"
+						value-key="id"
+						class="w-full sm:w-44"
+						:ui="{ base: 'bg-cb-quinary-900' }"
+					/>
+					<UButton
+						type="button"
+						:icon="
+							invertSort
+								? 'i-lucide-arrow-down-wide-narrow'
+								: 'i-lucide-arrow-up-narrow-wide'
+						"
+						color="neutral"
+						variant="soft"
+						aria-label="Toggle sort direction"
 						@click="invertSort = !invertSort"
-					>
-						<icon-sort v-if="!invertSort" class="text-cb-tertiary-200 h-6 w-6" />
-						<icon-sort-reverse v-else class="text-cb-tertiary-200 h-6 w-6" />
-					</button>
+					/>
 				</div>
 			</div>
 		</section>
@@ -441,7 +461,7 @@
 			id="companies-list"
 			name="list-complete"
 			tag="div"
-			class="grid grid-cols-1 items-center justify-center gap-2 transition-all duration-300 ease-in-out md:grid-cols-2 lg:grid-cols-4"
+			class="grid grid-cols-1 items-center justify-center gap-2 transition-opacity duration-300 ease-in-out md:grid-cols-2 lg:grid-cols-4"
 		>
 			<CardDashboardCompany
 				v-for="company in filteredCompaniesList"
@@ -463,39 +483,21 @@
 			/>
 		</transition-group>
 
-		<p
+		<DashboardEmptyState
 			v-else-if="!isLoading"
-			class="bg-cb-quaternary-950 w-full p-5 text-center font-semibold uppercase"
-		>
-			No company found
-		</p>
+			icon="i-lucide-building-2"
+			title="No company found"
+			description="Try adjusting the search or filters."
+		/>
 
 		<div ref="observerTarget" class="mb-4 h-4 w-full"></div>
 
-		<div
-			v-if="
-				filteredCompaniesList.length > 0 &&
-				companiesFetch.length != 0 &&
-				companiesFetch.length != totalCompanies
-			"
-			class="flex flex-col items-center space-y-2 text-xs"
-		>
-			<p>({{ companiesFetch.length }} / {{ totalCompanies }})</p>
-			<div v-if="!isLoading" class="flex gap-2">
-				<button
-					class="bg-cb-quinary-900 mx-auto flex w-full gap-1 rounded px-2 py-1 uppercase hover:bg-zinc-500 md:w-fit"
-					@click="loadAllCompanies"
-				>
-					<p>Load all</p>
-				</button>
-			</div>
-			<p
-				v-else
-				class="bg-cb-quinary-900 mx-auto flex w-full gap-1 rounded px-2 py-1 uppercase hover:bg-zinc-500 md:w-fit"
-			>
-				Loading...
-			</p>
-		</div>
+		<DashboardLoadMoreFooter
+			:loaded="companiesFetch.length"
+			:total="totalCompanies"
+			:loading="isLoading"
+			@load-all="loadAllCompanies"
+		/>
 
 		<UModal v-model:open="deleteModal.isOpen">
 			<template #content>

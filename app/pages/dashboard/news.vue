@@ -359,7 +359,7 @@
 </script>
 
 <template>
-	<div class="scrollBarLight h-full space-y-4 overflow-y-auto p-6">
+	<DashboardPageShell>
 		<div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 			<div>
 				<h1 class="text-2xl font-bold">News Management</h1>
@@ -688,5 +688,5 @@
 				</div>
 			</template>
 		</UModal>
-	</div>
+	</DashboardPageShell>
 </template>

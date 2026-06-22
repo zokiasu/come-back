@@ -12,16 +12,7 @@
 	const { createNationality, getAllNationalities, deleteNationality } =
 		useSupabaseNationalities()
 
-	const logDashboardDatasTrace = (step: string, details?: Record<string, unknown>) => {
-		if (!import.meta.dev) return
-
-		if (details) {
-			console.warn(`[DashboardDatas] ${step}`, details)
-			return
-		}
-
-		console.warn(`[DashboardDatas] ${step}`)
-	}
+	const { trace: logDashboardDatasTrace } = useDevLogger('DashboardDatas')
 
 	const styleFetch = ref<MusicStyle[]>([])
 	const newStyle = ref('')
@@ -102,14 +93,20 @@
 	})
 
 	const creationStyle = async () => {
-		if (styleFetch.value.find((style) => style.name === newStyle.value)) {
+		const normalizedName = newStyle.value.trim()
+
+		if (!normalizedName) {
+			return
+		}
+
+		if (styleFetch.value.find((style) => style.name === normalizedName)) {
 			toast.add({
 				title: 'Style already exists',
 				color: 'error',
 			})
 			return
 		}
-		await createMusicStyle({ name: newStyle.value }).then(async () => {
+		await createMusicStyle({ name: normalizedName }).then(async () => {
 			toast.add({
 				title: 'Style created',
 				color: 'success',
@@ -120,14 +117,20 @@
 	}
 
 	const creationTag = async () => {
-		if (generalTagFetch.value.find((tag) => tag.name === newGeneralTag.value)) {
+		const normalizedName = newGeneralTag.value.trim()
+
+		if (!normalizedName) {
+			return
+		}
+
+		if (generalTagFetch.value.find((tag) => tag.name === normalizedName)) {
 			toast.add({
 				title: 'Tag already exists',
 				color: 'error',
 			})
 			return
 		}
-		await createGeneralTag({ name: newGeneralTag.value }).then(async () => {
+		await createGeneralTag({ name: normalizedName }).then(async () => {
 			toast.add({
 				title: 'Tag created',
 				color: 'success',
@@ -202,149 +205,40 @@
 </script>
 
 <template>
-	<div class="grid grid-cols-1 gap-5 overflow-y-auto p-6 xl:grid-cols-3">
-		<section id="styles" class="space-y-3">
-			<h2 class="text-lg font-semibold uppercase">Styles</h2>
-			<section id="input-new-search" class="flex w-full justify-start gap-2">
-				<input
-					id="input"
-					v-model="newStyle"
-					type="text"
-					placeholder="Add new style"
-					class="bg-cb-quinary-900 placeholder-cb-tertiary-200 focus:bg-cb-tertiary-200 focus:text-cb-quinary-900 focus:placeholder-cb-quinary-900 w-full rounded border-none px-5 py-2 drop-shadow-xl transition-all duration-300 ease-in-out focus:outline-none"
-					@keyup.enter="
-						async () => {
-							await creationStyle()
-						}
-					"
-				/>
-				<button
-					class="bg-cb-quinary-900 w-full rounded px-2 py-1 text-xs uppercase hover:bg-zinc-500 sm:w-fit"
-					@click="
-						async () => {
-							await creationStyle()
-						}
-					"
-				>
-					Send
-				</button>
-			</section>
-			<div class="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
-				<div
-					v-for="style in styleFetch"
-					:key="style.name"
-					class="flex items-center justify-between gap-2"
-				>
-					<div class="bg-cb-quaternary-950 flex w-full flex-col rounded px-2.5 py-1">
-						<p>{{ style.name }}</p>
-						<p class="text-xs text-zinc-500">
-							{{ style.created_at }}
-						</p>
-					</div>
-					<div
-						class="bg-cb-quaternary-950 hover:bg-cb-primary-900 flex h-full cursor-pointer items-center justify-center rounded px-2.5"
-						@click="deleteStyle(style.name)"
-					>
-						<UIcon name="i-lucide-trash-2" class="h-4 w-4" />
-					</div>
-				</div>
-			</div>
-		</section>
+	<DashboardPageShell>
+		<div class="grid grid-cols-1 gap-5 xl:grid-cols-3">
+			<DashboardTaxonomyManager
+				v-model="newStyle"
+				title="Styles"
+				section-id="styles"
+				placeholder="Add new style"
+				:items="styleFetch"
+				empty-title="No styles yet"
+				@create="creationStyle"
+				@delete="deleteStyle"
+			/>
 
-		<section id="general-tags" class="space-y-3">
-			<h2 class="text-lg font-semibold uppercase">General Tags</h2>
-			<section id="input-new-search" class="flex w-full justify-start gap-2">
-				<input
-					id="input"
-					v-model="newGeneralTag"
-					type="text"
-					placeholder="Add new tag"
-					class="bg-cb-quinary-900 placeholder-cb-tertiary-200 focus:bg-cb-tertiary-200 focus:text-cb-quinary-900 focus:placeholder-cb-quinary-900 w-full rounded border-none px-5 py-2 drop-shadow-xl transition-all duration-300 ease-in-out placeholder:text-zinc-500 focus:outline-none"
-					@keyup.enter="
-						async () => {
-							await creationTag()
-						}
-					"
-				/>
-				<button
-					class="bg-cb-quinary-900 w-full rounded px-2 py-1 text-xs uppercase hover:bg-zinc-500 sm:w-fit"
-					@click="
-						async () => {
-							await creationTag()
-						}
-					"
-				>
-					Send
-				</button>
-			</section>
-			<div class="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
-				<div
-					v-for="tag in generalTagFetch"
-					:key="tag.name"
-					class="flex items-center justify-between gap-2"
-				>
-					<div class="bg-cb-quaternary-950 flex w-full flex-col rounded px-2.5 py-1">
-						<p>{{ tag.name }}</p>
-						<p class="text-xs text-zinc-500">
-							{{ tag.created_at }}
-						</p>
-					</div>
-					<div
-						class="bg-cb-quaternary-950 hover:bg-cb-primary-900 flex h-full cursor-pointer items-center justify-center rounded px-2.5"
-						@click="deleteTag(tag.name)"
-					>
-						<UIcon name="i-lucide-trash-2" class="h-4 w-4" />
-					</div>
-				</div>
-			</div>
-		</section>
+			<DashboardTaxonomyManager
+				v-model="newGeneralTag"
+				title="General Tags"
+				section-id="general-tags"
+				placeholder="Add new tag"
+				:items="generalTagFetch"
+				empty-title="No general tags yet"
+				@create="creationTag"
+				@delete="deleteTag"
+			/>
 
-		<section id="nationalities" class="space-y-3">
-			<h2 class="text-lg font-semibold uppercase">Nationalities</h2>
-			<section id="input-new-nationality" class="flex w-full justify-start gap-2">
-				<input
-					id="input"
-					v-model="newNationality"
-					type="text"
-					placeholder="Add new nationality"
-					class="bg-cb-quinary-900 placeholder-cb-tertiary-200 focus:bg-cb-tertiary-200 focus:text-cb-quinary-900 focus:placeholder-cb-quinary-900 w-full rounded border-none px-5 py-2 drop-shadow-xl transition-all duration-300 ease-in-out placeholder:text-zinc-500 focus:outline-none"
-					@keyup.enter="
-						async () => {
-							await creationNationality()
-						}
-					"
-				/>
-				<button
-					class="bg-cb-quinary-900 w-full rounded px-2 py-1 text-xs uppercase hover:bg-zinc-500 sm:w-fit"
-					@click="
-						async () => {
-							await creationNationality()
-						}
-					"
-				>
-					Send
-				</button>
-			</section>
-			<div class="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
-				<div
-					v-for="nationality in nationalityFetch"
-					:key="nationality.name"
-					class="flex items-center justify-between gap-2"
-				>
-					<div class="bg-cb-quaternary-950 flex w-full flex-col rounded px-2.5 py-1">
-						<p>{{ nationality.name }}</p>
-						<p class="text-xs text-zinc-500">
-							{{ nationality.created_at }}
-						</p>
-					</div>
-					<div
-						class="bg-cb-quaternary-950 hover:bg-cb-primary-900 flex h-full cursor-pointer items-center justify-center rounded px-2.5"
-						@click="deleteNationalityItem(nationality.name)"
-					>
-						<UIcon name="i-lucide-trash-2" class="h-4 w-4" />
-					</div>
-				</div>
-			</div>
-		</section>
-	</div>
+			<DashboardTaxonomyManager
+				v-model="newNationality"
+				title="Nationalities"
+				section-id="nationalities"
+				placeholder="Add new nationality"
+				:items="nationalityFetch"
+				empty-title="No nationalities yet"
+				@create="creationNationality"
+				@delete="deleteNationalityItem"
+			/>
+		</div>
+	</DashboardPageShell>
 </template>
