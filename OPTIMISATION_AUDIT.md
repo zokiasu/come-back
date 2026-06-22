@@ -2,25 +2,14 @@
 
 ## Priorites globales
 
-1. Fusionner les gros doublons entre `app/pages/artist/create.vue` et `app/pages/artist/edit/[id].vue`.
-   - Extraire progressivement les blocs de rendu partages.
-   - Centraliser ensuite l'etat et les helpers communs dans un composable dedie.
-   - Garder les differences metier create/edit dans les pages ou dans des slots explicites.
-2. Extraire les patterns dashboard repetes : filtres, pagination, lignes d'entites, empty states et wrappers de page.
-3. Remplacer les anciens formulaires natifs par Nuxt UI ou les composants existants.
-4. Supprimer ou isoler les logs debug nombreux.
-5. Remplacer `transition-all`, `outline-none` non maitrise, les boutons natifs sans `type`, et les boutons icones sans `aria-label`.
-6. Normaliser les images : dimensions, `sizes`, lazy loading et priorite selon le contexte.
+1. Terminer l'extraction des patterns dashboard restants : filtres complexes, lignes d'entites et wrappers non migres.
+2. Remplacer les controles natifs restants par Nuxt UI ou les composants existants.
+3. Remplacer `transition-all`, `outline-none` non maitrise, les boutons natifs sans `type`, et les boutons icones sans `aria-label`.
+4. Normaliser les images : dimensions, `sizes`, lazy loading et priorite selon le contexte.
 
 ## Analyse page par page
 
 ### Artist
-
-- `app/pages/artist/create.vue` et `app/pages/artist/edit/[id].vue`
-  - Plus gros chantier de reduction.
-  - Les blocs d'overview, taxonomy, relations companies, plateformes/socials et save panel sont tres proches.
-  - Premiere extraction commencee avec les composants `ArtistOverviewStats`, `ArtistQuickOverview` et `ArtistSavePanel`.
-  - Etape suivante recommandee : extraire un composable `useArtistEditorForm` pour les listes, badges, companies, dates et helpers de menu.
 
 - `app/pages/artist/index.vue`
   - Extraire filtres, chips actifs et logique de pagination.
@@ -73,17 +62,12 @@
   - Creer un composant liste artiste dashboard avec mode `management` ou `validation`.
 
 - `app/pages/dashboard/music.vue`, `app/pages/dashboard/release.vue`, `app/pages/dashboard/news.vue`
-  - Extraire shell dashboard, barre de filtres, pagination et modales d'edition.
-  - Ajouter `aria-label` sur les actions icones.
-
-- `app/pages/dashboard/datas.vue`
-  - Trois blocs CRUD quasi identiques.
-  - Creer un `DashboardTaxonomyManager`.
-  - Corriger les `id="input"` dupliques et les `<div @click>` utilises comme boutons.
+  - Extraire les barres de filtres encore inline.
+  - Extraire les modales d'edition encore inline, surtout `music.vue` et `news.vue`.
+  - Ajouter `aria-label` sur les actions icones restantes, surtout `release.vue` et `news.vue`.
 
 - `app/pages/dashboard/companies.vue`
-  - Ancien HTML natif.
-  - Remplacer inputs/select/buttons par Nuxt UI.
+  - Migrer le wrapper scroll restant vers `DashboardPageShell`.
   - Supprimer tri/filtrage client redondant si l'API le fait deja.
 
 - `app/pages/dashboard/index.vue` et `app/pages/dashboard/stats.vue`
@@ -91,9 +75,6 @@
   - Remplacer `transition-all`.
 
 ### Company
-
-- `app/pages/company/create.vue`
-  - Probablement remplacable par `app/components/Modal/CreateEditCompany.vue` ou un formulaire partage.
 
 - `app/pages/company/index.vue` et `app/pages/company/[id].vue`
   - Mutualiser filtres et hero avec artists.
@@ -126,16 +107,9 @@
 
 - `app/components/YoutubePlayer.vue`
   - Decouper player service, controles UI et etats playlist/minimized.
-  - Supprimer ou isoler les logs debug.
 
 - `app/components/SearchInline.vue` et `app/components/SearchModal.vue`
   - Consolider les experiences de recherche.
 
 - `app/components/DiscoverMV.vue`
-  - Extraire logique YouTube/selection et reduire les logs.
-
-- `app/components/Modal/CreateArtist.vue`
-  - Verifier s'il reste utile apres l'extraction du formulaire artist partage.
-
-- `app/components/Modal/CreateEditCompany.vue`
-  - En faire la source de verite pour create/edit company.
+  - Extraire logique YouTube/selection.
