@@ -40,10 +40,6 @@
 
 ### Release et calendar
 
-- `app/pages/release/[id].vue`
-  - Le formulaire d'edition inline semble doublonner `app/components/Form/EditRelease.vue`.
-  - Bon candidat a suppression ou remplacement par le composant existant.
-
 - `app/pages/calendar.vue`
   - Remplacer les boutons natifs par Nuxt UI ou segmented controls.
   - Pre-calculer les counts par type au lieu de recalculer au rendu.
