@@ -1,5 +1,10 @@
 export function useApiAuthHeaders() {
 	const config = useRuntimeConfig()
+	const supabase = useSupabaseClient()
+
+	const createAuthHeaders = (accessToken: string) => ({
+		Authorization: `Bearer ${accessToken}`,
+	})
 
 	const getAccessTokenFromCookie = () => {
 		if (!import.meta.client) return null
@@ -51,9 +56,18 @@ export function useApiAuthHeaders() {
 
 		if (!accessToken) return undefined
 
-		return {
-			Authorization: `Bearer ${accessToken}`,
-		}
+		return createAuthHeaders(accessToken)
+	}
+
+	const getAuthHeadersFromSession = async () => {
+		const cookieHeaders = getAuthHeaders()
+		if (cookieHeaders) return cookieHeaders
+		if (!import.meta.client) return undefined
+
+		const { data } = await supabase.auth.getSession()
+		const accessToken = data.session?.access_token
+
+		return accessToken ? createAuthHeaders(accessToken) : undefined
 	}
 
 	const requireAuthHeaders = () => {
@@ -66,9 +80,21 @@ export function useApiAuthHeaders() {
 		return headers
 	}
 
+	const requireAuthHeadersFromSession = async () => {
+		const headers = await getAuthHeadersFromSession()
+
+		if (!headers) {
+			throw new Error('Missing access token')
+		}
+
+		return headers
+	}
+
 	return {
 		getAccessTokenFromCookie,
 		getAuthHeaders,
+		getAuthHeadersFromSession,
 		requireAuthHeaders,
+		requireAuthHeadersFromSession,
 	}
 }

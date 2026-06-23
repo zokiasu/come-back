@@ -44,37 +44,39 @@
 	const recentArtists = ref<DashboardOverview['recentArtists']>([])
 	const recentReleases = ref<DashboardOverview['recentReleases']>([])
 	const recentNews = ref<DashboardOverview['recentNews']>([])
+	const loading = ref(true)
+	const errorMessage = ref<string | null>(null)
 
-	// SSR-compatible data fetching for dashboard admin (client-only)
-	const { data: dashboardData, pending: loading } = await useFetch<DashboardOverview>(
-		'/api/dashboard/overview',
-		{
-			server: false, // Dashboard admin toujours client-only
-			default: () => ({
-				stats: {
-					totalArtists: 0,
-					activeArtists: 0,
-					totalReleases: 0,
-					recentReleases: 0,
-					totalNews: 0,
-					totalCompanies: 0,
-					verifiedCompanies: 0,
-				},
-				recentArtists: [],
-				recentReleases: [],
-				recentNews: [],
-			}),
-		},
-	)
+	const { ensureAuthInitialized } = useAuth()
+	const { requireAuthHeadersFromSession } = useApiAuthHeaders()
 
-	// Use fetched data reactively
-	watchEffect(() => {
-		if (dashboardData.value) {
-			stats.value = dashboardData.value.stats
-			recentArtists.value = dashboardData.value.recentArtists
-			recentReleases.value = dashboardData.value.recentReleases
-			recentNews.value = dashboardData.value.recentNews
+	const loadDashboardOverview = async () => {
+		loading.value = true
+		errorMessage.value = null
+
+		try {
+			await ensureAuthInitialized()
+			const authHeaders = await requireAuthHeadersFromSession()
+
+			const dashboardData = await $fetch<DashboardOverview>('/api/dashboard/overview', {
+				headers: authHeaders,
+			})
+
+			stats.value = dashboardData.stats
+			recentArtists.value = dashboardData.recentArtists
+			recentReleases.value = dashboardData.recentReleases
+			recentNews.value = dashboardData.recentNews
+		} catch (error) {
+			console.error('Error loading dashboard overview:', error)
+			errorMessage.value =
+				error instanceof Error ? error.message : 'Unable to load dashboard data.'
+		} finally {
+			loading.value = false
 		}
+	}
+
+	onMounted(async () => {
+		await loadDashboardOverview()
 	})
 </script>
 
@@ -92,6 +94,17 @@
 				></div>
 				<p class="text-cb-tertiary-200 text-sm">Loading data...</p>
 			</div>
+		</div>
+
+		<div
+			v-else-if="errorMessage"
+			class="bg-cb-quinary-900 rounded-lg border border-red-500/30 p-6"
+		>
+			<p class="font-medium text-red-200">Unable to load dashboard data.</p>
+			<p class="text-cb-tertiary-300 mt-2 text-sm">{{ errorMessage }}</p>
+			<UButton type="button" class="mt-4" color="primary" @click="loadDashboardOverview">
+				Retry
+			</UButton>
 		</div>
 
 		<div v-else class="space-y-6">
