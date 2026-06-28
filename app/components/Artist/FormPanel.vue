@@ -9,9 +9,12 @@
 	<section
 		class="bg-cb-secondary-950 border-cb-quinary-900/70 rounded-[28px] border p-6 shadow-xl"
 	>
-		<div class="mb-4 space-y-2">
-			<h2 class="text-xl font-semibold">{{ title }}</h2>
-			<p class="text-sm leading-6 text-gray-400">{{ description }}</p>
+		<div class="mb-5 flex flex-wrap items-start justify-between gap-3">
+			<div class="space-y-2">
+				<h2 class="text-xl font-semibold">{{ title }}</h2>
+				<p class="text-sm leading-6 text-gray-400">{{ description }}</p>
+			</div>
+			<slot name="header-extra" />
 		</div>
 
 		<slot />

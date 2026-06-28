@@ -1,6 +1,7 @@
 import { CalendarDate } from '@internationalized/date'
 import type {
 	Artist,
+	ArtistEditorModel,
 	ArtistMenuItem,
 	Company,
 	GeneralTag,
@@ -454,6 +455,41 @@ export const useArtistEditorForm = (options: UseArtistEditorFormOptions = {}) =>
 			})) ?? []
 	}
 
+	const createEmptyArtistModel = (): ArtistEditorModel => ({
+		name: '',
+		id_youtube_music: null,
+		type: 'SOLO',
+		gender: 'UNKNOWN',
+		active_career: true,
+		description: null,
+		image: 'https://i.ibb.co/wLhbFZx/Frame-255.png',
+		birth_date: null,
+		debut_date: null,
+	})
+
+	const buildArtistEditorModelFromArtist = (source: Artist): ArtistEditorModel => ({
+		id: source.id,
+		name: source.name,
+		id_youtube_music: source.id_youtube_music ?? null,
+		type: source.type ?? 'SOLO',
+		gender: source.gender ?? 'UNKNOWN',
+		active_career: source.active_career ?? true,
+		description: source.description ?? null,
+		image: source.image ?? null,
+		birth_date: source.birth_date ?? null,
+		debut_date: source.debut_date ?? null,
+	})
+
+	const applyModelToForm = (model: ArtistEditorModel) => {
+		birthdayToDate.value = model.birth_date ? new Date(model.birth_date) : null
+		debutDateToDate.value = model.debut_date ? new Date(model.debut_date) : null
+	}
+
+	const resetFormToModel = (model: ArtistEditorModel) => {
+		resetSelectionState()
+		applyModelToForm(model)
+	}
+
 	return {
 		stylesList,
 		tagsList,
@@ -512,5 +548,9 @@ export const useArtistEditorForm = (options: UseArtistEditorFormOptions = {}) =>
 		handleCompanyUpdated,
 		applyOptions,
 		applyArtistSelections,
+		createEmptyArtistModel,
+		buildArtistEditorModelFromArtist,
+		applyModelToForm,
+		resetFormToModel,
 	}
 }
