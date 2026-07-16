@@ -1,20 +1,12 @@
 import type { TablesUpdate } from '~/types/supabase'
-
-interface UpdateMusicBody {
-	updates?: Partial<TablesUpdate<'musics'>>
-	artistIds?: string[]
-	releaseIds?: string[]
-}
+import { validateBody } from '../../../utils/validation'
+import { updateMusicBodySchema } from '../../../utils/schemas'
 
 export default defineEventHandler(async (event) => {
 	await requireContributor(event)
 
 	const musicId = validateRouteParam(event, 'id', 'Music')
-	const body = await readBody<UpdateMusicBody>(event)
-
-	if (!body) {
-		throw createBadRequestError('Request body is required')
-	}
+	const body = validateBody(await readBody(event), updateMusicBodySchema)
 
 	const supabase = useServerSupabase()
 
@@ -23,7 +15,7 @@ export default defineEventHandler(async (event) => {
 	if (body.updates && Object.keys(body.updates).length > 0) {
 		const { data, error } = await supabase
 			.from('musics')
-			.update(body.updates)
+			.update(body.updates as TablesUpdate<'musics'>)
 			.eq('id', musicId)
 			.select()
 			.single()

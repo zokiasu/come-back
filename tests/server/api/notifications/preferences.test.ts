@@ -75,10 +75,8 @@ describe('notification preferences API', () => {
 
 	it('should upsert only allowed preference fields for the authenticated user', async () => {
 		setupGlobals({
-			user_id: 'attacker-id',
 			push_enabled: true,
 			daily_comeback: false,
-			unknown_field: true,
 		})
 		const savedPreferences = {
 			user_id: 'user-id',
@@ -117,6 +115,21 @@ describe('notification preferences API', () => {
 		expect(preferencesQuery.single).toHaveBeenCalledOnce()
 	})
 
+	it('should reject unknown preference fields', async () => {
+		setupGlobals({
+			user_id: 'attacker-id',
+			push_enabled: true,
+			unknown_field: true,
+		})
+		vi.stubGlobal('useServerSupabase', () => ({ from: vi.fn() }))
+
+		const handler = await loadPutHandler()
+
+		await expect(handler({})).rejects.toMatchObject({
+			statusCode: 400,
+		})
+	})
+
 	it('should reject invalid preference bodies', async () => {
 		setupGlobals(null)
 		vi.stubGlobal('useServerSupabase', () => ({ from: vi.fn() }))
@@ -125,7 +138,6 @@ describe('notification preferences API', () => {
 
 		await expect(handler({})).rejects.toMatchObject({
 			statusCode: 400,
-			message: 'Corps de requête invalide',
 		})
 	})
 })

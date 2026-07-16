@@ -1,5 +1,6 @@
 import type { Database } from '~/types/supabase'
 import type { Artist } from '~/types'
+import { checkRateLimit, RATE_LIMIT_PRESETS } from '../../utils/rateLimit'
 
 type ArtistType = Database['public']['Enums']['artist_type']
 
@@ -28,6 +29,8 @@ const asBool = (value: unknown): boolean => value === 'true' || value === true
  * with their relations in a second query and restore the RPC order.
  */
 export default defineEventHandler(async (event) => {
+	checkRateLimit(event, RATE_LIMIT_PRESETS.paginated)
+
 	// This endpoint is auth-gated for non-public listings and returns
 	// per-request results; never let it sit in a shared/CDN cache (overrides the
 	// global /api s-maxage rule).

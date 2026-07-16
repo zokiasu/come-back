@@ -1,13 +1,12 @@
+import { validateBody } from '../../utils/validation'
+import { banArtistBodySchema } from '../../utils/schemas'
+
 export default defineEventHandler(async (event) => {
 	await requireAdmin(event)
 
-	const body = await readBody<{ artistId?: string; reason?: string }>(event)
+	const body = validateBody(await readBody(event), banArtistBodySchema)
 
-	if (!body.artistId || body.artistId.trim() === '') {
-		throw createBadRequestError('Artist ID is required')
-	}
-
-	const artistId = body.artistId.trim()
+	const artistId = body.artistId
 	const reason = body.reason?.trim() || null
 
 	const supabase = useServerSupabase()

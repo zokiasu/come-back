@@ -91,7 +91,7 @@ describe('PATCH /api/artists/[id]', () => {
 		const body = {
 			updates: { description: 'new' },
 			socialLinks: [],
-			groupIds: ['g1'],
+			groupIds: ['a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'],
 		}
 		setupGlobals(body)
 		const { rpc } = setupSupabase({ rpcData: { id: ARTIST_ID, description: 'new' } })
@@ -105,14 +105,14 @@ describe('PATCH /api/artists/[id]', () => {
 			p_updates: { description: 'new' },
 			p_social_links: [],
 			p_platform_links: undefined,
-			p_group_ids: ['g1'],
+			p_group_ids: ['a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'],
 			p_member_ids: undefined,
 			p_companies: undefined,
 		})
 	})
 
 	it('omits p_updates when the updates object is empty', async () => {
-		setupGlobals({ updates: {}, companies: [{ company_id: 'c1' }] })
+		setupGlobals({ updates: {}, companies: [{ company_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a13' }] })
 		const { rpc } = setupSupabase()
 
 		const handler = await loadHandler()
@@ -120,7 +120,7 @@ describe('PATCH /api/artists/[id]', () => {
 
 		const [, args] = rpc.mock.calls[0] as unknown as [string, Record<string, unknown>]
 		expect(args.p_updates).toBeUndefined()
-		expect(args.p_companies).toEqual([{ company_id: 'c1' }])
+		expect(args.p_companies).toEqual([{ company_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a13' }])
 	})
 
 	it('returns 409 on a YouTube Music ID conflict before calling the RPC', async () => {

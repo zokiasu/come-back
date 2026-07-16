@@ -43,7 +43,6 @@ describe('PATCH /api/releases/:id', () => {
 
 		await expect(handler({})).rejects.toMatchObject({
 			statusCode: 400,
-			message: 'Request body is required',
 		})
 	})
 
@@ -52,8 +51,8 @@ describe('PATCH /api/releases/:id', () => {
 			updates: {
 				name: 'Updated Release',
 			},
-			artistIds: ['artist-1', 'artist-2'],
-			platformLinks: [{ platform: 'spotify', url: 'https://example.com' }],
+			artistIds: ['a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12'],
+			platformLinks: [{ name: 'spotify', link: 'https://example.com' }],
 		}
 		const updatedRelease = {
 			id: 'release-id',
@@ -106,12 +105,12 @@ describe('PATCH /api/releases/:id', () => {
 					[
 						{
 							release_id: 'release-id',
-							artist_id: 'artist-1',
+							artist_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
 							is_primary: true,
 						},
 						{
 							release_id: 'release-id',
-							artist_id: 'artist-2',
+							artist_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12',
 							is_primary: false,
 						},
 					],
@@ -128,8 +127,8 @@ describe('PATCH /api/releases/:id', () => {
 				args: [
 					[
 						{
-							platform: 'spotify',
-							url: 'https://example.com',
+							name: 'spotify',
+							link: 'https://example.com',
 							release_id: 'release-id',
 						},
 					],

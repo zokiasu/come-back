@@ -45,19 +45,18 @@ describe('POST /api/admin/youtube/link-mv', () => {
 	})
 
 	it('should reject missing identifiers', async () => {
-		setupGlobals({ musicId: 'music-id' })
+		setupGlobals({ musicId: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a17' })
 		vi.stubGlobal('useServerSupabase', () => ({ from: vi.fn() }))
 
 		const handler = await loadHandler()
 
 		await expect(handler({})).rejects.toMatchObject({
 			statusCode: 400,
-			message: 'musicId and videoId are required',
 		})
 	})
 
 	it('should reject invalid YouTube video ids before querying Supabase', async () => {
-		setupGlobals({ musicId: 'music-id', videoId: 'invalid id!' })
+		setupGlobals({ musicId: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a17', videoId: 'invalid id!' })
 		const supabase = { from: vi.fn() }
 		vi.stubGlobal('useServerSupabase', () => supabase)
 
@@ -65,17 +64,16 @@ describe('POST /api/admin/youtube/link-mv', () => {
 
 		await expect(handler({})).rejects.toMatchObject({
 			statusCode: 400,
-			message: 'videoId format is invalid',
 		})
 		expect(supabase.from).not.toHaveBeenCalled()
 	})
 
 	it('should reject videos already linked to another music', async () => {
-		setupGlobals({ musicId: 'music-id', videoId: 'abc123XYZ' })
+		setupGlobals({ musicId: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a17', videoId: 'abc123XYZ' })
 
 		const musicQuery = createSupabaseQueryMock({
 			data: {
-				id: 'music-id',
+				id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a17',
 				name: 'Target Music',
 				id_youtube_music: null,
 				ismv: false,
@@ -103,16 +101,16 @@ describe('POST /api/admin/youtube/link-mv', () => {
 		})
 		expect(duplicateQuery.calls).toContainEqual({
 			method: 'neq',
-			args: ['id', 'music-id'],
+			args: ['id', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a17'],
 		})
 	})
 
 	it('should link the video and mark the music as an MV', async () => {
-		setupGlobals({ musicId: 'music-id', videoId: 'abc123XYZ' })
+		setupGlobals({ musicId: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a17', videoId: 'abc123XYZ' })
 
 		const musicQuery = createSupabaseQueryMock({
 			data: {
-				id: 'music-id',
+				id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a17',
 				name: 'Target Music',
 				id_youtube_music: 'previous-id',
 				ismv: false,
@@ -121,7 +119,7 @@ describe('POST /api/admin/youtube/link-mv', () => {
 		})
 		const duplicateQuery = createSupabaseQueryMock({ data: null, error: null })
 		const updatedMusic = {
-			id: 'music-id',
+			id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a17',
 			name: 'Target Music',
 			id_youtube_music: 'abc123XYZ',
 			ismv: true,
@@ -155,7 +153,7 @@ describe('POST /api/admin/youtube/link-mv', () => {
 					},
 				],
 			},
-			{ method: 'eq', args: ['id', 'music-id'] },
+			{ method: 'eq', args: ['id', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a17'] },
 			{
 				method: 'select',
 				args: ['id, name, id_youtube_music, ismv, duration, thumbnails'],

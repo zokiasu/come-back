@@ -1,38 +1,12 @@
-import type { Json, TablesInsert, TablesUpdate } from '~/types/supabase'
-
-interface UpdateArtistBody {
-	updates: TablesUpdate<'artists'>
-	socialLinks?: Omit<TablesInsert<'artist_social_links'>, 'artist_id'>[]
-	platformLinks?: Omit<TablesInsert<'artist_platform_links'>, 'artist_id'>[]
-	groupIds?: string[]
-	memberIds?: string[]
-	companies?: Omit<TablesInsert<'artist_companies'>, 'artist_id'>[]
-}
+import type { Json } from '~/types/supabase'
+import { validateBody } from '../../../utils/validation'
+import { updateArtistBodySchema } from '../../../utils/schemas'
 
 export default defineEventHandler(async (event) => {
 	await requireContributor(event)
 
 	const artistId = validateRouteParam(event, 'id', 'Artist')
-	const body = await readBody<UpdateArtistBody>(event)
-
-	if (!body) {
-		throw createBadRequestError('Request body is required')
-	}
-
-	// Bound relation arrays before handing them to the transactional RPC.
-	for (const [field, list] of Object.entries({
-		socialLinks: body.socialLinks,
-		platformLinks: body.platformLinks,
-		groupIds: body.groupIds,
-		memberIds: body.memberIds,
-		companies: body.companies,
-	})) {
-		if (Array.isArray(list) && list.length > VALIDATION_LIMITS.MAX_ARRAY_ITEMS) {
-			throw createBadRequestError(
-				`'${field}' exceeds the maximum of ${VALIDATION_LIMITS.MAX_ARRAY_ITEMS} items`,
-			)
-		}
-	}
+	const body = validateBody(await readBody(event), updateArtistBodySchema)
 
 	const supabase = useServerSupabase()
 

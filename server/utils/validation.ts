@@ -1,4 +1,5 @@
 import { createError } from 'h3'
+import type { z } from 'zod'
 
 /**
  * Validation constants for API inputs
@@ -178,4 +179,33 @@ export const validateOrderBy = (
 ): string => {
 	if (orderBy && allowedColumns.includes(orderBy)) return orderBy
 	return defaultColumn
+}
+
+/**
+ * Validates the request body against a Zod schema.
+ * Throws a 400 error with detailed messages when validation fails.
+ *
+ * @param body - The request body to validate
+ * @param schema - The Zod schema to validate against
+ * @returns The validated and typed body
+ */
+export const validateBody = <T extends z.ZodTypeAny>(
+	body: unknown,
+	schema: T,
+): z.infer<T> => {
+	const result = schema.safeParse(body)
+
+	if (!result.success) {
+		const issues = (result.error.issues ?? [])
+			.map((issue) => `${issue.path.join('.')}: ${issue.message}`)
+			.join('; ')
+
+		throw createError({
+			statusCode: 400,
+			statusMessage: 'Bad Request',
+			message: `Invalid request body: ${issues}`,
+		})
+	}
+
+	return result.data
 }

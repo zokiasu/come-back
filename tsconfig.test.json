@@ -9,8 +9,10 @@
 	},
 	"include": [
 		"tests/**/*.ts",
+		"tests/**/*.d.ts",
 		"server/utils/errorHandler.ts",
 		"server/utils/queryFilters.ts",
+		"server/utils/rateLimit.ts",
 		"server/utils/transformers.ts",
 		"server/utils/validation.ts",
 		"server/utils/youtubeMvMatcher.ts",

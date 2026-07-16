@@ -1,20 +1,12 @@
-import type { TablesInsert, TablesUpdate } from '~/types/supabase'
-
-interface UpdateReleaseBody {
-	updates?: TablesUpdate<'releases'>
-	artistIds?: string[]
-	platformLinks?: Omit<TablesInsert<'release_platform_links'>, 'release_id'>[]
-}
+import type { TablesUpdate } from '~/types/supabase'
+import { validateBody } from '../../../utils/validation'
+import { updateReleaseBodySchema } from '../../../utils/schemas'
 
 export default defineEventHandler(async (event) => {
 	await requireContributor(event)
 
 	const releaseId = validateRouteParam(event, 'id', 'Release')
-	const body = await readBody<UpdateReleaseBody>(event)
-
-	if (!body) {
-		throw createBadRequestError('Request body is required')
-	}
+	const body = validateBody(await readBody(event), updateReleaseBodySchema)
 
 	const supabase = useServerSupabase()
 
@@ -23,7 +15,7 @@ export default defineEventHandler(async (event) => {
 	if (body.updates && Object.keys(body.updates).length > 0) {
 		const { data, error } = await supabase
 			.from('releases')
-			.update(body.updates)
+			.update(body.updates as TablesUpdate<'releases'>)
 			.eq('id', releaseId)
 			.select()
 			.single()

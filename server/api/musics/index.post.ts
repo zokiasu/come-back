@@ -1,25 +1,18 @@
 import type { TablesInsert } from '~/types/supabase'
-
-interface CreateMusicBody {
-	music: TablesInsert<'musics'>
-	artistIds: string[]
-}
+import { validateBody } from '../../utils/validation'
+import { createMusicBodySchema } from '../../utils/schemas'
 
 export default defineEventHandler(async (event) => {
 	await requireContributor(event)
 
-	const body = await readBody<CreateMusicBody>(event)
-
-	if (!body?.music) {
-		throw createBadRequestError('Music data is required')
-	}
+	const body = validateBody(await readBody(event), createMusicBodySchema)
 
 	const supabase = useServerSupabase()
 
 	// 1. Create the music
 	const { data: music, error: musicError } = await supabase
 		.from('musics')
-		.insert(body.music)
+		.insert(body.music as TablesInsert<'musics'>)
 		.select()
 		.single()
 

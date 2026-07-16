@@ -1,10 +1,9 @@
+import { validateBody } from '../../utils/validation'
+import { pushUnsubscribeBodySchema } from '../../utils/schemas'
+
 export default defineEventHandler(async (event) => {
 	const user = await requireAuth(event)
-	const body = await readBody<{ endpoint: string }>(event)
-
-	if (!body?.endpoint) {
-		throw createBadRequestError('endpoint est requis')
-	}
+	const body = validateBody(await readBody(event), pushUnsubscribeBodySchema)
 
 	const supabase = useServerSupabase()
 

@@ -59,9 +59,9 @@ const fullBody = {
 	data: { name: 'NewJeans', type: 'GROUP', id_youtube_music: 'YTM1' },
 	socialLinks: [{ name: 'X', link: 'https://x.com/nj' }],
 	platformLinks: [{ name: 'Spotify', link: 'https://sp.com/nj' }],
-	groupIds: ['g1'],
-	memberIds: ['m1'],
-	companies: [{ company_id: 'c1' }],
+	groupIds: ['a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'],
+	memberIds: ['a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12'],
+	companies: [{ company_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a13' }],
 }
 
 describe('POST /api/artists', () => {
@@ -80,7 +80,6 @@ describe('POST /api/artists', () => {
 
 		await expect(handler({})).rejects.toMatchObject({
 			statusCode: 400,
-			message: 'Artist name is required',
 		})
 		expect(rpc).not.toHaveBeenCalled()
 	})

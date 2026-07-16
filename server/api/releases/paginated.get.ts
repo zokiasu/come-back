@@ -1,4 +1,5 @@
 import { applyReleaseFilters, applyVerifiedArtistFilter } from '../../utils/queryFilters'
+import { checkRateLimit, RATE_LIMIT_PRESETS } from '../../utils/rateLimit'
 
 const ALLOWED_ORDER_COLUMNS = [
 	'date',
@@ -10,6 +11,9 @@ const ALLOWED_ORDER_COLUMNS = [
 ] as const
 
 export default defineEventHandler(async (event) => {
+	checkRateLimit(event, RATE_LIMIT_PRESETS.paginated)
+	setHeader(event, 'Cache-Control', 'public, max-age=60, stale-while-revalidate=300')
+
 	const supabase = useServerSupabase()
 
 	try {

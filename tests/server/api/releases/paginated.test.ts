@@ -33,6 +33,7 @@ const setupGlobals = (query: Record<string, string | undefined>) => {
 	vi.stubGlobal('createInternalError', createInternalError)
 	vi.stubGlobal('handleSupabaseError', handleSupabaseError)
 	vi.stubGlobal('isPostgrestError', isPostgrestError)
+	vi.stubGlobal('setHeader', vi.fn())
 	vi.stubGlobal('transformJunction', transformJunction)
 	vi.stubGlobal('validateArrayParam', validateArrayParam)
 	vi.stubGlobal('validateLimitParam', validateLimitParam)
@@ -40,6 +41,7 @@ const setupGlobals = (query: Record<string, string | undefined>) => {
 	vi.stubGlobal('validateOrderDirection', validateOrderDirection)
 	vi.stubGlobal('validatePageParam', validatePageParam)
 	vi.stubGlobal('validateSearchParam', validateSearchParam)
+	vi.stubGlobal('getRequestIP', vi.fn(() => '127.0.0.1'))
 }
 
 describe('GET /api/releases/paginated', () => {

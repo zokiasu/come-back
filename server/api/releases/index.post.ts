@@ -1,30 +1,18 @@
 import type { TablesInsert } from '~/types/supabase'
-
-interface CreateReleaseBody {
-	release: TablesInsert<'releases'>
-	artistIds: string[]
-	platformLinks?: Omit<TablesInsert<'release_platform_links'>, 'release_id'>[]
-}
+import { validateBody } from '../../utils/validation'
+import { createReleaseBodySchema } from '../../utils/schemas'
 
 export default defineEventHandler(async (event) => {
 	await requireContributor(event)
 
-	const body = await readBody<CreateReleaseBody>(event)
-
-	if (!body?.release) {
-		throw createBadRequestError('Release data is required')
-	}
-
-	if (!body.artistIds?.length) {
-		throw createBadRequestError('At least one artist is required')
-	}
+	const body = validateBody(await readBody(event), createReleaseBodySchema)
 
 	const supabase = useServerSupabase()
 
 	// 1. Create the release
 	const { data: release, error: releaseError } = await supabase
 		.from('releases')
-		.insert(body.release)
+		.insert(body.release as TablesInsert<'releases'>)
 		.select()
 		.single()
 
