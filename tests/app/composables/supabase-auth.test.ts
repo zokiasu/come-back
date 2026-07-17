@@ -9,9 +9,11 @@ const loadAuthComposable = async () => {
 const setupEmailAuth = ({
 	authError = null,
 	profileReady = true,
+	refreshError = null,
 }: {
 	authError?: Error | null
 	profileReady?: boolean
+	refreshError?: Error | null
 } = {}) => {
 	const user = {
 		id: 'user-id',
@@ -24,17 +26,24 @@ const setupEmailAuth = ({
 	}))
 	const syncUserProfileFromAuthUser = vi.fn(async () => profileReady)
 	const close = vi.fn()
-	const refreshNuxtData = vi.fn()
+	const refreshNuxtData = vi.fn(async () => {
+		if (refreshError) throw refreshError
+	})
 	const toastAdd = vi.fn()
 
 	vi.stubGlobal('ref', ref)
 	vi.stubGlobal('nextTick', nextTick)
 	vi.stubGlobal('refreshNuxtData', refreshNuxtData)
 	vi.stubGlobal('useToast', () => ({ add: toastAdd }))
+	vi.stubGlobal('useRequestURL', () => ({ origin: 'https://example.com' }))
+	vi.stubGlobal('useSupabaseUser', () => ref(null))
 	vi.stubGlobal('useSupabaseClient', () => ({
 		auth: { signInWithPassword },
 	}))
 	vi.stubGlobal('useAuth', () => ({
+		ensureUserProfile: vi.fn(async () => true),
+		getTrustedAuthUser: vi.fn(async () => null),
+		logout: vi.fn(async () => undefined),
 		syncError: ref<string | null>(null),
 		syncUserProfileFromAuthUser,
 	}))
@@ -91,5 +100,17 @@ describe('useSupabaseAuth email sign-in', () => {
 		expect(mocks.syncUserProfileFromAuthUser).not.toHaveBeenCalled()
 		expect(mocks.close).not.toHaveBeenCalled()
 		expect(mocks.refreshNuxtData).not.toHaveBeenCalled()
+	})
+
+	it('keeps a successful sign-in when refreshing Nuxt data fails', async () => {
+		const mocks = setupEmailAuth({ refreshError: new Error('Nuxt context unavailable') })
+		const { useSupabaseAuth } = await loadAuthComposable()
+		const auth = useSupabaseAuth()
+
+		await expect(auth.loginWithEmail('person@example.com', 'secret')).resolves.toBe(true)
+
+		expect(mocks.close).toHaveBeenCalledOnce()
+		expect(mocks.refreshNuxtData).toHaveBeenCalledOnce()
+		expect(auth.error.value).toBeNull()
 	})
 })

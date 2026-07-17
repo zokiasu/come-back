@@ -9,6 +9,12 @@ import {
 	validateSearchParam,
 	VALIDATION_LIMITS,
 } from '#server/utils/validation'
+import {
+	musicInsertSchema,
+	statsFiltersSchema,
+	updateArtistCompanyBodySchema,
+	updateReleaseBodySchema,
+} from '#server/utils/schemas'
 
 const expectBadRequest = (action: () => unknown) => {
 	expect(action).toThrowError(
@@ -89,5 +95,40 @@ describe('order validators', () => {
 		expect(validateOrderBy('date', allowedColumns, 'name')).toBe('date')
 		expect(validateOrderBy('created_at', allowedColumns, 'name')).toBe('name')
 		expect(validateOrderBy(undefined, allowedColumns, 'name')).toBe('name')
+	})
+})
+
+describe('request body schemas', () => {
+	it('should reject empty artist replacements while allowing omitted artist ids', () => {
+		expect(updateReleaseBodySchema.safeParse({ artistIds: [] }).success).toBe(false)
+		expect(
+			updateReleaseBodySchema.safeParse({ updates: { name: 'Updated' } }).success,
+		).toBe(true)
+	})
+
+	it('should reject negative music durations', () => {
+		expect(musicInsertSchema.safeParse({ name: 'Track', duration: -1 }).success).toBe(
+			false,
+		)
+		expect(musicInsertSchema.safeParse({ name: 'Track', duration: 0 }).success).toBe(true)
+	})
+
+	it('should require at least one artist-company update field', () => {
+		expect(updateArtistCompanyBodySchema.safeParse({ updates: {} }).success).toBe(false)
+		expect(
+			updateArtistCompanyBodySchema.safeParse({
+				updates: { relationship_type: 'LABEL' },
+			}).success,
+		).toBe(true)
+	})
+
+	it('should reject contradictory statistics filters', () => {
+		expect(statsFiltersSchema.safeParse({ period: 'week', year: 2026 }).success).toBe(
+			false,
+		)
+		expect(statsFiltersSchema.safeParse({ period: 'year', month: 4 }).success).toBe(false)
+		expect(
+			statsFiltersSchema.safeParse({ period: 'month', year: 2026, month: 4 }).success,
+		).toBe(true)
 	})
 })

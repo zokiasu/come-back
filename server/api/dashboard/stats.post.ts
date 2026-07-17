@@ -49,50 +49,46 @@ interface ArtistStatsRow {
 
 const buildDateRange = (filters: StatsFilters) => {
 	const now = new Date()
+	const currentYear = now.getUTCFullYear()
+	const currentMonth = now.getUTCMonth()
 	let startDate: Date | null = null
 	let endDate: Date | null = null
+	let filterYear: number | undefined
+	let filterMonth: number | undefined
 
 	switch (filters.period) {
+		case 'all':
+			if (filters.year != null) {
+				filterYear = filters.year
+				startDate = new Date(Date.UTC(filterYear, 0, 1))
+				endDate = new Date(Date.UTC(filterYear + 1, 0, 1) - 1)
+			}
+			break
 		case 'week':
 			startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
 			endDate = now
 			break
 		case 'month':
-			if (
-				filters.year !== null &&
-				filters.year !== undefined &&
-				filters.month !== null &&
-				filters.month !== undefined
-			) {
-				startDate = new Date(filters.year, filters.month, 1)
-				endDate = new Date(filters.year, filters.month + 1, 0, 23, 59, 59, 999)
-			} else if (filters.year) {
-				startDate = new Date(filters.year, 0, 1)
-				endDate = new Date(filters.year, 11, 31, 23, 59, 59, 999)
-			} else {
-				startDate = new Date(now.getFullYear(), now.getMonth(), 1)
-				endDate = now
-			}
+			filterYear = filters.year ?? currentYear
+			filterMonth = filters.month ?? currentMonth
+			startDate = new Date(Date.UTC(filterYear, filterMonth, 1))
+			endDate =
+				filters.year == null && filters.month == null
+					? now
+					: new Date(Date.UTC(filterYear, filterMonth + 1, 1) - 1)
 			break
 		case 'year':
-			if (filters.year) {
-				startDate = new Date(filters.year, 0, 1)
-				endDate = new Date(filters.year, 11, 31, 23, 59, 59, 999)
-			} else {
-				startDate = new Date(now.getFullYear(), 0, 1)
-				endDate = now
-			}
+			filterYear = filters.year ?? currentYear
+			startDate = new Date(Date.UTC(filterYear, 0, 1))
+			endDate = filters.year == null ? now : new Date(Date.UTC(filterYear + 1, 0, 1) - 1)
 			break
-	}
-
-	if (filters.year && filters.period === 'all') {
-		startDate = new Date(filters.year, 0, 1)
-		endDate = new Date(filters.year, 11, 31, 23, 59, 59, 999)
 	}
 
 	return {
 		startDate: startDate?.toISOString(),
 		endDate: endDate?.toISOString(),
+		filterYear,
+		filterMonth,
 	}
 }
 
@@ -113,17 +109,12 @@ export default defineEventHandler(async (event) => {
 	setHeader(event, 'Cache-Control', 'private, no-store')
 
 	const filters = validateBody(await readBody(event), statsFiltersSchema)
-	const { startDate, endDate } = buildDateRange(filters)
+	const { startDate, endDate, filterYear, filterMonth } = buildDateRange(filters)
 
 	const supabase = useServerSupabase()
 
 	try {
-		const isMonthlyView =
-			filters.period === 'month' &&
-			filters.year !== null &&
-			filters.year !== undefined &&
-			filters.month !== null &&
-			filters.month !== undefined
+		const isDailyView = filters.period === 'week' || filters.period === 'month'
 
 		const [
 			generalStatsResult,
@@ -138,30 +129,30 @@ export default defineEventHandler(async (event) => {
 			supabase.rpc('get_general_stats', {
 				start_date: startDate,
 				end_date: endDate,
-				filter_year: filters.year ?? undefined,
+				filter_year: filterYear,
 			}),
 			supabase.rpc('get_artist_demographics'),
 			supabase.rpc('get_top_artists_by_releases', {
 				start_date: startDate,
 				end_date: endDate,
-				filter_year: filters.year ?? undefined,
+				filter_year: filterYear,
 				limit_count: 10,
 			}),
 			supabase.rpc('get_top_artists_by_musics', {
 				start_date: startDate,
 				end_date: endDate,
-				filter_year: filters.year ?? undefined,
+				filter_year: filterYear,
 				limit_count: 10,
 			}),
 			supabase.rpc('get_releases_temporal_stats', {
 				period_type: filters.period,
-				filter_year: filters.year ?? undefined,
-				filter_month: filters.month ?? undefined,
+				filter_year: filterYear,
+				filter_month: filterMonth,
 			}),
 			supabase.rpc('get_musics_temporal_stats_with_fallback', {
 				period_type: filters.period,
-				filter_year: filters.year ?? undefined,
-				filter_month: filters.month ?? undefined,
+				filter_year: filterYear,
+				filter_month: filterMonth,
 			}),
 			supabase
 				.from('artists')
@@ -492,24 +483,24 @@ export default defineEventHandler(async (event) => {
 				],
 				charts: [
 					{
-						title: `Release Evolution ${isMonthlyView ? 'by day' : 'by month'}`,
+						title: `Release Evolution ${isDailyView ? 'by day' : 'by month'}`,
 						data: {
 							labels: releasesTemporal.map((row) => row.period_label),
 							data: releasesTemporal.map((row) => row.count_value),
 							type: 'line',
 						},
-						description: isMonthlyView
+						description: isDailyView
 							? 'Number of releases linked to verified artists, by day'
 							: 'Number of releases linked to verified artists, by month',
 					},
 					{
-						title: `Track Evolution ${isMonthlyView ? 'by day' : 'by month'}`,
+						title: `Track Evolution ${isDailyView ? 'by day' : 'by month'}`,
 						data: {
 							labels: musicsTemporal.map((row) => row.period_label),
 							data: musicsTemporal.map((row) => row.count_value),
 							type: 'line',
 						},
-						description: isMonthlyView
+						description: isDailyView
 							? 'Number of tracks linked to verified artists, by day'
 							: 'Number of tracks linked to verified artists, by month',
 					},

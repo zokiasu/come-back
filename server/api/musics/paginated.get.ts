@@ -107,10 +107,10 @@ export default defineEventHandler(async (event) => {
 		) as OrderColumn
 		const orderDirection = validateOrderDirection(query.orderDirection as string, 'desc')
 		const ismv = query.ismv === 'true' ? true : query.ismv === 'false' ? false : undefined
-		const verified =
+		const musicVerified =
 			query.verified === 'true' ? true : query.verified === 'false' ? false : undefined
 
-		if (verified !== true) {
+		if (musicVerified !== true) {
 			await requireContributor(event)
 			setHeader(event, 'Cache-Control', 'private, no-store')
 		}
@@ -132,6 +132,7 @@ export default defineEventHandler(async (event) => {
 					.from('artists')
 					.select('id')
 					.in('id', artistIds)
+					// Music verification and artist verification are separate invariants.
 					.eq('verified', true)
 					.overlaps('styles', styleFilters)
 
@@ -165,7 +166,10 @@ export default defineEventHandler(async (event) => {
 				}
 			}
 
-			if ((!filteredArtistIds || filteredArtistIds.length === 0) && verified === true) {
+			if (
+				(!filteredArtistIds || filteredArtistIds.length === 0) &&
+				musicVerified === true
+			) {
 				const { data: rpcData, error: rpcError } = await supabase.rpc(
 					'get_paginated_musics_by_styles',
 					{
@@ -229,6 +233,7 @@ export default defineEventHandler(async (event) => {
 				const { data: matchingArtists, error: matchingArtistsError } = await supabase
 					.from('artists')
 					.select('id')
+					// Dashboard music filters still scope style metadata to verified artists.
 					.eq('verified', true)
 					.overlaps('styles', styleFilters)
 
@@ -288,7 +293,12 @@ export default defineEventHandler(async (event) => {
 							) as T)
 			}
 
-			nextQuery = applyMusicFilters(nextQuery, { search, years, ismv, verified })
+			nextQuery = applyMusicFilters(nextQuery, {
+				search,
+				years,
+				ismv,
+				verified: musicVerified,
+			})
 			nextQuery = applyMusicNameExclusions(nextQuery)
 
 			return nextQuery

@@ -51,7 +51,10 @@ describe('PATCH /api/releases/:id', () => {
 			updates: {
 				name: 'Updated Release',
 			},
-			artistIds: ['a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12'],
+			artistIds: [
+				'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+				'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12',
+			],
 			platformLinks: [{ name: 'spotify', link: 'https://example.com' }],
 		}
 		const updatedRelease = {
@@ -64,13 +67,22 @@ describe('PATCH /api/releases/:id', () => {
 			data: updatedRelease,
 			error: null,
 		})
+		const fetchArtistsQuery = createSupabaseQueryMock({
+			data: [
+				{
+					artist_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a10',
+					is_primary: true,
+				},
+			],
+			error: null,
+		})
 		const deleteArtistsQuery = createSupabaseQueryMock({ error: null })
 		const insertArtistsQuery = createSupabaseQueryMock({ error: null })
 		const deletePlatformLinksQuery = createSupabaseQueryMock({ error: null })
 		const insertPlatformLinksQuery = createSupabaseQueryMock({ error: null })
 		const queriesByTable: Record<string, unknown[]> = {
 			releases: [updateReleaseQuery],
-			artist_releases: [deleteArtistsQuery, insertArtistsQuery],
+			artist_releases: [fetchArtistsQuery, deleteArtistsQuery, insertArtistsQuery],
 			release_platform_links: [deletePlatformLinksQuery, insertPlatformLinksQuery],
 		}
 		const supabase = {
@@ -94,6 +106,10 @@ describe('PATCH /api/releases/:id', () => {
 			{ method: 'select', args: [] },
 		])
 		expect(updateReleaseQuery.single).toHaveBeenCalledOnce()
+		expect(fetchArtistsQuery.calls).toEqual([
+			{ method: 'select', args: ['artist_id, is_primary'] },
+			{ method: 'eq', args: ['release_id', 'release-id'] },
+		])
 		expect(deleteArtistsQuery.calls).toEqual([
 			{ method: 'delete', args: [] },
 			{ method: 'eq', args: ['release_id', 'release-id'] },
@@ -137,18 +153,75 @@ describe('PATCH /api/releases/:id', () => {
 		])
 	})
 
-	it('should return the release id when only relations are updated', async () => {
+	it('should reject attempts to remove every artist from a release', async () => {
 		setupGlobals({ artistIds: [] })
 
-		const deleteArtistsQuery = createSupabaseQueryMock({ error: null })
+		const from = vi.fn()
 		const supabase = {
-			from: vi.fn(() => deleteArtistsQuery),
+			from,
 		}
 		vi.stubGlobal('useServerSupabase', () => supabase)
 
 		const handler = await loadHandler()
 
-		await expect(handler({})).resolves.toEqual({ id: 'release-id' })
-		expect(supabase.from).toHaveBeenCalledWith('artist_releases')
+		await expect(handler({})).rejects.toMatchObject({ statusCode: 400 })
+		expect(from).not.toHaveBeenCalled()
+	})
+
+	it('should restore previous artist links when replacement fails', async () => {
+		const newArtistId = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'
+		const previousArtistId = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a10'
+		setupGlobals({ artistIds: [newArtistId] })
+
+		const fetchArtistsQuery = createSupabaseQueryMock({
+			data: [{ artist_id: previousArtistId, is_primary: true }],
+			error: null,
+		})
+		const deleteArtistsQuery = createSupabaseQueryMock({ error: null })
+		const insertArtistsQuery = createSupabaseQueryMock({
+			error: {
+				code: '23503',
+				message: 'Foreign key violation',
+				details: 'Artist does not exist',
+				hint: '',
+			},
+		})
+		const rollbackArtistsQuery = createSupabaseQueryMock({ error: null })
+		const queries = [
+			fetchArtistsQuery,
+			deleteArtistsQuery,
+			insertArtistsQuery,
+			rollbackArtistsQuery,
+		]
+		const supabase = {
+			from: vi.fn((table: string) => {
+				if (table !== 'artist_releases') throw new Error(`Unexpected table: ${table}`)
+				const query = queries.shift()
+				if (!query) throw new Error('Unexpected artist_releases query')
+				return query
+			}),
+		}
+		vi.stubGlobal('useServerSupabase', () => supabase)
+
+		const handler = await loadHandler()
+
+		await expect(handler({})).rejects.toMatchObject({
+			statusCode: 409,
+			data: { context: 'releases.update.artists.insert' },
+		})
+		expect(rollbackArtistsQuery.calls).toEqual([
+			{
+				method: 'insert',
+				args: [
+					[
+						{
+							release_id: 'release-id',
+							artist_id: previousArtistId,
+							is_primary: true,
+						},
+					],
+				],
+			},
+		])
 	})
 })

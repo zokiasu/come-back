@@ -167,7 +167,7 @@
 
 				<form v-else class="mt-6 space-y-4" @submit.prevent="handleEmailLogin">
 					<div class="space-y-2">
-						<label for="auth-email" class="text-sm font-medium text-gray-200">
+						<label for="auth-email" class="text-cb-tertiary-200 text-sm font-medium">
 							Email
 						</label>
 						<UInput
@@ -184,7 +184,7 @@
 					</div>
 
 					<div class="space-y-2">
-						<label for="auth-password" class="text-sm font-medium text-gray-200">
+						<label for="auth-password" class="text-cb-tertiary-200 text-sm font-medium">
 							Password
 						</label>
 						<UInput

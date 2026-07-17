@@ -285,6 +285,55 @@ describe('GET /api/musics/paginated', () => {
 		})
 	})
 
+	it('should keep artist verification separate from pending music filtering', async () => {
+		setupGlobals({
+			page: '1',
+			limit: '20',
+			styles: 'pop',
+			verified: 'false',
+		})
+
+		const matchingArtistsQuery = createSupabaseQueryMock({
+			data: [{ id: 'artist-id' }],
+			error: null,
+		})
+		const musicArtistsQuery = createSupabaseQueryMock({
+			data: [{ music_id: 'music-id' }],
+			error: null,
+		})
+		const dataQuery = createSupabaseQueryMock({ data: [], error: null })
+		const countQuery = createSupabaseQueryMock({ count: 0, error: null })
+		let musicQueryCount = 0
+		const supabase = {
+			from: vi.fn((table: string) => {
+				if (table === 'artists') return matchingArtistsQuery
+				if (table === 'music_artists') return musicArtistsQuery
+				if (table === 'musics') {
+					musicQueryCount += 1
+					return musicQueryCount === 1 ? dataQuery : countQuery
+				}
+				throw new Error(`Unexpected table: ${table}`)
+			}),
+		}
+		vi.stubGlobal('useServerSupabase', () => supabase)
+
+		const handler = await loadHandler()
+		await handler({})
+
+		expect(matchingArtistsQuery.calls).toContainEqual({
+			method: 'eq',
+			args: ['verified', true],
+		})
+		expect(dataQuery.calls).toContainEqual({
+			method: 'eq',
+			args: ['artists.artist.verified', true],
+		})
+		expect(dataQuery.calls).toContainEqual({
+			method: 'eq',
+			args: ['verified', false],
+		})
+	})
+
 	it('should map Supabase errors with the musics pagination context', async () => {
 		setupGlobals({})
 

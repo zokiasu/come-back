@@ -75,9 +75,20 @@ export const useArtistCreateFlow = () => {
 	})
 
 	const heroImageSrc = computed(() => model.value.image || null)
+	const hasYtmIdToValidate = computed(
+		() => (model.value.id_youtube_music?.trim().length ?? 0) >= 6,
+	)
+	const isYtmIdReady = computed(
+		() => !hasYtmIdToValidate.value || ytmIdStatus.value === 'available',
+	)
 
 	const canSave = computed(() => {
-		return model.value.name.trim().length > 0 && !ytmIdBlocked.value && !isSaving.value
+		return (
+			model.value.name.trim().length > 0 &&
+			isYtmIdReady.value &&
+			!ytmIdBlocked.value &&
+			!isSaving.value
+		)
 	})
 
 	function logCreateTrace(step: string, details?: Record<string, unknown>) {
@@ -174,10 +185,31 @@ export const useArtistCreateFlow = () => {
 			return false
 		}
 
+		if (
+			hasYtmIdToValidate.value &&
+			(ytmIdStatus.value === 'idle' || ytmIdStatus.value === 'checking')
+		) {
+			toast.add({
+				title: 'YouTube Music ID validation is still running',
+				description: 'Wait for the validation result before creating the profile.',
+				color: 'warning',
+			})
+			return false
+		}
+
 		if (ytmIdBlocked.value) {
 			toast.add({
 				title: 'YouTube Music ID is not valid',
 				description: ytmIdMessage.value || 'This ID cannot be used',
+				color: 'error',
+			})
+			return false
+		}
+
+		if (hasYtmIdToValidate.value && ytmIdStatus.value !== 'available') {
+			toast.add({
+				title: 'YouTube Music ID could not be validated',
+				description: ytmIdMessage.value || 'Retry the validation before saving.',
 				color: 'error',
 			})
 			return false
@@ -229,8 +261,8 @@ export const useArtistCreateFlow = () => {
 	watch(
 		() => model.value.id_youtube_music,
 		(newValue) => {
+			resetYtmCheck()
 			if (!newValue || newValue.trim().length < 6) {
-				resetYtmCheck()
 				return
 			}
 			checkYtmId(newValue)

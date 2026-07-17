@@ -22,12 +22,14 @@ export function useYoutubeMusicIdCheck() {
 	const { runMutation } = useMutationTimeout()
 	const status = ref<YtmIdStatus>('idle')
 	const message = ref<string | null>(null)
+	let validationSequence = 0
 
 	const isBlocked = computed(
 		() => status.value === 'exists' || status.value === 'blacklisted',
 	)
 
 	const reset = () => {
+		validationSequence += 1
 		status.value = 'idle'
 		message.value = null
 	}
@@ -39,6 +41,7 @@ export function useYoutubeMusicIdCheck() {
 			return
 		}
 
+		const currentSequence = ++validationSequence
 		status.value = 'checking'
 		message.value = null
 
@@ -53,6 +56,8 @@ export function useYoutubeMusicIdCheck() {
 				}),
 				'YouTube Music ID validation timed out. Please try again.',
 			)
+
+			if (currentSequence !== validationSequence) return
 
 			if (result.status === 'blacklisted') {
 				status.value = 'blacklisted'
@@ -69,6 +74,7 @@ export function useYoutubeMusicIdCheck() {
 				message.value = null
 			}
 		} catch {
+			if (currentSequence !== validationSequence) return
 			status.value = 'error'
 			message.value = 'Failed to validate YouTube Music ID'
 		}

@@ -115,6 +115,13 @@
 	const activeGender = computed<ArtistGender>(() => model.value.gender)
 	const activeCareer = computed(() => model.value.active_career)
 
+	const onArtistTypeChange = (type: ArtistType) => {
+		model.value.type = type
+		if (type === 'SOLO') {
+			artistMembers.value = []
+		}
+	}
+
 	const overviewBadges = computed(() => {
 		return [
 			{
@@ -123,13 +130,13 @@
 			},
 			{
 				label: genderLabels[activeGender.value],
-				class: 'bg-cb-quinary-900 text-white ring-cb-quinary-800',
+				class: 'bg-cb-quinary-900 text-cb-tertiary-50 ring-cb-quinary-800',
 			},
 			{
 				label: activeCareer.value ? 'Active career' : 'Inactive career',
 				class: activeCareer.value
-					? 'bg-emerald-500/15 text-emerald-300 ring-emerald-500/30'
-					: 'bg-zinc-700/60 text-zinc-200 ring-zinc-600',
+					? 'bg-cb-primary-900/20 text-cb-primary-200 ring-cb-primary-900/40'
+					: 'bg-cb-quinary-900/70 text-cb-quinary-200 ring-cb-quinary-800',
 			},
 		]
 	})
@@ -138,11 +145,11 @@
 		return [
 			...artistNationalities.value.map((nationality) => ({
 				label: nationality.name,
-				class: 'bg-amber-500/15 text-amber-200 ring-amber-500/30',
+				class: 'bg-cb-secondary-800/40 text-cb-secondary-200 ring-cb-secondary-700/50',
 			})),
 			...artistStyles.value.map((style) => ({
 				label: style.name,
-				class: 'bg-cb-quinary-900 text-white ring-cb-quinary-800',
+				class: 'bg-cb-quinary-900 text-cb-tertiary-50 ring-cb-quinary-800',
 			})),
 		]
 	})
@@ -503,6 +510,7 @@
 											"
 										>
 											<UButton
+												type="button"
 												color="neutral"
 												variant="link"
 												size="sm"
@@ -544,6 +552,7 @@
 											"
 										>
 											<UButton
+												type="button"
 												color="neutral"
 												variant="link"
 												size="sm"
@@ -598,7 +607,7 @@
 										:variant="activeType === option.value ? 'solid' : 'soft'"
 										class="cursor-pointer rounded-full"
 										:aria-pressed="activeType === option.value"
-										@click="model.type = option.value"
+										@click="onArtistTypeChange(option.value)"
 									>
 										{{ option.label }}
 									</UButton>
@@ -981,6 +990,7 @@
 									</div>
 
 									<UButton
+										type="button"
 										icon="i-lucide-trash-2"
 										color="error"
 										variant="soft"
@@ -1095,9 +1105,14 @@
 								description="Drop a file here to preview a custom image before saving."
 							>
 								<div
+									role="button"
+									tabindex="0"
+									aria-label="Choose a custom artist image"
 									:class="{ 'bg-cb-primary-900/15 border-cb-primary-900/60': isDragging }"
-									class="bg-cb-quaternary-950 border-cb-quinary-900/70 cursor-pointer rounded-2xl border border-dashed p-5 text-center transition"
+									class="bg-cb-quaternary-950 border-cb-quinary-900/70 focus-visible:ring-cb-primary-500 cursor-pointer rounded-2xl border border-dashed p-5 text-center transition outline-none focus-visible:ring-2"
 									@click="fileInput?.click()"
+									@keydown.enter.prevent="fileInput?.click()"
+									@keydown.space.prevent="fileInput?.click()"
 									@dragover.prevent="isDragging = true"
 									@dragleave.prevent="isDragging = false"
 									@drop.prevent="onDrop"

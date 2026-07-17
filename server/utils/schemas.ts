@@ -52,7 +52,7 @@ export const musicInsertSchema = z
 		release_year: z.number().int().min(1900).max(2100).nullable().optional(),
 		type: z.enum(['SONG']).nullable().optional(),
 		description: optionalString,
-		duration: z.number().int().nullable().optional(),
+		duration: z.number().int().min(0).nullable().optional(),
 		ismv: z.boolean().nullable().optional(),
 		id_youtube_music: optionalString,
 		thumbnails: z.record(z.string(), z.unknown()).nullable().optional(),
@@ -151,7 +151,7 @@ export const createReleaseBodySchema = z
 export const updateReleaseBodySchema = z
 	.object({
 		updates: releaseUpdateSchema.optional(),
-		artistIds: idArraySchema().optional(),
+		artistIds: idArraySchema().min(1).optional(),
 		platformLinks: z.array(platformLinkSchema).max(100).optional(),
 	})
 	.strict()
@@ -237,7 +237,10 @@ export const linkArtistBodySchema = z
 
 export const updateArtistCompanyBodySchema = z
 	.object({
-		updates: artistCompanyUpdateSchema,
+		updates: artistCompanyUpdateSchema.refine(
+			(updates) => Object.keys(updates).length > 0,
+			{ error: 'At least one update field is required' },
+		),
 	})
 	.strict()
 
@@ -297,3 +300,20 @@ export const statsFiltersSchema = z
 		month: z.number().int().min(0).max(11).nullable().optional(),
 	})
 	.strict()
+	.superRefine((filters, context) => {
+		if (filters.period === 'week' && filters.year != null) {
+			context.addIssue({
+				code: 'custom',
+				path: ['year'],
+				message: 'Year cannot be combined with a weekly period',
+			})
+		}
+
+		if (filters.period !== 'month' && filters.month != null) {
+			context.addIssue({
+				code: 'custom',
+				path: ['month'],
+				message: 'Month can only be used with a monthly period',
+			})
+		}
+	})

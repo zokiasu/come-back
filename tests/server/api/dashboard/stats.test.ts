@@ -229,12 +229,76 @@ describe('POST /api/dashboard/stats', () => {
 		vi.stubGlobal('useServerSupabase', () => supabase)
 
 		const handler = await loadHandler()
-		await handler()
+		const result = await handler()
 
 		expect(supabase.rpc).toHaveBeenCalledWith('get_general_stats', {
 			start_date: '2026-05-08T12:00:00.000Z',
 			end_date: '2026-05-15T12:00:00.000Z',
 			filter_year: undefined,
+		})
+		expect(result).toMatchObject({
+			music: {
+				charts: expect.arrayContaining([
+					expect.objectContaining({ title: 'Release Evolution by day' }),
+					expect.objectContaining({ title: 'Track Evolution by day' }),
+				]),
+			},
+		})
+	})
+
+	it('should build explicit month boundaries and RPC filters in UTC', async () => {
+		setupGlobals({ period: 'month', year: 2024, month: 1 })
+
+		const supabase = {
+			rpc: vi.fn(() => createRpcResponse([])),
+			from: vi.fn((table: string) => {
+				if (table === 'artists') {
+					return createSupabaseQueryMock({ data: [], error: null })
+				}
+				if (table === 'artist_companies') {
+					return createSupabaseQueryMock({ data: [], error: null })
+				}
+				throw new Error(`Unexpected table: ${table}`)
+			}),
+		}
+		vi.stubGlobal('useServerSupabase', () => supabase)
+
+		const handler = await loadHandler()
+		await handler()
+
+		expect(supabase.rpc).toHaveBeenCalledWith('get_general_stats', {
+			start_date: '2024-02-01T00:00:00.000Z',
+			end_date: '2024-02-29T23:59:59.999Z',
+			filter_year: 2024,
+		})
+		expect(supabase.rpc).toHaveBeenCalledWith('get_releases_temporal_stats', {
+			period_type: 'month',
+			filter_year: 2024,
+			filter_month: 1,
+		})
+	})
+
+	it('should keep the current time as the open end of the current month', async () => {
+		setupGlobals({ period: 'month' })
+
+		const supabase = {
+			rpc: vi.fn(() => createRpcResponse([])),
+			from: vi.fn((table: string) => {
+				if (table === 'artists' || table === 'artist_companies') {
+					return createSupabaseQueryMock({ data: [], error: null })
+				}
+				throw new Error(`Unexpected table: ${table}`)
+			}),
+		}
+		vi.stubGlobal('useServerSupabase', () => supabase)
+
+		const handler = await loadHandler()
+		await handler()
+
+		expect(supabase.rpc).toHaveBeenCalledWith('get_general_stats', {
+			start_date: '2026-05-01T00:00:00.000Z',
+			end_date: '2026-05-15T12:00:00.000Z',
+			filter_year: 2026,
 		})
 	})
 
@@ -261,5 +325,19 @@ describe('POST /api/dashboard/stats', () => {
 			statusCode: 400,
 			statusMessage: 'Bad Request',
 		})
+	})
+
+	it('should reject contradictory filter combinations before querying Supabase', async () => {
+		setupGlobals({ period: 'week', year: 2026 })
+		const useServerSupabase = vi.fn()
+		vi.stubGlobal('useServerSupabase', useServerSupabase)
+
+		const handler = await loadHandler()
+
+		await expect(handler()).rejects.toMatchObject({
+			statusCode: 400,
+			statusMessage: 'Bad Request',
+		})
+		expect(useServerSupabase).not.toHaveBeenCalled()
 	})
 })
