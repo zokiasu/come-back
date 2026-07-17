@@ -160,7 +160,7 @@
 						gender: 'UNKNOWN',
 						active_career: true,
 						verified: false,
-						image: '',
+						image: null,
 						description: '',
 						birth_date: member.birth_date
 							? new Date(member.birth_date).toISOString()
@@ -178,7 +178,7 @@
 						{
 							id: groupId.value,
 							name: '',
-							image: '',
+							image: null,
 							description: '',
 							id_youtube_music: null,
 							type: 'GROUP',

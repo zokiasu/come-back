@@ -3,6 +3,7 @@
 	const description = ref('Create Artist Page')
 
 	const {
+		editorForm,
 		model,
 		isBootstrapping,
 		bootstrapError,
@@ -56,9 +57,9 @@
 
 <template>
 	<ArtistEditorShell
-		ref="shell"
-		mode="create"
 		v-model="model"
+		mode="create"
+		:editor-form="editorForm"
 		:is-loading="isBootstrapping"
 		:bootstrap-error="bootstrapError"
 		:is-saving="isSaving"

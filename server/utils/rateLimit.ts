@@ -15,10 +15,17 @@ interface RateLimitOptions {
 }
 
 const store = new Map<string, RateLimitEntry>()
+const MAX_STORE_ENTRIES = 10_000
+
+const removeExpiredEntries = (now: number) => {
+	for (const [key, entry] of store) {
+		if (entry.resetAt <= now) store.delete(key)
+	}
+}
 
 const defaultKeyGenerator = (event: H3Event) => {
 	const ip = getRequestIP(event, { xForwardedFor: true }) || 'unknown'
-	const path = event.path || event.node?.req?.url || 'unknown'
+	const path = (event.path || event.node?.req?.url || 'unknown').split('?')[0]
 	return `${ip}:${path}`
 }
 
@@ -44,6 +51,16 @@ export const checkRateLimit = (event: H3Event, options: RateLimitOptions): void 
 
 		entry.count++
 		return
+	}
+
+	if (!entry && store.size >= MAX_STORE_ENTRIES) {
+		removeExpiredEntries(now)
+
+		// Keep memory bounded even during a burst of unique, non-expired keys.
+		if (store.size >= MAX_STORE_ENTRIES) {
+			const oldestKey = store.keys().next().value as string | undefined
+			if (oldestKey) store.delete(oldestKey)
+		}
 	}
 
 	store.set(key, {

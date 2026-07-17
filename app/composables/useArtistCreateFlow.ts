@@ -33,6 +33,7 @@ export const useArtistCreateFlow = () => {
 		reset: resetYtmCheck,
 	} = useYoutubeMusicIdCheck()
 
+	const editorForm = useArtistEditorForm({ trace: logCreateTrace })
 	const {
 		createEmptyArtistModel,
 		applyModelToForm,
@@ -46,11 +47,11 @@ export const useArtistCreateFlow = () => {
 		artistNationalities,
 		artistGroups,
 		artistMembers,
-		artistCompanies,
 		buildArtistRefs,
 		buildCompanyRelationsPayload,
+		buildArtistDatePayload,
 		applyOptions,
-	} = useArtistEditorForm({ trace: logCreateTrace })
+	} = editorForm
 
 	const model = ref<ArtistEditorModel>(createEmptyArtistModel())
 	const isBootstrapping = ref(true)
@@ -82,11 +83,9 @@ export const useArtistCreateFlow = () => {
 	function logCreateTrace(step: string, details?: Record<string, unknown>) {
 		if (!import.meta.dev) return
 		if (details) {
-			// eslint-disable-next-line no-console
 			console.warn(`[ArtistCreate][Flow] ${step}`, details)
 			return
 		}
-		// eslint-disable-next-line no-console
 		console.warn(`[ArtistCreate][Flow] ${step}`)
 	}
 
@@ -158,8 +157,7 @@ export const useArtistCreateFlow = () => {
 			gender: model.value.gender,
 			active_career: model.value.active_career,
 			verified: isAdminStore.value,
-			birth_date: model.value.birth_date,
-			debut_date: model.value.debut_date,
+			...buildArtistDatePayload(),
 			styles: artistStyles.value.map((style) => style.name),
 			general_tags: artistTags.value.map((tag) => tag.name),
 			nationalities: artistNationalities.value.map((nationality) => nationality.name),
@@ -240,6 +238,7 @@ export const useArtistCreateFlow = () => {
 	)
 
 	return {
+		editorForm,
 		model,
 		isBootstrapping,
 		bootstrapError,

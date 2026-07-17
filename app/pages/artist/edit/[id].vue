@@ -9,6 +9,7 @@
 	const { isAdminStore } = storeToRefs(userStore)
 
 	const {
+		editorForm,
 		original,
 		model,
 		isBootstrapping,
@@ -64,9 +65,9 @@
 
 <template>
 	<ArtistEditorShell
-		v-if="model"
-		mode="edit"
 		v-model="model"
+		mode="edit"
+		:editor-form="editorForm"
 		:original="original"
 		:is-loading="isBootstrapping"
 		:bootstrap-error="bootstrapError"

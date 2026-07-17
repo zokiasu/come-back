@@ -19,7 +19,9 @@ export const useArtistEditFlow = (artistId: string | string[]) => {
 	const { getAllNationalities } = useSupabaseNationalities()
 	const { runMutation } = useMutationTimeout()
 
+	const editorForm = useArtistEditorForm()
 	const {
+		createEmptyArtistModel,
 		buildArtistEditorModelFromArtist,
 		applyOptions,
 		applyArtistSelections,
@@ -31,13 +33,14 @@ export const useArtistEditFlow = (artistId: string | string[]) => {
 		artistNationalities,
 		artistGroups,
 		artistMembers,
-		artistCompanies,
 		buildArtistRefs,
 		buildCompanyRelationsPayload,
-	} = useArtistEditorForm()
+		buildArtistDatePayload,
+		resetSelectionState,
+	} = editorForm
 
 	const original = ref<Artist | null>(null)
-	const model = ref<ArtistEditorModel | null>(null)
+	const model = ref<ArtistEditorModel>(createEmptyArtistModel())
 	const isBootstrapping = ref(true)
 	const bootstrapError = ref<string | null>(null)
 	const isSaving = ref(false)
@@ -47,12 +50,10 @@ export const useArtistEditFlow = (artistId: string | string[]) => {
 	})
 
 	const canSave = computed(() => {
-		return Boolean(model.value?.name.trim()) && !isSaving.value
+		return Boolean(original.value && model.value.name.trim()) && !isSaving.value
 	})
 
 	const buildPayload = (): ArtistUpdate => {
-		if (!model.value) return {}
-
 		return {
 			name: model.value.name,
 			description: model.value.description,
@@ -60,8 +61,7 @@ export const useArtistEditFlow = (artistId: string | string[]) => {
 			type: model.value.type,
 			gender: model.value.gender,
 			active_career: model.value.active_career,
-			birth_date: model.value.birth_date,
-			debut_date: model.value.debut_date,
+			...buildArtistDatePayload(),
 			styles: artistStyles.value.map((style) => style.name),
 			general_tags: artistTags.value.map((tag) => tag.name),
 			nationalities: artistNationalities.value.map((nationality) => nationality.name),
@@ -70,12 +70,15 @@ export const useArtistEditFlow = (artistId: string | string[]) => {
 
 	const refreshNationalities = async () => {
 		const nationalities = await getAllNationalities()
-		applyOptions({ styles: [], tags: [], nationalities })
+		applyOptions({ nationalities })
 	}
 
 	const bootstrap = async () => {
 		isBootstrapping.value = true
 		bootstrapError.value = null
+		original.value = null
+		model.value = createEmptyArtistModel()
+		resetSelectionState()
 
 		try {
 			const [fullArtist, styles, tags, nationalities] = await runMutation(
@@ -136,7 +139,7 @@ export const useArtistEditFlow = (artistId: string | string[]) => {
 	}
 
 	const save = async () => {
-		if (!model.value || !original.value) {
+		if (!original.value) {
 			toast.add({ title: 'Artist not loaded', color: 'error' })
 			return false
 		}
@@ -186,6 +189,7 @@ export const useArtistEditFlow = (artistId: string | string[]) => {
 	}
 
 	return {
+		editorForm,
 		original,
 		model,
 		isBootstrapping,

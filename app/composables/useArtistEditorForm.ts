@@ -425,13 +425,13 @@ export const useArtistEditorForm = (options: UseArtistEditorFormOptions = {}) =>
 	}
 
 	const applyOptions = (payload: {
-		styles: MusicStyle[]
-		tags: GeneralTag[]
-		nationalities: Nationality[]
+		styles?: MusicStyle[]
+		tags?: GeneralTag[]
+		nationalities?: Nationality[]
 	}) => {
-		stylesList.value = payload.styles
-		tagsList.value = payload.tags
-		nationalitiesList.value = payload.nationalities
+		if (payload.styles) stylesList.value = payload.styles
+		if (payload.tags) tagsList.value = payload.tags
+		if (payload.nationalities) nationalitiesList.value = payload.nationalities
 	}
 
 	const applyArtistSelections = (source: ArtistRelationSource) => {
@@ -484,6 +484,15 @@ export const useArtistEditorForm = (options: UseArtistEditorFormOptions = {}) =>
 		birthdayToDate.value = model.birth_date ? new Date(model.birth_date) : null
 		debutDateToDate.value = model.debut_date ? new Date(model.debut_date) : null
 	}
+
+	const toIsoDate = (value: Date | null) => {
+		return value && !Number.isNaN(value.getTime()) ? value.toISOString() : null
+	}
+
+	const buildArtistDatePayload = () => ({
+		birth_date: toIsoDate(birthdayToDate.value),
+		debut_date: toIsoDate(debutDateToDate.value),
+	})
 
 	const resetFormToModel = (model: ArtistEditorModel) => {
 		resetSelectionState()
@@ -551,6 +560,7 @@ export const useArtistEditorForm = (options: UseArtistEditorFormOptions = {}) =>
 		createEmptyArtistModel,
 		buildArtistEditorModelFromArtist,
 		applyModelToForm,
+		buildArtistDatePayload,
 		resetFormToModel,
 	}
 }

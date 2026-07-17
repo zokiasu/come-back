@@ -15,10 +15,13 @@ const createEvent = (overrides: { path?: string; ip?: string } = {}) => {
 	} as unknown as H3Event
 }
 
-	describe('rateLimit', () => {
+describe('rateLimit', () => {
 	beforeEach(() => {
 		vi.unstubAllGlobals()
-		vi.stubGlobal('getRequestIP', vi.fn(() => '127.0.0.1'))
+		vi.stubGlobal(
+			'getRequestIP',
+			vi.fn(() => '127.0.0.1'),
+		)
 		vi.stubGlobal('createError', (err: unknown) => err)
 		keyCounter++
 	})
@@ -91,6 +94,22 @@ const createEvent = (overrides: { path?: string; ip?: string } = {}) => {
 				statusCode: 429,
 			}),
 		)
+	})
+
+	it('should not allow query parameters to bypass a route limit', () => {
+		const options = { maxRequests: 1, windowMs: 60_000 }
+
+		checkRateLimit(
+			createEvent({ path: `/api/query-limit-${keyCounter}?page=1` }),
+			options,
+		)
+
+		expect(() =>
+			checkRateLimit(
+				createEvent({ path: `/api/query-limit-${keyCounter}?page=2` }),
+				options,
+			),
+		).toThrow(expect.objectContaining({ statusCode: 429 }))
 	})
 
 	it('exposes sensible presets', () => {

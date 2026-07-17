@@ -2,9 +2,9 @@
 	import { CalendarDate } from '@internationalized/date'
 	import { storeToRefs } from 'pinia'
 	import type { Artist, ArtistEditorModel, ArtistGender, ArtistType } from '~/types'
-	import {
+	import type {
 		useArtistEditorForm,
-		type CompanyMenuItem,
+		CompanyMenuItem,
 	} from '~/composables/useArtistEditorForm'
 	import { useUserStore } from '~/stores/user'
 
@@ -13,6 +13,7 @@
 	interface Props {
 		mode: ArtistEditorMode
 		modelValue: ArtistEditorModel
+		editorForm: ReturnType<typeof useArtistEditorForm>
 		original?: Artist | null
 		isLoading?: boolean
 		bootstrapError?: string | null
@@ -89,20 +90,14 @@
 		birthdayInputValue,
 		debutDateInputValue,
 		formatDisplayDate,
-		buildArtistRefs,
-		buildCompanyRelationsPayload,
 		onGroupSearchTermChange,
 		onMemberSearchTermChange,
 		onCompanySearchTermChange,
-		resetArtistSearchState,
 		addCompanyRelation,
 		removeCompanyRelation,
 		updateCompanyInRelation,
 		handleCompanyUpdated,
-		applyOptions,
-		applyArtistSelections,
-		applyModelToForm,
-	} = useArtistEditorForm()
+	} = props.editorForm
 
 	const userStore = useUserStore()
 	const { isAdminStore } = storeToRefs(userStore)
@@ -212,13 +207,6 @@
 	const onSave = () => emit('save')
 	const onReset = () => emit('reset')
 	const onRetry = () => emit('retry')
-
-	defineExpose({
-		applyOptions,
-		applyArtistSelections,
-		applyModelToForm,
-		resetArtistSearchState,
-	})
 </script>
 
 <template>

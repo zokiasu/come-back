@@ -3,6 +3,56 @@ export const useSupabaseAuth = () => {
 	const error = ref<string | null>(null)
 	const toast = useToast()
 
+	const clearError = () => {
+		error.value = null
+	}
+
+	const loginWithEmail = async (email: string, password: string): Promise<boolean> => {
+		isLoading.value = true
+		clearError()
+
+		try {
+			const supabase = useSupabaseClient()
+			const { syncUserProfileFromAuthUser, syncError } = useAuth()
+			const { close: closeAuthModal } = useAuthModal()
+			const { data, error: authError } = await supabase.auth.signInWithPassword({
+				email: email.trim(),
+				password,
+			})
+
+			if (authError) throw authError
+			if (!data.user?.id) throw new Error('No user found after authentication.')
+
+			const isProfileReady = await syncUserProfileFromAuthUser({
+				id: data.user.id,
+				email: data.user.email,
+				user_metadata: data.user.user_metadata,
+			})
+
+			if (!isProfileReady) {
+				throw new Error(syncError.value || 'Unable to synchronize your profile.')
+			}
+
+			closeAuthModal()
+			await nextTick()
+			refreshNuxtData()
+
+			toast.add({
+				title: 'Signed in',
+				description: 'You are now signed in with your email address.',
+				color: 'success',
+				duration: 3000,
+			})
+
+			return true
+		} catch (err: unknown) {
+			error.value = err instanceof Error ? err.message : 'Unable to sign in with email.'
+			return false
+		} finally {
+			isLoading.value = false
+		}
+	}
+
 	const loginWithGoogle = async () => {
 		isLoading.value = true
 		error.value = null
@@ -159,7 +209,10 @@ export const useSupabaseAuth = () => {
 						// Could be a forged token OR a transient network failure. Either way,
 						// skip setSession and let handleAuthSuccess() fall back to the
 						// already-persisted session.
-						console.warn('Skipping session hydration (token not validated):', validateError)
+						console.warn(
+							'Skipping session hydration (token not validated):',
+							validateError,
+						)
 						return
 					}
 
@@ -275,6 +328,8 @@ export const useSupabaseAuth = () => {
 	return {
 		isLoading,
 		error,
+		clearError,
+		loginWithEmail,
 		loginWithGoogle,
 		logout,
 		handleAuthCallback,

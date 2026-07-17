@@ -6,8 +6,8 @@ import { VALIDATION_LIMITS } from './validation'
  *
  * These schemas enforce an allow-list approach: only the fields explicitly
  * listed here can be provided by clients. System columns (id, created_at,
- * updated_at) and privileged flags (verified, stream counters, check_tier)
- * are intentionally excluded to prevent mass-assignment.
+ * updated_at) and server-managed counters are intentionally excluded to
+ * prevent mass-assignment. Endpoints authorize `verified` writes separately.
  */
 
 // ---------------------------------------------------------------------------
@@ -16,7 +16,10 @@ import { VALIDATION_LIMITS } from './validation'
 
 export const uuidSchema = z.string().uuid()
 
-const dateStringSchema = z.string().datetime().nullable().optional()
+const dateStringSchema = z
+	.union([z.string().date(), z.string().datetime()])
+	.nullable()
+	.optional()
 const urlSchema = z.string().url().nullable().optional()
 const optionalString = z.string().nullable().optional()
 
@@ -36,6 +39,7 @@ export const releaseInsertSchema = z
 		description: optionalString,
 		image: urlSchema,
 		id_youtube_music: optionalString,
+		verified: z.boolean().nullable().optional(),
 	})
 	.strict()
 
@@ -52,6 +56,7 @@ export const musicInsertSchema = z
 		ismv: z.boolean().nullable().optional(),
 		id_youtube_music: optionalString,
 		thumbnails: z.record(z.string(), z.unknown()).nullable().optional(),
+		verified: z.boolean().nullable().optional(),
 	})
 	.strict()
 
@@ -71,6 +76,7 @@ export const artistInsertSchema = z
 		general_tags: z.array(z.string()).max(100).nullable().optional(),
 		nationalities: z.array(z.string()).max(100).nullable().optional(),
 		styles: z.array(z.string()).max(100).nullable().optional(),
+		verified: z.boolean().nullable().optional(),
 	})
 	.strict()
 
@@ -80,6 +86,7 @@ export const newsInsertSchema = z
 	.object({
 		message: z.string().min(1).max(2000),
 		date: z.string().datetime(),
+		verified: z.boolean().optional(),
 	})
 	.strict()
 
@@ -95,6 +102,7 @@ export const companyInsertSchema = z
 		founded_year: z.number().int().min(1800).max(2100).nullable().optional(),
 		website: urlSchema,
 		logo_url: urlSchema,
+		verified: z.boolean().nullable().optional(),
 	})
 	.strict()
 
@@ -274,7 +282,11 @@ export const banArtistBodySchema = z
 export const linkMvBodySchema = z
 	.object({
 		musicId: uuidSchema,
-		videoId: z.string().min(6).max(20).regex(/^[A-Za-z0-9_-]+$/u),
+		videoId: z
+			.string()
+			.min(6)
+			.max(20)
+			.regex(/^[A-Za-z0-9_-]+$/u),
 	})
 	.strict()
 

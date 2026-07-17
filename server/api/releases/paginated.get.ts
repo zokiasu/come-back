@@ -11,8 +11,9 @@ const ALLOWED_ORDER_COLUMNS = [
 ] as const
 
 export default defineEventHandler(async (event) => {
+	await requireContributor(event)
 	checkRateLimit(event, RATE_LIMIT_PRESETS.paginated)
-	setHeader(event, 'Cache-Control', 'public, max-age=60, stale-while-revalidate=300')
+	setHeader(event, 'Cache-Control', 'private, no-store')
 
 	const supabase = useServerSupabase()
 

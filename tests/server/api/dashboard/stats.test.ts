@@ -15,19 +15,24 @@ const loadHandler = async () => {
 }
 
 const setupGlobals = (body: unknown) => {
+	const setHeader = vi.fn()
 	vi.stubGlobal(
 		'requireAdmin',
 		vi.fn(async () => ({ id: 'admin-id', role: 'ADMIN' })),
 	)
-	vi.stubGlobal('setHeader', vi.fn())
-	vi.stubGlobal('readBody', vi.fn(async () => body))
+	vi.stubGlobal('setHeader', setHeader)
+	vi.stubGlobal(
+		'readBody',
+		vi.fn(async () => body),
+	)
 	vi.stubGlobal('createInternalError', createInternalError)
 	vi.stubGlobal('handleSupabaseError', handleSupabaseError)
 	vi.stubGlobal('isPostgrestError', isPostgrestError)
+
+	return { setHeader }
 }
 
-const createRpcResponse = <TData>(data: TData) =>
-	Promise.resolve({ data, error: null })
+const createRpcResponse = <TData>(data: TData) => Promise.resolve({ data, error: null })
 
 describe('POST /api/dashboard/stats', () => {
 	beforeEach(() => {
@@ -45,7 +50,7 @@ describe('POST /api/dashboard/stats', () => {
 
 	it('should return dashboard stats aggregated from RPCs', async () => {
 		const filters = { period: 'all' as const }
-		setupGlobals(filters)
+		const { setHeader } = setupGlobals(filters)
 
 		const supabase = {
 			rpc: vi.fn((name: string) => {
@@ -92,7 +97,28 @@ describe('POST /api/dashboard/stats', () => {
 			from: vi.fn((table: string) => {
 				if (table === 'artists') {
 					return createSupabaseQueryMock({
-						data: [{ styles: ['K-Pop', 'Pop'] }, { styles: ['K-Pop'] }],
+						data: [
+							{
+								type: 'SOLO',
+								gender: 'FEMALE',
+								styles: ['K-Pop', 'Pop'],
+								image: 'https://example.com/artist.jpg',
+								description: 'Complete profile',
+								birth_date: '2000-01-01',
+								debut_date: '2020-01-01',
+								general_tags: ['idol'],
+							},
+							{
+								type: 'GROUP',
+								gender: 'MIXTE',
+								styles: ['K-Pop'],
+								image: null,
+								description: null,
+								birth_date: null,
+								debut_date: null,
+								general_tags: [],
+							},
+						],
 						error: null,
 					})
 				}
@@ -101,6 +127,7 @@ describe('POST /api/dashboard/stats', () => {
 					return createSupabaseQueryMock({
 						data: [
 							{
+								artist_id: 'a1',
 								company_id: 'c1',
 								relationship_type: 'LABEL',
 								companies: { name: 'HYBE' },
@@ -136,6 +163,11 @@ describe('POST /api/dashboard/stats', () => {
 			filter_year: undefined,
 			limit_count: 10,
 		})
+		expect(setHeader).toHaveBeenCalledWith(
+			undefined,
+			'Cache-Control',
+			'private, no-store',
+		)
 
 		expect(result).toMatchObject({
 			general: {
@@ -152,6 +184,13 @@ describe('POST /api/dashboard/stats', () => {
 				cards: expect.arrayContaining([
 					expect.objectContaining({ title: 'Solo Artists', value: 40 }),
 					expect.objectContaining({ title: 'Groups', value: 60 }),
+					expect.objectContaining({ title: 'Completed Profiles', value: '50%' }),
+				]),
+				charts: expect.arrayContaining([
+					expect.objectContaining({
+						title: 'Profile Quality',
+						data: expect.objectContaining({ data: [100, 50, 50] }),
+					}),
 				]),
 			},
 			companies: {

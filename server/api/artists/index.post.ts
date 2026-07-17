@@ -1,11 +1,12 @@
 import type { Json } from '~/types/supabase'
-import { validateBody } from '../../utils/validation'
+import { assertCanSetVerified, validateBody } from '../../utils/validation'
 import { createArtistBodySchema } from '../../utils/schemas'
 
 export default defineEventHandler(async (event) => {
-	await requireContributor(event)
+	const user = await requireContributor(event)
 
 	const body = validateBody(await readBody(event), createArtistBodySchema)
+	assertCanSetVerified(user, body.data.verified)
 
 	const supabase = useServerSupabase()
 

@@ -182,9 +182,7 @@
 					: undefined,
 				years: yearFilter.value ? [Number(yearFilter.value)] : undefined,
 				verified:
-					verifiedFilter.value === 'all'
-						? undefined
-						: verifiedFilter.value === 'verified',
+					verifiedFilter.value === 'all' ? null : verifiedFilter.value === 'verified',
 				ismv: mvFilter.value === 'all' ? undefined : mvFilter.value === 'mv',
 				orderBy: sortColumn.value,
 				orderDirection: sortDirection.value,
@@ -351,7 +349,6 @@
 				duration: editForm.duration,
 				ismv: editForm.ismv,
 				verified: editForm.verified,
-				updated_at: new Date().toISOString(),
 			})
 
 			if (!updatedMusic) {

@@ -107,6 +107,13 @@ export default defineEventHandler(async (event) => {
 		) as OrderColumn
 		const orderDirection = validateOrderDirection(query.orderDirection as string, 'desc')
 		const ismv = query.ismv === 'true' ? true : query.ismv === 'false' ? false : undefined
+		const verified =
+			query.verified === 'true' ? true : query.verified === 'false' ? false : undefined
+
+		if (verified !== true) {
+			await requireContributor(event)
+			setHeader(event, 'Cache-Control', 'private, no-store')
+		}
 		const artistIds = validateArrayParam(
 			query.artistIds as string | undefined,
 			'artistIds',
@@ -119,13 +126,14 @@ export default defineEventHandler(async (event) => {
 
 		// Use optimized RPC function when filtering by styles (avoids large IN clauses)
 		if (styles && styles.length > 0) {
+			const styleFilters = styles
 			if (artistIds && artistIds.length > 0) {
 				const { data: matchingArtists, error: matchingArtistsError } = await supabase
 					.from('artists')
 					.select('id')
 					.in('id', artistIds)
 					.eq('verified', true)
-					.overlaps('styles', styles)
+					.overlaps('styles', styleFilters)
 
 				if (matchingArtistsError) throw matchingArtistsError
 
@@ -157,7 +165,7 @@ export default defineEventHandler(async (event) => {
 				}
 			}
 
-			if (!filteredArtistIds || filteredArtistIds.length === 0) {
+			if ((!filteredArtistIds || filteredArtistIds.length === 0) && verified === true) {
 				const { data: rpcData, error: rpcError } = await supabase.rpc(
 					'get_paginated_musics_by_styles',
 					{
@@ -195,6 +203,7 @@ export default defineEventHandler(async (event) => {
 						`,
 					)
 					dataQuery = applyVerifiedArtistFilter(dataQuery)
+					dataQuery = applyMusicFilters(dataQuery, { verified: true })
 					const { data: fullData, error: fullError } = await dataQuery.in('id', musicIds)
 
 					if (fullError) throw fullError
@@ -215,6 +224,19 @@ export default defineEventHandler(async (event) => {
 					page,
 					limit,
 					totalPages,
+				}
+			} else if (!filteredArtistIds || filteredArtistIds.length === 0) {
+				const { data: matchingArtists, error: matchingArtistsError } = await supabase
+					.from('artists')
+					.select('id')
+					.eq('verified', true)
+					.overlaps('styles', styleFilters)
+
+				if (matchingArtistsError) throw matchingArtistsError
+				filteredArtistIds = (matchingArtists || []).map((artist) => artist.id)
+
+				if (filteredArtistIds.length === 0) {
+					return { musics: [], total: 0, page, limit, totalPages: 0 }
 				}
 			}
 		}
@@ -266,7 +288,7 @@ export default defineEventHandler(async (event) => {
 							) as T)
 			}
 
-			nextQuery = applyMusicFilters(nextQuery, { search, years, ismv })
+			nextQuery = applyMusicFilters(nextQuery, { search, years, ismv, verified })
 			nextQuery = applyMusicNameExclusions(nextQuery)
 
 			return nextQuery

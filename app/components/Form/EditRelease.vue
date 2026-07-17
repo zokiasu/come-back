@@ -122,7 +122,6 @@
 				year: formData.year,
 				verified: formData.verified,
 				id_youtube_music: formData.id_youtube_music,
-				updated_at: new Date().toISOString(),
 			}
 
 			const result = await updateRelease(props.id, updates)

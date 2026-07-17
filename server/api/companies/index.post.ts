@@ -1,11 +1,12 @@
 import type { TablesInsert } from '~/types/supabase'
-import { validateBody } from '../../utils/validation'
+import { assertCanSetVerified, validateBody } from '../../utils/validation'
 import { createCompanyBodySchema } from '../../utils/schemas'
 
 export default defineEventHandler(async (event) => {
-	await requireContributor(event)
+	const user = await requireContributor(event)
 
 	const body = validateBody(await readBody(event), createCompanyBodySchema)
+	assertCanSetVerified(user, body.data.verified)
 
 	const supabase = useServerSupabase()
 

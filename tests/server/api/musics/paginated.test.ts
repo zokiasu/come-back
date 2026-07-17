@@ -43,7 +43,14 @@ const setupGlobals = (query: Record<string, string | undefined>) => {
 	vi.stubGlobal('validateOrderDirection', validateOrderDirection)
 	vi.stubGlobal('validatePageParam', validatePageParam)
 	vi.stubGlobal('validateSearchParam', validateSearchParam)
-	vi.stubGlobal('getRequestIP', vi.fn(() => '127.0.0.1'))
+	vi.stubGlobal(
+		'getRequestIP',
+		vi.fn(() => '127.0.0.1'),
+	)
+	vi.stubGlobal(
+		'requireContributor',
+		vi.fn(async () => ({ id: 'admin-id', role: 'ADMIN' })),
+	)
 }
 
 describe('GET /api/musics/paginated', () => {
@@ -61,6 +68,7 @@ describe('GET /api/musics/paginated', () => {
 			search: 'love',
 			years: '2025,2026',
 			ismv: 'true',
+			verified: 'true',
 			orderBy: 'name',
 			orderDirection: 'asc',
 		})
@@ -143,6 +151,10 @@ describe('GET /api/musics/paginated', () => {
 			args: ['ismv', true],
 		})
 		expect(dataQuery.calls).toContainEqual({
+			method: 'eq',
+			args: ['verified', true],
+		})
+		expect(dataQuery.calls).toContainEqual({
 			method: 'not',
 			args: ['name', 'ilike', '%Instrumental%'],
 		})
@@ -202,6 +214,7 @@ describe('GET /api/musics/paginated', () => {
 			orderBy: 'release_year',
 			orderDirection: 'desc',
 			ismv: 'false',
+			verified: 'true',
 		})
 
 		const rawMusic = {

@@ -31,9 +31,20 @@ interface TemporalRow {
 }
 
 interface CompanyRelationRow {
+	artist_id: string
 	company_id: string
-	relationship_type: string | null
 	companies: { name: string } | null
+}
+
+interface ArtistStatsRow {
+	type: string | null
+	gender: string | null
+	styles: string[] | null
+	image: string | null
+	description: string | null
+	birth_date: string | null
+	debut_date: string | null
+	general_tags: string[] | null
 }
 
 const buildDateRange = (filters: StatsFilters) => {
@@ -47,7 +58,12 @@ const buildDateRange = (filters: StatsFilters) => {
 			endDate = now
 			break
 		case 'month':
-			if (filters.year !== null && filters.year !== undefined && filters.month !== null && filters.month !== undefined) {
+			if (
+				filters.year !== null &&
+				filters.year !== undefined &&
+				filters.month !== null &&
+				filters.month !== undefined
+			) {
 				startDate = new Date(filters.year, filters.month, 1)
 				endDate = new Date(filters.year, filters.month + 1, 0, 23, 59, 59, 999)
 			} else if (filters.year) {
@@ -94,7 +110,7 @@ const getGenderColors = (genderStats: Array<{ gender: string; count: number }>) 
 
 export default defineEventHandler(async (event) => {
 	await requireAdmin(event)
-	setHeader(event, 'Cache-Control', 'public, max-age=300, stale-while-revalidate=300')
+	setHeader(event, 'Cache-Control', 'private, no-store')
 
 	const filters = validateBody(await readBody(event), statsFiltersSchema)
 	const { startDate, endDate } = buildDateRange(filters)
@@ -116,7 +132,7 @@ export default defineEventHandler(async (event) => {
 			topMusicsResult,
 			releasesTemporalResult,
 			musicsTemporalResult,
-			genreStatsResult,
+			artistsResult,
 			companyRelationsResult,
 		] = await Promise.all([
 			supabase.rpc('get_general_stats', {
@@ -149,15 +165,16 @@ export default defineEventHandler(async (event) => {
 			}),
 			supabase
 				.from('artists')
-				.select('styles')
-				.eq('verified', true)
-				.not('styles', 'is', null),
+				.select(
+					'type, gender, styles, image, description, birth_date, debut_date, general_tags',
+				)
+				.eq('verified', true),
 			supabase
 				.from('artist_companies')
 				.select(
 					`
+						artist_id,
 						company_id,
-						relationship_type,
 						companies(id, name),
 						artists!inner(id)
 					`,
@@ -171,7 +188,7 @@ export default defineEventHandler(async (event) => {
 		if (topMusicsResult.error) throw topMusicsResult.error
 		if (releasesTemporalResult.error) throw releasesTemporalResult.error
 		if (musicsTemporalResult.error) throw musicsTemporalResult.error
-		if (genreStatsResult.error) throw genreStatsResult.error
+		if (artistsResult.error) throw artistsResult.error
 		if (companyRelationsResult.error) throw companyRelationsResult.error
 
 		const generalRow = (generalStatsResult.data as GeneralStatsRow[] | null)?.[0] ?? {
@@ -204,8 +221,6 @@ export default defineEventHandler(async (event) => {
 			}
 		})
 
-		// Derive solo/group gender breakdown from the raw artist table if available.
-		// Fallback: approximate from the overall gender distribution.
 		const topReleases = ((topReleasesResult.data as TopArtistRow[] | null) ?? []).map(
 			(artist) => ({
 				name: artist.artist_name,
@@ -222,38 +237,72 @@ export default defineEventHandler(async (event) => {
 		const releasesTemporal = (releasesTemporalResult.data as TemporalRow[] | null) ?? []
 		const musicsTemporal = (musicsTemporalResult.data as TemporalRow[] | null) ?? []
 
-		// Genre stats: explode styles array and count occurrences
-		const genreCounts: Record<string, number> = {}
+		const artists = (artistsResult.data as ArtistStatsRow[] | null) ?? []
 
-		;(genreStatsResult.data as Array<{ styles: string[] | null }> | null)?.forEach((artist) => {
+		// Derive detailed profile metrics from one compact artist projection. The
+		// aggregate RPC does not expose these dimensions.
+		const genreCounts: Record<string, number> = {}
+		let withImageCount = 0
+		let completeProfilesCount = 0
+
+		artists.forEach((artist) => {
+			const gender = artist.gender || 'UNKNOWN'
+			if (artist.type === 'SOLO') {
+				soloGenderStats[gender] = (soloGenderStats[gender] || 0) + 1
+			} else if (artist.type === 'GROUP') {
+				groupGenderStats[gender] = (groupGenderStats[gender] || 0) + 1
+			}
+
 			if (artist.styles && artist.styles.length > 0) {
 				artist.styles.forEach((style) => {
 					genreCounts[style] = (genreCounts[style] || 0) + 1
 				})
+			} else {
+				genreCounts.Undefined = (genreCounts.Undefined || 0) + 1
 			}
+
+			if (artist.image) withImageCount++
+
+			const filledFields = [
+				artist.description,
+				artist.birth_date,
+				artist.debut_date,
+				artist.image,
+				Boolean(artist.styles?.length),
+				Boolean(artist.general_tags?.length),
+				true, // The query only returns verified artists.
+			].filter(Boolean).length
+
+			if (filledFields >= 5) completeProfilesCount++
 		})
 
+		const profileCount = artists.length
+		const imageRate =
+			profileCount > 0 ? Math.round((withImageCount / profileCount) * 100) : 0
+		const completionRate =
+			profileCount > 0 ? Math.round((completeProfilesCount / profileCount) * 100) : 0
+
 		// Company stats
-		const companyArtistCount: Record<string, { name: string; count: number }> = {}
-		const relationshipTypes: Record<string, number> = {}
+		const companyArtistCount: Record<
+			string,
+			{ id: string; name: string; artistIds: Set<string> }
+		> = {}
 
 		;(companyRelationsResult.data as CompanyRelationRow[] | null)?.forEach((relation) => {
 			const companyName = relation.companies?.name || 'Unknown'
 
 			if (!companyArtistCount[relation.company_id]) {
 				companyArtistCount[relation.company_id] = {
+					id: relation.company_id,
 					name: companyName,
-					count: 0,
+					artistIds: new Set<string>(),
 				}
 			}
-			companyArtistCount[relation.company_id]!.count++
-
-			const relType = relation.relationship_type || 'UNKNOWN'
-			relationshipTypes[relType] = (relationshipTypes[relType] || 0) + 1
+			companyArtistCount[relation.company_id]!.artistIds.add(relation.artist_id)
 		})
 
 		const totalArtists = generalRow.total_artists
-		const verifiedCount = totalArtists // get_general_stats filters on verified artists
+		const verificationRate = totalArtists > 0 ? 100 : 0
 
 		const result: DashboardStats = {
 			general: {
@@ -302,13 +351,13 @@ export default defineEventHandler(async (event) => {
 					},
 					{
 						title: 'Verified Profiles',
-						value: `${totalArtists > 0 ? Math.round((verifiedCount / totalArtists) * 100) : 0}%`,
+						value: `${verificationRate}%`,
 						icon: 'i-lucide-badge-check',
 						color: 'green',
 					},
 					{
 						title: 'Completed Profiles',
-						value: '0%',
+						value: `${completionRate}%`,
 						icon: 'i-lucide-clipboard-check',
 						color: 'blue',
 					},
@@ -373,11 +422,7 @@ export default defineEventHandler(async (event) => {
 						title: 'Profile Quality',
 						data: {
 							labels: ['Verified', 'With Image', 'Completed Profiles'],
-							data: [
-								totalArtists > 0 ? Math.round((verifiedCount / totalArtists) * 100) : 0,
-								0,
-								0,
-							],
+							data: [verificationRate, imageRate, completionRate],
 							type: 'bar',
 						},
 						description: 'Profile quality among verified artists',
@@ -418,13 +463,13 @@ export default defineEventHandler(async (event) => {
 					{
 						title: 'Top Companies',
 						items: Object.values(companyArtistCount)
-							.sort((a, b) => b.count - a.count)
+							.sort((a, b) => b.artistIds.size - a.artistIds.size)
 							.slice(0, 10)
-							.map((comp, index) => ({
-								id: index.toString(),
+							.map((comp) => ({
+								id: comp.id,
 								name: comp.name || 'Unknown',
-								value: comp.count || 0,
-								subtitle: `${comp.count || 0} artists`,
+								value: comp.artistIds.size,
+								subtitle: `${comp.artistIds.size} artists`,
 							})),
 					},
 				],

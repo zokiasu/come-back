@@ -1,12 +1,13 @@
 import type { TablesUpdate } from '~/types/supabase'
-import { validateBody } from '../../../utils/validation'
+import { assertCanSetVerified, validateBody } from '../../../utils/validation'
 import { updateReleaseBodySchema } from '../../../utils/schemas'
 
 export default defineEventHandler(async (event) => {
-	await requireContributor(event)
+	const user = await requireContributor(event)
 
 	const releaseId = validateRouteParam(event, 'id', 'Release')
 	const body = validateBody(await readBody(event), updateReleaseBodySchema)
+	assertCanSetVerified(user, body.updates?.verified)
 
 	const supabase = useServerSupabase()
 

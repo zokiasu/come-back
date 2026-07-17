@@ -40,10 +40,13 @@ const setupSupabase = ({
 	return { supabase, rpc }
 }
 
-const setupGlobals = (body: unknown) => {
+const setupGlobals = (
+	body: unknown,
+	actor?: { id: string; role: 'CONTRIBUTOR' | 'ADMIN' },
+) => {
 	vi.stubGlobal(
 		'requireContributor',
-		vi.fn(async () => undefined),
+		vi.fn(async () => actor),
 	)
 	vi.stubGlobal(
 		'readBody',
@@ -128,6 +131,39 @@ describe('POST /api/artists', () => {
 			p_member_ids: [],
 			p_companies: [],
 		})
+	})
+
+	it('allows an admin to set verification and accepts date-only profile dates', async () => {
+		const body = {
+			data: {
+				name: 'Verified Artist',
+				verified: true,
+				birth_date: '2000-01-31',
+			},
+		}
+		setupGlobals(body, { id: 'admin-id', role: 'ADMIN' })
+		const { rpc } = setupSupabase({ rpcData: { id: 'verified-artist' } })
+
+		const handler = await loadHandler()
+		await handler({})
+
+		expect(rpc).toHaveBeenCalledWith(
+			'create_artist_with_relations',
+			expect.objectContaining({ p_artist: body.data }),
+		)
+	})
+
+	it('rejects verification changes from contributors', async () => {
+		setupGlobals(
+			{ data: { name: 'Unapproved Artist', verified: true } },
+			{ id: 'contributor-id', role: 'CONTRIBUTOR' },
+		)
+		const { rpc } = setupSupabase()
+
+		const handler = await loadHandler()
+
+		await expect(handler({})).rejects.toMatchObject({ statusCode: 403 })
+		expect(rpc).not.toHaveBeenCalled()
 	})
 
 	it('propagates the error instead of returning a partially-created artist', async () => {

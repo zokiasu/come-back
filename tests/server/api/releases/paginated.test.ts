@@ -41,7 +41,14 @@ const setupGlobals = (query: Record<string, string | undefined>) => {
 	vi.stubGlobal('validateOrderDirection', validateOrderDirection)
 	vi.stubGlobal('validatePageParam', validatePageParam)
 	vi.stubGlobal('validateSearchParam', validateSearchParam)
-	vi.stubGlobal('getRequestIP', vi.fn(() => '127.0.0.1'))
+	vi.stubGlobal(
+		'getRequestIP',
+		vi.fn(() => '127.0.0.1'),
+	)
+	vi.stubGlobal(
+		'requireContributor',
+		vi.fn(async () => ({ id: 'admin-id', role: 'ADMIN' })),
+	)
 }
 
 describe('GET /api/releases/paginated', () => {

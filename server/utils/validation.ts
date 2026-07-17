@@ -1,5 +1,10 @@
 import { createError } from 'h3'
 import type { z } from 'zod'
+import type { Database } from '~/types/supabase'
+
+type VerifiedWriteActor = {
+	role: Database['public']['Enums']['user_role']
+}
 
 /**
  * Validation constants for API inputs
@@ -208,4 +213,21 @@ export const validateBody = <T extends z.ZodTypeAny>(
 	}
 
 	return result.data
+}
+
+/**
+ * Privileged publication state must only be writable by administrators.
+ * Call this after contributor authentication and body validation.
+ */
+export const assertCanSetVerified = (
+	user: VerifiedWriteActor | undefined,
+	verified: boolean | null | undefined,
+): void => {
+	if (verified === undefined || user?.role === 'ADMIN') return
+
+	throw createError({
+		statusCode: 403,
+		statusMessage: 'Forbidden',
+		message: 'Admin access required to change verification status',
+	})
 }
