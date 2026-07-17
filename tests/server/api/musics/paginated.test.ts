@@ -332,6 +332,14 @@ describe('GET /api/musics/paginated', () => {
 			method: 'eq',
 			args: ['verified', false],
 		})
+		expect(countQuery.calls).toContainEqual({
+			method: 'eq',
+			args: ['artists.artist.verified', true],
+		})
+		expect(countQuery.calls).toContainEqual({
+			method: 'eq',
+			args: ['verified', false],
+		})
 	})
 
 	it('should map Supabase errors with the musics pagination context', async () => {

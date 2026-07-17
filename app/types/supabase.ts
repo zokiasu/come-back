@@ -1385,6 +1385,10 @@ export type Database = {
 				Args: { p_items: Json; p_ranking_id: string }
 				Returns: undefined
 			}
+			replace_release_artists: {
+				Args: { p_artist_ids: string[]; p_release_id: string }
+				Returns: undefined
+			}
 			search_artists_fulltext:
 				| {
 						Args: {

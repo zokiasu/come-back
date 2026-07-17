@@ -27,52 +27,12 @@ export default defineEventHandler(async (event) => {
 
 	// 2. Replace the artists if provided
 	if (body.artistIds !== undefined) {
-		const { data: previousArtistLinks, error: fetchLinksError } = await supabase
-			.from('artist_releases')
-			.select('artist_id, is_primary')
-			.eq('release_id', releaseId)
+		const { error } = await supabase.rpc('replace_release_artists', {
+			p_release_id: releaseId,
+			p_artist_ids: body.artistIds,
+		})
 
-		if (fetchLinksError) {
-			throw handleSupabaseError(fetchLinksError, 'releases.update.artists.fetch')
-		}
-
-		const { error: deleteError } = await supabase
-			.from('artist_releases')
-			.delete()
-			.eq('release_id', releaseId)
-
-		if (deleteError)
-			throw handleSupabaseError(deleteError, 'releases.update.artists.delete')
-
-		const { error: insertError } = await supabase.from('artist_releases').insert(
-			body.artistIds.map((artistId, index) => ({
-				release_id: releaseId,
-				artist_id: artistId,
-				is_primary: index === 0,
-			})),
-		)
-
-		if (insertError) {
-			const previousLinks = previousArtistLinks ?? []
-			if (previousLinks.length > 0) {
-				const { error: rollbackError } = await supabase.from('artist_releases').insert(
-					previousLinks.map((link) => ({
-						release_id: releaseId,
-						artist_id: link.artist_id,
-						is_primary: link.is_primary,
-					})),
-				)
-
-				if (rollbackError) {
-					console.error(
-						'Failed to restore release artists after update error:',
-						rollbackError,
-					)
-				}
-			}
-
-			throw handleSupabaseError(insertError, 'releases.update.artists.insert')
-		}
+		if (error) throw handleSupabaseError(error, 'releases.update.artists')
 	}
 
 	// 3. Replace the platform links if provided
