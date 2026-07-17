@@ -93,6 +93,24 @@ export type NewsUpdate = TablesUpdate<'news'>
 export type UserRole = Database['public']['Enums']['user_role']
 export type ArtistType = Database['public']['Enums']['artist_type']
 export type ArtistGender = Database['public']['Enums']['gender']
+
+/**
+ * Editable subset of an artist used by the create/edit form.
+ * This is the single source of truth for the shared artist editor shell.
+ */
+export type ArtistEditorModel = {
+	id?: string
+	name: string
+	id_youtube_music: string | null
+	type: ArtistType
+	gender: ArtistGender
+	active_career: boolean
+	description: string | null
+	image: string | null
+	birth_date: string | null
+	debut_date: string | null
+}
+
 export type ReleaseType = Database['public']['Enums']['release_type']
 export type MusicType = Database['public']['Enums']['music_type']
 export type RelationType = Database['public']['Enums']['relation_type']

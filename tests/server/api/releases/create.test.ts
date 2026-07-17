@@ -111,7 +111,7 @@ describe('POST /api/releases', () => {
 	})
 
 	it('should reject requests without release data', async () => {
-		setupGlobals({ artistIds: ['artist-id'] })
+		setupGlobals({ artistIds: ['a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'] })
 		setupSupabase()
 
 		const handler = await loadHandler()
@@ -119,7 +119,6 @@ describe('POST /api/releases', () => {
 		await expect(handler({})).rejects.toMatchObject({
 			statusCode: 400,
 			statusMessage: 'Bad Request',
-			message: 'Release data is required',
 		})
 	})
 
@@ -132,15 +131,14 @@ describe('POST /api/releases', () => {
 		await expect(handler({})).rejects.toMatchObject({
 			statusCode: 400,
 			statusMessage: 'Bad Request',
-			message: 'At least one artist is required',
 		})
 	})
 
 	it('should create a release, link artists, add platform links and notify followers', async () => {
 		const body = {
 			release: { name: 'Armageddon' },
-			artistIds: ['artist-1', 'artist-2'],
-			platformLinks: [{ platform: 'spotify', url: 'https://example.com' }],
+			artistIds: ['a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12'],
+			platformLinks: [{ name: 'spotify', link: 'https://example.com' }],
 		}
 		const { notifyFollowersOfNewRelease } = setupGlobals(body)
 		const { createdRelease, insertArtists, insertPlatformLinks, insertRelease } =
@@ -154,19 +152,19 @@ describe('POST /api/releases', () => {
 		expect(insertArtists).toHaveBeenCalledWith([
 			{
 				release_id: 'release-id',
-				artist_id: 'artist-1',
+				artist_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
 				is_primary: true,
 			},
 			{
 				release_id: 'release-id',
-				artist_id: 'artist-2',
+				artist_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12',
 				is_primary: false,
 			},
 		])
 		expect(insertPlatformLinks).toHaveBeenCalledWith([
 			{
-				platform: 'spotify',
-				url: 'https://example.com',
+				name: 'spotify',
+				link: 'https://example.com',
 				release_id: 'release-id',
 			},
 		])
@@ -180,7 +178,7 @@ describe('POST /api/releases', () => {
 	it('should roll back the release when artist junction insertion fails', async () => {
 		setupGlobals({
 			release: { name: 'Armageddon' },
-			artistIds: ['artist-1'],
+			artistIds: ['a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'],
 		})
 		const { rollbackEq } = setupSupabase({
 			artistError: createPostgrestError('artist junction failed'),
@@ -200,8 +198,8 @@ describe('POST /api/releases', () => {
 	it('should keep the release when platform link insertion fails', async () => {
 		setupGlobals({
 			release: { name: 'Armageddon' },
-			artistIds: ['artist-1'],
-			platformLinks: [{ platform: 'youtube', url: 'https://example.com' }],
+			artistIds: ['a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'],
+			platformLinks: [{ name: 'youtube', link: 'https://example.com' }],
 		})
 		const { createdRelease, rollbackEq } = setupSupabase({
 			platformError: createPostgrestError('platform link failed'),

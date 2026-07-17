@@ -1,17 +1,9 @@
-interface SubscribeBody {
-	endpoint: string
-	p256dh: string
-	auth: string
-	userAgent?: string
-}
+import { validateBody } from '../../utils/validation'
+import { pushSubscribeBodySchema } from '../../utils/schemas'
 
 export default defineEventHandler(async (event) => {
 	const user = await requireAuth(event)
-	const body = await readBody<SubscribeBody>(event)
-
-	if (!body?.endpoint || !body.p256dh || !body.auth) {
-		throw createBadRequestError('endpoint, p256dh et auth sont requis')
-	}
+	const body = validateBody(await readBody(event), pushSubscribeBodySchema)
 
 	const supabase = useServerSupabase()
 

@@ -55,12 +55,13 @@ const createFallbackQuery = (result: {
 	return query
 }
 
-describe('GET /api/artists/search', () => {
+	describe('GET /api/artists/search', () => {
 	beforeEach(() => {
 		vi.resetModules()
 		vi.unstubAllGlobals()
 		vi.clearAllMocks()
 		vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+		vi.stubGlobal('getRequestIP', vi.fn(() => '127.0.0.1'))
 	})
 
 	it('should return no artists for searches shorter than two characters', async () => {

@@ -53,7 +53,6 @@ describe('push subscription API', () => {
 
 		await expect(handler({})).rejects.toMatchObject({
 			statusCode: 400,
-			message: 'endpoint, p256dh et auth sont requis',
 		})
 	})
 
@@ -117,7 +116,6 @@ describe('push subscription API', () => {
 
 		await expect(handler({})).rejects.toMatchObject({
 			statusCode: 400,
-			message: 'endpoint est requis',
 		})
 	})
 

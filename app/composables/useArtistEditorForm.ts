@@ -1,6 +1,7 @@
 import { CalendarDate } from '@internationalized/date'
 import type {
 	Artist,
+	ArtistEditorModel,
 	ArtistMenuItem,
 	Company,
 	GeneralTag,
@@ -424,13 +425,13 @@ export const useArtistEditorForm = (options: UseArtistEditorFormOptions = {}) =>
 	}
 
 	const applyOptions = (payload: {
-		styles: MusicStyle[]
-		tags: GeneralTag[]
-		nationalities: Nationality[]
+		styles?: MusicStyle[]
+		tags?: GeneralTag[]
+		nationalities?: Nationality[]
 	}) => {
-		stylesList.value = payload.styles
-		tagsList.value = payload.tags
-		nationalitiesList.value = payload.nationalities
+		if (payload.styles) stylesList.value = payload.styles
+		if (payload.tags) tagsList.value = payload.tags
+		if (payload.nationalities) nationalitiesList.value = payload.nationalities
 	}
 
 	const applyArtistSelections = (source: ArtistRelationSource) => {
@@ -452,6 +453,50 @@ export const useArtistEditorForm = (options: UseArtistEditorFormOptions = {}) =>
 				...(companyRelation.end_date ? { end_date: companyRelation.end_date } : {}),
 				is_current: companyRelation.is_current ?? true,
 			})) ?? []
+	}
+
+	const createEmptyArtistModel = (): ArtistEditorModel => ({
+		name: '',
+		id_youtube_music: null,
+		type: 'SOLO',
+		gender: 'UNKNOWN',
+		active_career: true,
+		description: null,
+		image: 'https://i.ibb.co/wLhbFZx/Frame-255.png',
+		birth_date: null,
+		debut_date: null,
+	})
+
+	const buildArtistEditorModelFromArtist = (source: Artist): ArtistEditorModel => ({
+		id: source.id,
+		name: source.name,
+		id_youtube_music: source.id_youtube_music ?? null,
+		type: source.type ?? 'SOLO',
+		gender: source.gender ?? 'UNKNOWN',
+		active_career: source.active_career ?? true,
+		description: source.description ?? null,
+		image: source.image ?? null,
+		birth_date: source.birth_date ?? null,
+		debut_date: source.debut_date ?? null,
+	})
+
+	const applyModelToForm = (model: ArtistEditorModel) => {
+		birthdayToDate.value = model.birth_date ? new Date(model.birth_date) : null
+		debutDateToDate.value = model.debut_date ? new Date(model.debut_date) : null
+	}
+
+	const toIsoDate = (value: Date | null) => {
+		return value && !Number.isNaN(value.getTime()) ? value.toISOString() : null
+	}
+
+	const buildArtistDatePayload = () => ({
+		birth_date: toIsoDate(birthdayToDate.value),
+		debut_date: toIsoDate(debutDateToDate.value),
+	})
+
+	const resetFormToModel = (model: ArtistEditorModel) => {
+		resetSelectionState()
+		applyModelToForm(model)
 	}
 
 	return {
@@ -512,5 +557,10 @@ export const useArtistEditorForm = (options: UseArtistEditorFormOptions = {}) =>
 		handleCompanyUpdated,
 		applyOptions,
 		applyArtistSelections,
+		createEmptyArtistModel,
+		buildArtistEditorModelFromArtist,
+		applyModelToForm,
+		buildArtistDatePayload,
+		resetFormToModel,
 	}
 }

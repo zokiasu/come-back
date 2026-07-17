@@ -33,7 +33,7 @@ export const applyReleaseFilters = <T>(
 
 export const applyMusicFilters = <T>(
 	query: T,
-	filters: { search?: string; years?: number[]; ismv?: boolean },
+	filters: { search?: string; years?: number[]; ismv?: boolean; verified?: boolean },
 ): T => {
 	let q = query as ChainableQuery
 
@@ -47,6 +47,10 @@ export const applyMusicFilters = <T>(
 
 	if (filters.ismv !== undefined) {
 		q = q.eq('ismv', filters.ismv)
+	}
+
+	if (filters.verified !== undefined) {
+		q = q.eq('verified', filters.verified)
 	}
 
 	return q as T

@@ -2,23 +2,78 @@ export const useSupabaseAuth = () => {
 	const isLoading = ref(false)
 	const error = ref<string | null>(null)
 	const toast = useToast()
+	const supabase = useSupabaseClient()
+	const supabaseUser = useSupabaseUser()
+	const {
+		ensureUserProfile,
+		getTrustedAuthUser,
+		logout: logoutFromAuth,
+		syncError,
+		syncUserProfileFromAuthUser,
+	} = useAuth()
+	const { close: closeAuthModal } = useAuthModal()
+	const origin = import.meta.client ? window.location.origin : useRequestURL().origin
+
+	const clearError = () => {
+		error.value = null
+	}
+
+	const refreshAuthenticatedData = async () => {
+		await nextTick()
+		try {
+			await refreshNuxtData()
+		} catch {
+			// Authentication is already complete; a cache refresh failure is non-fatal.
+		}
+	}
+
+	const loginWithEmail = async (email: string, password: string): Promise<boolean> => {
+		isLoading.value = true
+		clearError()
+
+		try {
+			const { data, error: authError } = await supabase.auth.signInWithPassword({
+				email: email.trim(),
+				password,
+			})
+
+			if (authError) throw authError
+			if (!data.user?.id) throw new Error('No user found after authentication.')
+
+			const isProfileReady = await syncUserProfileFromAuthUser({
+				id: data.user.id,
+				email: data.user.email,
+				user_metadata: data.user.user_metadata,
+			})
+
+			if (!isProfileReady) {
+				throw new Error(syncError.value || 'Unable to synchronize your profile.')
+			}
+
+			closeAuthModal()
+			await refreshAuthenticatedData()
+
+			toast.add({
+				title: 'Signed in',
+				description: 'You are now signed in with your email address.',
+				color: 'success',
+				duration: 3000,
+			})
+
+			return true
+		} catch (err: unknown) {
+			error.value = err instanceof Error ? err.message : 'Unable to sign in with email.'
+			return false
+		} finally {
+			isLoading.value = false
+		}
+	}
 
 	const loginWithGoogle = async () => {
 		isLoading.value = true
 		error.value = null
 
 		try {
-			// Use the global Supabase client.
-			const supabase = useSupabaseClient()
-			const origin = import.meta.client ? window.location.origin : useRequestURL().origin
-			const {
-				ensureUserProfile,
-				getTrustedAuthUser,
-				syncUserProfileFromAuthUser,
-				syncError,
-			} = useAuth()
-			const { close: closeAuthModal } = useAuthModal()
-
 			const { data, error: authError } = await supabase.auth.signInWithOAuth({
 				provider: 'google',
 				options: {
@@ -51,8 +106,6 @@ export const useSupabaseAuth = () => {
 
 				let didHandleAuthSuccess = false
 				let interval: ReturnType<typeof setInterval> | null = null
-				const supabaseUser = useSupabaseUser()
-
 				const cleanupListeners = () => {
 					window.removeEventListener('message', messageHandler)
 					window.removeEventListener('storage', storageHandler)
@@ -120,12 +173,7 @@ export const useSupabaseAuth = () => {
 						return
 					}
 					closeAuthModal()
-					await nextTick()
-					try {
-						refreshNuxtData()
-					} catch {
-						// no-op if unavailable
-					}
+					await refreshAuthenticatedData()
 				}
 
 				const checkSessionAndSync = async () => {
@@ -159,7 +207,10 @@ export const useSupabaseAuth = () => {
 						// Could be a forged token OR a transient network failure. Either way,
 						// skip setSession and let handleAuthSuccess() fall back to the
 						// already-persisted session.
-						console.warn('Skipping session hydration (token not validated):', validateError)
+						console.warn(
+							'Skipping session hydration (token not validated):',
+							validateError,
+						)
 						return
 					}
 
@@ -247,10 +298,7 @@ export const useSupabaseAuth = () => {
 
 	const handleAuthCallback = async () => {
 		try {
-			const user = useSupabaseUser()
-			const { ensureUserProfile } = useAuth()
-
-			if (user.value) {
+			if (supabaseUser.value) {
 				// Sync the user profile.
 				await ensureUserProfile()
 
@@ -263,9 +311,8 @@ export const useSupabaseAuth = () => {
 	}
 
 	const logout = async () => {
-		const { logout: authLogout } = useAuth()
 		try {
-			await authLogout()
+			await logoutFromAuth()
 		} catch (err: unknown) {
 			console.error('Erreur lors de la déconnexion:', err)
 			error.value = err instanceof Error ? err.message : 'Sign-out error'
@@ -275,6 +322,8 @@ export const useSupabaseAuth = () => {
 	return {
 		isLoading,
 		error,
+		clearError,
+		loginWithEmail,
 		loginWithGoogle,
 		logout,
 		handleAuthCallback,

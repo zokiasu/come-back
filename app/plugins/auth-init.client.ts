@@ -14,16 +14,12 @@ export default defineNuxtPlugin(async () => {
 			const supabase = useSupabaseClient()
 			// Initialize authentication
 			const { initializeAuth } = useAuth()
-			const { logInfo } = useErrorLogger()
-
-			logInfo('Starting authentication initialization')
 
 			// Fully initialize auth to avoid transient signed-in or signed-out states
 			await initializeAuth()
 
 			// Listen for auth changes from the OAuth popup or other tabs
 			supabase.auth.onAuthStateChange(async (event) => {
-				logInfo(`Auth state changed: ${event}`)
 				const { ensureUserProfile } = useAuth()
 				const userStore = useUserStore()
 
@@ -47,8 +43,6 @@ export default defineNuxtPlugin(async () => {
 					await userStore.resetStore()
 				}
 			})
-
-			logInfo('Authentication initialized successfully')
 		} catch (error) {
 			const { logError } = useErrorLogger()
 			logError(error, 'auth-init-plugin')

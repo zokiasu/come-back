@@ -1,21 +1,11 @@
-interface AddToReleaseBody {
-	releaseId: string
-	trackNumber: number
-}
+import { validateBody } from '../../../utils/validation'
+import { addToReleaseBodySchema } from '../../../utils/schemas'
 
 export default defineEventHandler(async (event) => {
 	await requireContributor(event)
 
 	const musicId = validateRouteParam(event, 'id', 'Music')
-	const body = await readBody<AddToReleaseBody>(event)
-
-	if (!body?.releaseId) {
-		throw createBadRequestError('Release ID is required')
-	}
-
-	if (body.trackNumber === undefined || body.trackNumber === null) {
-		throw createBadRequestError('Track number is required')
-	}
+	const body = validateBody(await readBody(event), addToReleaseBodySchema)
 
 	const supabase = useServerSupabase()
 

@@ -1,4 +1,5 @@
 import { applyReleaseFilters, applyVerifiedArtistFilter } from '../../utils/queryFilters'
+import { checkRateLimit, RATE_LIMIT_PRESETS } from '../../utils/rateLimit'
 
 const ALLOWED_ORDER_COLUMNS = [
 	'date',
@@ -10,6 +11,12 @@ const ALLOWED_ORDER_COLUMNS = [
 ] as const
 
 export default defineEventHandler(async (event) => {
+	// This endpoint backs the contributor dashboard and can expose pending releases.
+	// Keep authentication unconditional even when the request filters verified rows.
+	await requireContributor(event)
+	checkRateLimit(event, RATE_LIMIT_PRESETS.paginated)
+	setHeader(event, 'Cache-Control', 'private, no-store')
+
 	const supabase = useServerSupabase()
 
 	try {

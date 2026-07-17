@@ -31,7 +31,8 @@ service-account.json
 
 .well-known
 
-supabase/migrations/
+supabase/migrations/*
+!supabase/migrations/20260717000001_replace_release_artists.sql
 
 .claude/
 

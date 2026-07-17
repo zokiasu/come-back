@@ -417,6 +417,7 @@ export function useSupabaseRelease() {
 			// Call the optimized API endpoint
 			const result = await $fetch('/api/releases/paginated', {
 				params,
+				headers: requireAuthHeaders(),
 			})
 
 			return result

@@ -1,4 +1,10 @@
 import { createError } from 'h3'
+import type { z } from 'zod'
+import type { Database } from '~/types/supabase'
+
+type VerifiedWriteActor = {
+	role: Database['public']['Enums']['user_role']
+}
 
 /**
  * Validation constants for API inputs
@@ -178,4 +184,50 @@ export const validateOrderBy = (
 ): string => {
 	if (orderBy && allowedColumns.includes(orderBy)) return orderBy
 	return defaultColumn
+}
+
+/**
+ * Validates the request body against a Zod schema.
+ * Throws a 400 error with detailed messages when validation fails.
+ *
+ * @param body - The request body to validate
+ * @param schema - The Zod schema to validate against
+ * @returns The validated and typed body
+ */
+export const validateBody = <T extends z.ZodTypeAny>(
+	body: unknown,
+	schema: T,
+): z.infer<T> => {
+	const result = schema.safeParse(body)
+
+	if (!result.success) {
+		const issues = (result.error.issues ?? [])
+			.map((issue) => `${issue.path.join('.')}: ${issue.message}`)
+			.join('; ')
+
+		throw createError({
+			statusCode: 400,
+			statusMessage: 'Bad Request',
+			message: `Invalid request body: ${issues}`,
+		})
+	}
+
+	return result.data
+}
+
+/**
+ * Privileged publication state must only be writable by administrators.
+ * Call this after contributor authentication and body validation.
+ */
+export const assertCanSetVerified = (
+	user: VerifiedWriteActor | undefined,
+	verified: boolean | null | undefined,
+): void => {
+	if (verified === undefined || user?.role === 'ADMIN') return
+
+	throw createError({
+		statusCode: 403,
+		statusMessage: 'Forbidden',
+		message: 'Admin access required to change verification status',
+	})
 }

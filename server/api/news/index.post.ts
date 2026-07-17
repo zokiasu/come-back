@@ -1,29 +1,19 @@
 import type { TablesInsert } from '~/types/supabase'
-
-interface CreateNewsBody {
-	data: TablesInsert<'news'>
-	artistIds: string[]
-}
+import { assertCanSetVerified, validateBody } from '../../utils/validation'
+import { createNewsBodySchema } from '../../utils/schemas'
 
 export default defineEventHandler(async (event) => {
-	await requireContributor(event)
+	const user = await requireContributor(event)
 
-	const body = await readBody<CreateNewsBody>(event)
-
-	if (!body?.data?.message) {
-		throw createBadRequestError('News message is required')
-	}
-
-	if (!body.artistIds?.length) {
-		throw createBadRequestError('At least one artist is required')
-	}
+	const body = validateBody(await readBody(event), createNewsBodySchema)
+	assertCanSetVerified(user, body.data.verified)
 
 	const supabase = useServerSupabase()
 
 	// 1. Create the news
 	const { data: news, error: newsError } = await supabase
 		.from('news')
-		.insert(body.data)
+		.insert(body.data as TablesInsert<'news'>)
 		.select()
 		.single()
 

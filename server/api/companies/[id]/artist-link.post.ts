@@ -1,22 +1,12 @@
 import type { TablesInsert } from '~/types/supabase'
-
-interface LinkArtistBody {
-	artistId: string
-	relationshipType?: string | null
-	startDate?: string | null
-	endDate?: string | null
-	isCurrent?: boolean
-}
+import { validateBody } from '../../../utils/validation'
+import { linkArtistBodySchema } from '../../../utils/schemas'
 
 export default defineEventHandler(async (event) => {
 	await requireContributor(event)
 
 	const companyId = validateRouteParam(event, 'id', 'Company')
-	const body = await readBody<LinkArtistBody>(event)
-
-	if (!body?.artistId) {
-		throw createBadRequestError('Artist ID is required')
-	}
+	const body = validateBody(await readBody(event), linkArtistBodySchema)
 
 	const supabase = useServerSupabase()
 

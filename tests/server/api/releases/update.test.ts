@@ -43,7 +43,6 @@ describe('PATCH /api/releases/:id', () => {
 
 		await expect(handler({})).rejects.toMatchObject({
 			statusCode: 400,
-			message: 'Request body is required',
 		})
 	})
 
@@ -52,8 +51,11 @@ describe('PATCH /api/releases/:id', () => {
 			updates: {
 				name: 'Updated Release',
 			},
-			artistIds: ['artist-1', 'artist-2'],
-			platformLinks: [{ platform: 'spotify', url: 'https://example.com' }],
+			artistIds: [
+				'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+				'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12',
+			],
+			platformLinks: [{ name: 'spotify', link: 'https://example.com' }],
 		}
 		const updatedRelease = {
 			id: 'release-id',
@@ -65,16 +67,14 @@ describe('PATCH /api/releases/:id', () => {
 			data: updatedRelease,
 			error: null,
 		})
-		const deleteArtistsQuery = createSupabaseQueryMock({ error: null })
-		const insertArtistsQuery = createSupabaseQueryMock({ error: null })
 		const deletePlatformLinksQuery = createSupabaseQueryMock({ error: null })
 		const insertPlatformLinksQuery = createSupabaseQueryMock({ error: null })
 		const queriesByTable: Record<string, unknown[]> = {
 			releases: [updateReleaseQuery],
-			artist_releases: [deleteArtistsQuery, insertArtistsQuery],
 			release_platform_links: [deletePlatformLinksQuery, insertPlatformLinksQuery],
 		}
 		const supabase = {
+			rpc: vi.fn(async () => ({ data: null, error: null })),
 			from: vi.fn((table: string) => {
 				const query = queriesByTable[table]?.shift()
 
@@ -95,29 +95,10 @@ describe('PATCH /api/releases/:id', () => {
 			{ method: 'select', args: [] },
 		])
 		expect(updateReleaseQuery.single).toHaveBeenCalledOnce()
-		expect(deleteArtistsQuery.calls).toEqual([
-			{ method: 'delete', args: [] },
-			{ method: 'eq', args: ['release_id', 'release-id'] },
-		])
-		expect(insertArtistsQuery.calls).toEqual([
-			{
-				method: 'insert',
-				args: [
-					[
-						{
-							release_id: 'release-id',
-							artist_id: 'artist-1',
-							is_primary: true,
-						},
-						{
-							release_id: 'release-id',
-							artist_id: 'artist-2',
-							is_primary: false,
-						},
-					],
-				],
-			},
-		])
+		expect(supabase.rpc).toHaveBeenCalledWith('replace_release_artists', {
+			p_release_id: 'release-id',
+			p_artist_ids: body.artistIds,
+		})
 		expect(deletePlatformLinksQuery.calls).toEqual([
 			{ method: 'delete', args: [] },
 			{ method: 'eq', args: ['release_id', 'release-id'] },
@@ -128,8 +109,8 @@ describe('PATCH /api/releases/:id', () => {
 				args: [
 					[
 						{
-							platform: 'spotify',
-							url: 'https://example.com',
+							name: 'spotify',
+							link: 'https://example.com',
 							release_id: 'release-id',
 						},
 					],
@@ -138,18 +119,47 @@ describe('PATCH /api/releases/:id', () => {
 		])
 	})
 
-	it('should return the release id when only relations are updated', async () => {
+	it('should reject attempts to remove every artist from a release', async () => {
 		setupGlobals({ artistIds: [] })
 
-		const deleteArtistsQuery = createSupabaseQueryMock({ error: null })
+		const from = vi.fn()
 		const supabase = {
-			from: vi.fn(() => deleteArtistsQuery),
+			from,
 		}
 		vi.stubGlobal('useServerSupabase', () => supabase)
 
 		const handler = await loadHandler()
 
-		await expect(handler({})).resolves.toEqual({ id: 'release-id' })
-		expect(supabase.from).toHaveBeenCalledWith('artist_releases')
+		await expect(handler({})).rejects.toMatchObject({ statusCode: 400 })
+		expect(from).not.toHaveBeenCalled()
+	})
+
+	it('should preserve existing artist links when the atomic replacement fails', async () => {
+		const newArtistId = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'
+		setupGlobals({ artistIds: [newArtistId] })
+
+		const rpcError = {
+			code: '23503',
+			message: 'Foreign key violation',
+			details: 'Artist does not exist',
+			hint: '',
+		}
+		const supabase = {
+			rpc: vi.fn(async () => ({ data: null, error: rpcError })),
+			from: vi.fn(),
+		}
+		vi.stubGlobal('useServerSupabase', () => supabase)
+
+		const handler = await loadHandler()
+
+		await expect(handler({})).rejects.toMatchObject({
+			statusCode: 409,
+			data: { context: 'releases.update.artists' },
+		})
+		expect(supabase.rpc).toHaveBeenCalledWith('replace_release_artists', {
+			p_release_id: 'release-id',
+			p_artist_ids: [newArtistId],
+		})
+		expect(supabase.from).not.toHaveBeenCalled()
 	})
 })

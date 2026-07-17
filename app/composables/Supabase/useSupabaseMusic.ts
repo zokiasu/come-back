@@ -491,7 +491,7 @@ export function useSupabaseMusic() {
 			years?: number[]
 			styles?: string[]
 			type?: MusicType
-			verified?: boolean
+			verified?: boolean | null
 			orderBy?: keyof Music
 			orderDirection?: 'asc' | 'desc'
 			ismv?: boolean
@@ -527,6 +527,9 @@ export function useSupabaseMusic() {
 				params.ismv = options.ismv.toString()
 			}
 
+			params.verified =
+				options?.verified === null ? 'null' : String(options?.verified ?? true)
+
 			// Support for multi-artists or artist unique
 			if (options?.artistIds && options.artistIds.length > 0) {
 				params.artistIds = options.artistIds.join(',')
@@ -542,6 +545,7 @@ export function useSupabaseMusic() {
 			// Call the optimized API endpoint
 			const result = await $fetch<PaginatedMusicsResponse>('/api/musics/paginated', {
 				params,
+				headers: params.verified === 'true' ? undefined : requireAuthHeaders(),
 			})
 
 			return result

@@ -25,6 +25,7 @@ const loadHandler = async () => {
 }
 
 const setupGlobals = (query: Record<string, string | undefined>) => {
+	const requireContributor = vi.fn(async () => ({ id: 'admin-id', role: 'ADMIN' }))
 	vi.stubGlobal(
 		'getQuery',
 		vi.fn(() => query),
@@ -33,6 +34,7 @@ const setupGlobals = (query: Record<string, string | undefined>) => {
 	vi.stubGlobal('createInternalError', createInternalError)
 	vi.stubGlobal('handleSupabaseError', handleSupabaseError)
 	vi.stubGlobal('isPostgrestError', isPostgrestError)
+	vi.stubGlobal('setHeader', vi.fn())
 	vi.stubGlobal('transformJunction', transformJunction)
 	vi.stubGlobal('validateArrayParam', validateArrayParam)
 	vi.stubGlobal('validateLimitParam', validateLimitParam)
@@ -40,6 +42,13 @@ const setupGlobals = (query: Record<string, string | undefined>) => {
 	vi.stubGlobal('validateOrderDirection', validateOrderDirection)
 	vi.stubGlobal('validatePageParam', validatePageParam)
 	vi.stubGlobal('validateSearchParam', validateSearchParam)
+	vi.stubGlobal(
+		'getRequestIP',
+		vi.fn(() => '127.0.0.1'),
+	)
+	vi.stubGlobal('requireContributor', requireContributor)
+
+	return { requireContributor }
 }
 
 describe('GET /api/releases/paginated', () => {
@@ -51,7 +60,7 @@ describe('GET /api/releases/paginated', () => {
 	})
 
 	it('should apply filters, sorting and pagination while flattening relations', async () => {
-		setupGlobals({
+		const { requireContributor } = setupGlobals({
 			page: '2',
 			limit: '2',
 			search: 'dream',
@@ -95,6 +104,7 @@ describe('GET /api/releases/paginated', () => {
 		const handler = await loadHandler()
 		const result = await handler({})
 
+		expect(requireContributor).toHaveBeenCalledOnce()
 		expect(supabase.from).toHaveBeenNthCalledWith(1, 'releases')
 		expect(supabase.from).toHaveBeenNthCalledWith(2, 'releases')
 		expect(countQuery.calls).toEqual([

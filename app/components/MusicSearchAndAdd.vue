@@ -385,8 +385,6 @@
 				description: newMusicForm.description || null,
 				ismv: newMusicForm.ismv,
 				verified: newMusicForm.verified,
-				created_at: new Date().toISOString(),
-				updated_at: new Date().toISOString(),
 			}
 
 			const createdMusic = await createMusic(musicData, [props.artistId])

@@ -1,38 +1,12 @@
-import type { Json, TablesInsert } from '~/types/supabase'
-
-interface CreateArtistBody {
-	data: TablesInsert<'artists'>
-	socialLinks: Omit<TablesInsert<'artist_social_links'>, 'artist_id'>[]
-	platformLinks: Omit<TablesInsert<'artist_platform_links'>, 'artist_id'>[]
-	groupIds: string[]
-	memberIds: string[]
-	companies?: Omit<TablesInsert<'artist_companies'>, 'artist_id'>[]
-}
+import type { Json } from '~/types/supabase'
+import { assertCanSetVerified, validateBody } from '../../utils/validation'
+import { createArtistBodySchema } from '../../utils/schemas'
 
 export default defineEventHandler(async (event) => {
-	await requireContributor(event)
+	const user = await requireContributor(event)
 
-	const body = await readBody<CreateArtistBody>(event)
-
-	if (!body?.data?.name) {
-		throw createBadRequestError('Artist name is required')
-	}
-
-	// Bound relation arrays before handing them to the transactional RPC, to
-	// avoid an oversized single transaction / long lock window.
-	for (const [field, list] of Object.entries({
-		socialLinks: body.socialLinks,
-		platformLinks: body.platformLinks,
-		groupIds: body.groupIds,
-		memberIds: body.memberIds,
-		companies: body.companies,
-	})) {
-		if (Array.isArray(list) && list.length > VALIDATION_LIMITS.MAX_ARRAY_ITEMS) {
-			throw createBadRequestError(
-				`'${field}' exceeds the maximum of ${VALIDATION_LIMITS.MAX_ARRAY_ITEMS} items`,
-			)
-		}
-	}
+	const body = validateBody(await readBody(event), createArtistBodySchema)
+	assertCanSetVerified(user, body.data.verified)
 
 	const supabase = useServerSupabase()
 

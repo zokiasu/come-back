@@ -34,6 +34,7 @@ const setupGlobals = (query: Record<string, string | undefined>) => {
 	vi.stubGlobal('createInternalError', createInternalError)
 	vi.stubGlobal('handleSupabaseError', handleSupabaseError)
 	vi.stubGlobal('isPostgrestError', isPostgrestError)
+	vi.stubGlobal('setHeader', vi.fn())
 	vi.stubGlobal('transformJunction', transformJunction)
 	vi.stubGlobal('validateArrayParam', validateArrayParam)
 	vi.stubGlobal('validateLimitParam', validateLimitParam)
@@ -42,6 +43,14 @@ const setupGlobals = (query: Record<string, string | undefined>) => {
 	vi.stubGlobal('validateOrderDirection', validateOrderDirection)
 	vi.stubGlobal('validatePageParam', validatePageParam)
 	vi.stubGlobal('validateSearchParam', validateSearchParam)
+	vi.stubGlobal(
+		'getRequestIP',
+		vi.fn(() => '127.0.0.1'),
+	)
+	vi.stubGlobal(
+		'requireContributor',
+		vi.fn(async () => ({ id: 'admin-id', role: 'ADMIN' })),
+	)
 }
 
 describe('GET /api/musics/paginated', () => {
@@ -59,6 +68,7 @@ describe('GET /api/musics/paginated', () => {
 			search: 'love',
 			years: '2025,2026',
 			ismv: 'true',
+			verified: 'true',
 			orderBy: 'name',
 			orderDirection: 'asc',
 		})
@@ -141,6 +151,10 @@ describe('GET /api/musics/paginated', () => {
 			args: ['ismv', true],
 		})
 		expect(dataQuery.calls).toContainEqual({
+			method: 'eq',
+			args: ['verified', true],
+		})
+		expect(dataQuery.calls).toContainEqual({
 			method: 'not',
 			args: ['name', 'ilike', '%Instrumental%'],
 		})
@@ -200,6 +214,7 @@ describe('GET /api/musics/paginated', () => {
 			orderBy: 'release_year',
 			orderDirection: 'desc',
 			ismv: 'false',
+			verified: 'true',
 		})
 
 		const rawMusic = {
@@ -267,6 +282,63 @@ describe('GET /api/musics/paginated', () => {
 			page: 2,
 			limit: 3,
 			totalPages: 3,
+		})
+	})
+
+	it('should keep artist verification separate from pending music filtering', async () => {
+		setupGlobals({
+			page: '1',
+			limit: '20',
+			styles: 'pop',
+			verified: 'false',
+		})
+
+		const matchingArtistsQuery = createSupabaseQueryMock({
+			data: [{ id: 'artist-id' }],
+			error: null,
+		})
+		const musicArtistsQuery = createSupabaseQueryMock({
+			data: [{ music_id: 'music-id' }],
+			error: null,
+		})
+		const dataQuery = createSupabaseQueryMock({ data: [], error: null })
+		const countQuery = createSupabaseQueryMock({ count: 0, error: null })
+		let musicQueryCount = 0
+		const supabase = {
+			from: vi.fn((table: string) => {
+				if (table === 'artists') return matchingArtistsQuery
+				if (table === 'music_artists') return musicArtistsQuery
+				if (table === 'musics') {
+					musicQueryCount += 1
+					return musicQueryCount === 1 ? dataQuery : countQuery
+				}
+				throw new Error(`Unexpected table: ${table}`)
+			}),
+		}
+		vi.stubGlobal('useServerSupabase', () => supabase)
+
+		const handler = await loadHandler()
+		await handler({})
+
+		expect(matchingArtistsQuery.calls).toContainEqual({
+			method: 'eq',
+			args: ['verified', true],
+		})
+		expect(dataQuery.calls).toContainEqual({
+			method: 'eq',
+			args: ['artists.artist.verified', true],
+		})
+		expect(dataQuery.calls).toContainEqual({
+			method: 'eq',
+			args: ['verified', false],
+		})
+		expect(countQuery.calls).toContainEqual({
+			method: 'eq',
+			args: ['artists.artist.verified', true],
+		})
+		expect(countQuery.calls).toContainEqual({
+			method: 'eq',
+			args: ['verified', false],
 		})
 	})
 

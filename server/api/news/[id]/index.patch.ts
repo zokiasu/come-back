@@ -1,19 +1,13 @@
 import type { TablesUpdate } from '~/types/supabase'
-
-interface UpdateNewsBody {
-	updates?: TablesUpdate<'news'>
-	artistIds?: string[]
-}
+import { assertCanSetVerified, validateBody } from '../../../utils/validation'
+import { updateNewsBodySchema } from '../../../utils/schemas'
 
 export default defineEventHandler(async (event) => {
-	await requireContributor(event)
+	const user = await requireContributor(event)
 
 	const newsId = validateRouteParam(event, 'id', 'News')
-	const body = await readBody<UpdateNewsBody>(event)
-
-	if (!body) {
-		throw createBadRequestError('Request body is required')
-	}
+	const body = validateBody(await readBody(event), updateNewsBodySchema)
+	assertCanSetVerified(user, body.updates?.verified)
 
 	const supabase = useServerSupabase()
 
@@ -22,7 +16,7 @@ export default defineEventHandler(async (event) => {
 	if (body.updates && Object.keys(body.updates).length > 0) {
 		const { data, error } = await supabase
 			.from('news')
-			.update(body.updates)
+			.update(body.updates as TablesUpdate<'news'>)
 			.eq('id', newsId)
 			.select()
 			.single()

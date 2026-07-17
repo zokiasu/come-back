@@ -8,11 +8,8 @@ import {
 	mapYouTubeThumbnails,
 	parseYouTubeDuration,
 } from '../../../utils/youtubeMvMatcher'
-
-type LinkMvBody = {
-	musicId?: string
-	videoId?: string
-}
+import { validateBody } from '../../../utils/validation'
+import { linkMvBodySchema } from '../../../utils/schemas'
 
 type YouTubeVideoDetailsResponse = {
 	items?: Array<{
@@ -28,23 +25,13 @@ type YouTubeVideoDetailsResponse = {
 	}>
 }
 
-const YOUTUBE_VIDEO_ID_PATTERN = /^[A-Za-z0-9_-]{6,20}$/u
-
 export default defineEventHandler(async (event) => {
 	await requireAdmin(event)
 	setHeader(event, 'Cache-Control', 'no-store')
 
-	const body = await readBody<LinkMvBody>(event)
-	const musicId = body.musicId?.trim()
-	const videoId = body.videoId?.trim()
-
-	if (!musicId || !videoId) {
-		throw createBadRequestError('musicId and videoId are required')
-	}
-
-	if (!YOUTUBE_VIDEO_ID_PATTERN.test(videoId)) {
-		throw createBadRequestError('videoId format is invalid')
-	}
+	const body = validateBody(await readBody(event), linkMvBodySchema)
+	const musicId = body.musicId
+	const videoId = body.videoId
 
 	const supabase = useServerSupabase()
 	const [musicResult, duplicateResult] = await Promise.all([

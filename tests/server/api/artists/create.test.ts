@@ -40,10 +40,13 @@ const setupSupabase = ({
 	return { supabase, rpc }
 }
 
-const setupGlobals = (body: unknown) => {
+const setupGlobals = (
+	body: unknown,
+	actor?: { id: string; role: 'CONTRIBUTOR' | 'ADMIN' },
+) => {
 	vi.stubGlobal(
 		'requireContributor',
-		vi.fn(async () => undefined),
+		vi.fn(async () => actor),
 	)
 	vi.stubGlobal(
 		'readBody',
@@ -59,9 +62,9 @@ const fullBody = {
 	data: { name: 'NewJeans', type: 'GROUP', id_youtube_music: 'YTM1' },
 	socialLinks: [{ name: 'X', link: 'https://x.com/nj' }],
 	platformLinks: [{ name: 'Spotify', link: 'https://sp.com/nj' }],
-	groupIds: ['g1'],
-	memberIds: ['m1'],
-	companies: [{ company_id: 'c1' }],
+	groupIds: ['a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'],
+	memberIds: ['a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12'],
+	companies: [{ company_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a13' }],
 }
 
 describe('POST /api/artists', () => {
@@ -80,7 +83,6 @@ describe('POST /api/artists', () => {
 
 		await expect(handler({})).rejects.toMatchObject({
 			statusCode: 400,
-			message: 'Artist name is required',
 		})
 		expect(rpc).not.toHaveBeenCalled()
 	})
@@ -129,6 +131,39 @@ describe('POST /api/artists', () => {
 			p_member_ids: [],
 			p_companies: [],
 		})
+	})
+
+	it('allows an admin to set verification and accepts date-only profile dates', async () => {
+		const body = {
+			data: {
+				name: 'Verified Artist',
+				verified: true,
+				birth_date: '2000-01-31',
+			},
+		}
+		setupGlobals(body, { id: 'admin-id', role: 'ADMIN' })
+		const { rpc } = setupSupabase({ rpcData: { id: 'verified-artist' } })
+
+		const handler = await loadHandler()
+		await handler({})
+
+		expect(rpc).toHaveBeenCalledWith(
+			'create_artist_with_relations',
+			expect.objectContaining({ p_artist: body.data }),
+		)
+	})
+
+	it('rejects verification changes from contributors', async () => {
+		setupGlobals(
+			{ data: { name: 'Unapproved Artist', verified: true } },
+			{ id: 'contributor-id', role: 'CONTRIBUTOR' },
+		)
+		const { rpc } = setupSupabase()
+
+		const handler = await loadHandler()
+
+		await expect(handler({})).rejects.toMatchObject({ statusCode: 403 })
+		expect(rpc).not.toHaveBeenCalled()
 	})
 
 	it('propagates the error instead of returning a partially-created artist', async () => {

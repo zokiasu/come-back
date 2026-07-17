@@ -16,7 +16,7 @@
 						<select
 							v-model="selectedPeriod"
 							class="bg-cb-quaternary-950 placeholder-cb-tertiary-200 hover:bg-cb-tertiary-200 hover:text-cb-quinary-900 w-full rounded border-none p-2 text-xs transition-all duration-300 ease-in-out focus:outline-none"
-							@change="refreshStats"
+							@change="handlePeriodChange"
 						>
 							<option
 								v-for="option in periodOptions"
@@ -31,7 +31,8 @@
 						<label class="text-cb-tertiary-200 text-xs uppercase">Year</label>
 						<select
 							v-model="selectedYear"
-							class="bg-cb-quaternary-950 placeholder-cb-tertiary-200 hover:bg-cb-tertiary-200 hover:text-cb-quinary-900 w-full rounded border-none p-2 text-xs transition-all duration-300 ease-in-out focus:outline-none"
+							:disabled="selectedPeriod === 'week'"
+							class="bg-cb-quaternary-950 placeholder-cb-tertiary-200 hover:bg-cb-tertiary-200 hover:text-cb-quinary-900 w-full rounded border-none p-2 text-xs transition-all duration-300 ease-in-out focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
 							@change="refreshStats"
 						>
 							<option
@@ -112,7 +113,7 @@
 </template>
 
 <script setup lang="ts">
-	import { computed, onMounted, ref, watch } from 'vue'
+	import { computed, onMounted, ref } from 'vue'
 	import { useSupabaseStatistics } from '~/composables/Supabase/useSupabaseStatistics'
 	import StatsOverviewSection from '~/components/Stats/sections/StatsOverviewSection.vue'
 	import StatsArtistsSection from '~/components/Stats/sections/StatsArtistsSection.vue'
@@ -193,14 +194,12 @@
 				return `From ${oneWeekAgo.toLocaleDateString('sv-SE')} to ${now.toLocaleDateString('sv-SE')}`
 			}
 			case 'month': {
-				if (selectedMonth.value !== null) {
-					const monthName = monthOptions.value.find(
-						(m) => m.value === selectedMonth.value,
-					)?.label
-					return `${monthName} ${currentYear} (specific month)`
-				}
-				const monthName = monthOptions.value.find((m) => m.value === currentMonth)?.label
-				return `${monthName} ${currentYear} (current)`
+				const displayedMonth = selectedMonth.value ?? currentMonth
+				const displayedYear = selectedYear.value ?? currentYear
+				const monthName = monthOptions.value.find(
+					(m) => m.value === displayedMonth,
+				)?.label
+				return `${monthName} ${displayedYear}${selectedMonth.value === null ? ' (current month)' : ''}`
 			}
 			case 'year':
 				return `${currentYear} (current)`
@@ -248,11 +247,15 @@
 		}
 	}
 
-	watch(selectedPeriod, (newPeriod) => {
-		if (newPeriod !== 'month') {
+	const handlePeriodChange = () => {
+		if (selectedPeriod.value !== 'month') {
 			selectedMonth.value = null
 		}
-	})
+		if (selectedPeriod.value === 'week') {
+			selectedYear.value = null
+		}
+		refreshStats()
+	}
 
 	onMounted(() => {
 		refreshStats()

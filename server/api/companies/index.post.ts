@@ -1,19 +1,18 @@
 import type { TablesInsert } from '~/types/supabase'
+import { assertCanSetVerified, validateBody } from '../../utils/validation'
+import { createCompanyBodySchema } from '../../utils/schemas'
 
 export default defineEventHandler(async (event) => {
-	await requireContributor(event)
+	const user = await requireContributor(event)
 
-	const body = await readBody<{ data: TablesInsert<'companies'> }>(event)
-
-	if (!body?.data?.name) {
-		throw createBadRequestError('Company name is required')
-	}
+	const body = validateBody(await readBody(event), createCompanyBodySchema)
+	assertCanSetVerified(user, body.data.verified)
 
 	const supabase = useServerSupabase()
 
 	const { data, error } = await supabase
 		.from('companies')
-		.insert(body.data)
+		.insert(body.data as TablesInsert<'companies'>)
 		.select()
 		.single()
 

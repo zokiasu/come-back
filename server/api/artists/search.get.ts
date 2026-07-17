@@ -1,8 +1,11 @@
 import { useServerSupabase } from '../../utils/supabase'
 import { validateLimitParam, validateSearchParam } from '../../utils/validation'
+import { checkRateLimit, RATE_LIMIT_PRESETS } from '../../utils/rateLimit'
 import type { ArtistType } from '~/types'
 
 export default defineEventHandler(async (event) => {
+	checkRateLimit(event, RATE_LIMIT_PRESETS.search)
+
 	const query = getQuery(event)
 	const search = validateSearchParam(query.search as string | undefined)
 	const limit = validateLimitParam(Number(query.limit), 10)
