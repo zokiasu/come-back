@@ -34,14 +34,6 @@ export type News = Tables<'news'> & {
 export type MusicStyle = Tables<'music_styles'>
 export type GeneralTag = Tables<'general_tags'>
 export type Nationality = Tables<'nationalities'>
-export type ArtistSocialLink = Tables<'artist_social_links'>
-export type ArtistPlatformLink = Tables<'artist_platform_links'>
-export type ReleasePlatformLink = Tables<'release_platform_links'>
-export type ArtistRelation = Tables<'artist_relations'>
-export type ArtistRelease = Tables<'artist_releases'>
-export type MusicArtist = Tables<'music_artists'>
-export type MusicRelease = Tables<'music_releases'>
-export type NewsArtist = Tables<'news_artists_junction'>
 export type Company = Tables<'companies'>
 
 // Types for the rankings user
@@ -76,18 +68,11 @@ export interface UserRankingWithPreview extends UserRanking {
 }
 
 // Types for the insertions
-export type UserInsert = TablesInsert<'users'>
 export type ArtistInsert = TablesInsert<'artists'>
-export type ReleaseInsert = TablesInsert<'releases'>
 export type MusicInsert = TablesInsert<'musics'>
-export type NewsInsert = TablesInsert<'news'>
 
 // Types for the updated
-export type UserUpdate = TablesUpdate<'users'>
 export type ArtistUpdate = TablesUpdate<'artists'>
-export type ReleaseUpdate = TablesUpdate<'releases'>
-export type MusicUpdate = TablesUpdate<'musics'>
-export type NewsUpdate = TablesUpdate<'news'>
 
 // Use the types Supabase directement with the alias
 export type UserRole = Database['public']['Enums']['user_role']
@@ -113,8 +98,6 @@ export type ArtistEditorModel = {
 
 export type ReleaseType = Database['public']['Enums']['release_type']
 export type MusicType = Database['public']['Enums']['music_type']
-export type RelationType = Database['public']['Enums']['relation_type']
-export type ContributionType = Database['public']['Enums']['contribution_type']
 export type CompanyType =
 	| 'LABEL'
 	| 'PUBLISHER'
@@ -147,63 +130,6 @@ export interface JunctionWithMusic {
 	music: Tables<'musics'> | null
 }
 
-export interface JunctionWithGroup {
-	group: Tables<'artists'> | null
-}
-
-export interface JunctionWithMember {
-	member: Tables<'artists'> | null
-}
-
-export interface JunctionWithArtists {
-	artists: Tables<'artists'> | null
-}
-
-/**
- * Type for music with junction relations from Supabase query
- */
-export interface MusicWithJunctions extends Tables<'musics'> {
-	artists?: JunctionWithArtist[]
-	releases?: JunctionWithRelease[]
-}
-
-/**
- * Type for release with junction relations from Supabase query
- */
-export interface ReleaseWithJunctions extends Tables<'releases'> {
-	artists?: JunctionWithArtist[]
-	artist_releases?: JunctionWithArtist[]
-	musics?: JunctionWithMusic[]
-}
-
-/**
- * Type for artist with junction relations from Supabase query
- */
-export interface ArtistWithJunctions extends Tables<'artists'> {
-	groups?: JunctionWithGroup[]
-	members?: JunctionWithMember[]
-	releases?: JunctionWithRelease[]
-}
-
-/**
- * Type for news with junction relations from Supabase query
- */
-export interface NewsWithJunctions extends Tables<'news'> {
-	artists?: JunctionWithArtists[]
-}
-
-/**
- * Type for ranking item with music junction from Supabase query
- */
-export interface RankingItemWithJunctions {
-	id: string
-	ranking_id: string
-	music_id: string
-	position: number
-	added_at: string | null
-	music?: MusicWithJunctions | null
-}
-
 export interface QueryOptions {
 	limit?: number
 	offset?: number
@@ -228,66 +154,12 @@ declare global {
 	}
 }
 
-export interface UseSupabaseReturn<T> {
-	data: Ref<T[]>
-	loading: Ref<boolean>
-	error: Ref<string | null>
-	fetch: () => Promise<void>
-	create: (item: Partial<T>) => Promise<T | null>
-	update: (id: string, updates: Partial<T>) => Promise<T | null>
-	delete: (id: string) => Promise<boolean>
-}
-
-export type ReleaseWithRelations = Release & {
-	artists?: Artist[]
-	musics?: Music[]
-	platform_links?: ReleasePlatformLink[]
-}
-
-export type ReleaseWithArtists = Release & {
-	artists?: Artist[]
-}
-
 export interface PaginatedResponse<T> {
 	items: T[]
 	total: number
 	page: number
 	limit: number
 	totalPages: number
-}
-
-export interface PaginatedReleaseResponse extends Omit<
-	PaginatedResponse<ReleaseWithRelations>,
-	'items'
-> {
-	releases: ReleaseWithRelations[]
-}
-
-export interface PaginatedArtistResponse extends Omit<
-	PaginatedResponse<Artist>,
-	'items'
-> {
-	artists: Artist[]
-}
-
-export interface PaginatedMusicResponse extends Omit<PaginatedResponse<Music>, 'items'> {
-	musics: Music[]
-}
-
-export interface PaginatedCompanyResponse extends Omit<
-	PaginatedResponse<Company>,
-	'items'
-> {
-	companies: Company[]
-}
-
-// Type for the composants UI
-export type InputMenuItem = {
-	id?: string
-	label?: string
-	disabled?: boolean
-	icon?: string
-	[key: string]: unknown
 }
 
 /**

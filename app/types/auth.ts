@@ -1,5 +1,3 @@
-import type { Database } from './supabase'
-
 // Types for the data user of Supabase
 export interface SupabaseAuthUser {
 	id: string
@@ -33,29 +31,4 @@ export interface UserUpdateData {
 	updated_at: string
 }
 
-// Interface for delete-analysis RPC responses
-export interface ArtistDeletionAnalysis {
-	message?: string
-	success?: boolean
-	details?: {
-		impact_analysis?: {
-			exclusive_releases?: number
-			exclusive_musics?: number
-			exclusive_news?: number
-		}
-	}
-}
 
-// Interface for simple-delete RPC responses
-export interface ArtistDeletionResponse {
-	success?: boolean
-	message?: string
-	artist_name?: string
-}
-
-// Interface for the contenus exclusifs
-export interface ExclusiveContent {
-	exclusive_releases?: Array<Database['public']['Tables']['releases']['Row']>
-	exclusive_musics?: Array<Database['public']['Tables']['musics']['Row']>
-	exclusive_news?: Array<Database['public']['Tables']['news']['Row']>
-}

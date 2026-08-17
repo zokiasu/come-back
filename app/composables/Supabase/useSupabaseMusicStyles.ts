@@ -1,5 +1,5 @@
 import type { QueryOptions, FilterOptions, MusicStyle } from '~/types'
-import type { Database, TablesInsert, TablesUpdate } from '~/types/supabase'
+import type { Database, TablesInsert } from '~/types/supabase'
 
 export function useSupabaseMusicStyles() {
 	const supabase = useSupabaseClient<Database>()
@@ -20,24 +20,6 @@ export function useSupabaseMusicStyles() {
 		}
 
 		return style as MusicStyle
-	}
-
-	// Updates a style
-	const updateMusicStyle = async (
-		id: string,
-		updates: TablesUpdate<'music_styles'>,
-	): Promise<MusicStyle> => {
-		const { data, error } = await runMutation(
-			supabase.from('music_styles').update(updates).eq('id', id).select().single(),
-			'Updating the style timed out. Please try again.',
-		)
-
-		if (error) {
-			console.error('Erreur lors de la mise à jour du style:', error)
-			throw new Error('Erreur lors de la mise à jour du style')
-		}
-
-		return data as MusicStyle
 	}
 
 	// Deletes a style
@@ -91,43 +73,9 @@ export function useSupabaseMusicStyles() {
 		return data as MusicStyle[]
 	}
 
-	// Fetch a style by ID
-	const getMusicStyleById = async (id: string): Promise<MusicStyle> => {
-		const { data, error } = await supabase
-			.from('music_styles')
-			.select('*')
-			.eq('id', id)
-			.single()
-
-		if (error) {
-			console.error('Erreur lors de la récupération du style:', error)
-			throw new Error('Erreur lors de la récupération du style')
-		}
-
-		return data as MusicStyle
-	}
-
-	// Fetches all style names only (optimized for filters)
-	const getAllMusicStyleNames = async (): Promise<string[]> => {
-		const { data, error } = await supabase
-			.from('music_styles')
-			.select('name')
-			.order('name')
-
-		if (error) {
-			console.error('Erreur lors de la récupération des noms de styles:', error)
-			throw new Error('Erreur lors de la récupération des noms de styles')
-		}
-
-		return (data || []).map((style) => style.name)
-	}
-
 	return {
 		createMusicStyle,
-		updateMusicStyle,
 		deleteMusicStyle,
 		getAllMusicStyles,
-		getMusicStyleById,
-		getAllMusicStyleNames,
 	}
 }

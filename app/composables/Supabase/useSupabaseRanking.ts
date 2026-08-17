@@ -443,23 +443,6 @@ export function useSupabaseRanking() {
 	}
 
 	/**
-	 * Checks whether a track is in a ranking
-	 */
-	const isMusicInRanking = async (
-		rankingId: string,
-		musicId: string,
-	): Promise<boolean> => {
-		const { data } = await supabase
-			.from('user_ranking_items')
-			.select('id')
-			.eq('ranking_id', rankingId)
-			.eq('music_id', musicId)
-			.single()
-
-		return !!data
-	}
-
-	/**
 	 * Fetches a public ranking by ID for the view page
 	 */
 	const getPublicRankingById = async (
@@ -583,7 +566,6 @@ export function useSupabaseRanking() {
 		addMusicToRanking,
 		removeMusicFromRanking,
 		reorderRankingItems,
-		isMusicInRanking,
 		getPublicRankings,
 	}
 }
