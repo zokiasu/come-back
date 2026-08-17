@@ -1,5 +1,5 @@
 import type { QueryOptions, FilterOptions, GeneralTag } from '~/types'
-import type { Database, TablesInsert, TablesUpdate } from '~/types/supabase'
+import type { Database, TablesInsert } from '~/types/supabase'
 
 export function useSupabaseGeneralTags() {
 	const supabase = useSupabaseClient<Database>()
@@ -20,24 +20,6 @@ export function useSupabaseGeneralTags() {
 		}
 
 		return tag as GeneralTag
-	}
-
-	// Updates a tag
-	const updateGeneralTag = async (
-		id: string,
-		updates: TablesUpdate<'general_tags'>,
-	): Promise<GeneralTag> => {
-		const { data, error } = await runMutation(
-			supabase.from('general_tags').update(updates).eq('id', id).select().single(),
-			'Updating the tag timed out. Please try again.',
-		)
-
-		if (error) {
-			console.error('Erreur lors de la mise à jour du tag:', error)
-			throw new Error('Erreur lors de la mise à jour du tag')
-		}
-
-		return data as GeneralTag
 	}
 
 	// Deletes a tag
@@ -91,27 +73,9 @@ export function useSupabaseGeneralTags() {
 		return data as GeneralTag[]
 	}
 
-	// Fetch a tag by ID
-	const getGeneralTagById = async (id: string): Promise<GeneralTag> => {
-		const { data, error } = await supabase
-			.from('general_tags')
-			.select('*')
-			.eq('id', id)
-			.single()
-
-		if (error) {
-			console.error('Erreur lors de la récupération du tag:', error)
-			throw new Error('Erreur lors de la récupération du tag')
-		}
-
-		return data as GeneralTag
-	}
-
 	return {
 		createGeneralTag,
-		updateGeneralTag,
 		deleteGeneralTag,
 		getAllGeneralTags,
-		getGeneralTagById,
 	}
 }

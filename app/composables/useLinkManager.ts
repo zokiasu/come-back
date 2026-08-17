@@ -8,7 +8,7 @@ export interface LinkItem {
 }
 
 // Mapping the domaines vers the noms of platforms
-export const PLATFORM_DOMAIN_MAPPINGS: Record<string, string> = {
+const PLATFORM_DOMAIN_MAPPINGS: Record<string, string> = {
 	// platforms of streaming
 	'youtube.com': 'YouTube',
 	'music.youtube.com': 'YouTube Music',
@@ -214,7 +214,6 @@ export const useLinkManager = () => {
 		filterValidLinks,
 		createLinkListManager,
 		// Constantes
-		PLATFORM_DOMAIN_MAPPINGS,
 		FAVICON_SERVICES,
 	}
 }

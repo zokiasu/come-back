@@ -30,33 +30,6 @@ export interface PaginatedResponse<T> {
 }
 
 /**
- * Standard success response
- */
-export interface SuccessResponse<T = unknown> {
-	success: true
-	data: T
-	message?: string
-}
-
-/**
- * Query parameter types for list endpoints
- */
-export interface ListQueryParams {
-	limit?: number
-	offset?: number
-	orderBy?: string
-	orderDirection?: 'asc' | 'desc'
-}
-
-/**
- * Junction table transformation result
- * Used when we need to extract nested data from junction tables
- */
-export interface JunctionData<T> {
-	[key: string]: T
-}
-
-/**
  * Artist with full relations
  */
 export interface ArtistWithRelations extends Tables<'artists'> {
@@ -87,47 +60,4 @@ export interface MusicWithRelations extends Tables<'musics'> {
 	releases?: Tables<'releases'>[]
 }
 
-/**
- * Company with full relations
- */
-export interface CompanyWithRelations extends Tables<'companies'> {
-	artists?: (Tables<'artist_companies'> & {
-		artist: Tables<'artists'>
-	})[]
-}
 
-/**
- * API endpoint response types
- */
-
-export interface ArtistCompleteResponse {
-	artist: ArtistWithRelations
-	social_links: Tables<'artist_social_links'>[]
-	platform_links: Tables<'artist_platform_links'>[]
-	random_musics: Tables<'musics'>[]
-}
-
-export interface ReleaseCompleteResponse {
-	release: ReleaseWithRelations
-	suggested_releases: ReleaseWithRelations[]
-}
-
-export interface CompanyCompleteResponse {
-	company: Tables<'companies'>
-	company_artists: (Tables<'artist_companies'> & {
-		artist: Tables<'artists'>
-	})[]
-}
-
-/**
- * Dashboard overview response
- */
-export interface DashboardOverviewResponse {
-	total_artists: number
-	total_releases: number
-	total_musics: number
-	total_news: number
-	recent_artists: Tables<'artists'>[]
-	recent_releases: Tables<'releases'>[]
-	recent_news: Tables<'news'>[]
-}

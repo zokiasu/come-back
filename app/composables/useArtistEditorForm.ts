@@ -18,7 +18,7 @@ export type CompanyMenuItem = {
 	label: string
 }
 
-export type ArtistCompanyRelationInput = {
+type ArtistCompanyRelationInput = {
 	company: CompanyMenuItem | undefined
 	relationship_type: string
 	start_date?: string

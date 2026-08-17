@@ -1,6 +1,5 @@
 export function useApiAuthHeaders() {
 	const config = useRuntimeConfig()
-	const supabase = useSupabaseClient()
 
 	const createAuthHeaders = (accessToken: string) => ({
 		Authorization: `Bearer ${accessToken}`,
@@ -64,7 +63,7 @@ export function useApiAuthHeaders() {
 		if (cookieHeaders) return cookieHeaders
 		if (!import.meta.client) return undefined
 
-		const { data } = await supabase.auth.getSession()
+		const { data } = await useSupabaseClient().auth.getSession()
 		const accessToken = data.session?.access_token
 
 		return accessToken ? createAuthHeaders(accessToken) : undefined

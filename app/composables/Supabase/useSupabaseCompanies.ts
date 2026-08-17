@@ -1,4 +1,4 @@
-import type { QueryOptions, FilterOptions, Company, CompanyArtist } from '~/types'
+import type { QueryOptions, FilterOptions, Company } from '~/types'
 import type { Database, TablesInsert, TablesUpdate } from '~/types/supabase'
 
 interface CompaniesResponse {
@@ -197,25 +197,6 @@ export function useSupabaseCompanies() {
 		}
 	}
 
-	// Fetch a company by ID
-	const getCompanyById = async (companyId: string): Promise<Company> => {
-		const { data, error } = await supabase
-			.from('companies')
-			.select('*')
-			.eq('id', companyId)
-			.single()
-
-		if (error) {
-			console.error('Erreur lors de la récupération de la company:', error)
-			throw createError({
-				statusCode: 400,
-				message: `Database error: ${error.message}`,
-			})
-		}
-
-		return data as Company
-	}
-
 	// Check whether a company exists by name
 	const companyExistsByName = async (name: string, excludeId?: string) => {
 		let query = supabase.from('companies').select('id').eq('name', name)
@@ -234,171 +215,6 @@ export function useSupabaseCompanies() {
 		}
 
 		return data && data.length > 0
-	}
-
-	// Link a company to an artist
-	const linkCompanyToArtist = async (
-		companyId: string,
-		artistId: string,
-		relationshipType?: string,
-		options?: {
-			startDate?: string
-			endDate?: string
-			isCurrent?: boolean
-		},
-	): Promise<CompanyArtist> => {
-		try {
-			const data = await runMutation(
-				$fetch<CompanyArtist>(`/api/companies/${companyId}/artist-link`, {
-					method: 'POST',
-					headers: requireAuthHeaders(),
-					body: {
-						artistId,
-						relationshipType: relationshipType || null,
-						startDate: options?.startDate || null,
-						endDate: options?.endDate || null,
-						isCurrent: options?.isCurrent ?? true,
-					},
-				}),
-				'Linking the company to the artist timed out. Please try again.',
-			)
-			toast.add({
-				title: 'Relation created',
-				description: 'The company was linked to the artist successfully',
-				color: 'success',
-			})
-			return data
-		} catch (error) {
-			console.error('[useSupabaseCompanies] linkCompanyToArtist failed', {
-				error,
-				data: (error as { data?: unknown })?.data,
-			})
-			toast.add({
-				title: 'Error while linking company',
-				description: extractErrorMessage(error),
-				color: 'error',
-			})
-			throw error
-		}
-	}
-
-	// Delete a company-artist relation
-	const unlinkCompanyFromArtist = async (relationId: string) => {
-		try {
-			await runMutation(
-				$fetch(`/api/companies/artist-links/${relationId}`, {
-					method: 'DELETE',
-					headers: requireAuthHeaders(),
-				}),
-				'Deleting the company relation timed out. Please try again.',
-			)
-			toast.add({
-				title: 'Relation deleted',
-				description: 'The company-artist relation was deleted successfully',
-				color: 'success',
-			})
-			return true
-		} catch (error) {
-			console.error('[useSupabaseCompanies] unlinkCompanyFromArtist failed', {
-				error,
-				data: (error as { data?: unknown })?.data,
-			})
-			toast.add({
-				title: 'Error while deleting relation',
-				description: extractErrorMessage(error),
-				color: 'error',
-			})
-			throw error
-		}
-	}
-
-	// Update a relation company-artist
-	const updateCompanyArtistRelation = async (
-		relationId: string,
-		updates: TablesUpdate<'artist_companies'>,
-	): Promise<CompanyArtist> => {
-		try {
-			const data = await runMutation(
-				$fetch<CompanyArtist>(`/api/companies/artist-links/${relationId}`, {
-					method: 'PATCH',
-					headers: requireAuthHeaders(),
-					body: { updates },
-				}),
-				'Updating the company relation timed out. Please try again.',
-			)
-			toast.add({
-				title: 'Relation updated',
-				description: 'The company-artist relation was updated successfully',
-				color: 'success',
-			})
-			return data
-		} catch (error) {
-			console.error('[useSupabaseCompanies] updateCompanyArtistRelation failed', {
-				error,
-				data: (error as { data?: unknown })?.data,
-			})
-			toast.add({
-				title: 'Error while updating relation',
-				description: extractErrorMessage(error),
-				color: 'error',
-			})
-			throw error
-		}
-	}
-
-	// Fetch the artists of a company
-	const getCompanyArtists = async (companyId: string): Promise<CompanyArtist[]> => {
-		const { data, error } = await supabase
-			.from('artist_companies')
-			.select(
-				`
-				*,
-				artist:artists(
-					id,
-					name,
-					image,
-					type,
-					verified,
-					active_career
-				)
-			`,
-			)
-			.eq('company_id', companyId)
-			.order('created_at', { ascending: false })
-
-		if (error) {
-			console.error('Erreur lors de la récupération des artistes de la company:', error)
-			throw createError({
-				statusCode: 400,
-				message: `Database error: ${error.message}`,
-			})
-		}
-
-		return (data as CompanyArtist[]) || []
-	}
-
-	// Fetch the companies of a artist
-	const getArtistCompanies = async (artistId: string): Promise<CompanyArtist[]> => {
-		const { data, error } = await supabase
-			.from('artist_companies')
-			.select(
-				`
-				*,
-				company:companies(*)
-			`,
-			)
-			.eq('artist_id', artistId)
-			.order('created_at', { ascending: false })
-
-		if (error) {
-			console.error("Erreur lors de la récupération des companies de l'artiste:", error)
-			throw createError({
-				statusCode: 400,
-				message: `Database error: ${error.message}`,
-			})
-		}
-
-		return (data as CompanyArtist[]) || []
 	}
 
 	// Statistiques the companies
@@ -445,15 +261,7 @@ export function useSupabaseCompanies() {
 		updateCompany,
 		deleteCompany,
 		getAllCompanies,
-		getCompanyById,
 		companyExistsByName,
-
-		// Relations management
-		linkCompanyToArtist,
-		unlinkCompanyFromArtist,
-		updateCompanyArtistRelation,
-		getCompanyArtists,
-		getArtistCompanies,
 
 		// Stats & utils
 		getCompaniesStats,

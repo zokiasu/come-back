@@ -12,7 +12,7 @@ import { useMutationTimeout } from '~/composables/useMutationTimeout'
 import { useArtistEditorForm } from '~/composables/useArtistEditorForm'
 import { useYoutubeMusicIdCheck } from '~/composables/useYoutubeMusicIdCheck'
 
-export type ArtistCreateOptionsPayload = {
+type ArtistCreateOptionsPayload = {
 	styles: MusicStyle[]
 	tags: GeneralTag[]
 	nationalities: Nationality[]

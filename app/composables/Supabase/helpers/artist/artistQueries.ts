@@ -33,29 +33,6 @@ export interface ArtistPageResult {
 }
 
 /**
- * Checks whether an artist exists with the YouTube Music ID
- */
-export async function checkArtistExists(
-	supabase: SupabaseClientType,
-	idYoutubeMusic: string | null,
-): Promise<boolean> {
-	if (!idYoutubeMusic) return false
-
-	const { data, error } = await supabase
-		.from('artists')
-		.select('id')
-		.eq('id_youtube_music', idYoutubeMusic)
-		.maybeSingle()
-
-	if (error) {
-		console.error("Erreur lors de la vérification de l'artiste:", error)
-		throw new Error("Erreur lors de la vérification de l'artiste")
-	}
-
-	return !!data
-}
-
-/**
  * Fetches all artists with filtering options
  */
 export async function fetchAllArtists(
