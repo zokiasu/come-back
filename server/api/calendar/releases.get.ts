@@ -38,6 +38,7 @@ export default defineEventHandler(async (event) => {
 			)
 		`,
 		)
+		.eq('verified', true)
 		.eq('artists.artist.verified', true)
 		.gte('date', startDate)
 		.lte('date', endDate)

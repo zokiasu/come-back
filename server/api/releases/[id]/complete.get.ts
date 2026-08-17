@@ -17,11 +17,12 @@ export default defineEventHandler(async (event) => {
 	setHeader(event, 'Cache-Control', 'public, max-age=3600, stale-while-revalidate=300')
 
 	try {
-		// 1. Fetch the release of base
+		// 1. Fetch the release of base (verified only on this public endpoint)
 		const { data: release, error: releaseError } = await supabase
 			.from('releases')
 			.select('*')
 			.eq('id', releaseId)
+			.eq('verified', true)
 			.single()
 
 		if (releaseError || !release) {
@@ -40,11 +41,12 @@ export default defineEventHandler(async (event) => {
 			.eq('artist.verified', true)
 		if (artistsError) throw artistsError
 
-		// 3. Fetch related musics
+		// 3. Fetch related musics (verified only)
 		const { data: finalReleaseMusics, error: musicsError } = await supabase
 			.from('music_releases')
 			.select('music:musics(*)')
 			.eq('release_id', releaseId)
+			.eq('music.verified', true)
 		if (musicsError) throw musicsError
 
 		// Fetch suggested releases from the same artist, excluding the current release
@@ -73,6 +75,7 @@ export default defineEventHandler(async (event) => {
 						.from('releases')
 						.select('*')
 						.in('id', releaseIds)
+						.eq('verified', true)
 						.order('date', { ascending: false }),
 					supabase
 						.from('artist_releases')

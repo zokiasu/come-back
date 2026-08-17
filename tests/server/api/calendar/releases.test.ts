@@ -97,6 +97,7 @@ describe('GET /api/calendar/releases', () => {
 			'public, max-age=86400, stale-while-revalidate=3600',
 		)
 		expect(supabase.from).toHaveBeenCalledWith('releases')
+		expect(query.eq).toHaveBeenCalledWith('verified', true)
 		expect(query.eq).toHaveBeenCalledWith('artists.artist.verified', true)
 		expect(query.gte).toHaveBeenCalledWith('date', '2026-05-01')
 		expect(query.lte).toHaveBeenCalledWith('date', '2026-05-31')

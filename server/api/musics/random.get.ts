@@ -15,6 +15,7 @@ export default defineEventHandler(async (event) => {
 		const { count } = await supabase
 			.from('musics')
 			.select('*', { count: 'estimated', head: true })
+			.eq('verified', true)
 			.not('id_youtube_music', 'is', null)
 			.not('name', 'ilike', '%Inst.%')
 			.not('name', 'ilike', '%Instrumental%')
@@ -52,6 +53,7 @@ export default defineEventHandler(async (event) => {
 				`,
 				)
 				.not('id_youtube_music', 'is', null)
+				.eq('verified', true)
 				.eq('artists.artist.verified', true)
 				.not('name', 'ilike', '%Inst.%')
 				.not('name', 'ilike', '%Instrumental%')
