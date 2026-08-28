@@ -76,6 +76,11 @@ export default defineNuxtConfig({
 	},
 
 	nitro: {
+		externals: {
+			// Keep Nuxt's Unhead legacy entry bundled: its deduped Windows path is otherwise
+			// emitted outside the project and breaks SSR navigation in development.
+			inline: [/@unhead\/vue/],
+		},
 		experimental: {
 			wasm: true,
 		},

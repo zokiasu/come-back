@@ -42,7 +42,7 @@
 		"vue-tsc": "^3.3.5"
 	},
 	"dependencies": {
-		"@nuxt/ui": "^4.9.0",
+		"@nuxt/ui": "^4.11.0",
 		"@nuxtjs/supabase": "^2.0.9",
 		"@pinia/nuxt": "^0.11.3",
 		"@supabase/supabase-js": "^2.108.2",
