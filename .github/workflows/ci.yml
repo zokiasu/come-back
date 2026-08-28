@@ -17,6 +17,12 @@ jobs:
   quality:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      # Nuxt validates server configuration during postinstall and build.
+      # Synthetic values keep pull-request CI isolated from production secrets.
+      SUPABASE_URL: https://example.supabase.co
+      NUXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ci-publishable-key
+      SUPABASE_SECRET_KEY: ci-secret-key
 
     steps:
       - name: Checkout repository
@@ -36,9 +42,3 @@ jobs:
 
       - name: Build production bundle
         run: npm run build
-        env:
-          # The build validates server configuration but does not contact Supabase.
-          # Synthetic values keep pull-request CI isolated from production secrets.
-          SUPABASE_URL: https://example.supabase.co
-          NUXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ci-publishable-key
-          SUPABASE_SECRET_KEY: ci-secret-key
