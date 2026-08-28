@@ -65,21 +65,6 @@ export const useYouTube = () => {
 		return isPlayingVideo.value && idYoutubeVideo.value === videoId
 	}
 
-	const toggleMusic = (
-		videoId: string,
-		musicName: string,
-		artistName: string,
-		image?: string,
-		ismv?: boolean,
-	) => {
-		if (isCurrentlyPlaying(videoId)) {
-			stopMusic()
-			return false
-		} else {
-			return addToPlaylist(videoId, musicName, artistName, image, ismv)
-		}
-	}
-
 	return {
 		idYoutubeVideo: readonly(idYoutubeVideo),
 		isPlayingVideo: readonly(isPlayingVideo),
@@ -91,7 +76,6 @@ export const useYouTube = () => {
 		addToPlaylist,
 		playNow,
 		stopMusic,
-		toggleMusic,
 		isCurrentlyPlaying,
 	}
 }

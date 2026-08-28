@@ -1,15 +1,5 @@
-import { createError, getQuery, getRouterParam, type H3Event } from 'h3'
+import { createError, getRouterParam, type H3Event } from 'h3'
 import type { PostgrestError } from '@supabase/supabase-js'
-
-/**
- * Standard API error response structure
- */
-export interface ApiErrorResponse {
-	statusCode: number
-	statusMessage: string
-	message?: string
-	details?: unknown
-}
 
 /**
  * Type guard to check if an error is a PostgrestError
@@ -189,82 +179,3 @@ export const validateRouteParam = (
 	return param
 }
 
-/**
- * Validates and parses query parameters
- *
- * @param event - The H3Event object
- * @param schema - Object defining expected parameters and their defaults
- * @returns Validated and parsed query parameters
- *
- * @example
- * ```typescript
- * const { limit, offset } = validateQueryParams(event, {
- *   limit: { type: 'number', default: 10, min: 1, max: 100 },
- *   offset: { type: 'number', default: 0, min: 0 }
- * })
- * ```
- */
-export const validateQueryParams = <T extends Record<string, unknown>>(
-	event: H3Event,
-	schema: Record<
-		keyof T,
-		{
-			type: 'string' | 'number' | 'boolean'
-			default?: string | number | boolean
-			min?: number
-			max?: number
-			required?: boolean
-		}
-	>,
-): T => {
-	const query = getQuery(event)
-	const result: Record<string, unknown> = {}
-
-	for (const [key, config] of Object.entries(schema)) {
-		const value = query[key]
-
-		// Check required
-		if (config.required && (value === undefined || value === null)) {
-			throw createBadRequestError(`Query parameter "${key}" is required`)
-		}
-
-		// Apply default
-		if (value === undefined || value === null) {
-			result[key] = config.default
-			continue
-		}
-
-		// Parse and validate
-		switch (config.type) {
-			case 'number': {
-				const parsed = parseInt(value as string)
-				if (isNaN(parsed)) {
-					throw createBadRequestError(`Query parameter "${key}" must be a number`)
-				}
-				if (config.min !== undefined && parsed < config.min) {
-					throw createBadRequestError(
-						`Query parameter "${key}" must be at least ${config.min}`,
-					)
-				}
-				if (config.max !== undefined && parsed > config.max) {
-					throw createBadRequestError(
-						`Query parameter "${key}" must be at most ${config.max}`,
-					)
-				}
-				result[key] = parsed
-				break
-			}
-			case 'boolean': {
-				result[key] = value === 'true' || value === '1'
-				break
-			}
-			case 'string':
-			default: {
-				result[key] = String(value)
-				break
-			}
-		}
-	}
-
-	return result as T
-}

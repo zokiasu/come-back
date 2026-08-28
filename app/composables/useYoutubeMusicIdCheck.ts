@@ -1,7 +1,7 @@
 import { useDebounce } from '~/composables/useDebounce'
 import { useMutationTimeout } from '~/composables/useMutationTimeout'
 
-export type YtmIdStatus =
+type YtmIdStatus =
 	| 'idle'
 	| 'checking'
 	| 'available'

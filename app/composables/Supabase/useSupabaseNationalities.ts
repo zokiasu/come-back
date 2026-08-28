@@ -1,5 +1,5 @@
 import type { QueryOptions, FilterOptions, Nationality } from '~/types'
-import type { Database, TablesInsert, TablesUpdate } from '~/types/supabase'
+import type { Database, TablesInsert } from '~/types/supabase'
 
 export function useSupabaseNationalities() {
 	const supabase = useSupabaseClient<Database>()
@@ -19,23 +19,6 @@ export function useSupabaseNationalities() {
 		}
 
 		return nationality as Nationality
-	}
-
-	const updateNationality = async (
-		id: string,
-		updates: TablesUpdate<'nationalities'>,
-	): Promise<Nationality> => {
-		const { data, error } = await runMutation(
-			supabase.from('nationalities').update(updates).eq('id', id).select().single(),
-			'Updating the nationality timed out. Please try again.',
-		)
-
-		if (error) {
-			console.error('Erreur lors de la mise a jour de la nationalite:', error)
-			throw new Error('Erreur lors de la mise a jour de la nationalite')
-		}
-
-		return data as Nationality
 	}
 
 	const deleteNationality = async (name: string) => {
@@ -87,26 +70,9 @@ export function useSupabaseNationalities() {
 		return data as Nationality[]
 	}
 
-	const getNationalityById = async (id: string): Promise<Nationality> => {
-		const { data, error } = await supabase
-			.from('nationalities')
-			.select('*')
-			.eq('id', id)
-			.single()
-
-		if (error) {
-			console.error('Erreur lors de la recuperation de la nationalite:', error)
-			throw new Error('Erreur lors de la recuperation de la nationalite')
-		}
-
-		return data as Nationality
-	}
-
 	return {
 		createNationality,
-		updateNationality,
 		deleteNationality,
 		getAllNationalities,
-		getNationalityById,
 	}
 }

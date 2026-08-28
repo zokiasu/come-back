@@ -146,11 +146,6 @@ export function useSupabaseSearch() {
 		return searchArtists(options)
 	}
 
-	// Simple debounced search helper
-	const createDebouncedSearch = (delay = 300) => {
-		return useDebounce(searchArtistsFullText, delay)
-	}
-
 	const searchReleases = async (options: SearchOptions): Promise<SearchReleaseResult> => {
 		const { query, limit = 8 } = options
 
@@ -277,7 +272,6 @@ export function useSupabaseSearch() {
 	return {
 		searchArtists,
 		searchArtistsFullText,
-		createDebouncedSearch,
 		searchReleases,
 		searchMusics,
 	}

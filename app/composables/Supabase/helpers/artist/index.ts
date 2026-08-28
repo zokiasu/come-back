@@ -1,4 +1,2 @@
-// Re-export all artist helper functions
+// Re-export artist helper functions
 export * from './artistQueries'
-export * from './artistCrud'
-export * from './artistRelations'

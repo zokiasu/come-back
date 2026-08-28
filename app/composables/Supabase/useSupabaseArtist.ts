@@ -1,13 +1,9 @@
 import type { QueryOptions, FilterOptions, Artist } from '~/types'
 import type { Database, TablesInsert, TablesUpdate } from '~/types/supabase'
 import {
-	checkArtistExists,
 	fetchAllArtists,
-	fetchAllArtistsLight,
-	fetchArtistById,
 	fetchFullArtist,
 	fetchArtistLinks,
-	fetchLatestArtists,
 	type ArtistPageOptions,
 	type ArtistPageResult,
 } from './helpers/artist'
@@ -28,11 +24,6 @@ export function useSupabaseArtist() {
 	const toast = useToast()
 	const { requireAuthHeaders, getAuthHeaders } = useApiAuthHeaders()
 	const { runMutation } = useMutationTimeout()
-
-	// Checks whether an artist exists with the YouTube Music ID
-	const artistExistInSupabase = (idYoutubeMusic: string | null): Promise<boolean> => {
-		return checkArtistExists(supabase, idYoutubeMusic)
-	}
 
 	// Creates a nouvel artist
 	const createArtist = async (
@@ -173,62 +164,9 @@ export function useSupabaseArtist() {
 		}
 	}
 
-	// Delete an artist with the simple flow
-	const deleteArtistSimple = async (id: string) => {
-		try {
-			const data = await runMutation(
-				$fetch(`/api/artists/${id}`, {
-					method: 'DELETE',
-					headers: requireAuthHeaders(),
-					query: { mode: 'simple' },
-				}),
-				'Deleting the artist timed out. Please try again.',
-			)
-			const response = data as {
-				success?: boolean
-				message?: string
-				artist_name?: string
-			} | null
-			toast.add({
-				title: 'Artist deleted',
-				description: response?.message || '',
-				color: 'success',
-			})
-			return {
-				success: response?.success,
-				message: response?.message,
-				artist_name: response?.artist_name,
-			}
-		} catch (error) {
-			console.error('[useSupabaseArtist] deleteArtistSimple failed', {
-				error,
-				data: (error as { data?: unknown })?.data,
-			})
-			toast.add({
-				title: 'Deletion error',
-				description: extractErrorMessage(error),
-				color: 'error',
-			})
-			throw error
-		}
-	}
-
-	// Helper to choose the deletion mode
-	const deleteArtistWithMode = async (id: string, mode: 'safe' | 'simple' = 'safe') => {
-		if (mode === 'simple') {
-			return await deleteArtistSimple(id)
-		}
-		return await deleteArtist(id)
-	}
-
 	// Fetch all artists
 	const getAllArtists = (options?: QueryOptions & FilterOptions) => {
 		return fetchAllArtists(supabase, options)
-	}
-
-	// Fetch all artists (lightweight version)
-	const getAllArtistsLight = () => {
-		return fetchAllArtistsLight(supabase)
 	}
 
 	// Fetches a artist with all details
@@ -236,23 +174,9 @@ export function useSupabaseArtist() {
 		return fetchFullArtist(supabase, id)
 	}
 
-	// Fetches a artist by ID (lightweight version)
-	const getArtistByIdLight = (id: string) => {
-		return fetchArtistById(supabase, id)
-	}
-
 	// Fetches the social links and of platforms of a artist
 	const getSocialAndPlatformLinksByArtistId = (id: string) => {
 		return fetchArtistLinks(supabase, id)
-	}
-
-	// Fetches the latest added artists
-	const getRealtimeLatestArtistsAdded = async (
-		limitNumber: number,
-		callback: (artists: Artist[]) => void,
-	) => {
-		const artists = await fetchLatestArtists(supabase, limitNumber)
-		callback(artists)
 	}
 
 	// Fetches artists by page through the server endpoint (single source of truth
@@ -316,18 +240,12 @@ export function useSupabaseArtist() {
 	}
 
 	return {
-		artistExistInSupabase,
 		createArtist,
 		updateArtist,
 		deleteArtist,
-		deleteArtistSimple,
-		deleteArtistWithMode,
 		getArtistDeletionImpact,
 		getAllArtists,
-		getAllArtistsLight,
 		getFullArtistById,
-		getArtistByIdLight,
-		getRealtimeLatestArtistsAdded,
 		getSocialAndPlatformLinksByArtistId,
 		getArtistsByPage,
 		approveArtist,
