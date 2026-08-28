@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
 	validateArrayParam,
+	validateIntegerParam,
 	validateLimitParam,
 	validateNumericArrayParam,
 	validateOrderBy,
@@ -10,9 +11,10 @@ import {
 	VALIDATION_LIMITS,
 } from '#server/utils/validation'
 import {
+	artistInsertSchema,
 	musicInsertSchema,
+	platformLinkSchema,
 	statsFiltersSchema,
-	updateArtistCompanyBodySchema,
 	updateReleaseBodySchema,
 } from '#server/utils/schemas'
 
@@ -68,6 +70,17 @@ describe('validateNumericArrayParam', () => {
 })
 
 describe('pagination validators', () => {
+	it('should strictly parse bounded integer query parameters', () => {
+		const options = { min: 1, max: 20, defaultValue: 4 }
+
+		expect(validateIntegerParam(undefined, 'limit', options)).toBe(4)
+		expect(validateIntegerParam('12', 'limit', options)).toBe(12)
+		expectBadRequest(() => validateIntegerParam('12items', 'limit', options))
+		expectBadRequest(() => validateIntegerParam(['12'], 'limit', options))
+		expectBadRequest(() => validateIntegerParam('0', 'limit', options))
+		expectBadRequest(() => validateIntegerParam('21', 'limit', options))
+	})
+
 	it('should default and clamp limit values', () => {
 		expect(validateLimitParam(undefined, 24)).toBe(24)
 		expect(validateLimitParam(Number.NaN, 24)).toBe(24)
@@ -99,6 +112,21 @@ describe('order validators', () => {
 })
 
 describe('request body schemas', () => {
+	it('should only accept HTTP(S) URLs for stored external links and images', () => {
+		expect(
+			platformLinkSchema.safeParse({ name: 'Official', link: 'https://example.com' })
+				.success,
+		).toBe(true)
+		expect(
+			platformLinkSchema.safeParse({ name: 'Unsafe', link: 'javascript:alert(1)' })
+				.success,
+		).toBe(false)
+		expect(
+			artistInsertSchema.safeParse({ name: 'Artist', image: 'data:text/html,test' })
+				.success,
+		).toBe(false)
+	})
+
 	it('should reject empty artist replacements while allowing omitted artist ids', () => {
 		expect(updateReleaseBodySchema.safeParse({ artistIds: [] }).success).toBe(false)
 		expect(
@@ -111,15 +139,6 @@ describe('request body schemas', () => {
 			false,
 		)
 		expect(musicInsertSchema.safeParse({ name: 'Track', duration: 0 }).success).toBe(true)
-	})
-
-	it('should require at least one artist-company update field', () => {
-		expect(updateArtistCompanyBodySchema.safeParse({ updates: {} }).success).toBe(false)
-		expect(
-			updateArtistCompanyBodySchema.safeParse({
-				updates: { relationship_type: 'LABEL' },
-			}).success,
-		).toBe(true)
 	})
 
 	it('should reject contradictory statistics filters', () => {

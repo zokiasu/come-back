@@ -12,8 +12,7 @@ export const useArtistEditFlow = (artistId: string | string[]) => {
 	const toast = useToast()
 	const id = computed(() => String(artistId))
 
-	const { getFullArtistById, updateArtist, getSocialAndPlatformLinksByArtistId } =
-		useSupabaseArtist()
+	const { getFullArtistById, updateArtist } = useSupabaseArtist()
 	const { getAllMusicStyles } = useSupabaseMusicStyles()
 	const { getAllGeneralTags } = useSupabaseGeneralTags()
 	const { getAllNationalities } = useSupabaseNationalities()
@@ -106,23 +105,8 @@ export const useArtistEditFlow = (artistId: string | string[]) => {
 				})
 				applyModelToForm(model.value)
 
-				try {
-					const { socialLinks, platformLinks } = await runMutation(
-						getSocialAndPlatformLinksByArtistId(original.value.id),
-						'Artist links loading timed out. Please try again.',
-					)
-					platformLinkManager.reset(platformLinks?.length ? platformLinks : [])
-					socialLinkManager.reset(socialLinks?.length ? socialLinks : [])
-				} catch (linkError) {
-					console.error('Error loading social and platform links:', linkError)
-					platformLinkManager.reset([])
-					socialLinkManager.reset([])
-					toast.add({
-						title: 'Warning',
-						description: 'Could not load all artist links',
-						color: 'warning',
-					})
-				}
+				platformLinkManager.reset(original.value.platform_links ?? [])
+				socialLinkManager.reset(original.value.social_links ?? [])
 			}
 		} catch (error: unknown) {
 			const message = error instanceof Error ? error.message : 'Unknown error'

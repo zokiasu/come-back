@@ -31,7 +31,10 @@ const setupGlobals = () => {
 	const setHeader = vi.fn()
 
 	vi.stubGlobal('setHeader', setHeader)
-	vi.stubGlobal('getRouterParam', vi.fn(() => 'company-id'))
+	vi.stubGlobal(
+		'getRouterParam',
+		vi.fn(() => 'company-id'),
+	)
 	vi.stubGlobal('createError', createError)
 	vi.stubGlobal('handleSupabaseError', handleSupabaseError)
 
@@ -57,12 +60,18 @@ describe('GET /api/companies/[id]/complete', () => {
 		const handler = await loadHandler()
 		const result = await handler({})
 
-		expect(queries.companies.eq).toHaveBeenCalledWith('id', 'company-id')
-		expect(queries.companies.eq).toHaveBeenCalledWith('verified', true)
-		expect(queries.artist_companies.eq).toHaveBeenCalledWith('company_id', 'company-id')
-		expect(queries.artist_companies.eq).toHaveBeenCalledWith('artist.verified', true)
+		expect(queries.companies!.eq).toHaveBeenCalledWith('id', 'company-id')
+		expect(queries.companies!.eq).toHaveBeenCalledWith('verified', true)
+		expect(queries.artist_companies!.select).toHaveBeenCalledWith(
+			'*, artist:artists!inner(*)',
+		)
+		expect(queries.artist_companies!.eq).toHaveBeenCalledWith('company_id', 'company-id')
+		expect(queries.artist_companies!.eq).toHaveBeenCalledWith('artist.verified', true)
 
-		const payload = result as { company: { id: string; name: string }; company_artists: unknown[] }
+		const payload = result as {
+			company: { id: string; name: string }
+			company_artists: unknown[]
+		}
 		expect(payload.company.id).toBe('company-id')
 		expect(payload.company_artists).toEqual([])
 	})

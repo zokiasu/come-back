@@ -1,3 +1,5 @@
+import { isError as isH3Error } from 'h3'
+
 // Allow only trusted domains to prevent SSRF attacks
 const ALLOWED_DOMAINS = [
 	// platforms musicales
@@ -70,10 +72,12 @@ function assertUrlAllowed(target: URL): void {
 }
 
 export default defineEventHandler(async (event) => {
-	const query = getQuery(event)
-	const url = query.url as string
+	checkRateLimit(event, RATE_LIMIT_PRESETS.externalFetch)
 
-	if (!url) {
+	const query = getQuery(event)
+	const url = query.url
+
+	if (typeof url !== 'string' || !url) {
 		throw createError({
 			statusCode: 400,
 			statusMessage: 'URL parameter is required',
@@ -166,6 +170,9 @@ export default defineEventHandler(async (event) => {
 			source: 'title',
 		}
 	} catch (error) {
+		if (isH3Error(error)) {
+			throw error
+		}
 		console.error('Error fetching page title:', error)
 
 		throw createError({

@@ -1,139 +1,30 @@
-name: Security Updates
+name: Security Audit
 
 on:
   schedule:
-    # Vérifie les vulnérabilités tous les jours à 8h00 UTC
     - cron: '0 8 * * *'
   workflow_dispatch:
 
 permissions:
-  contents: write
-  pull-requests: write
-  security-events: write
-  issues: write
+  contents: read
 
 jobs:
-  security-audit:
+  production-dependencies:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: '22'
+          cache: npm
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Run security audit
-        id: audit
-        run: |
-          # Audit de sécurité et capture des vulnérabilités
-          npm audit --audit-level=moderate --json > audit-results.json || true
-
-          # Vérifier s'il y a des vulnérabilités
-          VULNERABILITIES=$(cat audit-results.json | jq '.metadata.vulnerabilities.total // 0')
-          echo "vulnerabilities_count=$VULNERABILITIES" >> $GITHUB_OUTPUT
-
-          if [ "$VULNERABILITIES" -gt 0 ]; then
-            echo "security_issues=true" >> $GITHUB_OUTPUT
-            # Créer un résumé des vulnérabilités
-            cat audit-results.json | jq -r '.vulnerabilities // {} | to_entries[] | select(.value.severity == "high" or .value.severity == "critical") | "🚨 **\(.value.severity | ascii_upcase)**: \(.key) - \(.value.title // "Pas de titre")"' > security_summary.txt
-          else
-            echo "security_issues=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Attempt automatic fixes
-        if: steps.audit.outputs.security_issues == 'true'
-        run: |
-          # Tenter de corriger automatiquement les vulnérabilités
-          npm audit fix --force || true
-
-          # Vérifier si des changements ont été apportés
-          if [ -n "$(git status --porcelain)" ]; then
-            echo "fixes_applied=true" >> $GITHUB_OUTPUT
-          else
-            echo "fixes_applied=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Test after security fixes
-        if: steps.audit.outputs.security_issues == 'true'
-        run: |
-          npm run check
-          npm run build
-
-      - name: Create Security PR
-        if: steps.audit.outputs.security_issues == 'true'
-        uses: peter-evans/create-pull-request@v5
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: 'security: correction automatique des vulnérabilités'
-          title: '🔒 Corrections de sécurité automatiques'
-          body: |
-            ## 🛡️ Corrections de sécurité
-
-            Cette PR contient des corrections automatiques pour les vulnérabilités de sécurité détectées.
-
-            ### Vulnérabilités critiques/élevées détectées:
-            $(cat security_summary.txt || echo "Voir les détails dans l'audit complet")
-
-            ### 🔧 Actions effectuées:
-            - [x] Audit de sécurité complet
-            - [x] Application des corrections automatiques
-            - [x] Lint, typecheck, tests et build
-
-            ### ⚠️ ATTENTION:
-            - [ ] **Testez soigneusement** l'application après ces changements
-            - [ ] Vérifiez que toutes les fonctionnalités critiques fonctionnent
-            - [ ] Exécutez la suite de tests complète
-
-            ### 📊 Résumé de l'audit:
-            - Vulnérabilités totales: ${{ steps.audit.outputs.vulnerabilities_count }}
-
-            ---
-
-            🤖 PR générée automatiquement par l'audit de sécurité.
-          branch: security-fixes-${{ github.run_number }}
-          delete-branch: true
-          labels: |
-            security
-            automated
-            urgent
-
-      - name: Create security issue if no auto-fix
-        if: steps.audit.outputs.security_issues == 'true' && steps.audit.outputs.fixes_applied == 'false'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const fs = require('fs');
-            let vulnerabilities = '';
-            try {
-              vulnerabilities = fs.readFileSync('security_summary.txt', 'utf8');
-            } catch (e) {
-              vulnerabilities = 'Voir les résultats de l\'audit pour plus de détails.';
-            }
-
-            github.rest.issues.create({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              title: '🚨 Vulnérabilités de sécurité détectées - Action manuelle requise',
-              body: `## ⚠️ Vulnérabilités de sécurité détectées
-              
-              Des vulnérabilités de sécurité ont été détectées mais ne peuvent pas être corrigées automatiquement.
-              
-              ### Vulnérabilités critiques/élevées:
-              ${vulnerabilities}
-              
-              ### Action requise:
-              1. Examinez les vulnérabilités dans l'onglet Security
-              2. Mettez à jour manuellement les dépendances concernées
-              3. Testez l'application après les mises à jour
-              
-              **Workflow:** ${context.workflow}
-              **Run ID:** ${context.runId}`,
-              labels: ['security', 'high-priority', 'manual-review-required']
-            });
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high

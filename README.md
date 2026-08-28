@@ -51,8 +51,8 @@ Plateforme française de suivi des sorties musicales K-pop et artistes asiatique
 ## Installation
 
 ```bash
-# Prérequis : Node.js 18+
-npm install
+# Prérequis : Node.js 22+
+npm ci
 
 # Variables d'environnement
 cp .env.example .env.local
@@ -79,8 +79,8 @@ YOUTUBE_API_KEY=                       # API YouTube Data v3
 app/
 ├── components/       # Composants Vue (Card/, Modal/, Form/, Icon/, Skeleton/, Comeback/)
 ├── composables/      # Logique réutilisable
-│   ├── Supabase/    # Opérations DB (useSupabase[Table].ts)
-│   │   └── helpers/ # Queries, CRUD, relations par entité
+│   ├── Supabase/    # Adaptateurs typés vers les endpoints Nitro
+│   │   └── helpers/ # Construction de payloads et types partagés
 │   └── auth/        # Authentification
 ├── pages/           # Routes (file-based routing)
 ├── middleware/      # Guards (auth.ts, admin.ts)
@@ -95,7 +95,11 @@ server/
 │   ├── musics/      # /api/musics/*
 │   ├── calendar/    # /api/calendar/*
 │   ├── dashboard/   # /api/dashboard/*
-│   └── news/        # /api/news/*
+│   ├── news/        # /api/news/*
+│   ├── rankings/    # CRUD propriétaire et items atomiques
+│   ├── search/      # Recherche publique filtrée
+│   ├── taxonomies/  # Tags, styles et nationalités
+│   └── users/       # Profils et statistiques privées
 ├── utils/
 │   ├── supabase.ts     # Client Supabase (service role, singleton)
 │   ├── auth.ts         # requireAuth, requireAdmin, requireContributor
@@ -105,6 +109,9 @@ server/
 │   └── queryFilters.ts # Filtres réutilisables pour requêtes
 └── types/
     └── api.ts          # Types serveur (Tables<T>, PaginatedResponse, etc.)
+
+supabase/migrations/    # RLS, RPC et ACL versionnées
+.github/workflows/      # CI qualité/build et audits non destructifs
 ```
 
 ## Scripts
@@ -117,11 +124,15 @@ npm run preview      # Preview du build
 npm run lint:fix     # ESLint + Prettier
 npm run format       # Prettier uniquement
 npm run typecheck    # Vérification TypeScript
+npm run test:typecheck # Vérification TypeScript des tests
 npm run test         # Vitest en mode watch
 npm run test:run     # Vitest une seule fois
 npm run test:coverage # Couverture Vitest
 npm run check        # Lint + Typecheck + tests (CI)
 ```
+
+Les données métier passent par les endpoints Nitro. Côté navigateur, le client
+Supabase est réservé à l'authentification et aux abonnements Realtime.
 
 ## Stratégie de Rendu
 

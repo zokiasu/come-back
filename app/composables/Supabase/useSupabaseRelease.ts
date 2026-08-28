@@ -1,18 +1,7 @@
-import type { Release, ReleaseType, Artist } from '~/types'
-import type { Database, TablesInsert, TablesUpdate } from '~/types/supabase'
-
-// Types for the data jointes
-interface ArtistJunction {
-	artist: Artist
-}
-
-interface ReleaseWithArtistJunctions extends Omit<Release, 'artists'> {
-	artists?: ArtistJunction[]
-	artist_releases?: ArtistJunction[]
-}
+import type { Release, ReleaseType } from '~/types'
+import type { TablesInsert, TablesUpdate } from '~/types/supabase'
 
 export function useSupabaseRelease() {
-	const supabase = useSupabaseClient<Database>()
 	const toast = useToast()
 	const { requireAuthHeaders } = useApiAuthHeaders()
 	const { runMutation } = useMutationTimeout()
@@ -78,40 +67,9 @@ export function useSupabaseRelease() {
 	// Fetches the releases of a month and of a year specific
 	const getReleasesByMonthAndYear = async (month: number, year: number) => {
 		try {
-			// Create the start and end dates of the month
-			const startDate = new Date(year, month, 1)
-			const endDate = new Date(year, month + 1, 0)
-
-			const { data, error } = await supabase
-				.from('releases')
-				.select(
-					`
-					*,
-					artists:artist_releases(
-						artist:artists(*)
-					)
-				`,
-				)
-				.gte('date', startDate.toISOString())
-				.lte('date', endDate.toISOString())
-				.order('date', { ascending: true })
-
-			if (error) {
-				console.error('Erreur lors de la récupération des releases du mois:', error)
-				toast.add({
-					title: 'Error while fetching monthly releases',
-					color: 'error',
-				})
-				throw error
-			}
-
-			// Transform data into a simpler format
-			const formattedData = (data as ReleaseWithArtistJunctions[]).map((release) => ({
-				...release,
-				artists: release.artists?.map((ar: ArtistJunction) => ar.artist) || [],
-			}))
-
-			return formattedData as Release[]
+			return await $fetch<Release[]>('/api/calendar/releases', {
+				query: { month, year },
+			})
 		} catch (error) {
 			console.error('Erreur lors de la récupération des releases du mois:', error)
 			throw error

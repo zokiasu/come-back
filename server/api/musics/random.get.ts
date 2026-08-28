@@ -1,10 +1,15 @@
 import type { PostgrestError } from '@supabase/supabase-js'
 import { isError as isH3Error } from 'h3'
+import { validateIntegerParam } from '../../utils/validation'
 
 export default defineEventHandler(async (event) => {
 	const supabase = useServerSupabase()
 	const query = getQuery(event)
-	const limit = parseInt(query.limit as string) || 4
+	const limit = validateIntegerParam(query.limit, 'limit', {
+		min: 1,
+		max: 20,
+		defaultValue: 4,
+	})
 
 	try {
 		// Optimized strategy: use a single simple query with a random offset
@@ -48,13 +53,14 @@ export default defineEventHandler(async (event) => {
 						artist:artists!inner(id, name, image)
 					),
 					releases:music_releases(
-						release:releases(id, name)
+						release:releases!inner(id, name)
 					)
 				`,
 				)
 				.not('id_youtube_music', 'is', null)
 				.eq('verified', true)
 				.eq('artists.artist.verified', true)
+				.eq('releases.release.verified', true)
 				.not('name', 'ilike', '%Inst.%')
 				.not('name', 'ilike', '%Instrumental%')
 				.not('name', 'ilike', '%Sped Up%')

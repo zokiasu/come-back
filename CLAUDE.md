@@ -52,8 +52,8 @@ app/
 │   ├── Skeleton/        # États de chargement
 │   └── Comeback/        # Composants métier (Input, Label, Slider)
 ├── composables/
-│   ├── Supabase/        # useSupabase[Table].ts
-│   │   └── helpers/     # Fonctions helper (artistQueries, artistCrud, artistRelations)
+│   ├── Supabase/        # Adaptateurs typés vers les endpoints Nitro
+│   │   └── helpers/     # Construction de payloads et types partagés
 │   └── auth/            # supabase-auth.composable.ts
 ├── pages/               # Routing file-based
 ├── middleware/           # auth.ts, admin.ts
@@ -69,7 +69,11 @@ server/
 │   ├── musics/          # latest-mvs, random, paginated
 │   ├── calendar/        # releases (par mois)
 │   ├── cron/            # send-daily, send-weekly, send-followed-artists (CRON_SECRET)
-│   └── dashboard/       # overview
+│   ├── dashboard/       # overview, statistiques
+│   ├── rankings/        # CRUD propriétaire + items
+│   ├── search/          # Recherche publique filtrée
+│   ├── taxonomies/      # Tags, styles, nationalités
+│   └── users/           # Profils et statistiques privées
 ├── utils/
 │   ├── supabase.ts      # Client service role (singleton, bypass RLS)
 │   ├── auth.ts          # requireAuth, requireAdmin, requireContributor
@@ -106,15 +110,17 @@ interface JunctionWithMusic {
 }
 ```
 
-### Pattern composable : Helpers modulaires
+### Chemin de données
 
-Les composables délèguent aux helpers pour séparer les responsabilités :
+Les pages et composables utilisent les endpoints Nitro comme source de vérité :
 
 ```
-useSupabaseArtist.ts → helpers/artist/artistQueries.ts  (fetch)
-                     → helpers/artist/artistCrud.ts      (create/update/delete)
-                     → helpers/artist/artistRelations.ts  (groups/members)
+page/composable → /api/** → useServerSupabase() → PostgreSQL
 ```
+
+Ne pas réintroduire de `.from(...)` dans le navigateur. Le client Supabase est
+réservé à Auth et Realtime. Les mutations métier sont validées par Zod et protégées
+par `requireAuth`, `requireContributor` ou `requireAdmin`.
 
 ### Architecture d'authentification
 
@@ -144,7 +150,9 @@ Persiste `userDataStore` et `isLoginStore` en localStorage (clé `userStore`). `
 
 **Tables de jonction** : `artist_releases`, `music_artists`, `music_releases`, `news_artists_junction`, `artist_social_links`, `artist_platform_links`, `release_platform_links`, `artist_companies`, `artist_relations`
 
-**Fonctions RPC** : `delete_artist_safely()`, `get_general_stats()`, `get_top_artists_by_musics()`, `get_random_music_ids_by_artist()`
+**Fonctions RPC** : versionnées dans `supabase/migrations/`, avec ACL explicites ; les RPC métier appelées par Nitro sont réservées à `service_role`.
+
+**RLS** : baseline déclarative des policies de production dans `supabase/migrations/`. Les helpers de policies sont dans le schéma non exposé `private`.
 
 **Rôles utilisateur** : `USER` | `CONTRIBUTOR` | `ADMIN`
 
@@ -240,7 +248,7 @@ const { data } = await useFetch('/api/releases/paginated', {
 | `/release/create`                   | Redirect | → `/dashboard/release`           |
 | `/settings/**`                      | SSR      | Hybride (`/notification` en SPA) |
 | `/notifications`                    | SPA      | Client-side only                 |
-| `/api/**`                           | —        | CORS activé + cache headers      |
+| `/api/**`                           | —        | Cache explicite par endpoint     |
 
 ## Formatage & Linting
 

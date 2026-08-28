@@ -293,7 +293,8 @@ export default defineEventHandler(async (event) => {
 		})
 
 		const totalArtists = generalRow.total_artists
-		const verificationRate = totalArtists > 0 ? 100 : 0
+		const verificationRate =
+			totalArtists > 0 ? Math.round((artists.length / totalArtists) * 100) : 0
 
 		const result: DashboardStats = {
 			general: {

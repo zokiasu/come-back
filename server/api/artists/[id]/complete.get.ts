@@ -54,7 +54,7 @@ export default defineEventHandler(async (event) => {
 		// 5. Fetch the companies — verified only
 		const { data: companies } = await supabase
 			.from('artist_companies')
-			.select('*, company:companies(*)')
+			.select('*, company:companies!inner(*)')
 			.eq('artist_id', artistId)
 			.eq('company.verified', true)
 

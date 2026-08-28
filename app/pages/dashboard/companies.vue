@@ -194,6 +194,7 @@
 			}
 
 			const result = await getAllCompanies({
+				includeUnverified: verifiedFilter.value === 'all',
 				limit: limitFetch.value,
 				offset: firstCall ? 0 : (currentPage.value - 1) * limitFetch.value,
 				search: search.value || undefined,

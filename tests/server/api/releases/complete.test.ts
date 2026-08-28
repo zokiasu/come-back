@@ -39,7 +39,10 @@ const setupGlobals = () => {
 	const setHeader = vi.fn()
 
 	vi.stubGlobal('setHeader', setHeader)
-	vi.stubGlobal('getRouterParam', vi.fn(() => 'release-id'))
+	vi.stubGlobal(
+		'getRouterParam',
+		vi.fn(() => 'release-id'),
+	)
 	vi.stubGlobal('createError', createError)
 	vi.stubGlobal('handleSupabaseError', handleSupabaseError)
 	vi.stubGlobal('transformJunction', transformJunction)
@@ -69,17 +72,19 @@ describe('GET /api/releases/[id]/complete', () => {
 		const handler = await loadHandler()
 		const result = await handler({})
 
-		expect(queries.releases.eq).toHaveBeenCalledWith('id', 'release-id')
-		expect(queries.releases.eq).toHaveBeenCalledWith('verified', true)
-		expect(queries.releases.single).toHaveBeenCalled()
-		expect(queries.artist_releases.eq).toHaveBeenCalledWith('artist.verified', true)
-		expect(queries.music_releases.eq).toHaveBeenCalledWith('music.verified', true)
+		expect(queries.releases!.eq).toHaveBeenCalledWith('id', 'release-id')
+		expect(queries.releases!.eq).toHaveBeenCalledWith('verified', true)
+		expect(queries.releases!.single).toHaveBeenCalled()
+		expect(queries.artist_releases!.eq).toHaveBeenCalledWith('artist.verified', true)
+		expect(queries.music_releases!.eq).toHaveBeenCalledWith('music.verified', true)
 
 		const payload = result as {
 			release: { id: string; name: string; musics: unknown[] }
 		}
 		expect(payload.release.id).toBe('release-id')
-		expect(payload.release.musics).toEqual([{ id: 'music-id', name: 'Supernova', verified: true }])
+		expect(payload.release.musics).toEqual([
+			{ id: 'music-id', name: 'Supernova', verified: true },
+		])
 	})
 
 	it('returns 404 for an unverified (or missing) release', async () => {

@@ -1,36 +1,34 @@
 import type { QueryOptions, FilterOptions, Nationality } from '~/types'
-import type { Database, TablesInsert } from '~/types/supabase'
+import type { TablesInsert } from '~/types/supabase'
 
 export function useSupabaseNationalities() {
-	const supabase = useSupabaseClient<Database>()
 	const { runMutation } = useMutationTimeout()
+	const { requireAuthHeaders } = useApiAuthHeaders()
 
 	const createNationality = async (
 		data: TablesInsert<'nationalities'>,
 	): Promise<Nationality> => {
-		const { data: nationality, error } = await runMutation(
-			supabase.from('nationalities').insert(data).select().single(),
+		return runMutation(
+			$fetch<Nationality>('/api/taxonomies/nationalities', {
+				method: 'POST',
+				headers: requireAuthHeaders(),
+				body: { name: data.name },
+			}),
 			'Creating the nationality timed out. Please try again.',
 		)
-
-		if (error) {
-			console.error('Erreur lors de la creation de la nationalite:', error)
-			throw new Error('Erreur lors de la creation de la nationalite')
-		}
-
-		return nationality as Nationality
 	}
 
 	const deleteNationality = async (name: string) => {
-		const { error } = await runMutation(
-			supabase.from('nationalities').delete().eq('name', name),
+		await runMutation(
+			$fetch<{ success: boolean }>(
+				`/api/taxonomies/nationalities/${encodeURIComponent(name)}`,
+				{
+					method: 'DELETE',
+					headers: requireAuthHeaders(),
+				},
+			),
 			'Deleting the nationality timed out. Please try again.',
 		)
-
-		if (error) {
-			console.error('Erreur lors de la suppression de la nationalite:', error)
-			throw new Error('Erreur lors de la suppression de la nationalite')
-		}
 
 		return true
 	}
@@ -38,36 +36,14 @@ export function useSupabaseNationalities() {
 	const getAllNationalities = async (
 		options?: QueryOptions & FilterOptions,
 	): Promise<Nationality[]> => {
-		let query = supabase.from('nationalities').select('*')
-
-		if (options?.search) {
-			query = query.ilike('name', `%${options.search}%`)
-		}
-
-		if (options?.orderBy) {
-			query = query.order(options.orderBy, {
-				ascending: options.orderDirection === 'asc',
-			})
-		} else {
-			query = query.order('name')
-		}
-
-		if (options?.limit) {
-			query = query.limit(options.limit)
-		}
-
-		if (options?.offset) {
-			query = query.range(options.offset, options.offset + (options.limit || 10) - 1)
-		}
-
-		const { data, error } = await query
-
-		if (error) {
-			console.error('Erreur lors de la recuperation des nationalites:', error)
-			throw new Error('Erreur lors de la recuperation des nationalites')
-		}
-
-		return data as Nationality[]
+		return $fetch<Nationality[]>('/api/taxonomies/nationalities', {
+			query: {
+				search: options?.search,
+				orderDirection: options?.orderDirection,
+				limit: options?.limit,
+				offset: options?.offset,
+			},
+		})
 	}
 
 	return {

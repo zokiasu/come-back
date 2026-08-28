@@ -1,5 +1,10 @@
 # Audit optimisation pages
 
+> Mise à jour du 28 août 2026 : le chantier architecture/sécurité est terminé
+> (lectures métier via API Nitro, RLS/RPC versionnées, CI et routes mortes nettoyées).
+> Les recommandations ci-dessous restent le backlog UI/UX ; elles n'ont pas été
+> cochées artificiellement lorsqu'aucun refactor visuel n'a été réalisé.
+
 ## Priorites globales
 
 1. Terminer l'extraction des patterns dashboard restants : filtres complexes, lignes d'entites et wrappers non migres.

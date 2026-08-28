@@ -38,7 +38,10 @@ const setupSupabase = (results: Record<string, { data?: unknown; error?: unknown
 }
 
 const setupGlobals = () => {
-	vi.stubGlobal('getRouterParam', vi.fn(() => 'artist-id'))
+	vi.stubGlobal(
+		'getRouterParam',
+		vi.fn(() => 'artist-id'),
+	)
 	vi.stubGlobal('createError', createError)
 	vi.stubGlobal('handleSupabaseError', handleSupabaseError)
 	vi.stubGlobal('transformJunction', transformJunction)
@@ -65,12 +68,15 @@ describe('GET /api/artists/[id]/complete', () => {
 		const handler = await loadHandler()
 		const result = await handler({})
 
-		expect(queries.artists.eq).toHaveBeenCalledWith('id', 'artist-id')
-		expect(queries.artists.eq).toHaveBeenCalledWith('verified', true)
-		expect(queries.artist_relations.eq).toHaveBeenCalledWith('group.verified', true)
-		expect(queries.artist_relations.eq).toHaveBeenCalledWith('member.verified', true)
-		expect(queries.artist_releases.eq).toHaveBeenCalledWith('release.verified', true)
-		expect(queries.artist_companies.eq).toHaveBeenCalledWith('company.verified', true)
+		expect(queries.artists!.eq).toHaveBeenCalledWith('id', 'artist-id')
+		expect(queries.artists!.eq).toHaveBeenCalledWith('verified', true)
+		expect(queries.artist_relations!.eq).toHaveBeenCalledWith('group.verified', true)
+		expect(queries.artist_relations!.eq).toHaveBeenCalledWith('member.verified', true)
+		expect(queries.artist_releases!.eq).toHaveBeenCalledWith('release.verified', true)
+		expect(queries.artist_companies!.select).toHaveBeenCalledWith(
+			'*, company:companies!inner(*)',
+		)
+		expect(queries.artist_companies!.eq).toHaveBeenCalledWith('company.verified', true)
 
 		const payload = result as {
 			artist: { id: string; name: string; groups: unknown[]; members: unknown[] }

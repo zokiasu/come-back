@@ -24,11 +24,7 @@
 	const user = useSupabaseUser()
 	const userStore = useUserStore()
 	const { runMutation } = useMutationTimeout()
-
-	const log = (message: string) => {
-		const timestamp = new Date().toLocaleTimeString()
-		console.warn(`[Callback] [${timestamp}] ${message}`)
-	}
+	const { trace: log } = useDevLogger('AuthCallback')
 
 	const getTrustedSessionUser = async () => {
 		const { data, error } = await supabase.auth.getUser()
@@ -42,7 +38,6 @@
 	const handleAuthCallback = async () => {
 		try {
 			log('Starting OAuth callback processing...')
-			log(`Full URL: ${window.location.href}`)
 
 			statusMessage.value = 'Verifying session...'
 
@@ -53,15 +48,13 @@
 			const accessToken = hashParams.get('access_token')
 			const refreshToken = hashParams.get('refresh_token')
 			const errorParam = route.query.error as string | undefined
-			const errorDescription = route.query.error_description as string | undefined
-
 			log(
 				`OAuth params - code: ${!!code}, access_token: ${!!accessToken}, error: ${errorParam || 'none'}`,
 			)
 
 			// Check for OAuth error
 			if (errorParam) {
-				log(`OAuth error: ${errorParam} - ${errorDescription}`)
+				log(`OAuth provider error: ${errorParam}`)
 				statusMessage.value = 'Authentication error'
 				if (window.opener) {
 					window.opener.postMessage(
@@ -84,13 +77,13 @@
 			log('Checking existing session...')
 			const { user: existingUser, error: sessionError } = await getTrustedSessionUser()
 			log(
-				`Current session: ${existingUser ? 'exists' : 'none'}, error: ${sessionError?.message || 'none'}`,
+				`Current session: ${existingUser ? 'exists' : 'none'}, error: ${sessionError ? 'yes' : 'none'}`,
 			)
 
 			let sessionUser: SupabaseUser | undefined = existingUser
 
 			if (sessionUser?.id) {
-				log(`Session already exists! User ID: ${sessionUser.id}, skipping code exchange`)
+				log('Session already exists; skipping code exchange')
 			} else {
 				// If we have tokens in hash (implicit flow), set the session
 				if (accessToken) {
@@ -100,10 +93,9 @@
 						refresh_token: refreshToken || '',
 					})
 					if (error) {
-						log(`Session error: ${error.message}`)
-						console.error('Error setting session:', error)
+						log('Unable to set the implicit-flow session')
 					} else {
-						log(`Session set successfully! User: ${data?.user?.id || 'unknown'}`)
+						log(`Session set successfully: ${data?.user ? 'user present' : 'no user'}`)
 						sessionUser = data?.user ?? undefined
 					}
 				}
@@ -112,10 +104,9 @@
 					log('PKCE flow detected - exchanging code for session...')
 					const { data, error } = await supabase.auth.exchangeCodeForSession(code)
 					if (error) {
-						log(`Exchange error: ${error.message}`)
-						console.error('Error exchanging code:', error)
+						log('Unable to exchange the authorization code')
 					} else {
-						log(`Code exchanged successfully! User: ${data?.user?.id || 'unknown'}`)
+						log(`Code exchanged successfully: ${data?.user ? 'user present' : 'no user'}`)
 						sessionUser = data?.user ?? undefined
 					}
 				} else {
@@ -127,9 +118,6 @@
 			const { user: finalUser } = await getTrustedSessionUser()
 			sessionUser = finalUser
 			log(`Final session check: ${finalUser ? 'exists' : 'none'}`)
-			if (sessionUser) {
-				log(`User from session: id=${sessionUser.id}, email=${sessionUser.email}`)
-			}
 
 			// If we have a valid session user, we can proceed directly
 			// Don't rely on useSupabaseUser() reactive ref which may not have the id
@@ -144,7 +132,7 @@
 					await new Promise((resolve) => setTimeout(resolve, 1000))
 					attempts++
 					log(
-						`Fallback attempt ${attempts}/${maxAttempts} - user: ${!!user.value}, id: ${user.value?.id || 'undefined'}`,
+						`Fallback attempt ${attempts}/${maxAttempts} - user: ${user.value?.id ? 'ready' : 'missing'}`,
 					)
 				}
 
@@ -190,7 +178,7 @@
 				return
 			}
 
-			log(`User ready! ID: ${sessionUser.id}, Email: ${sessionUser.email}`)
+			log('Authenticated user is ready')
 			statusMessage.value = 'Syncing profile...'
 
 			// Sync user profile directly using the session user
@@ -218,21 +206,11 @@
 				statusMessage.value = 'Redirecting...'
 				await new Promise((resolve) => setTimeout(resolve, 500))
 
-				// Fetch tokens so the main window can hydrate its Supabase client
-				const { data: sessionForOpener } = await supabase.auth.getSession()
-				const sessionTokens = sessionForOpener?.session
-					? {
-							access_token: sessionForOpener.session.access_token,
-							refresh_token: sessionForOpener.session.refresh_token,
-						}
-					: null
-
 				if (window.opener) {
 					window.opener.postMessage(
 						{
 							type: 'comeback-auth',
 							status: 'success',
-							session: sessionTokens,
 						},
 						window.location.origin,
 					)
@@ -243,16 +221,13 @@
 					'comeback-auth',
 					JSON.stringify({
 						status: 'success',
-						session: sessionTokens,
 						ts: Date.now(),
 					}),
 				)
 				window.close()
 				await navigateTo('/')
 			} catch (syncError: unknown) {
-				const errorMsg =
-					syncError instanceof Error ? syncError.message : 'Unknown sync error'
-				log(`Profile sync failed: ${errorMsg}`)
+				log(`Profile sync failed: ${syncError instanceof Error ? 'error' : 'unknown'}`)
 				statusMessage.value = 'Synchronization error'
 				if (window.opener) {
 					window.opener.postMessage(
@@ -270,9 +245,7 @@
 				await navigateTo('/?authError=sync')
 			}
 		} catch (err: unknown) {
-			const errorMessage = err instanceof Error ? err.message : 'Unknown error'
-			log(`EXCEPTION: ${errorMessage}`)
-			console.error('❌ Error during callback:', err)
+			log(`Callback failed: ${err instanceof Error ? 'error' : 'unknown'}`)
 			statusMessage.value = 'Connection error'
 			if (window.opener) {
 				window.opener.postMessage(

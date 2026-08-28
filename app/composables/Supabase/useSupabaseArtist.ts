@@ -1,12 +1,6 @@
 import type { QueryOptions, FilterOptions, Artist } from '~/types'
-import type { Database, TablesInsert, TablesUpdate } from '~/types/supabase'
-import {
-	fetchAllArtists,
-	fetchFullArtist,
-	fetchArtistLinks,
-	type ArtistPageOptions,
-	type ArtistPageResult,
-} from './helpers/artist'
+import type { TablesInsert, TablesUpdate } from '~/types/supabase'
+import type { ArtistPageOptions, ArtistPageResult } from './helpers/artist'
 
 const logArtistCreateTrace = (step: string, details?: Record<string, unknown>) => {
 	if (!import.meta.dev) return
@@ -20,7 +14,6 @@ const logArtistCreateTrace = (step: string, details?: Record<string, unknown>) =
 }
 
 export function useSupabaseArtist() {
-	const supabase = useSupabaseClient<Database>()
 	const toast = useToast()
 	const { requireAuthHeaders, getAuthHeaders } = useApiAuthHeaders()
 	const { runMutation } = useMutationTimeout()
@@ -165,18 +158,30 @@ export function useSupabaseArtist() {
 	}
 
 	// Fetch all artists
-	const getAllArtists = (options?: QueryOptions & FilterOptions) => {
-		return fetchAllArtists(supabase, options)
+	const getAllArtists = async (
+		options?: QueryOptions & FilterOptions,
+	): Promise<Artist[]> => {
+		const limit = options?.limit ?? 100
+		const offset = options?.offset ?? 0
+		const page = Math.floor(offset / limit) + 1
+		const result = await getArtistsByPage(page, limit, {
+			search: options?.search,
+			type: options?.type as ArtistPageOptions['type'],
+			orderBy: options?.orderBy as keyof Artist | undefined,
+			orderDirection: options?.orderDirection,
+			isActive: options?.isActive,
+			verified: options?.verified,
+			skipYoutubeMusicFilter: true,
+		})
+
+		return result.artists
 	}
 
 	// Fetches a artist with all details
 	const getFullArtistById = (id: string): Promise<Artist> => {
-		return fetchFullArtist(supabase, id)
-	}
-
-	// Fetches the social links and of platforms of a artist
-	const getSocialAndPlatformLinksByArtistId = (id: string) => {
-		return fetchArtistLinks(supabase, id)
+		return $fetch<Artist>(`/api/artists/${id}/editor`, {
+			headers: getAuthHeaders(),
+		})
 	}
 
 	// Fetches artists by page through the server endpoint (single source of truth
@@ -246,7 +251,6 @@ export function useSupabaseArtist() {
 		getArtistDeletionImpact,
 		getAllArtists,
 		getFullArtistById,
-		getSocialAndPlatformLinksByArtistId,
 		getArtistsByPage,
 		approveArtist,
 	}

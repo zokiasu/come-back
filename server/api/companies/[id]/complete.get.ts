@@ -31,7 +31,7 @@ export default defineEventHandler(async (event) => {
 		// 2. Fetch artists linked to this company (verified only)
 		const { data: companyArtists } = await supabase
 			.from('artist_companies')
-			.select('*, artist:artists(*)')
+			.select('*, artist:artists!inner(*)')
 			.eq('company_id', companyId)
 			.eq('artist.verified', true)
 			.order('is_current', { ascending: false })

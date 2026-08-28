@@ -58,14 +58,16 @@ export interface UserRankingItem {
 export interface UserRankingWithItems extends UserRanking {
 	items: (UserRankingItem & { music: Music })[]
 	item_count: number
-	user?: User
+	user?: PublicRankingUser
 }
 
 export interface UserRankingWithPreview extends UserRanking {
 	item_count: number
 	preview_thumbnails: (string | null)[]
-	user?: User
+	user?: PublicRankingUser
 }
+
+export type PublicRankingUser = Pick<User, 'id' | 'name' | 'photo_url'>
 
 // Types for the insertions
 export type ArtistInsert = TablesInsert<'artists'>

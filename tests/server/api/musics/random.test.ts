@@ -10,7 +10,11 @@ const loadHandler = async () => {
 	return module.default as (event: unknown) => Promise<unknown>
 }
 
-const setupSupabase = (result: { data?: unknown[] | null; error?: unknown; count?: number | null }) => {
+const setupSupabase = (result: {
+	data?: unknown[] | null
+	error?: unknown
+	count?: number | null
+}) => {
 	const query = createSupabaseQueryMock({
 		data: result.data ?? null,
 		error: result.error ?? null,
@@ -25,8 +29,11 @@ const setupSupabase = (result: { data?: unknown[] | null; error?: unknown; count
 	return { query, supabase }
 }
 
-const setupGlobals = () => {
-	vi.stubGlobal('getQuery', vi.fn(() => ({})))
+const setupGlobals = (query: Record<string, string> = {}) => {
+	vi.stubGlobal(
+		'getQuery',
+		vi.fn(() => query),
+	)
 	vi.stubGlobal('createError', createError)
 	vi.stubGlobal('handleSupabaseError', handleSupabaseError)
 }
@@ -57,6 +64,8 @@ describe('GET /api/musics/random', () => {
 		expect(supabase.from).toHaveBeenCalledWith('musics')
 		expect(query.eq).toHaveBeenCalledWith('verified', true)
 		expect(query.eq).toHaveBeenCalledWith('artists.artist.verified', true)
+		expect(query.eq).toHaveBeenCalledWith('releases.release.verified', true)
+		expect(query.select).toHaveBeenCalledWith(expect.stringContaining('releases!inner'))
 		expect(result).toEqual([
 			{
 				...rawMusic,
@@ -65,4 +74,20 @@ describe('GET /api/musics/random', () => {
 			},
 		])
 	})
+
+	it.each(['invalid', '0', '21', '4items'])(
+		'rejects an invalid or unsafe limit: %s',
+		async (limit) => {
+			setupGlobals({ limit })
+			const { supabase } = setupSupabase({ data: [], count: 1 })
+
+			const handler = await loadHandler()
+
+			await expect(handler({})).rejects.toMatchObject({
+				statusCode: 400,
+				statusMessage: 'Bad Request',
+			})
+			expect(supabase.from).not.toHaveBeenCalled()
+		},
+	)
 })

@@ -77,6 +77,8 @@ export const RATE_LIMIT_PRESETS = {
 	follow: { maxRequests: 30, windowMs: 60 * 1000 },
 	/** Moderate limits for search endpoints */
 	search: { maxRequests: 60, windowMs: 60 * 1000 },
+	/** Tight limit for server-side requests to third-party websites */
+	externalFetch: { maxRequests: 20, windowMs: 60 * 1000 },
 	/** Default limits for paginated read endpoints */
 	paginated: { maxRequests: 120, windowMs: 60 * 1000 },
 } as const

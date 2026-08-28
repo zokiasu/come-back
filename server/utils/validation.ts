@@ -142,6 +142,45 @@ export const validateLimitParam = (
 	)
 }
 
+interface IntegerParamOptions {
+	min: number
+	max: number
+	defaultValue: number
+}
+
+/**
+ * Strictly parses an integer query parameter and rejects partial numbers,
+ * arrays, unsafe integers, and values outside the declared range.
+ */
+export const validateIntegerParam = (
+	value: unknown,
+	paramName: string,
+	options: IntegerParamOptions,
+): number => {
+	if (value === undefined || value === null || value === '') {
+		return options.defaultValue
+	}
+
+	if (typeof value !== 'string' || !/^-?\d+$/.test(value)) {
+		throw createError({
+			statusCode: 400,
+			statusMessage: 'Bad Request',
+			message: `Parameter '${paramName}' must be an integer`,
+		})
+	}
+
+	const parsed = Number(value)
+	if (!Number.isSafeInteger(parsed) || parsed < options.min || parsed > options.max) {
+		throw createError({
+			statusCode: 400,
+			statusMessage: 'Bad Request',
+			message: `Parameter '${paramName}' must be between ${options.min} and ${options.max}`,
+		})
+	}
+
+	return parsed
+}
+
 /**
  * Validates page parameter.
  * Returns a validated page number (minimum 1).
