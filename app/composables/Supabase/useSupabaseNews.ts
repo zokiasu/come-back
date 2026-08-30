@@ -1,7 +1,5 @@
-import type { Artist, News, QueryOptions, FilterOptions } from '~/types'
-import type { Database, TablesInsert, TablesUpdate } from '~/types/supabase'
-
-type NewsArtistJunction = { artists: Artist }
+import type { News, QueryOptions, FilterOptions } from '~/types'
+import type { TablesInsert, TablesUpdate } from '~/types/supabase'
 
 interface NewsResponse {
 	news: News[]
@@ -12,9 +10,8 @@ interface NewsResponse {
 }
 
 export function useSupabaseNews() {
-	const supabase = useSupabaseClient<Database>()
 	const toast = useToast()
-	const { requireAuthHeaders } = useApiAuthHeaders()
+	const { requireAuthHeaders, getAuthHeaders } = useApiAuthHeaders()
 	const { runMutation } = useMutationTimeout()
 
 	// Creates a nouvelle news
@@ -122,101 +119,20 @@ export function useSupabaseNews() {
 	const getAllNews = async (
 		options?: QueryOptions & FilterOptions,
 	): Promise<NewsResponse> => {
-		let query = supabase.from('news').select(
-			`
-				*,
-				artists:news_artists_junction(
-					artists(*)
-				),
-				contributions:user_news_contributions(
-					user:users(*)
-				)
-			`,
-			{ count: 'exact' },
-		)
+		const query: Record<string, string | number | boolean> = {}
+		if (options?.search) query.search = options.search
+		if (options?.startDate) query.startDate = options.startDate
+		if (options?.endDate) query.endDate = options.endDate
+		if (options?.verified !== undefined) query.verified = options.verified
+		if (options?.orderBy) query.orderBy = options.orderBy
+		if (options?.orderDirection) query.orderDirection = options.orderDirection
+		if (options?.limit) query.limit = options.limit
+		if (options?.offset !== undefined) query.offset = options.offset
 
-		if (options?.search) {
-			query = query.ilike('message', `%${options.search}%`)
-		}
-
-		if (options?.startDate) {
-			query = query.gte('date', options.startDate)
-		}
-
-		if (options?.endDate) {
-			query = query.lte('date', options.endDate)
-		}
-
-		if (options?.verified !== undefined) {
-			query = query.eq('verified', options.verified)
-		}
-
-		// Handle sorting explicitly
-		if (options?.orderBy) {
-			if (options.orderBy === 'artist') {
-				// For artist sorting, fetch all data and sort it client-side
-				query = query.order('id', { ascending: true })
-			} else {
-				// for the autres champs, on utilise the sorting server-side
-				query = query.order(options.orderBy, {
-					ascending: options.orderDirection === 'asc',
-				})
-			}
-		} else {
-			query = query.order('date', { ascending: false })
-		}
-
-		if (options?.limit) {
-			query = query.limit(options.limit)
-		}
-
-		if (options?.offset) {
-			query = query.range(options.offset, options.offset + (options.limit || 10) - 1)
-		}
-
-		const { data, error, count } = await query
-
-		if (error) {
-			console.error('Erreur lors de la récupération des news:', error)
-			return {
-				news: [],
-				total: 0,
-				page: 1,
-				limit: 10,
-				totalPages: 1,
-			}
-		}
-
-		// Transform data to expose artists and user directly
-		const transformedData = data?.map((news) => ({
-			...news,
-			artists:
-				news.artists?.map(
-					(artistJunction: NewsArtistJunction) => artistJunction.artists,
-				) || [],
-			user: news.contributions?.[0]?.user || null,
-		}))
-
-		// if sorting is by artist, so sort the results manually
-		let sortedData = transformedData as News[]
-		if (options?.orderBy === 'artist') {
-			console.warn('Tri par artiste appliqué côté client')
-			sortedData = sortedData.sort((a, b) => {
-				const nameA = a.artists?.[0]?.name || ''
-				const nameB = b.artists?.[0]?.name || ''
-				return options.orderDirection === 'asc'
-					? nameA.localeCompare(nameB)
-					: nameB.localeCompare(nameA)
-			})
-		}
-
-		return {
-			news: sortedData,
-			total: count || 0,
-			page: options?.offset ? Math.floor(options.offset / (options.limit || 10)) + 1 : 1,
-			limit: options?.limit || 10,
-			totalPages: Math.ceil((count || 0) / (options?.limit || 10)),
-		}
+		return $fetch<NewsResponse>('/api/news/paginated', {
+			query,
+			headers: getAuthHeaders(),
+		})
 	}
 
 	return {

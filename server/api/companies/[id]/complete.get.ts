@@ -13,11 +13,12 @@ export default defineEventHandler(async (event) => {
 	}
 
 	try {
-		// 1. Fetch the company of base
+		// 1. Fetch the company of base (verified only on this public endpoint)
 		const { data: company, error: companyError } = await supabase
 			.from('companies')
 			.select('*')
 			.eq('id', companyId)
+			.eq('verified', true)
 			.single()
 
 		if (companyError || !company) {
@@ -27,11 +28,12 @@ export default defineEventHandler(async (event) => {
 			})
 		}
 
-		// 2. Fetch artists linked to this company
+		// 2. Fetch artists linked to this company (verified only)
 		const { data: companyArtists } = await supabase
 			.from('artist_companies')
-			.select('*, artist:artists(*)')
+			.select('*, artist:artists!inner(*)')
 			.eq('company_id', companyId)
+			.eq('artist.verified', true)
 			.order('is_current', { ascending: false })
 
 		return {

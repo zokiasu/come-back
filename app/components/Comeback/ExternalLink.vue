@@ -1,8 +1,9 @@
 <template>
 	<NuxtLink
+		v-if="safeLink"
 		:aria-label="`${name}'s link`"
-		rel="noopener"
-		:to="link"
+		rel="noopener noreferrer"
+		:to="safeLink"
 		target="_blank"
 		class="bg-cb-quaternary-950 hover:bg-cb-quinary-900 flex items-center gap-2 rounded px-3.5 py-2.5 text-xs"
 	>
@@ -28,11 +29,12 @@
 		},
 	})
 
-	const { getFaviconUrl, FAVICON_SERVICES } = useLinkManager()
+	const { getFaviconUrl, isValidUrl, FAVICON_SERVICES } = useLinkManager()
 	const faviconAttempt = ref(0)
+	const safeLink = computed(() => (isValidUrl(link) ? link : null))
 
 	const faviconUrl = computed(() => {
-		return getFaviconUrl(link, faviconAttempt.value)
+		return getFaviconUrl(safeLink.value ?? '', faviconAttempt.value)
 	})
 
 	const handleFaviconError = () => {

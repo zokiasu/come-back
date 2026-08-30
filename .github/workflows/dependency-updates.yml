@@ -17,14 +17,14 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
       - name: Install dependencies
@@ -34,7 +34,7 @@ jobs:
         id: check-updates
         run: |
           # Vérifier les mises à jour disponibles
-          npx npm-check-updates --jsonUpgraded > updates.json
+          npx --yes npm-check-updates@23.1.0 --jsonUpgraded > updates.json
 
           # Compter le nombre de mises à jour
           UPDATES_COUNT=$(cat updates.json | jq 'length')
@@ -52,7 +52,7 @@ jobs:
         if: steps.check-updates.outputs.updates_available == 'true'
         run: |
           # Mettre à jour les dépendances
-          npx npm-check-updates -u
+          npx --yes npm-check-updates@23.1.0 -u
           npm install
 
       - name: Run tests after updates
@@ -64,7 +64,7 @@ jobs:
 
       - name: Create Pull Request
         if: steps.check-updates.outputs.updates_available == 'true'
-        uses: peter-evans/create-pull-request@v5
+        uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676 # v7
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: 'chore: mise à jour des dépendances'
@@ -99,7 +99,7 @@ jobs:
 
       - name: Comment on failure
         if: failure()
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         with:
           script: |
             github.rest.issues.create({

@@ -52,27 +52,6 @@
 								</UButton>
 							</div>
 						</div>
-
-						<div>
-							<label class="mb-3 block text-sm font-medium text-gray-300">Status</label>
-							<div class="flex flex-wrap gap-2">
-								<UButton
-									v-for="status in verificationStatuses"
-									:key="String(status.value)"
-									:variant="selectedVerified === status.value ? 'solid' : 'outline'"
-									:color="selectedVerified === status.value ? 'primary' : 'neutral'"
-									size="sm"
-									:disabled="isLoading"
-									:class="{ 'text-white': selectedVerified === status.value }"
-									@click="
-										selectedVerified =
-											selectedVerified === status.value ? null : status.value
-									"
-								>
-									{{ status.label }}
-								</UButton>
-							</div>
-						</div>
 					</div>
 
 					<div v-if="hasActiveFilters" class="flex items-center justify-between">
@@ -156,16 +135,11 @@
 	const totalCompanies = ref(0)
 
 	const selectedType = ref<string | null>(null)
-	const selectedVerified = ref<boolean | null>(null)
 
 	// State for filter expansion
 	const filtersExpanded = ref(false)
 
 	// Verification status options
-	const verificationStatuses = [
-		{ value: true, label: 'Verified' },
-		{ value: false, label: 'Not verified' },
-	]
 
 	const fetchCompanies = async (reset = false) => {
 		if (isLoading.value || (!hasMore.value && !reset)) return
@@ -178,7 +152,6 @@
 			const result = await getAllCompanies({
 				search: search.value || undefined,
 				type: selectedType.value || undefined,
-				verified: selectedVerified.value ?? undefined,
 				limit: limit.value,
 				offset: offset,
 				orderBy: 'name',
@@ -202,7 +175,7 @@
 	}
 
 	// Watch for filter changes
-	watch([search, selectedType, selectedVerified], () => {
+	watch([search, selectedType], () => {
 		page.value = 1
 		hasMore.value = true
 		fetchCompanies(true)
@@ -225,21 +198,19 @@
 
 	// Computed to check if there are active filters
 	const hasActiveFilters = computed(() => {
-		return selectedType.value !== null || selectedVerified.value !== null
+		return selectedType.value !== null
 	})
 
 	// Computed to count the number of active filters
 	const activeFiltersCount = computed(() => {
 		let count = 0
 		if (selectedType.value !== null) count++
-		if (selectedVerified.value !== null) count++
 		return count
 	})
 
 	// Function to clear all filters
 	const clearAllFilters = () => {
 		selectedType.value = null
-		selectedVerified.value = null
 	}
 
 	// Function to get company type label

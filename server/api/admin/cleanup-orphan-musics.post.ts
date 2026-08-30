@@ -1,6 +1,8 @@
 import { isError as isH3Error } from 'h3'
 
 export default defineEventHandler(async (event) => {
+	// Operational endpoint intentionally has no in-app caller. Administrators invoke
+	// it manually (preferably with dryRun=true) when auditing imported catalog data.
 	// Verify admin authentication
 	await requireAdmin(event)
 

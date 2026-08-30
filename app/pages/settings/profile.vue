@@ -3,7 +3,6 @@
 	import { useSupabaseFunction } from '~/composables/useSupabaseFunction'
 	import { useUserStore } from '~/stores/user'
 	import type { User } from '~/types'
-	import type { Database } from '~/types/supabase'
 
 	type ArtistPhotoOption = {
 		id: string
@@ -31,7 +30,7 @@
 		USER: 'User access',
 	}
 
-	const supabase = useSupabaseClient<Database>()
+	const supabase = useSupabaseClient()
 	const authUser = useSupabaseUser()
 	const userStore = useUserStore()
 	const toast = useToast()
@@ -220,24 +219,13 @@
 	}
 
 	const fetchArtistPhotoBatch = async (page: number) => {
-		let query = supabase
-			.from('artists')
-			.select('id, name, image, description')
-			.eq('verified', true)
-			.not('image', 'is', null)
-			.neq('image', '')
-			.order('name', { ascending: true })
-			.range(page * photoPageSize, page * photoPageSize + photoPageSize - 1)
-
-		if (activePhotoSearch.value) {
-			query = query.ilike('name', `%${activePhotoSearch.value}%`)
-		}
-
-		const { data, error } = await query
-
-		if (error) throw error
-
-		return (data || []) as ArtistPhotoOption[]
+		return $fetch<ArtistPhotoOption[]>('/api/artists/photo-gallery', {
+			query: {
+				page: page + 1,
+				limit: photoPageSize,
+				...(activePhotoSearch.value ? { search: activePhotoSearch.value } : {}),
+			},
+		})
 	}
 
 	const loadArtistPhotoGallery = async ({ reset = false } = {}) => {
@@ -548,7 +536,7 @@
 						@click="updateUserDetails"
 					/>
 					<p class="text-xs leading-5 text-gray-500">
-						Profile name, email and photo are saved directly to your user record.
+						Profile name and photo are saved through the authenticated profile API.
 					</p>
 				</div>
 			</div>
@@ -609,6 +597,7 @@
 								placeholder="Email address"
 								type="email"
 								autocomplete="email"
+								disabled
 								class="w-full"
 								:ui="profileInputUi"
 							/>

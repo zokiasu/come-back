@@ -20,7 +20,17 @@ const dateStringSchema = z
 	.union([z.string().date(), z.string().datetime()])
 	.nullable()
 	.optional()
-const urlSchema = z.string().url().nullable().optional()
+const httpUrlSchema = z
+	.string()
+	.url()
+	.refine(
+		(value) => {
+			const protocol = new URL(value).protocol
+			return protocol === 'http:' || protocol === 'https:'
+		},
+		{ message: 'URL must use HTTP or HTTPS' },
+	)
+const urlSchema = httpUrlSchema.nullable().optional()
 const optionalString = z.string().nullable().optional()
 
 const idArraySchema = (max = VALIDATION_LIMITS.MAX_ARRAY_ITEMS) =>
@@ -119,10 +129,6 @@ export const artistCompanyInsertSchema = z
 	})
 	.strict()
 
-export const artistCompanyUpdateSchema = artistCompanyInsertSchema
-	.partial()
-	.omit({ artist_id: true, company_id: true })
-
 // ---------------------------------------------------------------------------
 // Link schemas
 // ---------------------------------------------------------------------------
@@ -130,7 +136,7 @@ export const artistCompanyUpdateSchema = artistCompanyInsertSchema
 export const platformLinkSchema = z
 	.object({
 		name: z.string().min(1).max(100),
-		link: z.string().url().min(1),
+		link: httpUrlSchema,
 	})
 	.strict()
 
@@ -139,6 +145,70 @@ export const socialLinkSchema = platformLinkSchema
 // ---------------------------------------------------------------------------
 // Request body schemas
 // ---------------------------------------------------------------------------
+
+export const userProfileUpdateSchema = z
+	.object({
+		name: z.string().trim().min(1).max(255),
+		photo_url: z.union([httpUrlSchema, z.literal('')]).nullable(),
+	})
+	.strict()
+
+export const rankingCreateSchema = z
+	.object({
+		name: z.string().trim().min(1).max(255),
+		description: z.string().trim().max(2000).nullable().optional(),
+	})
+	.strict()
+
+export const rankingUpdateSchema = z
+	.object({
+		name: z.string().trim().min(1).max(255).optional(),
+		description: z.string().trim().max(2000).nullable().optional(),
+		is_public: z.boolean().optional(),
+	})
+	.strict()
+	.refine((body) => Object.keys(body).length > 0, {
+		message: 'At least one ranking field is required',
+	})
+
+export const rankingItemSchema = z
+	.object({
+		music_id: uuidSchema,
+	})
+	.strict()
+
+export const taxonomyCreateSchema = z
+	.object({
+		name: z.string().trim().min(1).max(100),
+	})
+	.strict()
+
+export const rankingReorderSchema = z
+	.object({
+		items: z
+			.array(
+				z
+					.object({
+						id: uuidSchema,
+						position: z.number().int().min(1).max(100),
+					})
+					.strict(),
+			)
+			.min(1)
+			.max(100),
+	})
+	.strict()
+	.superRefine((body, context) => {
+		const ids = new Set(body.items.map((item) => item.id))
+		const positions = new Set(body.items.map((item) => item.position))
+
+		if (ids.size !== body.items.length) {
+			context.addIssue({ code: 'custom', message: 'Ranking item IDs must be unique' })
+		}
+		if (positions.size !== body.items.length) {
+			context.addIssue({ code: 'custom', message: 'Ranking positions must be unique' })
+		}
+	})
 
 export const createReleaseBodySchema = z
 	.object({
@@ -153,13 +223,6 @@ export const updateReleaseBodySchema = z
 		updates: releaseUpdateSchema.optional(),
 		artistIds: idArraySchema().min(1).optional(),
 		platformLinks: z.array(platformLinkSchema).max(100).optional(),
-	})
-	.strict()
-
-export const createMusicBodySchema = z
-	.object({
-		music: musicInsertSchema,
-		artistIds: idArraySchema().min(1),
 	})
 	.strict()
 
@@ -225,35 +288,9 @@ export const updateCompanyBodySchema = z
 	})
 	.strict()
 
-export const linkArtistBodySchema = z
-	.object({
-		artistId: uuidSchema,
-		relationshipType: optionalString,
-		startDate: dateStringSchema,
-		endDate: dateStringSchema,
-		isCurrent: z.boolean().optional(),
-	})
-	.strict()
-
-export const updateArtistCompanyBodySchema = z
-	.object({
-		updates: artistCompanyUpdateSchema.refine(
-			(updates) => Object.keys(updates).length > 0,
-			{ error: 'At least one update field is required' },
-		),
-	})
-	.strict()
-
-export const addToReleaseBodySchema = z
-	.object({
-		releaseId: uuidSchema,
-		trackNumber: z.number().int().min(0),
-	})
-	.strict()
-
 export const pushSubscribeBodySchema = z
 	.object({
-		endpoint: z.string().url().min(1),
+		endpoint: httpUrlSchema,
 		p256dh: z.string().min(1),
 		auth: z.string().min(1),
 		userAgent: optionalString,
@@ -262,7 +299,7 @@ export const pushSubscribeBodySchema = z
 
 export const pushUnsubscribeBodySchema = z
 	.object({
-		endpoint: z.string().url().min(1),
+		endpoint: httpUrlSchema,
 	})
 	.strict()
 

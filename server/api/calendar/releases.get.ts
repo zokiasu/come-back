@@ -1,26 +1,22 @@
+import { VALIDATION_LIMITS, validateIntegerParam } from '../../utils/validation'
+
 export default defineEventHandler(async (event) => {
 	// Cache for 24 hours, stale-while-revalidate for 1 hour (calendar data is stable)
 	setHeader(event, 'Cache-Control', 'public, max-age=86400, stale-while-revalidate=3600')
 
 	const supabase = useServerSupabase()
 	const query = getQuery(event)
-	const month = parseInt((query.month as string) || String(new Date().getMonth()), 10)
-	const year = parseInt((query.year as string) || String(new Date().getFullYear()), 10)
-
-	// Validate parameters (month is 0-based from the frontend)
-	if (month < 0 || month > 11) {
-		throw createError({
-			statusCode: 400,
-			statusMessage: 'Month must be between 0 and 11',
-		})
-	}
-
-	if (year < 1900 || year > 2100) {
-		throw createError({
-			statusCode: 400,
-			statusMessage: 'Year must be between 1900 and 2100',
-		})
-	}
+	const now = new Date()
+	const month = validateIntegerParam(query.month, 'month', {
+		min: 0,
+		max: 11,
+		defaultValue: now.getMonth(),
+	})
+	const year = validateIntegerParam(query.year, 'year', {
+		min: VALIDATION_LIMITS.MIN_YEAR,
+		max: VALIDATION_LIMITS.MAX_YEAR,
+		defaultValue: now.getFullYear(),
+	})
 
 	// Create the start and end dates of the month (month is 0-based)
 	const monthNumber = String(month + 1).padStart(2, '0')
@@ -38,6 +34,7 @@ export default defineEventHandler(async (event) => {
 			)
 		`,
 		)
+		.eq('verified', true)
 		.eq('artists.artist.verified', true)
 		.gte('date', startDate)
 		.lte('date', endDate)

@@ -1,5 +1,5 @@
 import type { QueryOptions, FilterOptions, Company } from '~/types'
-import type { Database, TablesInsert, TablesUpdate } from '~/types/supabase'
+import type { TablesInsert, TablesUpdate } from '~/types/supabase'
 
 interface CompaniesResponse {
 	companies: Company[]
@@ -10,9 +10,8 @@ interface CompaniesResponse {
 }
 
 export function useSupabaseCompanies() {
-	const supabase = useSupabaseClient<Database>()
 	const toast = useToast()
-	const { requireAuthHeaders } = useApiAuthHeaders()
+	const { requireAuthHeaders, requireAuthHeadersFromSession } = useApiAuthHeaders()
 	const { runMutation } = useMutationTimeout()
 
 	// Available company types from the Supabase enum values
@@ -141,43 +140,30 @@ export function useSupabaseCompanies() {
 				type?: string
 				verified?: boolean
 				search?: string
+				includeUnverified?: boolean
 			},
 	): Promise<CompaniesResponse> => {
-		let query = supabase.from('companies').select('*', { count: 'exact' })
+		const limit = options?.limit || 10
+		const page = options?.offset ? Math.floor(options.offset / limit) + 1 : 1
 
-		if (options?.type) {
-			query = query.eq('type', options.type)
-		}
-
-		if (options?.verified !== undefined) {
-			query = query.eq('verified', options.verified)
-		}
-
-		if (options?.search) {
-			query = query.or(
-				`name.ilike.%${options.search}%,description.ilike.%${options.search}%`,
-			)
-		}
-
-		// sorting
-		if (options?.orderBy) {
-			query = query.order(options.orderBy, {
-				ascending: options.orderDirection === 'asc',
+		try {
+			return await $fetch<CompaniesResponse>('/api/companies/paginated', {
+				headers:
+					options?.includeUnverified || options?.verified === false
+						? await requireAuthHeadersFromSession()
+						: undefined,
+				query: {
+					page,
+					limit,
+					search: options?.search,
+					type: options?.type,
+					verified: options?.verified,
+					includeUnverified: options?.includeUnverified ? 'true' : undefined,
+					orderBy: options?.orderBy,
+					orderDirection: options?.orderDirection,
+				},
 			})
-		} else {
-			query = query.order('name', { ascending: true })
-		}
-
-		// Pagination
-		if (options?.offset !== undefined || options?.limit !== undefined) {
-			const from = options?.offset || 0
-			const to = from + (options?.limit || 10) - 1
-			query = query.range(from, to)
-		}
-
-		const { data, error, count } = await query
-
-		if (error) {
+		} catch (error) {
 			console.error('Erreur lors de la récupération des companies:', error)
 			return {
 				companies: [],
@@ -187,73 +173,28 @@ export function useSupabaseCompanies() {
 				totalPages: 1,
 			}
 		}
-
-		return {
-			companies: data || [],
-			total: count || 0,
-			page: options?.offset ? Math.floor(options.offset / (options.limit || 10)) + 1 : 1,
-			limit: options?.limit || 10,
-			totalPages: Math.ceil((count || 0) / (options?.limit || 10)),
-		}
 	}
 
 	// Check whether a company exists by name
 	const companyExistsByName = async (name: string, excludeId?: string) => {
-		let query = supabase.from('companies').select('id').eq('name', name)
-
-		if (excludeId) {
-			query = query.neq('id', excludeId)
-		}
-
-		const { data, error } = await query
-
-		if (error) {
-			throw createError({
-				statusCode: 400,
-				message: `Error while checking existence: ${error.message}`,
-			})
-		}
-
-		return data && data.length > 0
+		const result = await $fetch<{ exists: boolean }>('/api/companies/check-name', {
+			headers: await requireAuthHeadersFromSession(),
+			query: { name, excludeId },
+		})
+		return result.exists
 	}
 
 	// Statistiques the companies
 	const getCompaniesStats = async () => {
-		const { data: totalCompanies } = await supabase
-			.from('companies')
-			.select('id', { count: 'exact' })
-
-		const { data: verifiedCompanies } = await supabase
-			.from('companies')
-			.select('id', { count: 'exact' })
-			.eq('verified', true)
-
-		const { data: totalRelations } = await supabase
-			.from('artist_companies')
-			.select('company_id', { count: 'exact' })
-
-		const { data: activeRelations } = await supabase
-			.from('artist_companies')
-			.select('company_id', { count: 'exact' })
-			.eq('is_current', true)
-
-		const { data: typeStats } = await supabase.from('companies').select('type')
-
-		// Count by type
-		const typeDistribution =
-			typeStats?.reduce((acc: Record<string, number>, company) => {
-				const type = company.type || 'OTHER'
-				acc[type] = (acc[type] || 0) + 1
-				return acc
-			}, {}) || {}
-
-		return {
-			total: totalCompanies?.length || 0,
-			verified: verifiedCompanies?.length || 0,
-			totalRelations: totalRelations?.length || 0,
-			activeRelations: activeRelations?.length || 0,
-			typeDistribution,
-		}
+		return $fetch<{
+			total: number
+			verified: number
+			totalRelations: number
+			activeRelations: number
+			typeDistribution: Record<string, number>
+		}>('/api/companies/stats', {
+			headers: await requireAuthHeadersFromSession(),
+		})
 	}
 
 	return {

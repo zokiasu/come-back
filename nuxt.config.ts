@@ -76,6 +76,11 @@ export default defineNuxtConfig({
 	},
 
 	nitro: {
+		externals: {
+			// Keep Nuxt's Unhead legacy entry bundled: its deduped Windows path is otherwise
+			// emitted outside the project and breaks SSR navigation in development.
+			inline: [/@unhead\/vue/],
+		},
 		experimental: {
 			wasm: true,
 		},
@@ -83,6 +88,16 @@ export default defineNuxtConfig({
 	},
 
 	routeRules: {
+		'/**': {
+			headers: {
+				'Content-Security-Policy':
+					"base-uri 'self'; frame-ancestors 'none'; object-src 'none'",
+				'Permissions-Policy': 'camera=(), geolocation=(), microphone=()',
+				'Referrer-Policy': 'strict-origin-when-cross-origin',
+				'X-Content-Type-Options': 'nosniff',
+				'X-Frame-Options': 'DENY',
+			},
+		},
 		...(!isDev
 			? {
 					// Page of accueil : ISR with cache of 1 heure
@@ -111,11 +126,9 @@ export default defineNuxtConfig({
 		'/settings/**': { ssr: true },
 		'/notifications': { ssr: false },
 
-		// API: CORS enabled
 		// Default to no-store: endpoints serving private/user data are protected by
 		// default. Public read-only endpoints override this with their own Cache-Control.
 		'/api/**': {
-			cors: true,
 			headers: {
 				'Cache-Control': 'no-store',
 			},

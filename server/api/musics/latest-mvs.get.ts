@@ -17,6 +17,7 @@ export default defineEventHandler(async (event) => {
 		`,
 		)
 		.eq('ismv', true) // only the clips musicaux
+		.eq('verified', true)
 		.eq('artists.artist.verified', true)
 		.order('date', { ascending: false })
 		.order('id', { ascending: false })

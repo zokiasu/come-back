@@ -2,7 +2,6 @@
 	import type { User as SupabaseAuthUser } from '@supabase/supabase-js'
 	import { storeToRefs } from 'pinia'
 	import type { User } from '~/types'
-	import type { Database } from '~/types/supabase'
 
 	type SecurityActivitySummary = {
 		totalRankings: number | null
@@ -11,13 +10,14 @@
 		newsContributions: number | null
 	}
 
-	const supabase = useSupabaseClient<Database>()
+	const supabase = useSupabaseClient()
 	const liveAuthUser = useSupabaseUser()
 	const userStore = useUserStore()
 	const { userDataStore } = storeToRefs(userStore)
 	const toast = useToast()
 	const { ensureUserProfile, logout } = useAuth()
 	const { getUserData } = useSupabaseFunction()
+	const { getAuthHeaders } = useApiAuthHeaders()
 
 	const inputUi = {
 		base: 'bg-cb-quaternary-950 border border-cb-quinary-900/70 rounded-xl text-white placeholder:text-gray-500',
@@ -195,53 +195,10 @@
 			!isSavingPassword.value,
 	)
 
-	const loadActivitySummary = async (
-		userId: string,
-	): Promise<SecurityActivitySummary> => {
-		const [
-			rankingsResult,
-			publicRankingsResult,
-			artistContributionsResult,
-			newsContributionsResult,
-		] = await Promise.allSettled([
-			supabase
-				.from('user_rankings')
-				.select('id', { count: 'exact', head: true })
-				.eq('user_id', userId),
-			supabase
-				.from('user_rankings')
-				.select('id', { count: 'exact', head: true })
-				.eq('user_id', userId)
-				.eq('is_public', true),
-			supabase
-				.from('user_artist_contributions')
-				.select('artist_id', { count: 'exact', head: true })
-				.eq('user_id', userId),
-			supabase
-				.from('user_news_contributions')
-				.select('news_id', { count: 'exact', head: true })
-				.eq('user_id', userId),
-		])
-
-		const readCount = (
-			result:
-				| PromiseSettledResult<{ count: number | null; error: Error | null }>
-				| PromiseSettledResult<{
-						count: number | null
-						error: { message?: string } | null
-				  }>,
-		) => {
-			if (result.status !== 'fulfilled') return null
-			if (result.value.error) return null
-			return result.value.count ?? 0
-		}
-
-		return {
-			totalRankings: readCount(rankingsResult),
-			publicRankings: readCount(publicRankingsResult),
-			artistContributions: readCount(artistContributionsResult),
-			newsContributions: readCount(newsContributionsResult),
-		}
+	const loadActivitySummary = async (): Promise<SecurityActivitySummary> => {
+		return $fetch<SecurityActivitySummary>('/api/users/activity-summary', {
+			headers: getAuthHeaders(),
+		})
 	}
 
 	const loadSecuritySnapshot = async ({ notify = false } = {}) => {
@@ -278,7 +235,7 @@
 			}
 
 			accountProfile.value = profile
-			activitySummary.value = await loadActivitySummary(userId)
+			activitySummary.value = await loadActivitySummary()
 
 			if (notify) {
 				toast.add({

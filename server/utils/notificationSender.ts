@@ -205,7 +205,10 @@ export async function notifyFollowersOfNewRelease(
 	}))
 
 	if (rows.length) {
-		await supabase.from('user_notifications').insert(rows)
+		const { error: insertError } = await supabase.from('user_notifications').insert(rows)
+		if (insertError) {
+			throw handleSupabaseError(insertError, 'user_notifications.insert')
+		}
 	}
 }
 

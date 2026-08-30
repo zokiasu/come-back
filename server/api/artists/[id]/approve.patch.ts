@@ -1,5 +1,5 @@
 export default defineEventHandler(async (event) => {
-	await requireContributor(event)
+	await requireAdmin(event)
 
 	const artistId = validateRouteParam(event, 'id', 'Artist')
 

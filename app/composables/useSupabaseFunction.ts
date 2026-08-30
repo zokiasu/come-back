@@ -1,30 +1,27 @@
 import type { User } from '~/types'
 
 export function useSupabaseFunction() {
-	const supabase = useSupabaseClient()
 	const userStore = useUserStore()
 	const { runMutation } = useMutationTimeout()
+	const { requireAuthHeadersFromSession } = useApiAuthHeaders()
 
 	// Updates user data in the 'users' table in Supabase.
 	const updateUserData = async (user: User) => {
 		try {
-			const updateData: Partial<User> = {
-				...user,
-				updated_at: new Date().toISOString(),
-			}
-
-			const { data, error } = await runMutation(
-				supabase.from('users').update(updateData).eq('id', user.id).select().single(),
+			const data = await runMutation(
+				$fetch<User>('/api/users/profile', {
+					method: 'PUT',
+					headers: await requireAuthHeadersFromSession(),
+					body: {
+						name: user.name,
+						photo_url: user.photo_url,
+					},
+				}),
 				'Updating the user profile timed out. Please try again.',
 			)
 
-			if (error) {
-				console.error('Error updating user:', error)
-				throw error
-			}
-
-			userStore.setUserData(data as User)
-			return data as User
+			userStore.setUserData(data)
+			return data
 		} catch (error) {
 			console.error('Error updating document:', error)
 			throw error
@@ -34,18 +31,9 @@ export function useSupabaseFunction() {
 	// Gets user data from the 'users' table in Supabase based on the provided ID.
 	const getUserData = async (id: string): Promise<User | null> => {
 		try {
-			const { data, error } = await supabase
-				.from('users')
-				.select('*')
-				.eq('id', id)
-				.single()
-
-			if (error) {
-				console.error('Error fetching user:', error)
-				return null
-			}
-
-			return data
+			return await $fetch<User>(`/api/users/${id}`, {
+				headers: await requireAuthHeadersFromSession(),
+			})
 		} catch (error) {
 			console.error('Error in getUserData:', error)
 			return null

@@ -1,38 +1,36 @@
 import type { QueryOptions, FilterOptions, MusicStyle } from '~/types'
-import type { Database, TablesInsert } from '~/types/supabase'
+import type { TablesInsert } from '~/types/supabase'
 
 export function useSupabaseMusicStyles() {
-	const supabase = useSupabaseClient<Database>()
 	const { runMutation } = useMutationTimeout()
+	const { requireAuthHeaders } = useApiAuthHeaders()
 
 	// Creates a nouveau style
 	const createMusicStyle = async (
 		data: TablesInsert<'music_styles'>,
 	): Promise<MusicStyle> => {
-		const { data: style, error } = await runMutation(
-			supabase.from('music_styles').insert(data).select().single(),
+		return runMutation(
+			$fetch<MusicStyle>('/api/taxonomies/music-styles', {
+				method: 'POST',
+				headers: requireAuthHeaders(),
+				body: { name: data.name },
+			}),
 			'Creating the style timed out. Please try again.',
 		)
-
-		if (error) {
-			console.error('Erreur lors de la création du style:', error)
-			throw new Error('Erreur lors de la création du style')
-		}
-
-		return style as MusicStyle
 	}
 
 	// Deletes a style
 	const deleteMusicStyle = async (name: string) => {
-		const { error } = await runMutation(
-			supabase.from('music_styles').delete().eq('name', name),
+		await runMutation(
+			$fetch<{ success: boolean }>(
+				`/api/taxonomies/music-styles/${encodeURIComponent(name)}`,
+				{
+					method: 'DELETE',
+					headers: requireAuthHeaders(),
+				},
+			),
 			'Deleting the style timed out. Please try again.',
 		)
-
-		if (error) {
-			console.error('Erreur lors de la suppression du style:', error)
-			throw new Error('Erreur lors de la suppression du style')
-		}
 
 		return true
 	}
@@ -41,36 +39,14 @@ export function useSupabaseMusicStyles() {
 	const getAllMusicStyles = async (
 		options?: QueryOptions & FilterOptions,
 	): Promise<MusicStyle[]> => {
-		let query = supabase.from('music_styles').select('*')
-
-		if (options?.search) {
-			query = query.ilike('name', `%${options.search}%`)
-		}
-
-		if (options?.orderBy) {
-			query = query.order(options.orderBy, {
-				ascending: options.orderDirection === 'asc',
-			})
-		} else {
-			query = query.order('name')
-		}
-
-		if (options?.limit) {
-			query = query.limit(options.limit)
-		}
-
-		if (options?.offset) {
-			query = query.range(options.offset, options.offset + (options.limit || 10) - 1)
-		}
-
-		const { data, error } = await query
-
-		if (error) {
-			console.error('Erreur lors de la récupération des styles:', error)
-			throw new Error('Erreur lors de la récupération des styles')
-		}
-
-		return data as MusicStyle[]
+		return $fetch<MusicStyle[]>('/api/taxonomies/music-styles', {
+			query: {
+				search: options?.search,
+				orderDirection: options?.orderDirection,
+				limit: options?.limit,
+				offset: options?.offset,
+			},
+		})
 	}
 
 	return {

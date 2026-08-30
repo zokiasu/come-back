@@ -16,6 +16,7 @@ export default defineEventHandler(async (event) => {
 			)
 		`,
 		)
+		.eq('verified', true)
 		.eq('artists.artist.verified', true)
 		.order('date', { ascending: false })
 		.limit(limit)

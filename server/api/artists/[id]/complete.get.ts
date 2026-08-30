@@ -1,4 +1,5 @@
 import type { Tables } from '#server/types/api'
+import { isError as isH3Error } from 'h3'
 
 export default defineEventHandler(async (event) => {
 	const supabase = useServerSupabase()
@@ -14,11 +15,12 @@ export default defineEventHandler(async (event) => {
 	try {
 		// Keep these queries separate so the endpoint can reshape each relation
 		// into the same flat payload the client composables already expect.
-		// 1. Fetch the artist of base
+		// 1. Fetch the artist of base (verified only on this public endpoint)
 		const { data: artist, error: artistError } = await supabase
 			.from('artists')
 			.select('*')
 			.eq('id', artistId)
+			.eq('verified', true)
 			.single()
 
 		if (artistError || !artist) {
@@ -28,29 +30,33 @@ export default defineEventHandler(async (event) => {
 			})
 		}
 
-		// 2. Fetch the groups (relations where the artist is a member)
+		// 2. Fetch the groups (relations where the artist is a member) — verified only
 		const { data: groups } = await supabase
 			.from('artist_relations')
 			.select('group:artists!artist_relations_group_id_fkey(*)')
 			.eq('member_id', artistId)
+			.eq('group.verified', true)
 
-		// 3. Fetch the members (relations where the artist is the group)
+		// 3. Fetch the members (relations where the artist is the group) — verified only
 		const { data: members } = await supabase
 			.from('artist_relations')
 			.select('member:artists!artist_relations_member_id_fkey(*)')
 			.eq('group_id', artistId)
+			.eq('member.verified', true)
 
-		// 4. Fetch the releases
+		// 4. Fetch the releases — verified only
 		const { data: releases } = await supabase
 			.from('artist_releases')
 			.select('release:releases(*)')
 			.eq('artist_id', artistId)
+			.eq('release.verified', true)
 
-		// 5. Fetch the companies
+		// 5. Fetch the companies — verified only
 		const { data: companies } = await supabase
 			.from('artist_companies')
-			.select('*, company:companies(*)')
+			.select('*, company:companies!inner(*)')
 			.eq('artist_id', artistId)
+			.eq('company.verified', true)
 
 		// 6. Fetch the social links
 		const { data: socialLinks } = await supabase
@@ -84,6 +90,7 @@ export default defineEventHandler(async (event) => {
 						.from('musics')
 						.select('*')
 						.in('id', musicIds)
+						.eq('verified', true)
 					randomMusics = (fullMusicData || []) as Tables<'musics'>[]
 				}
 			}
@@ -93,6 +100,7 @@ export default defineEventHandler(async (event) => {
 				.from('music_artists')
 				.select('music:musics(*)')
 				.eq('artist_id', artistId)
+				.eq('music.verified', true)
 				.limit(50) // Limit for the performances
 
 			if (allMusics && allMusics.length > 0) {
@@ -128,6 +136,10 @@ export default defineEventHandler(async (event) => {
 			random_musics: randomMusics || [],
 		}
 	} catch (error) {
+		// Preserve H3Errors (like 404) instead of remapping them
+		if (isH3Error(error)) {
+			throw error
+		}
 		console.error('Error fetching complete artist:', error)
 
 		// Check if it's a Supabase error

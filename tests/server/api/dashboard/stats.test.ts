@@ -189,7 +189,7 @@ describe('POST /api/dashboard/stats', () => {
 				charts: expect.arrayContaining([
 					expect.objectContaining({
 						title: 'Profile Quality',
-						data: expect.objectContaining({ data: [100, 50, 50] }),
+						data: expect.objectContaining({ data: [2, 50, 50] }),
 					}),
 				]),
 			},

@@ -64,8 +64,24 @@ describe('GET /api/calendar/releases', () => {
 
 		await expect(handler({})).rejects.toMatchObject({
 			statusCode: 400,
-			statusMessage: 'Month must be between 0 and 11',
+			statusMessage: 'Bad Request',
 		})
+	})
+
+	it.each([
+		{ month: '4junk', year: '2026' },
+		{ month: '4', year: 'not-a-year' },
+	])('should reject non-integer calendar parameters', async (params) => {
+		setupGlobals(params)
+		const { supabase } = setupSupabase({ data: [], error: null })
+
+		const handler = await loadHandler()
+
+		await expect(handler({})).rejects.toMatchObject({
+			statusCode: 400,
+			statusMessage: 'Bad Request',
+		})
+		expect(supabase.from).not.toHaveBeenCalled()
 	})
 
 	it('should query the month range and flatten artist junctions', async () => {
@@ -97,6 +113,7 @@ describe('GET /api/calendar/releases', () => {
 			'public, max-age=86400, stale-while-revalidate=3600',
 		)
 		expect(supabase.from).toHaveBeenCalledWith('releases')
+		expect(query.eq).toHaveBeenCalledWith('verified', true)
 		expect(query.eq).toHaveBeenCalledWith('artists.artist.verified', true)
 		expect(query.gte).toHaveBeenCalledWith('date', '2026-05-01')
 		expect(query.lte).toHaveBeenCalledWith('date', '2026-05-31')

@@ -19,6 +19,7 @@ export default defineEventHandler(async (event) => {
 			)
 		`,
 		)
+		.eq('verified', true)
 		.eq('artists.artist.verified', true)
 		.gte('date', today) // Only news dated today or later in UTC
 		.order('date', { ascending: true }) // Ascending order for upcoming dates

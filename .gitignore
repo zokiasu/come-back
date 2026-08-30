@@ -4,7 +4,6 @@
 .nitro
 .cache
 dist
-package-lock.json
 
 # Node dependencies
 node_modules
@@ -29,10 +28,9 @@ logs
 
 service-account.json
 
-.well-known
+supabase/.temp/
 
-supabase/migrations/*
-!supabase/migrations/20260717000001_replace_release_artists.sql
+.well-known
 
 .claude/
 

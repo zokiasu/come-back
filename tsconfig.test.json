@@ -1,5 +1,5 @@
 {
-	"extends": "./.nuxt/tsconfig.json",
+	"extends": "./.nuxt/tsconfig.server.json",
 	"compilerOptions": {
 		"noEmit": true,
 		// "nuxt/app" exposes the Nuxt ImportMeta augmentation (import.meta.dev, etc.)
@@ -8,6 +8,8 @@
 		"types": ["vitest/importMeta", "nuxt/app"]
 	},
 	"include": [
+		".nuxt/types/nitro.d.ts",
+		".nuxt/types/nitro-nuxt.d.ts",
 		"tests/**/*.ts",
 		"tests/**/*.d.ts",
 		"server/utils/errorHandler.ts",

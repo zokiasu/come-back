@@ -64,8 +64,8 @@ export const useLinkManager = () => {
 	 */
 	const isValidUrl = (url: string): boolean => {
 		try {
-			new URL(url)
-			return true
+			const parsed = new URL(url)
+			return parsed.protocol === 'http:' || parsed.protocol === 'https:'
 		} catch {
 			return false
 		}
@@ -120,7 +120,9 @@ export const useLinkManager = () => {
 	 * Filters valid links with a non-empty name and URL
 	 */
 	const filterValidLinks = <T extends LinkItem>(links: T[]): T[] => {
-		return links.filter((link) => link.name?.trim() && link.link?.trim())
+		return links.filter(
+			(link) => link.name?.trim() && link.link?.trim() && isValidUrl(link.link),
+		)
 	}
 
 	/**
