@@ -96,6 +96,7 @@
 				>
 					<button
 						v-if="music.id_youtube_music"
+						type="button"
 						class="flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-full transition-colors"
 						:class="
 							isCurrentlyPlaying(music.id_youtube_music)
@@ -219,7 +220,7 @@
 							{{ ranking?.name || 'Loading...' }}
 						</h2>
 						<p class="text-cb-tertiary-500 text-xs">
-							{{ rankingItems.length }}/100 tracks
+							{{ localRankingItems.length }}/100 tracks
 						</p>
 					</div>
 					<div v-else class="flex-1">
@@ -261,7 +262,7 @@
 				</div>
 
 				<div
-					v-else-if="rankingItems.length === 0"
+					v-else-if="localRankingItems.length === 0"
 					class="text-cb-tertiary-500 py-10 text-center text-sm"
 				>
 					<UIcon name="i-lucide-music" class="mx-auto mb-2 size-10" />
@@ -433,9 +434,8 @@
 	const isPlayingVideo = useIsPlayingVideo()
 
 	// Ranking state
-	const ranking = ref<UserRankingWithItems | null>(null)
-	const rankingItems = computed(() => ranking.value?.items || [])
-	const localRankingItems = ref<(UserRankingItem & { music: Music })[]>([])
+	const ranking = shallowRef<UserRankingWithItems | null>(null)
+	const localRankingItems = shallowRef<(UserRankingItem & { music: Music })[]>([])
 	const isLoadingRanking = ref(true)
 
 	// Music exploration state
@@ -467,7 +467,7 @@
 	})
 
 	const artistsList = ref<Artist[]>([])
-	const musicsList = ref<(Music & { artists: { name: string }[] })[]>([])
+	const musicsList = shallowRef<(Music & { artists: { name: string }[] })[]>([])
 
 	const addingMusicId = ref<string | null>(null)
 
@@ -481,15 +481,6 @@
 	const settingsDescription = ref('')
 	const settingsIsPublic = ref(false)
 	const isSavingSettings = ref(false)
-
-	// Drag and drop: keep localRankingItems in sync with rankingItems
-	watch(
-		rankingItems,
-		(items) => {
-			localRankingItems.value = [...items]
-		},
-		{ immediate: true },
-	)
 
 	const hasMore = computed(() => currentPage.value <= totalPages.value)
 
@@ -555,6 +546,7 @@
 		isLoadingRanking.value = true
 		try {
 			ranking.value = await getRankingById(rankingId.value)
+			localRankingItems.value = ranking.value ? [...ranking.value.items] : []
 		} finally {
 			isLoadingRanking.value = false
 		}
@@ -691,7 +683,7 @@
 	}
 
 	const isMusicInCurrentRanking = (musicId: string): boolean => {
-		return rankingItems.value.some((item) => item.music_id === musicId)
+		return localRankingItems.value.some((item) => item.music_id === musicId)
 	}
 
 	// Actions

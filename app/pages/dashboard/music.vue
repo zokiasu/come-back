@@ -20,7 +20,7 @@
 	const { getMusicsByPage, updateMusic, updateMusicReleases, deleteMusic } =
 		useSupabaseMusic()
 
-	const musicsList = ref<DashboardMusic[]>([])
+	const musicsList = shallowRef<DashboardMusic[]>([])
 	const isLoading = ref(false)
 	const totalMusics = ref(0)
 
@@ -28,7 +28,7 @@
 	const yearFilter = ref('')
 	const mvFilter = ref<'all' | 'mv' | 'audio'>('all')
 	const verifiedFilter = ref<'all' | 'verified' | 'pending'>('all')
-	const selectedArtistFilter = ref<Artist | ArtistMenuItem | undefined>(undefined)
+	const selectedArtistFilter = shallowRef<Artist | ArtistMenuItem | undefined>(undefined)
 
 	const sortColumn = ref<'date' | 'name' | 'release_year' | 'created_at'>('date')
 	const sortDirection = ref<'asc' | 'desc'>('desc')
@@ -38,12 +38,12 @@
 	const totalPages = computed(() => Math.ceil(totalMusics.value / pageSizeValue.value))
 
 	const isEditModalOpen = ref(false)
-	const editingMusic = ref<DashboardMusic | null>(null)
+	const editingMusic = shallowRef<DashboardMusic | null>(null)
 	const isSaving = ref(false)
 	const isReleaseSearchLoading = ref(false)
 	const releaseSearch = ref('')
-	const releaseSearchResults = ref<ReleaseSearchItem[]>([])
-	const selectedReleaseItems = ref<ReleaseSearchItem[]>([])
+	const releaseSearchResults = shallowRef<ReleaseSearchItem[]>([])
+	const selectedReleaseItems = shallowRef<ReleaseSearchItem[]>([])
 	const searchAllReleases = ref(false)
 	const latestReleaseSearchRequestId = ref(0)
 	const editForm = reactive({
@@ -57,7 +57,7 @@
 	})
 
 	const isDeleteModalOpen = ref(false)
-	const deletingMusic = ref<DashboardMusic | null>(null)
+	const deletingMusic = shallowRef<DashboardMusic | null>(null)
 
 	const verifiedOptions: { label: string; id: 'all' | 'verified' | 'pending' }[] = [
 		{ label: 'All statuses', id: 'all' },

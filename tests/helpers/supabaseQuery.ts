@@ -37,8 +37,7 @@ export type SupabaseQueryMock<TData = unknown> = {
 	upsert: ChainMethod<TData>
 	then: <TResult1 = SupabaseQueryResult<TData>, TResult2 = never>(
 		onfulfilled?:
-			| ((value: SupabaseQueryResult<TData>) => TResult1 | PromiseLike<TResult1>)
-			| null,
+			((value: SupabaseQueryResult<TData>) => TResult1 | PromiseLike<TResult1>) | null,
 		onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,
 	) => Promise<TResult1 | TResult2>
 }

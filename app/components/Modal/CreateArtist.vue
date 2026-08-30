@@ -98,30 +98,24 @@
 	const isUploadingEdit = ref(false)
 
 	const stylesForMenu = computed((): MenuItem<MusicStyle>[] => {
-		return stylesList.map(
-			(style): MenuItem<MusicStyle> => ({
-				...style,
-				label: style.name,
-			}),
-		)
+		return stylesList.map((style): MenuItem<MusicStyle> => ({
+			...style,
+			label: style.name,
+		}))
 	})
 
 	const tagsForMenu = computed((): MenuItem<GeneralTag>[] => {
-		return tagsList.map(
-			(tag): MenuItem<GeneralTag> => ({
-				...tag,
-				label: tag.name,
-			}),
-		)
+		return tagsList.map((tag): MenuItem<GeneralTag> => ({
+			...tag,
+			label: tag.name,
+		}))
 	})
 
 	const nationalitiesForMenu = computed((): MenuItem<Nationality>[] => {
-		return nationalitiesList.map(
-			(nationality): MenuItem<Nationality> => ({
-				...nationality,
-				label: nationality.name,
-			}),
-		)
+		return nationalitiesList.map((nationality): MenuItem<Nationality> => ({
+			...nationality,
+			label: nationality.name,
+		}))
 	})
 
 	const mapArtistToMenuItem = (artist: Artist): ArtistMenuItem => ({

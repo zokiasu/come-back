@@ -1,6 +1,6 @@
 <script setup lang="ts">
 	import { useAuthModal } from '@/composables/useAuthModal'
-	import type { AppNotification } from '~/composables/useNotifications'
+	import type { AppNotification } from '~/types/api'
 
 	const isMobileNavDocked = useState<boolean>('mobileNavDocked', () => false)
 

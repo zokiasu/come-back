@@ -218,74 +218,15 @@
 				/>
 
 				<div v-else class="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-					<div
+					<MusicCatalogCard
 						v-for="music in musicsList"
 						:key="music.id"
-						class="bg-cb-quinary-900 group relative flex items-center gap-3 rounded p-2"
-					>
-						<button
-							v-if="music.id_youtube_music"
-							type="button"
-							class="flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-full transition-colors"
-							:class="
-								isCurrentlyPlaying(music.id_youtube_music)
-									? 'bg-cb-primary-900'
-									: 'bg-cb-quaternary-950 hover:bg-cb-primary-900'
-							"
-							@click.stop="handlePlayMusic(music)"
-						>
-							<UIcon
-								:name="
-									isCurrentlyPlaying(music.id_youtube_music)
-										? 'i-lucide-pause'
-										: 'i-lucide-play'
-								"
-								class="size-5 text-white"
-							/>
-						</button>
-						<div v-else class="size-10 shrink-0" />
-
-						<NuxtImg
-							:src="getMusicThumbnailFromList(music) || '/slider-placeholder.webp'"
-							:alt="music.name"
-							class="h-12 w-12 shrink-0 rounded object-cover"
-							format="webp"
-							loading="lazy"
-						/>
-
-						<div class="min-w-0 flex-1">
-							<p class="truncate text-sm font-medium">{{ music.name }}</p>
-							<p class="text-cb-tertiary-500 truncate text-xs">
-								{{ formatArtists(music.artists) }}
-							</p>
-							<div class="mt-1 flex items-center gap-2">
-								<span v-if="music.date" class="text-cb-tertiary-400 text-xs">
-									{{ formatDate(music.date) }}
-								</span>
-								<button
-									v-if="music.ismv && music.id_youtube_music"
-									type="button"
-									class="text-cb-primary-900 cursor-pointer text-xs font-medium"
-									@click.stop="openMvPreview(music)"
-								>
-									MV
-								</button>
-								<span v-if="music.duration" class="text-cb-tertiary-500 text-xs">
-									{{ formatDuration(music.duration) }}
-								</span>
-							</div>
-						</div>
-
-						<button
-							v-if="music.id_youtube_music"
-							type="button"
-							class="bg-cb-quaternary-950 hover:bg-cb-primary-900 flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full transition-colors"
-							aria-label="Add to playlist"
-							@click.stop="handleQueueMusic(music)"
-						>
-							<UIcon name="i-lucide-plus" class="size-4 text-white" />
-						</button>
-					</div>
+						:music="music"
+						:is-playing="isCurrentlyPlaying(music.id_youtube_music)"
+						@play="handlePlayMusic"
+						@preview="openMvPreview"
+						@queue="handleQueueMusic"
+					/>
 				</div>
 
 				<div
@@ -335,12 +276,18 @@
 
 <script setup lang="ts">
 	import { useDebounceFn } from '@vueuse/core'
-	import type { LocationQuery, LocationQueryValue } from 'vue-router'
-	import type { Artist, ArtistMenuItem, Music } from '~/types'
+	import type { Artist, ArtistMenuItem } from '~/types'
 	import { useSupabaseMusic } from '~/composables/Supabase/useSupabaseMusic'
+	import {
+		formatMusicArtists,
+		getMusicThumbnailUrl,
+		normalizeMusicQuery,
+		parseMusicQueryList,
+		stringifyMusicQuery,
+		type MusicCatalogItem,
+	} from '~/utils/musicCatalog'
 
 	type StyleMenuItem = { value: string; label: string }
-
 	const route = useRoute()
 	const router = useRouter()
 	const scrollContainer = useTemplateRef<HTMLElement>('scrollContainer')
@@ -383,7 +330,7 @@
 	})
 
 	const artistsList = ref<Artist[]>([])
-	const musicsList = ref<(Music & { artists: { name: string }[] })[]>([])
+	const musicsList = ref<MusicCatalogItem[]>([])
 
 	const hasMore = computed(() => currentPage.value <= totalPages.value)
 
@@ -559,50 +506,8 @@
 		}
 	}
 
-	const parseQueryList = (
-		value: LocationQueryValue | LocationQueryValue[] | undefined,
-	): string[] => {
-		if (!value) return []
-
-		const rawValues = Array.isArray(value) ? value : [value]
-		return rawValues
-			.flatMap((entry) => String(entry).split(','))
-			.map((entry) => entry.trim())
-			.filter(Boolean)
-	}
-
-	const normalizeQuery = (query: LocationQuery): Record<string, string> => {
-		return Object.fromEntries(
-			Object.entries(query)
-				.filter(([, value]) => value !== undefined)
-				.map(([key, value]) => {
-					const normalizedValue = Array.isArray(value)
-						? value.map((entry) => String(entry)).join(',')
-						: String(value)
-					return [key, normalizedValue]
-				}),
-		)
-	}
-
-	const stringifyQuery = (query: Record<string, string>) => {
-		return JSON.stringify(
-			Object.keys(query)
-				.sort()
-				.reduce(
-					(accumulator, key) => {
-						const value = query[key]
-						if (value !== undefined) {
-							accumulator[key] = value
-						}
-						return accumulator
-					},
-					{} as Record<string, string>,
-				),
-		)
-	}
-
 	const buildArtistRequestKey = () =>
-		stringifyQuery({
+		stringifyMusicQuery({
 			search: search.value.trim(),
 			years: [...selectedYears.value].sort((left, right) => left - right).join(','),
 			styles: [...selectedStyles.value]
@@ -615,7 +520,7 @@
 		})
 
 	const buildMusicRequestKey = (page: number) =>
-		stringifyQuery({
+		stringifyMusicQuery({
 			page: String(page),
 			search: search.value.trim(),
 			artistIds: [...selectedArtists.value]
@@ -652,14 +557,14 @@
 
 	const applyFiltersFromRoute = () => {
 		search.value = typeof route.query.search === 'string' ? route.query.search : ''
-		selectedArtists.value = parseQueryList(route.query.artists)
+		selectedArtists.value = parseMusicQueryList(route.query.artists)
 
-		const parsedYears = parseQueryList(route.query.years)
+		const parsedYears = parseMusicQueryList(route.query.years)
 			.map((year) => Number(year))
 			.filter((year) => Number.isInteger(year))
 		selectedYears.value = parsedYears
 
-		selectedStyles.value = parseQueryList(route.query.styles)
+		selectedStyles.value = parseMusicQueryList(route.query.styles)
 		isMv.value = route.query.ismv === 'true'
 		orderDirection.value = route.query.orderDirection === 'asc' ? 'asc' : 'desc'
 		showAdvancedFilters.value =
@@ -702,8 +607,8 @@
 
 	const updateUrlFromFilters = async () => {
 		const nextQuery = buildShareableQuery()
-		const nextQueryString = stringifyQuery(nextQuery)
-		if (stringifyQuery(normalizeQuery(route.query)) === nextQueryString) {
+		const nextQueryString = stringifyMusicQuery(nextQuery)
+		if (stringifyMusicQuery(normalizeMusicQuery(route.query)) === nextQueryString) {
 			lastSyncedQuery.value = nextQueryString
 			return
 		}
@@ -836,41 +741,11 @@
 		}
 	})
 
-	const formatArtists = (artists: { name: string }[] = []) => {
-		return artists.map((artist) => artist.name).join(', ') || 'Unknown artist'
-	}
+	const formatArtists = formatMusicArtists
+	const getMusicThumbnail = (music: Pick<MusicCatalogItem, 'thumbnails'>): string =>
+		getMusicThumbnailUrl(music.thumbnails)
 
-	const formatDuration = (seconds: number): string => {
-		const mins = Math.floor(seconds / 60)
-		const secs = seconds % 60
-		return `${mins}:${secs.toString().padStart(2, '0')}`
-	}
-
-	const formatDate = (dateString: string | null | undefined): string => {
-		if (!dateString) return ''
-		const date = new Date(dateString)
-		return date.toLocaleDateString('sv-SE')
-	}
-
-	const getMusicThumbnail = (music: Music): string => {
-		if (music.thumbnails && Array.isArray(music.thumbnails)) {
-			const thumbs = music.thumbnails as Array<{ url?: string | null }>
-			return thumbs[2]?.url || thumbs[0]?.url || ''
-		}
-		return ''
-	}
-
-	const getMusicThumbnailFromList = (
-		music: Music & { artists: { name: string }[] },
-	): string => {
-		if (music.thumbnails && Array.isArray(music.thumbnails)) {
-			const thumbs = music.thumbnails as Array<{ url?: string | null }>
-			return thumbs[2]?.url || thumbs[0]?.url || ''
-		}
-		return ''
-	}
-
-	const handlePlayMusic = (music: Music) => {
+	const handlePlayMusic = (music: MusicCatalogItem) => {
 		if (!music.id_youtube_music) return
 
 		if (isCurrentlyPlaying(music.id_youtube_music)) {
@@ -887,7 +762,7 @@
 		)
 	}
 
-	const handleQueueMusic = (music: Music) => {
+	const handleQueueMusic = (music: MusicCatalogItem) => {
 		if (!music.id_youtube_music) return
 		addToPlaylist(
 			music.id_youtube_music,
@@ -898,7 +773,7 @@
 		)
 	}
 
-	const openMvPreview = (music: Music) => {
+	const openMvPreview = (music: MusicCatalogItem) => {
 		if (!music.id_youtube_music) return
 		mvPreview.value = {
 			videoId: music.id_youtube_music,
@@ -1004,15 +879,15 @@
 	})
 
 	watch(
-		() => normalizeQuery(route.query),
+		() => normalizeMusicQuery(route.query),
 		async (nextQuery, previousQuery) => {
 			if (!isReady.value || isApplyingFilterState.value) return
 
-			const nextQueryString = stringifyQuery(nextQuery)
+			const nextQueryString = stringifyMusicQuery(nextQuery)
 			if (nextQueryString === lastSyncedQuery.value) return
 
 			const currentFilterQuery = buildShareableQuery()
-			if (nextQueryString === stringifyQuery(currentFilterQuery)) {
+			if (nextQueryString === stringifyMusicQuery(currentFilterQuery)) {
 				lastSyncedQuery.value = nextQueryString
 				return
 			}
@@ -1033,7 +908,7 @@
 		isApplyingFilterState.value = true
 		applyFiltersFromRoute()
 		isApplyingFilterState.value = false
-		lastSyncedQuery.value = stringifyQuery(normalizeQuery(route.query))
+		lastSyncedQuery.value = stringifyMusicQuery(normalizeMusicQuery(route.query))
 
 		await Promise.all([loadAvailableArtists(), loadMusics(true)])
 		isInitialized.value = true

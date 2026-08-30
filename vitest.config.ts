@@ -35,6 +35,15 @@ export default defineConfig({
 		coverage: {
 			provider: 'v8',
 			reporter: ['text', 'html'],
+			// Vue SFCs are exercised by the Nuxt/browser suite. This report covers every
+			// TypeScript module, including files that no unit test imports yet.
+			include: ['app/**/*.ts', 'server/**/*.ts', 'public/sw.ts'],
+			thresholds: {
+				statements: 28,
+				branches: 25,
+				functions: 25,
+				lines: 30,
+			},
 			exclude: [
 				'node_modules/**',
 				'.nuxt/**',

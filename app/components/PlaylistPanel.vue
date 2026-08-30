@@ -134,7 +134,7 @@
 
 				<div
 					v-else
-					class="scrollbar-thin scrollbar-thumb-cb-quinary-900 scrollbar-track-transparent flex-1 overflow-y-auto"
+					class="scrollbar-thumb-cb-quinary-900 flex-1 scrollbar-thin scrollbar-track-transparent overflow-y-auto"
 				>
 					<draggable
 						v-if="!isFiltering"

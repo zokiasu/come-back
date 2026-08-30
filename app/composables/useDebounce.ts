@@ -1,13 +1,10 @@
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AnyFunction = (...args: any[]) => any
-
-export function useDebounce<T extends AnyFunction>(
-	fn: T,
+export function useDebounce<Args extends unknown[]>(
+	fn: (...args: Args) => unknown,
 	delay: number,
-): (...args: Parameters<T>) => void {
+): (...args: Args) => void {
 	let timeout: NodeJS.Timeout | null = null
 
-	return (...args: Parameters<T>) => {
+	return (...args: Args) => {
 		if (timeout) {
 			clearTimeout(timeout)
 		}

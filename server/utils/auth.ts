@@ -27,7 +27,7 @@ export const getAuthenticatedUser = async (
 	const authHeader = getHeader(event, 'authorization')
 	let authUser: {
 		id: string
-	} | null = null
+	} | null
 
 	if (authHeader?.startsWith('Bearer ')) {
 		const token = authHeader.substring(7)

@@ -56,7 +56,10 @@ describe('POST /api/admin/youtube/link-mv', () => {
 	})
 
 	it('should reject invalid YouTube video ids before querying Supabase', async () => {
-		setupGlobals({ musicId: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a17', videoId: 'invalid id!' })
+		setupGlobals({
+			musicId: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a17',
+			videoId: 'invalid id!',
+		})
 		const supabase = { from: vi.fn() }
 		vi.stubGlobal('useServerSupabase', () => supabase)
 
@@ -69,7 +72,10 @@ describe('POST /api/admin/youtube/link-mv', () => {
 	})
 
 	it('should reject videos already linked to another music', async () => {
-		setupGlobals({ musicId: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a17', videoId: 'abc123XYZ' })
+		setupGlobals({
+			musicId: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a17',
+			videoId: 'abc123XYZ',
+		})
 
 		const musicQuery = createSupabaseQueryMock({
 			data: {
@@ -106,7 +112,10 @@ describe('POST /api/admin/youtube/link-mv', () => {
 	})
 
 	it('should link the video and mark the music as an MV', async () => {
-		setupGlobals({ musicId: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a17', videoId: 'abc123XYZ' })
+		setupGlobals({
+			musicId: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a17',
+			videoId: 'abc123XYZ',
+		})
 
 		const musicQuery = createSupabaseQueryMock({
 			data: {

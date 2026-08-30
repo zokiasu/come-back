@@ -2,6 +2,10 @@
 import tailwindcss from '@tailwindcss/vite'
 
 const isDev = process.env.NODE_ENV === 'development'
+const isPwaDevEnabled = process.env.PWA_DEV_ENABLED === 'true'
+const siteUrl = (
+	process.env.NUXT_PUBLIC_SITE_URL ?? 'https://come-back.netlify.app'
+).replace(/\/$/, '')
 const supabaseSecretKey = process.env.SUPABASE_SECRET_KEY ?? ''
 
 // Fail the production build fast when the service-role key is missing, instead
@@ -37,11 +41,10 @@ export default defineNuxtConfig({
 		dirs: ['composables', 'composables/*', 'composables/*/*', 'types'],
 	},
 
-	devtools: { enabled: true },
+	devtools: { enabled: isDev },
 
 	vite: {
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		plugins: [tailwindcss() as any],
+		plugins: [tailwindcss()],
 		build: {
 			chunkSizeWarningLimit: 1600,
 		},
@@ -56,7 +59,6 @@ export default defineNuxtConfig({
 		public: {
 			SUPABASE_URL: process.env.SUPABASE_URL,
 			SUPABASE_KEY: process.env.NUXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
-			SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY,
 			VAPID_PUBLIC_KEY: process.env.VAPID_PUBLIC_KEY,
 		},
 	},
@@ -179,7 +181,7 @@ export default defineNuxtConfig({
 			installPrompt: true,
 		},
 		devOptions: {
-			enabled: true,
+			enabled: isPwaDevEnabled,
 			suppressWarnings: true,
 			type: 'module',
 		},
@@ -212,7 +214,7 @@ export default defineNuxtConfig({
 			],
 			meta: [
 				{ charset: 'utf-8' },
-				{ name: 'robots', content: 'noindex,nofollow' },
+				{ name: 'robots', content: isDev ? 'noindex,nofollow' : 'index,follow' },
 				{ name: 'viewport', content: 'width=device-width, initial-scale=1' },
 				{ name: 'theme-color', content: '#9E0102' },
 				{
@@ -243,11 +245,11 @@ export default defineNuxtConfig({
 				},
 				{
 					property: 'og:url',
-					content: 'https://come-back.netlify.app/',
+					content: `${siteUrl}/`,
 				},
 				{
 					property: 'og:image',
-					content: 'https://come-back.netlify.app/ogp.png',
+					content: `${siteUrl}/ogp.png`,
 				},
 			],
 			title: 'Comeback',

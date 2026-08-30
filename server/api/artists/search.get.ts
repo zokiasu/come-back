@@ -2,8 +2,9 @@ import { useServerSupabase } from '../../utils/supabase'
 import { validateLimitParam, validateSearchParam } from '../../utils/validation'
 import { checkRateLimit, RATE_LIMIT_PRESETS } from '../../utils/rateLimit'
 import type { ArtistType } from '~/types'
+import type { ArtistSearchResponse } from '~/types/api'
 
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async (event): Promise<ArtistSearchResponse> => {
 	checkRateLimit(event, RATE_LIMIT_PRESETS.search)
 
 	const query = getQuery(event)
@@ -34,7 +35,7 @@ export default defineEventHandler(async (event) => {
 
 		let fallbackQuery = supabase
 			.from('artists')
-			.select('id, name, image, description, verified')
+			.select('*')
 			.eq('verified', true)
 			.ilike('name', `%${normalizedSearch}%`)
 			.order('name', { ascending: true })
@@ -63,7 +64,23 @@ export default defineEventHandler(async (event) => {
 
 	setHeader(event, 'Cache-Control', 'public, max-age=60, stale-while-revalidate=300')
 
+	const matchingIds = (rpcData ?? [])
+		.filter((artist) => artist.verified === true)
+		.map(({ id }) => id)
+
+	if (matchingIds.length === 0) return { artists: [] }
+
+	const { data: artists, error: hydrateError } = await supabase
+		.from('artists')
+		.select('*')
+		.in('id', matchingIds)
+
+	if (hydrateError) throw handleSupabaseError(hydrateError, 'search.artists.hydrate')
+
+	const order = new Map(matchingIds.map((id, index) => [id, index]))
 	return {
-		artists: (rpcData || []).filter((artist) => artist.verified === true),
+		artists: (artists ?? []).sort(
+			(left, right) => (order.get(left.id) ?? 0) - (order.get(right.id) ?? 0),
+		),
 	}
 })

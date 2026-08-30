@@ -2,12 +2,32 @@ import { storeToRefs } from 'pinia'
 import type { SupabaseAuthUser } from '~/types/auth'
 import { upsertUserProfile } from './Supabase/helpers/user/upsertUserProfile'
 
-// Keep auth initialization single-flight across every composable instance.
-let authInitialized = false
-let sharedInitPromise: Promise<boolean> | null = null
-let sharedTrustedAuthUserPromise: Promise<SupabaseAuthUser | null> | null = null
+interface AuthRuntimeState {
+	initialized: boolean
+	initPromise: Promise<boolean> | null
+	trustedAuthUserPromise: Promise<SupabaseAuthUser | null> | null
+}
+
+// Nuxt creates one app instance per SSR request and one long-lived instance in
+// the browser. Keying the single-flight state by that instance prevents auth
+// promises and user data from leaking between server requests.
+const authRuntimeStates = new WeakMap<object, AuthRuntimeState>()
+
+const getAuthRuntimeState = (nuxtApp: object): AuthRuntimeState => {
+	const existing = authRuntimeStates.get(nuxtApp)
+	if (existing) return existing
+
+	const state: AuthRuntimeState = {
+		initialized: false,
+		initPromise: null,
+		trustedAuthUserPromise: null,
+	}
+	authRuntimeStates.set(nuxtApp, state)
+	return state
+}
 
 export const useAuth = () => {
+	const authRuntime = getAuthRuntimeState(useNuxtApp())
 	const user = useSupabaseUser()
 	const supabase = useSupabaseClient()
 	const userStore = useUserStore()
@@ -40,11 +60,11 @@ export const useAuth = () => {
 	}
 
 	const getTrustedAuthUser = async (): Promise<SupabaseAuthUser | null> => {
-		if (sharedTrustedAuthUserPromise) {
-			return await sharedTrustedAuthUserPromise
+		if (authRuntime.trustedAuthUserPromise) {
+			return await authRuntime.trustedAuthUserPromise
 		}
 
-		sharedTrustedAuthUserPromise = (async () => {
+		authRuntime.trustedAuthUserPromise = (async () => {
 			try {
 				// Prefer the session snapshot first because it is cheaper and avoids
 				// some transient `getUser()` races during refresh or OAuth redirects.
@@ -64,11 +84,11 @@ export const useAuth = () => {
 				console.warn('Unable to read auth session safely:', error)
 				return null
 			} finally {
-				sharedTrustedAuthUserPromise = null
+				authRuntime.trustedAuthUserPromise = null
 			}
 		})()
 
-		return await sharedTrustedAuthUserPromise
+		return await authRuntime.trustedAuthUserPromise
 	}
 
 	// Create or update the application profile. Delegates to the shared helper so
@@ -231,20 +251,20 @@ export const useAuth = () => {
 	}
 
 	const initializeAuth = async (): Promise<boolean> => {
-		if (sharedInitPromise) {
-			return await sharedInitPromise
+		if (authRuntime.initPromise) {
+			return await authRuntime.initPromise
 		}
 
-		sharedInitPromise = (async () => {
+		authRuntime.initPromise = (async () => {
 			try {
-				return await withTimeout(runInitializeAuth(), 8000, false)
+				return await runInitializeAuth()
 			} finally {
-				authInitialized = true
-				sharedInitPromise = null
+				authRuntime.initialized = true
+				authRuntime.initPromise = null
 			}
 		})()
 
-		return await sharedInitPromise
+		return await authRuntime.initPromise
 	}
 
 	// The single reactive auth subscriber lives in the auth-init plugin
@@ -257,19 +277,17 @@ export const useAuth = () => {
 	// Ensure auth is initialized (for the middlewares)
 	const ensureAuthInitialized = async (): Promise<boolean> => {
 		// Wait if initialization is already in progress
-		if (sharedInitPromise) {
-			await sharedInitPromise
-			return true
+		if (authRuntime.initPromise) {
+			return await authRuntime.initPromise
 		}
 
 		// Return immediately when already initialized
-		if (authInitialized) {
+		if (authRuntime.initialized) {
 			return true
 		}
 
 		// Otherwise start initialization
-		await initializeAuth()
-		return true
+		return await initializeAuth()
 	}
 
 	// Single source of truth for "is this user authenticated", combining the live

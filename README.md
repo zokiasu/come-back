@@ -51,7 +51,7 @@ Plateforme française de suivi des sorties musicales K-pop et artistes asiatique
 ## Installation
 
 ```bash
-# Prérequis : Node.js 22+
+# Prérequis : Node.js 24
 npm ci
 
 # Variables d'environnement

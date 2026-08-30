@@ -13,10 +13,14 @@ const loadAdminMiddleware = async (): Promise<AdminMiddleware> => {
 
 const setupGlobals = ({
 	supabaseUserId = null,
+	sessionUserId = null,
+	sessionError = null,
 	userData = null,
 	userStore = {},
 }: {
 	supabaseUserId?: string | null
+	sessionUserId?: string | null
+	sessionError?: Error | null
 	userData?: { role: string } | null
 	userStore?: {
 		userDataStore?: unknown
@@ -25,8 +29,18 @@ const setupGlobals = ({
 	}
 }) => {
 	const navigateTo = vi.fn((path: string) => ({ path }))
+	const getSession = vi.fn(async () => {
+		if (sessionError) throw sessionError
+
+		return {
+			data: {
+				session: sessionUserId ? { user: { id: sessionUserId } } : null,
+			},
+		}
+	})
 
 	vi.stubGlobal('useSupabaseUser', () => ({ value: { id: supabaseUserId } }))
+	vi.stubGlobal('useSupabaseClient', () => ({ auth: { getSession } }))
 	vi.stubGlobal('useUserStore', () => ({
 		userDataStore: null,
 		isLoginStore: false,
@@ -42,7 +56,7 @@ const setupGlobals = ({
 	vi.stubGlobal('navigateTo', navigateTo)
 	vi.stubGlobal('createError', createError)
 
-	return { navigateTo }
+	return { getSession, navigateTo }
 }
 
 describe('admin middleware', () => {
@@ -86,8 +100,9 @@ describe('admin middleware', () => {
 		})
 	})
 
-	it('should allow admins restored from the persisted store', async () => {
+	it('should allow admins restored from the persisted store when session fetch fails', async () => {
 		const { navigateTo } = setupGlobals({
+			sessionError: new Error('session unavailable'),
 			userStore: {
 				userDataStore: {
 					id: 'admin-id',
@@ -101,5 +116,24 @@ describe('admin middleware', () => {
 
 		await expect(middleware()).resolves.toBeUndefined()
 		expect(navigateTo).not.toHaveBeenCalled()
+	})
+
+	it('should reject stale persisted admins after a successful empty session check', async () => {
+		const { navigateTo } = setupGlobals({
+			userStore: {
+				userDataStore: {
+					id: 'stale-admin-id',
+					role: 'ADMIN',
+				},
+				isLoginStore: true,
+				isAdminStore: true,
+			},
+		})
+		const middleware = await loadAdminMiddleware()
+
+		await expect(middleware()).resolves.toEqual({
+			path: '/?authError=auth_required',
+		})
+		expect(navigateTo).toHaveBeenCalledWith('/?authError=auth_required')
 	})
 })

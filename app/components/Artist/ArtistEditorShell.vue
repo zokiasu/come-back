@@ -36,6 +36,7 @@
 		ytmMessage: null,
 		showImageUpload: false,
 	})
+	const slots = useSlots()
 
 	const emit = defineEmits<{
 		'update:modelValue': [model: ArtistEditorModel]
@@ -105,8 +106,6 @@
 	const { adjustTextareaDirect } = useTextareaAutoResize()
 	const birthdayInputDate = useTemplateRef('birthdayInputDate')
 	const debutInputDate = useTemplateRef('debutInputDate')
-	const fileInput = useTemplateRef('fileInput')
-	const isDragging = ref(false)
 
 	const isCreate = computed(() => props.mode === 'create')
 	const isEdit = computed(() => props.mode === 'edit')
@@ -190,23 +189,6 @@
 			: 'Refine core identity, relationships, companies and editorial data from a single workspace.',
 	)
 
-	const onFileChange = (e: Event) => {
-		const files = (e.target as HTMLInputElement).files
-		if (files && files[0]) {
-			emit('image-change', files[0])
-		}
-	}
-
-	const onDrop = (e: DragEvent) => {
-		isDragging.value = false
-		if (e.dataTransfer?.files?.length) {
-			const file = e.dataTransfer.files[0]
-			if (file) {
-				emit('image-drop', file)
-			}
-		}
-	}
-
 	const onNationalityCreated = () => {
 		emit('nationality-created')
 	}
@@ -269,157 +251,27 @@
 			v-else
 			class="mx-auto min-h-[calc(100vh-60px)] max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8"
 		>
-			<section
-				class="bg-cb-secondary-950 border-cb-quinary-900/70 overflow-hidden rounded-[28px] border shadow-2xl"
+			<ArtistEditorHero
+				:is-create="isCreate"
+				:is-edit="isEdit"
+				:model="model"
+				:original="original"
+				:hero-image-src="heroImageSrc"
+				:hero-title="heroTitle"
+				:hero-subtitle="heroSubtitle"
+				:overview-badges="overviewBadges"
+				:overview-taxonomy-badges="overviewTaxonomyBadges"
+				:overview-stats="overviewStats"
+				:company-count="artistCompanies.length"
+				:is-saving="isSaving"
+				:can-save="canSave"
+				@save="onSave"
+				@reset="onReset"
 			>
-				<div
-					class="border-cb-quinary-900/70 flex flex-col gap-6 border-b px-6 py-6 xl:flex-row xl:items-start xl:justify-between"
-				>
-					<div class="flex flex-col gap-5 sm:flex-row sm:items-start">
-						<div
-							class="bg-cb-quinary-900 border-cb-quinary-900/70 flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-3xl border"
-						>
-							<NuxtImg
-								v-if="heroImageSrc"
-								:src="heroImageSrc"
-								:alt="heroTitle"
-								format="webp"
-								loading="lazy"
-								class="h-full w-full object-cover"
-							/>
-							<UIcon v-else name="i-lucide-image" class="text-cb-quinary-700 h-10 w-10" />
-						</div>
-
-						<div class="space-y-4">
-							<div class="space-y-2">
-								<p
-									class="text-cb-quinary-700 text-xs font-semibold tracking-[0.35em] uppercase"
-								>
-									{{ isCreate ? 'Artist creator' : 'Artist editor' }}
-								</p>
-								<div class="space-y-1">
-									<h1 class="text-2xl font-bold sm:text-3xl">{{ heroTitle }}</h1>
-									<p class="max-w-2xl text-sm leading-6 text-gray-400">
-										{{ heroSubtitle }}
-									</p>
-								</div>
-							</div>
-
-							<div class="flex flex-wrap gap-2">
-								<span
-									v-for="badge in overviewBadges"
-									:key="badge.label"
-									:class="badge.class"
-									class="rounded-full px-3 py-1 text-xs font-medium ring-1"
-								>
-									{{ badge.label }}
-								</span>
-							</div>
-
-							<div v-if="overviewTaxonomyBadges.length > 0" class="flex flex-wrap gap-2">
-								<span
-									v-for="badge in overviewTaxonomyBadges"
-									:key="badge.label"
-									:class="badge.class"
-									class="rounded-full px-3 py-1 text-xs font-medium ring-1"
-								>
-									{{ badge.label }}
-								</span>
-							</div>
-
-							<div class="flex flex-wrap gap-2 text-sm text-gray-300">
-								<div
-									v-if="isEdit && model.id"
-									class="bg-cb-quaternary-950 border-cb-quinary-900/70 rounded-full border px-3 py-1.5"
-								>
-									<span
-										class="text-cb-quinary-700 mr-2 text-xs tracking-[0.2em] uppercase"
-									>
-										Artist ID
-									</span>
-									<span class="font-medium">{{ model.id }}</span>
-								</div>
-								<div
-									class="bg-cb-quaternary-950 border-cb-quinary-900/70 rounded-full border px-3 py-1.5"
-								>
-									<span
-										class="text-cb-quinary-700 mr-2 text-xs tracking-[0.2em] uppercase"
-									>
-										YouTube
-									</span>
-									<span class="font-medium">
-										{{ model.id_youtube_music || 'Not linked yet' }}
-									</span>
-								</div>
-								<div
-									v-if="isCreate"
-									class="bg-cb-quaternary-950 border-cb-quinary-900/70 rounded-full border px-3 py-1.5"
-								>
-									<span
-										class="text-cb-quinary-700 mr-2 text-xs tracking-[0.2em] uppercase"
-									>
-										Company links
-									</span>
-									<span class="font-medium">{{ artistCompanies.length }}</span>
-								</div>
-							</div>
-						</div>
-					</div>
-
-					<div class="flex w-full flex-col gap-3 xl:w-auto xl:min-w-[260px]">
-						<slot name="heroActions">
-							<template v-if="isCreate">
-								<UButton
-									label="Reset form"
-									icon="i-lucide-rotate-ccw"
-									color="neutral"
-									variant="soft"
-									class="w-full cursor-pointer justify-center"
-									@click="onReset"
-								/>
-								<UButton
-									label="Create artist"
-									icon="i-lucide-save"
-									color="primary"
-									:loading="isSaving"
-									:disabled="!canSave"
-									class="!bg-cb-primary-900 hover:!bg-cb-primary-800 disabled:!bg-cb-primary-900 w-full cursor-pointer justify-center !text-white hover:!text-white disabled:!text-white"
-									@click="onSave"
-								/>
-								<p class="text-xs leading-5 text-gray-500">
-									The form stays open after creation so you can immediately add another
-									artist.
-								</p>
-							</template>
-							<template v-else>
-								<UButton
-									label="View artist page"
-									icon="i-lucide-eye"
-									color="neutral"
-									variant="soft"
-									class="w-full cursor-pointer justify-center"
-									:to="original ? `/artist/${original.id}` : undefined"
-								/>
-								<UButton
-									label="Save changes"
-									icon="i-lucide-save"
-									color="primary"
-									:loading="isSaving"
-									:disabled="!canSave"
-									class="!bg-cb-primary-900 hover:!bg-cb-primary-800 disabled:!bg-cb-primary-900 w-full cursor-pointer justify-center !text-white hover:!text-white disabled:!text-white"
-									@click="onSave"
-								/>
-								<p class="text-xs leading-5 text-gray-500">
-									Changes are applied directly to the artist record and related junction
-									tables.
-								</p>
-							</template>
-						</slot>
-					</div>
-				</div>
-
-				<ArtistOverviewStats :stats="overviewStats" />
-			</section>
+				<template v-if="slots.heroActions" #actions>
+					<slot name="heroActions" />
+				</template>
+			</ArtistEditorHero>
 
 			<div class="grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(320px,0.95fr)]">
 				<div class="space-y-6">
@@ -1049,173 +901,30 @@
 					</ArtistFormPanel>
 				</div>
 
-				<!-- Sidebar -->
-				<div class="space-y-6 xl:sticky xl:top-24 xl:self-start">
-					<section
-						class="bg-cb-secondary-950 border-cb-quinary-900/70 rounded-[28px] border p-6 shadow-xl"
-					>
-						<div class="mb-4 space-y-2">
-							<h2 class="text-xl font-semibold">Visuals and sync</h2>
-							<p class="text-sm leading-6 text-gray-400">
-								{{
-									isCreate
-										? 'The public image normally follows YouTube Music. This panel previews the current state of the draft.'
-										: 'The public profile image normally follows YouTube Music. Admins can stage a custom preview here before saving.'
-								}}
-							</p>
-						</div>
-
-						<div
-							class="bg-cb-quaternary-950 border-cb-quinary-900/70 mb-4 overflow-hidden rounded-3xl border"
-						>
-							<NuxtImg
-								v-if="heroImageSrc"
-								:src="heroImageSrc"
-								:alt="heroTitle"
-								format="webp"
-								loading="lazy"
-								class="aspect-[4/3] w-full object-cover"
-							/>
-							<div
-								v-else
-								class="text-cb-quinary-700 flex aspect-[4/3] items-center justify-center"
-							>
-								<UIcon name="i-lucide-image" class="h-12 w-12" />
-							</div>
-						</div>
-
-						<template v-if="isCreate">
-							<div
-								class="bg-cb-quaternary-950 border-cb-quinary-900/70 rounded-2xl border p-4 text-sm leading-6 text-gray-300"
-							>
-								<p class="font-medium text-white">YouTube sync status</p>
-								<p class="mt-2">
-									{{
-										ytmMessage ||
-										'Add a YouTube Music ID to validate the link before creating the artist.'
-									}}
-								</p>
-							</div>
-						</template>
-
-						<template v-else>
-							<UFormField
-								v-if="showImageUpload"
-								label="Custom image preview"
-								description="Drop a file here to preview a custom image before saving."
-							>
-								<div
-									role="button"
-									tabindex="0"
-									aria-label="Choose a custom artist image"
-									:class="{ 'bg-cb-primary-900/15 border-cb-primary-900/60': isDragging }"
-									class="bg-cb-quaternary-950 border-cb-quinary-900/70 focus-visible:ring-cb-primary-500 cursor-pointer rounded-2xl border border-dashed p-5 text-center transition outline-none focus-visible:ring-2"
-									@click="fileInput?.click()"
-									@keydown.enter.prevent="fileInput?.click()"
-									@keydown.space.prevent="fileInput?.click()"
-									@dragover.prevent="isDragging = true"
-									@dragleave.prevent="isDragging = false"
-									@drop.prevent="onDrop"
-								>
-									<input
-										ref="fileInput"
-										type="file"
-										accept="image/*"
-										class="hidden"
-										@change="onFileChange"
-									/>
-									<p class="text-sm text-gray-300">
-										Drag and drop an image here, or click to browse from disk.
-									</p>
-									<p class="mt-2 text-xs text-gray-500">
-										This preview does not bypass the regular YouTube sync behavior.
-									</p>
-								</div>
-							</UFormField>
-
-							<div
-								v-else
-								class="bg-cb-quaternary-950 border-cb-quinary-900/70 rounded-2xl border p-4 text-sm leading-6 text-gray-400"
-							>
-								Image updates are synchronized automatically from YouTube Music for
-								non-admin users.
-							</div>
-						</template>
-					</section>
-
-					<ArtistQuickOverview
-						:description="
-							isCreate
-								? 'A few checkpoints to validate the draft before you create the profile.'
-								: 'Useful checkpoints before publishing your edits.'
-						"
-						:nationalities-count="artistNationalities.length"
-						:profile-type="activeType"
-						:birthday-label="formatDisplayDate(birthdayToDate)"
-						:debut-date-label="formatDisplayDate(debutDateToDate)"
-						:companies-count="isCreate ? artistCompanies.length : undefined"
-						:tags-count="artistTags.length"
-					/>
-
-					<ArtistSavePanel
-						:description="
-							isCreate
-								? 'Create the profile when the identity and relationships feel consistent.'
-								: 'Use this primary action once the profile feels consistent.'
-						"
-					>
-						<slot name="savePanelActions">
-							<template v-if="isCreate">
-								<UButton
-									label="Create artist"
-									icon="i-lucide-save"
-									color="primary"
-									size="xl"
-									:loading="isSaving"
-									:disabled="!canSave"
-									class="!bg-cb-primary-900 hover:!bg-cb-primary-800 disabled:!bg-cb-primary-900 w-full cursor-pointer justify-center !text-white hover:!text-white disabled:!text-white"
-									@click="onSave"
-								/>
-								<UButton
-									label="Reset draft"
-									icon="i-lucide-rotate-ccw"
-									color="neutral"
-									variant="soft"
-									class="w-full cursor-pointer justify-center"
-									@click="onReset"
-								/>
-								<UButton
-									label="Open validation queue"
-									icon="i-lucide-list-checks"
-									color="neutral"
-									variant="ghost"
-									class="w-full cursor-pointer justify-center"
-									to="/dashboard/validation"
-								/>
-							</template>
-							<template v-else>
-								<UButton
-									label="Save changes"
-									icon="i-lucide-save"
-									color="primary"
-									size="xl"
-									:loading="isSaving"
-									:disabled="!canSave"
-									class="!bg-cb-primary-900 hover:!bg-cb-primary-800 disabled:!bg-cb-primary-900 w-full cursor-pointer justify-center !text-white hover:!text-white disabled:!text-white"
-									@click="onSave"
-								/>
-								<UButton
-									label="Return to artist page"
-									icon="i-lucide-arrow-left"
-									color="neutral"
-									variant="soft"
-									class="w-full cursor-pointer justify-center"
-									:to="original ? `/artist/${original.id}` : undefined"
-								/>
-							</template>
-						</slot>
-					</ArtistSavePanel>
-				</div>
+				<ArtistEditorSidebar
+					:is-create="isCreate"
+					:hero-image-src="heroImageSrc"
+					:hero-title="heroTitle"
+					:ytm-message="ytmMessage"
+					:show-image-upload="showImageUpload"
+					:nationalities-count="artistNationalities.length"
+					:profile-type="activeType"
+					:birthday-label="formatDisplayDate(birthdayToDate)"
+					:debut-date-label="formatDisplayDate(debutDateToDate)"
+					:companies-count="isCreate ? artistCompanies.length : undefined"
+					:tags-count="artistTags.length"
+					:is-saving="isSaving"
+					:can-save="canSave"
+					:original="original"
+					@image-change="emit('image-change', $event)"
+					@image-drop="emit('image-drop', $event)"
+					@save="onSave"
+					@reset="onReset"
+				>
+					<template v-if="slots.savePanelActions" #actions>
+						<slot name="savePanelActions" />
+					</template>
+				</ArtistEditorSidebar>
 			</div>
 		</div>
 	</div>

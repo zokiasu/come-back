@@ -1,6 +1,25 @@
 import { applyMusicNameExclusions } from '../../utils/queryFilters'
+import type { SearchMusicResponse } from '~/types/api'
+import type { Json } from '~/types/supabase'
 
-export default defineEventHandler(async (event) => {
+const getThumbnailUrl = (value: Json | null): string | null => {
+	if (!Array.isArray(value)) return null
+
+	for (const thumbnail of value) {
+		if (
+			typeof thumbnail === 'object' &&
+			thumbnail !== null &&
+			!Array.isArray(thumbnail) &&
+			typeof thumbnail.url === 'string'
+		) {
+			return thumbnail.url
+		}
+	}
+
+	return null
+}
+
+export default defineEventHandler(async (event): Promise<SearchMusicResponse> => {
 	checkRateLimit(event, RATE_LIMIT_PRESETS.search)
 	setHeader(event, 'Cache-Control', 'public, max-age=60, stale-while-revalidate=300')
 
@@ -48,10 +67,11 @@ export default defineEventHandler(async (event) => {
 	if (error) throw handleSupabaseError(error, 'search.musics')
 
 	return {
-		musics: (data ?? []).map((music) => ({
+		musics: (data ?? []).map(({ artists, releases, thumbnails, ...music }) => ({
 			...music,
-			artists: transformJunction(music.artists, 'artist'),
-			releases: transformJunction(music.releases, 'release').filter(
+			thumbnailUrl: getThumbnailUrl(thumbnails),
+			artists: transformJunction(artists, 'artist'),
+			releases: transformJunction(releases, 'release').filter(
 				(release) => release.verified === true,
 			),
 		})),

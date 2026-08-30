@@ -2,6 +2,7 @@ import { ADMIN_AUTH_INIT_TIMEOUT_MS, AUTH_MAX_WAIT_TIME_MS } from '~/constants/a
 
 export default defineNuxtRouteMiddleware(async (_to, _from) => {
 	const user = useSupabaseUser()
+	const supabase = useSupabaseClient()
 	const userStore = useUserStore()
 
 	// SSR: allow through; the full check runs client-side
@@ -46,9 +47,23 @@ export default defineNuxtRouteMiddleware(async (_to, _from) => {
 		})
 	}
 
-	// Check authentication (Supabase or persisted store data)
+	let sessionUserId = user.value?.id ?? null
+	let sessionCheckFailed = false
+
+	if (!sessionUserId) {
+		try {
+			const { data } = await supabase.auth.getSession()
+			sessionUserId = data.session?.user?.id ?? null
+		} catch {
+			sessionCheckFailed = true
+		}
+	}
+
+	// Persisted state is only a fallback when the session service is temporarily
+	// unavailable. A successful empty session check invalidates stale local data.
 	const isAuthenticated =
-		!!user.value?.id || (!!userStore.userDataStore && userStore.isLoginStore)
+		!!sessionUserId ||
+		(sessionCheckFailed && !!userStore.userDataStore && userStore.isLoginStore)
 
 	if (!isAuthenticated) {
 		return navigateTo('/?authError=auth_required')

@@ -3,14 +3,6 @@
 // The cron should be configured to trigger at midnight KST (= 15:00 UTC)
 // if the primary audience is Korean.
 
-type ReleaseRow = {
-	id: string
-	name: string
-	date?: string | null
-	image: string | null
-	artist_releases: { artists: { name: string } }[]
-}
-
 type SubscriptionRow = {
 	id: string
 	endpoint: string
@@ -18,14 +10,20 @@ type SubscriptionRow = {
 	auth: string
 }
 
+export interface NotificationDeliveryResult {
+	sent: number
+	expired: number
+	failed: number
+}
+
 async function fanOutAndClean(
 	subs: SubscriptionRow[],
 	payload: Parameters<typeof sendPush>[1],
-): Promise<{ sent: number; expiredIds: string[] }> {
+): Promise<{ sent: number; expiredIds: string[]; failed: number }> {
 	const expiredIds: string[] = []
 	let sent = 0
 
-	await Promise.allSettled(
+	const results = await Promise.allSettled(
 		subs.map(async (sub) => {
 			const ok = await sendPush(sub, payload)
 			if (ok) sent++
@@ -33,13 +31,14 @@ async function fanOutAndClean(
 		}),
 	)
 
-	return { sent, expiredIds }
+	return {
+		sent,
+		expiredIds,
+		failed: results.filter(({ status }) => status === 'rejected').length,
+	}
 }
 
-export async function sendDailyNotifications(): Promise<{
-	sent: number
-	expired: number
-}> {
+export async function sendDailyNotifications(): Promise<NotificationDeliveryResult> {
 	const supabase = useServerSupabase()
 	const today = new Date().toISOString().slice(0, 10)
 
@@ -50,7 +49,7 @@ export async function sendDailyNotifications(): Promise<{
 		.eq('verified', true)
 
 	if (relError) throw handleSupabaseError(relError, 'releases.today')
-	if (!releases?.length) return { sent: 0, expired: 0 }
+	if (!releases?.length) return { sent: 0, expired: 0, failed: 0 }
 
 	const { data: prefs, error: prefsError } = await supabase
 		.from('notification_preferences')
@@ -59,7 +58,7 @@ export async function sendDailyNotifications(): Promise<{
 		.eq('daily_comeback', true)
 
 	if (prefsError) throw handleSupabaseError(prefsError, 'notification_preferences.daily')
-	if (!prefs?.length) return { sent: 0, expired: 0 }
+	if (!prefs?.length) return { sent: 0, expired: 0, failed: 0 }
 
 	const userIds = prefs.map((p) => p.user_id)
 
@@ -69,9 +68,10 @@ export async function sendDailyNotifications(): Promise<{
 		.in('user_id', userIds)
 
 	if (subError) throw handleSupabaseError(subError, 'push_subscriptions.daily')
-	if (!subs?.length) return { sent: 0, expired: 0 }
+	if (!subs?.length) return { sent: 0, expired: 0, failed: 0 }
 
-	const firstRelease = releases[0] as unknown as ReleaseRow
+	const firstRelease = releases[0]
+	if (!firstRelease) return { sent: 0, expired: 0, failed: 0 }
 	const artistName = firstRelease.artist_releases?.[0]?.artists?.name ?? ''
 	const count = releases.length
 
@@ -86,19 +86,16 @@ export async function sendDailyNotifications(): Promise<{
 		tag: 'daily-comeback',
 	}
 
-	const { sent, expiredIds } = await fanOutAndClean(subs, payload)
+	const { sent, expiredIds, failed } = await fanOutAndClean(subs, payload)
 
 	if (expiredIds.length) {
 		await supabase.from('push_subscriptions').delete().in('id', expiredIds)
 	}
 
-	return { sent, expired: expiredIds.length }
+	return { sent, expired: expiredIds.length, failed }
 }
 
-export async function sendWeeklyNotifications(): Promise<{
-	sent: number
-	expired: number
-}> {
+export async function sendWeeklyNotifications(): Promise<NotificationDeliveryResult> {
 	const supabase = useServerSupabase()
 	const today = new Date()
 	const nextWeek = new Date(today)
@@ -117,7 +114,7 @@ export async function sendWeeklyNotifications(): Promise<{
 		.limit(10)
 
 	if (relError) throw handleSupabaseError(relError, 'releases.weekly')
-	if (!releases?.length) return { sent: 0, expired: 0 }
+	if (!releases?.length) return { sent: 0, expired: 0, failed: 0 }
 
 	const { data: prefs, error: prefsError } = await supabase
 		.from('notification_preferences')
@@ -126,7 +123,7 @@ export async function sendWeeklyNotifications(): Promise<{
 		.eq('weekly_comeback', true)
 
 	if (prefsError) throw handleSupabaseError(prefsError, 'notification_preferences.weekly')
-	if (!prefs?.length) return { sent: 0, expired: 0 }
+	if (!prefs?.length) return { sent: 0, expired: 0, failed: 0 }
 
 	const userIds = prefs.map((p) => p.user_id)
 
@@ -136,10 +133,11 @@ export async function sendWeeklyNotifications(): Promise<{
 		.in('user_id', userIds)
 
 	if (subError) throw handleSupabaseError(subError, 'push_subscriptions.weekly')
-	if (!subs?.length) return { sent: 0, expired: 0 }
+	if (!subs?.length) return { sent: 0, expired: 0, failed: 0 }
 
 	const count = releases.length
-	const firstRelease = releases[0] as unknown as ReleaseRow
+	const firstRelease = releases[0]
+	if (!firstRelease) return { sent: 0, expired: 0, failed: 0 }
 	const firstArtist = firstRelease.artist_releases?.[0]?.artists?.name ?? ''
 
 	const payload = {
@@ -153,13 +151,13 @@ export async function sendWeeklyNotifications(): Promise<{
 		tag: 'weekly-comeback',
 	}
 
-	const { sent, expiredIds } = await fanOutAndClean(subs, payload)
+	const { sent, expiredIds, failed } = await fanOutAndClean(subs, payload)
 
 	if (expiredIds.length) {
 		await supabase.from('push_subscriptions').delete().in('id', expiredIds)
 	}
 
-	return { sent, expired: expiredIds.length }
+	return { sent, expired: expiredIds.length, failed }
 }
 
 export async function notifyFollowersOfNewRelease(
@@ -170,19 +168,23 @@ export async function notifyFollowersOfNewRelease(
 	const supabase = useServerSupabase()
 
 	// Fetch artist names
-	const { data: artists } = await supabase
+	const { data: artists, error: artistsError } = await supabase
 		.from('artists')
 		.select('id, name')
 		.in('id', artistIds)
 
+	if (artistsError) throw handleSupabaseError(artistsError, 'artists.notifications')
 	if (!artists?.length) return
 
 	// Find all followers of these artists
-	const { data: follows } = await supabase
+	const { data: follows, error: followsError } = await supabase
 		.from('user_followed_artists')
 		.select('user_id, artist_id')
 		.in('artist_id', artistIds)
 
+	if (followsError) {
+		throw handleSupabaseError(followsError, 'user_followed_artists.notifications')
+	}
 	if (!follows?.length) return
 
 	const artistMap = new Map(artists.map((a) => [a.id, a.name]))
@@ -216,13 +218,10 @@ type FollowedReleaseRow = {
 	id: string
 	name: string
 	image: string | null
-	artist_releases: { artists: { id: string; name: string } }[]
+	artists: { id: string; name: string }[]
 }
 
-export async function sendFollowedArtistNotifications(): Promise<{
-	sent: number
-	expired: number
-}> {
+export async function sendFollowedArtistNotifications(): Promise<NotificationDeliveryResult> {
 	const supabase = useServerSupabase()
 	const today = new Date().toISOString().slice(0, 10)
 
@@ -234,19 +233,29 @@ export async function sendFollowedArtistNotifications(): Promise<{
 		.eq('verified', true)
 
 	if (relError) throw handleSupabaseError(relError, 'releases.today.followed')
-	if (!releases?.length) return { sent: 0, expired: 0 }
+	if (!releases?.length) return { sent: 0, expired: 0, failed: 0 }
 
 	// Collect all artist IDs from today's releases
 	const artistReleaseMap = new Map<string, FollowedReleaseRow>()
-	for (const rel of releases as unknown as FollowedReleaseRow[]) {
-		for (const ar of rel.artist_releases) {
-			if (!artistReleaseMap.has(ar.artists.id)) {
-				artistReleaseMap.set(ar.artists.id, rel)
+	for (const release of releases) {
+		const releaseArtists = release.artist_releases.flatMap(({ artists }) =>
+			artists ? [artists] : [],
+		)
+		const normalizedRelease: FollowedReleaseRow = {
+			id: release.id,
+			name: release.name,
+			image: release.image,
+			artists: releaseArtists,
+		}
+
+		for (const artist of releaseArtists) {
+			if (!artistReleaseMap.has(artist.id)) {
+				artistReleaseMap.set(artist.id, normalizedRelease)
 			}
 		}
 	}
 
-	if (!artistReleaseMap.size) return { sent: 0, expired: 0 }
+	if (!artistReleaseMap.size) return { sent: 0, expired: 0, failed: 0 }
 
 	const artistIds = [...artistReleaseMap.keys()]
 
@@ -258,7 +267,7 @@ export async function sendFollowedArtistNotifications(): Promise<{
 
 	if (followsError)
 		throw handleSupabaseError(followsError, 'user_followed_artists.select')
-	if (!follows?.length) return { sent: 0, expired: 0 }
+	if (!follows?.length) return { sent: 0, expired: 0, failed: 0 }
 
 	const followerIds = [...new Set(follows.map((f) => f.user_id))]
 
@@ -271,7 +280,7 @@ export async function sendFollowedArtistNotifications(): Promise<{
 
 	if (prefsError)
 		throw handleSupabaseError(prefsError, 'notification_preferences.followed')
-	if (!prefs?.length) return { sent: 0, expired: 0 }
+	if (!prefs?.length) return { sent: 0, expired: 0, failed: 0 }
 
 	const eligibleUserIds = new Set(prefs.map((p) => p.user_id))
 
@@ -289,8 +298,7 @@ export async function sendFollowedArtistNotifications(): Promise<{
 		if (!release) continue
 
 		const artistName =
-			release.artist_releases.find((ar) => ar.artists.id === follow.artist_id)?.artists
-				.name ?? ''
+			release.artists.find(({ id }) => id === follow.artist_id)?.name ?? ''
 
 		userReleaseMap.set(follow.user_id, {
 			release,
@@ -299,7 +307,7 @@ export async function sendFollowedArtistNotifications(): Promise<{
 		})
 	}
 
-	if (!userReleaseMap.size) return { sent: 0, expired: 0 }
+	if (!userReleaseMap.size) return { sent: 0, expired: 0, failed: 0 }
 
 	// Fetch subscriptions for eligible users
 	const { data: subs, error: subError } = await supabase
@@ -308,13 +316,13 @@ export async function sendFollowedArtistNotifications(): Promise<{
 		.in('user_id', [...userReleaseMap.keys()])
 
 	if (subError) throw handleSupabaseError(subError, 'push_subscriptions.followed')
-	if (!subs?.length) return { sent: 0, expired: 0 }
+	if (!subs?.length) return { sent: 0, expired: 0, failed: 0 }
 
 	// Fan-out with per-user personalized payload
 	const expiredIds: string[] = []
 	let sent = 0
 
-	await Promise.allSettled(
+	const results = await Promise.allSettled(
 		subs.map(async (sub) => {
 			const userInfo = userReleaseMap.get(sub.user_id)
 			if (!userInfo) return
@@ -338,5 +346,9 @@ export async function sendFollowedArtistNotifications(): Promise<{
 		await supabase.from('push_subscriptions').delete().in('id', expiredIds)
 	}
 
-	return { sent, expired: expiredIds.length }
+	return {
+		sent,
+		expired: expiredIds.length,
+		failed: results.filter(({ status }) => status === 'rejected').length,
+	}
 }

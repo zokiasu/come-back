@@ -26,18 +26,20 @@ export default defineNuxtRouteMiddleware(async (_to, _from) => {
 	}
 
 	let sessionUserId = user.value?.id ?? null
+	let sessionCheckFailed = false
 
 	if (!sessionUserId) {
 		try {
 			const { data } = await supabase.auth.getSession()
 			sessionUserId = data.session?.user?.id ?? null
 		} catch {
-			// Use the persisted store as the fallback source.
+			sessionCheckFailed = true
 		}
 	}
 
 	const hasUserProfile = !!userData.value || !!userStore.userDataStore || !!sessionUserId
-	const hasPersistedSession = !!userStore.userDataStore && userStore.isLoginStore
+	const hasPersistedSession =
+		sessionCheckFailed && !!userStore.userDataStore && userStore.isLoginStore
 	const isAuthenticated = !!sessionUserId || hasPersistedSession
 
 	if (!isAuthenticated || !hasUserProfile) {

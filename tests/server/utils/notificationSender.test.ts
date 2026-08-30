@@ -8,6 +8,9 @@ const loadNotifier = async () => {
 	return module.notifyFollowersOfNewRelease
 }
 
+const loadNotificationModule = async () =>
+	await import('../../../server/utils/notificationSender')
+
 describe('notifyFollowersOfNewRelease', () => {
 	beforeEach(() => {
 		vi.resetModules()
@@ -49,5 +52,65 @@ describe('notifyFollowersOfNewRelease', () => {
 			},
 		)
 		expect(notifications.insert).toHaveBeenCalledOnce()
+	})
+
+	it('reports sent, expired and transiently failed push deliveries separately', async () => {
+		const releases = createSupabaseQueryMock({
+			data: [
+				{
+					id: 'release-id',
+					name: 'Armageddon',
+					image: null,
+					artist_releases: [{ artists: { name: 'aespa' } }],
+				},
+			],
+			error: null,
+		})
+		const preferences = createSupabaseQueryMock({
+			data: [{ user_id: 'user-id' }],
+			error: null,
+		})
+		const subscriptions = createSupabaseQueryMock({
+			data: [
+				{ id: 'sent', endpoint: 'sent', p256dh: 'key', auth: 'auth' },
+				{ id: 'expired', endpoint: 'expired', p256dh: 'key', auth: 'auth' },
+				{ id: 'failed', endpoint: 'failed', p256dh: 'key', auth: 'auth' },
+			],
+			error: null,
+		})
+		const cleanup = createSupabaseQueryMock({ error: null })
+		let pushSubscriptionCalls = 0
+
+		vi.stubGlobal('useServerSupabase', () => ({
+			from: vi.fn((table: string) => {
+				if (table === 'releases') return releases
+				if (table === 'notification_preferences') return preferences
+				if (table === 'push_subscriptions') {
+					pushSubscriptionCalls += 1
+					return pushSubscriptionCalls === 1 ? subscriptions : cleanup
+				}
+				throw new Error(`Unexpected table: ${table}`)
+			}),
+		}))
+		vi.stubGlobal(
+			'sendPush',
+			vi.fn(async (subscription: { id?: string; endpoint: string }) => {
+				if (subscription.endpoint === 'sent') return true
+				if (subscription.endpoint === 'expired') return false
+				throw new Error('temporary gateway error')
+			}),
+		)
+
+		const { sendDailyNotifications } = await loadNotificationModule()
+
+		await expect(sendDailyNotifications()).resolves.toEqual({
+			sent: 1,
+			expired: 1,
+			failed: 1,
+		})
+		expect(cleanup.calls).toEqual([
+			{ method: 'delete', args: [] },
+			{ method: 'in', args: ['id', ['expired']] },
+		])
 	})
 })

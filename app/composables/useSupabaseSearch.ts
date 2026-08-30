@@ -1,22 +1,11 @@
-import type { Artist, ArtistType, Music, Release } from '~/types'
+import type { ArtistType } from '~/types'
+import type {
+	ArtistSearchResponse,
+	SearchMusicResponse,
+	SearchReleaseResponse,
+} from '~/types/api'
 
-interface SearchResult {
-	artists: Artist[]
-	totalCount: number
-}
-
-interface SearchReleaseResult {
-	releases: (Release & {
-		artists?: Artist[]
-		musics?: Array<{ id_youtube_music?: string | null; name?: string | null }>
-	})[]
-	totalCount: number
-}
-
-interface SearchMusicResult {
-	musics: (Music & { artists?: Artist[]; releases?: Release[] })[]
-	totalCount: number
-}
+type SearchResult = ArtistSearchResponse & { totalCount: number }
 
 interface SearchOptions {
 	query: string
@@ -34,7 +23,7 @@ export function useSupabaseSearch() {
 	const searchArtists = async (options: SearchOptions): Promise<SearchResult> => {
 		if (options.query.trim().length < 2) return { artists: [], totalCount: 0 }
 
-		const result = await $fetch<{ artists: Artist[] }>('/api/artists/search', {
+		const result = await $fetch<ArtistSearchResponse>('/api/artists/search', {
 			query: normalizeOptions(options),
 		})
 		return { artists: result.artists, totalCount: result.artists.length }
@@ -42,18 +31,20 @@ export function useSupabaseSearch() {
 
 	const searchArtistsFullText = searchArtists
 
-	const searchReleases = async (options: SearchOptions): Promise<SearchReleaseResult> => {
+	const searchReleases = async (
+		options: SearchOptions,
+	): Promise<SearchReleaseResponse> => {
 		if (options.query.trim().length < 2) return { releases: [], totalCount: 0 }
 
-		return $fetch<SearchReleaseResult>('/api/search/releases', {
+		return $fetch<SearchReleaseResponse>('/api/search/releases', {
 			query: normalizeOptions(options),
 		})
 	}
 
-	const searchMusics = async (options: SearchOptions): Promise<SearchMusicResult> => {
+	const searchMusics = async (options: SearchOptions): Promise<SearchMusicResponse> => {
 		if (options.query.trim().length < 2) return { musics: [], totalCount: 0 }
 
-		return $fetch<SearchMusicResult>('/api/search/musics', {
+		return $fetch<SearchMusicResponse>('/api/search/musics', {
 			query: normalizeOptions(options),
 		})
 	}

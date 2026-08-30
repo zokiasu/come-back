@@ -1,8 +1,9 @@
 <template>
 	<div class="flex min-h-screen items-center justify-center">
-		<div class="text-center">
+		<div class="text-center" role="status" aria-live="polite">
 			<div
 				class="border-cb-primary-500 mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2"
+				aria-hidden="true"
 			></div>
 			<p class="text-center text-lg text-gray-600">{{ statusMessage }}</p>
 		</div>
@@ -10,264 +11,126 @@
 </template>
 
 <script setup lang="ts">
-	import type { User as SupabaseUser } from '@supabase/supabase-js'
-	import { upsertUserProfile } from '~/composables/Supabase/helpers/user/upsertUserProfile'
+	import type { SupabaseAuthUser } from '~/types/auth'
 
-	const statusMessage = ref('Verifying session...')
-
-	// Disable auth middleware for this page
 	definePageMeta({
 		middleware: [],
 	})
 
+	type CallbackStatus = 'success' | 'error'
+
+	const statusMessage = ref('Verifying session...')
 	const supabase = useSupabaseClient()
-	const user = useSupabaseUser()
-	const userStore = useUserStore()
-	const { runMutation } = useMutationTimeout()
+	const supabaseUser = useSupabaseUser()
+	const { getTrustedAuthUser, syncUserProfileFromAuthUser, syncError } = useAuth()
 	const { trace: log } = useDevLogger('AuthCallback')
 
-	const getTrustedSessionUser = async () => {
-		const { data, error } = await supabase.auth.getUser()
+	const firstQueryValue = (value: unknown): string | undefined => {
+		if (typeof value === 'string') return value
+		if (Array.isArray(value) && typeof value[0] === 'string') return value[0]
+		return undefined
+	}
 
+	const notifyParent = (status: CallbackStatus, reason?: string): boolean => {
+		const payload = {
+			type: 'comeback-auth',
+			status,
+			...(reason ? { reason } : {}),
+			ts: Date.now(),
+		}
+
+		if (window.opener && !window.opener.closed) {
+			window.opener.postMessage(payload, window.location.origin)
+			window.close()
+			return true
+		}
+
+		localStorage.setItem('comeback-auth', JSON.stringify(payload))
+		return false
+	}
+
+	const finishCallback = async (status: CallbackStatus, reason?: string) => {
+		if (notifyParent(status, reason)) return
+
+		if (status === 'success') {
+			await navigateTo('/')
+			return
+		}
+
+		await navigateTo({
+			path: '/',
+			query: { authError: reason ?? 'callback' },
+		})
+	}
+
+	const exchangeOAuthSession = async (): Promise<void> => {
+		const route = useRoute()
+		const errorReason =
+			firstQueryValue(route.query.error_description) ??
+			firstQueryValue(route.query.error) ??
+			firstQueryValue(route.query.error_code)
+
+		if (errorReason) {
+			throw new Error(errorReason)
+		}
+
+		const hashParams = new URLSearchParams(window.location.hash.slice(1))
+		const accessToken = hashParams.get('access_token')
+		const refreshToken = hashParams.get('refresh_token')
+		const code = firstQueryValue(route.query.code)
+
+		if (accessToken) {
+			if (!refreshToken) throw new Error('missing_refresh_token')
+
+			const { error } = await supabase.auth.setSession({
+				access_token: accessToken,
+				refresh_token: refreshToken,
+			})
+			if (error) throw error
+			return
+		}
+
+		if (code) {
+			const { error } = await supabase.auth.exchangeCodeForSession(code)
+			if (error) throw error
+		}
+	}
+
+	const getCallbackUser = async (): Promise<SupabaseAuthUser | null> => {
+		const trustedUser = await getTrustedAuthUser()
+		if (trustedUser?.id) return trustedUser
+
+		if (!supabaseUser.value?.id) return null
 		return {
-			error,
-			user: data.user ?? undefined,
+			id: supabaseUser.value.id,
+			email: supabaseUser.value.email,
+			user_metadata: supabaseUser.value.user_metadata ?? {},
 		}
 	}
 
 	const handleAuthCallback = async () => {
 		try {
-			log('Starting OAuth callback processing...')
+			log('Starting OAuth callback processing')
+			await exchangeOAuthSession()
 
-			statusMessage.value = 'Verifying session...'
+			const authUser = await getCallbackUser()
+			if (!authUser) throw new Error('session_not_ready')
 
-			// Get the code from URL hash or query params (OAuth callback)
-			const route = useRoute()
-			const hashParams = new URLSearchParams(window.location.hash.substring(1))
-			const code = route.query.code as string | undefined
-			const accessToken = hashParams.get('access_token')
-			const refreshToken = hashParams.get('refresh_token')
-			const errorParam = route.query.error as string | undefined
-			log(
-				`OAuth params - code: ${!!code}, access_token: ${!!accessToken}, error: ${errorParam || 'none'}`,
-			)
-
-			// Check for OAuth error
-			if (errorParam) {
-				log(`OAuth provider error: ${errorParam}`)
-				statusMessage.value = 'Authentication error'
-				if (window.opener) {
-					window.opener.postMessage(
-						{ type: 'comeback-auth', status: 'error', reason: errorParam },
-						window.location.origin,
-					)
-					window.close()
-					return
-				}
-				localStorage.setItem(
-					'comeback-auth',
-					JSON.stringify({ status: 'error', reason: errorParam, ts: Date.now() }),
-				)
-				window.close()
-				await navigateTo(`/?authError=${errorParam}`)
-				return
-			}
-
-			// Check current session first
-			log('Checking existing session...')
-			const { user: existingUser, error: sessionError } = await getTrustedSessionUser()
-			log(
-				`Current session: ${existingUser ? 'exists' : 'none'}, error: ${sessionError ? 'yes' : 'none'}`,
-			)
-
-			let sessionUser: SupabaseUser | undefined = existingUser
-
-			if (sessionUser?.id) {
-				log('Session already exists; skipping code exchange')
-			} else {
-				// If we have tokens in hash (implicit flow), set the session
-				if (accessToken) {
-					log('Implicit flow detected - setting session from tokens...')
-					const { data, error } = await supabase.auth.setSession({
-						access_token: accessToken,
-						refresh_token: refreshToken || '',
-					})
-					if (error) {
-						log('Unable to set the implicit-flow session')
-					} else {
-						log(`Session set successfully: ${data?.user ? 'user present' : 'no user'}`)
-						sessionUser = data?.user ?? undefined
-					}
-				}
-				// If we have a code (PKCE flow), exchange it for a session
-				else if (code) {
-					log('PKCE flow detected - exchanging code for session...')
-					const { data, error } = await supabase.auth.exchangeCodeForSession(code)
-					if (error) {
-						log('Unable to exchange the authorization code')
-					} else {
-						log(`Code exchanged successfully: ${data?.user ? 'user present' : 'no user'}`)
-						sessionUser = data?.user ?? undefined
-					}
-				} else {
-					log('No code or access_token found in URL')
-				}
-			}
-
-			// Get the final session to ensure we have the user
-			const { user: finalUser } = await getTrustedSessionUser()
-			sessionUser = finalUser
-			log(`Final session check: ${finalUser ? 'exists' : 'none'}`)
-
-			// If we have a valid session user, we can proceed directly
-			// Don't rely on useSupabaseUser() reactive ref which may not have the id
-			if (!sessionUser?.id) {
-				log('No valid user in session after all attempts')
-
-				// Wait a bit for useSupabaseUser() as fallback
-				let attempts = 0
-				const maxAttempts = 5
-
-				while ((!user.value || !user.value.id) && attempts < maxAttempts) {
-					await new Promise((resolve) => setTimeout(resolve, 1000))
-					attempts++
-					log(
-						`Fallback attempt ${attempts}/${maxAttempts} - user: ${user.value?.id ? 'ready' : 'missing'}`,
-					)
-				}
-
-				if (!user.value?.id) {
-					log('TIMEOUT: No complete user found after waiting')
-					statusMessage.value = 'Connection error'
-					if (window.opener) {
-						window.opener.postMessage(
-							{ type: 'comeback-auth', status: 'error', reason: 'timeout' },
-							window.location.origin,
-						)
-						window.close()
-						return
-					}
-					localStorage.setItem(
-						'comeback-auth',
-						JSON.stringify({ status: 'error', reason: 'timeout', ts: Date.now() }),
-					)
-					window.close()
-					await navigateTo('/?authError=timeout')
-					return
-				}
-				sessionUser = user.value as unknown as SupabaseUser
-			}
-
-			// At this point sessionUser is guaranteed to exist with an id
-			if (!sessionUser) {
-				log('CRITICAL: sessionUser is undefined after all checks')
-				if (window.opener) {
-					window.opener.postMessage(
-						{ type: 'comeback-auth', status: 'error', reason: 'no_user' },
-						window.location.origin,
-					)
-					window.close()
-					return
-				}
-				localStorage.setItem(
-					'comeback-auth',
-					JSON.stringify({ status: 'error', reason: 'no_user', ts: Date.now() }),
-				)
-				window.close()
-				await navigateTo('/?authError=no_user')
-				return
-			}
-
-			log('Authenticated user is ready')
 			statusMessage.value = 'Syncing profile...'
-
-			// Sync user profile directly using the session user
-			log('Syncing user profile with session data...')
-
-			try {
-				// Upsert via the shared helper so the callback and useAuth never diverge.
-				log('Upserting user profile...')
-				const dbUser = await upsertUserProfile(
-					supabase,
-					{
-						id: sessionUser.id,
-						email: sessionUser.email,
-						user_metadata: sessionUser.user_metadata,
-					},
-					runMutation,
-				)
-
-				// Update the store with user data (used by the non-popup fallback path).
-				log('Updating user store...')
-				await userStore.syncUserProfile(sessionUser, dbUser)
-				log('Store updated successfully!')
-
-				log('Profile synced successfully! Redirecting to home...')
-				statusMessage.value = 'Redirecting...'
-				await new Promise((resolve) => setTimeout(resolve, 500))
-
-				if (window.opener) {
-					window.opener.postMessage(
-						{
-							type: 'comeback-auth',
-							status: 'success',
-						},
-						window.location.origin,
-					)
-					window.close()
-					return
-				}
-				localStorage.setItem(
-					'comeback-auth',
-					JSON.stringify({
-						status: 'success',
-						ts: Date.now(),
-					}),
-				)
-				window.close()
-				await navigateTo('/')
-			} catch (syncError: unknown) {
-				log(`Profile sync failed: ${syncError instanceof Error ? 'error' : 'unknown'}`)
-				statusMessage.value = 'Synchronization error'
-				if (window.opener) {
-					window.opener.postMessage(
-						{ type: 'comeback-auth', status: 'error', reason: 'sync' },
-						window.location.origin,
-					)
-					window.close()
-					return
-				}
-				localStorage.setItem(
-					'comeback-auth',
-					JSON.stringify({ status: 'error', reason: 'sync', ts: Date.now() }),
-				)
-				window.close()
-				await navigateTo('/?authError=sync')
+			const profileReady = await syncUserProfileFromAuthUser(authUser)
+			if (!profileReady) {
+				throw new Error(syncError.value ?? 'profile_sync_failed')
 			}
-		} catch (err: unknown) {
-			log(`Callback failed: ${err instanceof Error ? 'error' : 'unknown'}`)
+
+			statusMessage.value = 'Redirecting...'
+			await finishCallback('success')
+		} catch (error: unknown) {
+			const reason = error instanceof Error ? error.message : 'callback'
+			log('OAuth callback failed')
 			statusMessage.value = 'Connection error'
-			if (window.opener) {
-				window.opener.postMessage(
-					{ type: 'comeback-auth', status: 'error', reason: 'callback' },
-					window.location.origin,
-				)
-				window.close()
-				return
-			}
-			localStorage.setItem(
-				'comeback-auth',
-				JSON.stringify({ status: 'error', reason: 'callback', ts: Date.now() }),
-			)
-			window.close()
-			await navigateTo('/?authError=callback')
+			await finishCallback('error', reason)
 		}
 	}
 
-	// Handle authentication callback on component mount
-	onMounted(async () => {
-		log('Component mounted, waiting 500ms for Supabase init...')
-		await new Promise((resolve) => setTimeout(resolve, 500))
-		await handleAuthCallback()
-	})
+	onMounted(handleAuthCallback)
 </script>

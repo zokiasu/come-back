@@ -178,4 +178,3 @@ export const validateRouteParam = (
 
 	return param
 }
-

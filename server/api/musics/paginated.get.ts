@@ -1,4 +1,5 @@
 import type { Tables } from '../../types/api'
+import type { MusicsPageResponse } from '~/types/api'
 import {
 	applyMusicFilters,
 	applyMusicNameExclusions,
@@ -87,7 +88,7 @@ const transformMusics = (musics: MusicWithRelations[]): TransformedMusic[] => {
 	})) as TransformedMusic[]
 }
 
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async (event): Promise<MusicsPageResponse> => {
 	checkRateLimit(event, RATE_LIMIT_PRESETS.paginated)
 	setHeader(event, 'Cache-Control', 'public, max-age=60, stale-while-revalidate=300')
 

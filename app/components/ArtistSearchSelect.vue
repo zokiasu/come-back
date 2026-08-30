@@ -189,9 +189,7 @@
 
 	const emitSelection = (nextItems: SelectableArtist[]) => {
 		modelValue.value = (props.multiple ? nextItems : (nextItems[0] ?? null)) as
-			| SelectableArtist
-			| SelectableArtist[]
-			| null
+			SelectableArtist | SelectableArtist[] | null
 	}
 
 	const toggleArtist = (artist: SelectableArtist) => {

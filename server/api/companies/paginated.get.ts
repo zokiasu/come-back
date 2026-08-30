@@ -1,4 +1,5 @@
 import { validateIntegerParam } from '../../utils/validation'
+import type { CompaniesPageResponse } from '~/types/api'
 
 const COMPANY_TYPES = [
 	'LABEL',
@@ -19,7 +20,7 @@ const COMPANY_ORDER_COLUMNS = [
 	'verified',
 ] as const
 
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async (event): Promise<CompaniesPageResponse> => {
 	const query = getQuery(event)
 	const page = validateIntegerParam(query.page, 'page', {
 		min: 1,

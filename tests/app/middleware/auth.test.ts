@@ -113,4 +113,21 @@ describe('auth middleware', () => {
 		await expect(middleware()).resolves.toBeUndefined()
 		expect(navigateTo).not.toHaveBeenCalled()
 	})
+
+	it('should reject stale persisted users after a successful empty session check', async () => {
+		const { navigateTo } = setupGlobals({
+			userStore: {
+				userDataStore: {
+					id: 'stale-user-id',
+				},
+				isLoginStore: true,
+			},
+		})
+		const middleware = await loadAuthMiddleware()
+
+		await expect(middleware()).resolves.toEqual({
+			path: '/?authError=auth_required',
+		})
+		expect(navigateTo).toHaveBeenCalledWith('/?authError=auth_required')
+	})
 })

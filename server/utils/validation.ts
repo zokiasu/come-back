@@ -1,6 +1,6 @@
 import { createError } from 'h3'
 import type { z } from 'zod'
-import type { Database } from '~/types/supabase'
+import type { Database, Json } from '~/types/supabase'
 
 type VerifiedWriteActor = {
 	role: Database['public']['Enums']['user_role']
@@ -253,6 +253,41 @@ export const validateBody = <T extends z.ZodTypeAny>(
 
 	return result.data
 }
+
+/**
+ * Converts a validated request value to the recursive JSON type expected by
+ * Supabase RPC parameters. Unsupported runtime values fail explicitly instead
+ * of being hidden behind a double type assertion.
+ */
+export const toJsonValue = (value: unknown): Json => {
+	if (
+		value === null ||
+		typeof value === 'string' ||
+		typeof value === 'boolean' ||
+		(typeof value === 'number' && Number.isFinite(value))
+	) {
+		return value
+	}
+
+	if (Array.isArray(value)) return value.map(toJsonValue)
+
+	if (typeof value === 'object') {
+		const result: { [key: string]: Json | undefined } = {}
+		for (const [key, item] of Object.entries(value)) {
+			if (item !== undefined) result[key] = toJsonValue(item)
+		}
+		return result
+	}
+
+	throw createError({
+		statusCode: 400,
+		statusMessage: 'Bad Request',
+		message: 'Request body contains a value that cannot be serialized as JSON',
+	})
+}
+
+export const toOptionalJsonValue = (value: unknown): Json | undefined =>
+	value === undefined ? undefined : toJsonValue(value)
 
 /**
  * Privileged publication state must only be writable by administrators.

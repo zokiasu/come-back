@@ -13,7 +13,10 @@ const loadHandler = async () => {
 }
 
 const setupSupabase = (result: { data?: unknown[] | null; error?: unknown }) => {
-	const query = createSupabaseQueryMock({ data: result.data ?? null, error: result.error ?? null })
+	const query = createSupabaseQueryMock({
+		data: result.data ?? null,
+		error: result.error ?? null,
+	})
 	const supabase = {
 		from: vi.fn(() => query),
 	}
@@ -27,7 +30,10 @@ const setupGlobals = () => {
 	const setHeader = vi.fn()
 
 	vi.stubGlobal('setHeader', setHeader)
-	vi.stubGlobal('getQuery', vi.fn(() => ({})))
+	vi.stubGlobal(
+		'getQuery',
+		vi.fn(() => ({})),
+	)
 	vi.stubGlobal('createError', createError)
 	vi.stubGlobal('handleSupabaseError', handleSupabaseError)
 	vi.stubGlobal('transformJunction', transformJunction)
