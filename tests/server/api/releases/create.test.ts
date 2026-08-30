@@ -137,7 +137,10 @@ describe('POST /api/releases', () => {
 	it('should create a release, link artists, add platform links and notify followers', async () => {
 		const body = {
 			release: { name: 'Armageddon' },
-			artistIds: ['a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12'],
+			artistIds: [
+				'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+				'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12',
+			],
 			platformLinks: [{ name: 'spotify', link: 'https://example.com' }],
 		}
 		const { notifyFollowersOfNewRelease } = setupGlobals(body)

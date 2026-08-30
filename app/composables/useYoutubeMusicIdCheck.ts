@@ -1,13 +1,7 @@
 import { useDebounce } from '~/composables/useDebounce'
 import { useMutationTimeout } from '~/composables/useMutationTimeout'
 
-type YtmIdStatus =
-	| 'idle'
-	| 'checking'
-	| 'available'
-	| 'exists'
-	| 'blacklisted'
-	| 'error'
+type YtmIdStatus = 'idle' | 'checking' | 'available' | 'exists' | 'blacklisted' | 'error'
 
 interface CheckYtmIdResponse {
 	status: 'available' | 'exists' | 'blacklisted'

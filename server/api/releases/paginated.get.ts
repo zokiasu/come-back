@@ -1,5 +1,6 @@
 import { applyReleaseFilters, applyVerifiedArtistFilter } from '../../utils/queryFilters'
 import { checkRateLimit, RATE_LIMIT_PRESETS } from '../../utils/rateLimit'
+import type { ReleasesPageResponse } from '~/types/api'
 
 const ALLOWED_ORDER_COLUMNS = [
 	'date',
@@ -10,7 +11,7 @@ const ALLOWED_ORDER_COLUMNS = [
 	'updated_at',
 ] as const
 
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async (event): Promise<ReleasesPageResponse> => {
 	// This endpoint backs the contributor dashboard and can expose pending releases.
 	// Keep authentication unconditional even when the request filters verified rows.
 	await requireContributor(event)

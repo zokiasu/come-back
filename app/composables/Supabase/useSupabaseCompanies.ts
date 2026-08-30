@@ -1,13 +1,6 @@
 import type { QueryOptions, FilterOptions, Company } from '~/types'
+import type { CompaniesPageResponse, CompaniesStatsResponse } from '~/types/api'
 import type { TablesInsert, TablesUpdate } from '~/types/supabase'
-
-interface CompaniesResponse {
-	companies: Company[]
-	total: number
-	page: number
-	limit: number
-	totalPages: number
-}
 
 export function useSupabaseCompanies() {
 	const toast = useToast()
@@ -142,12 +135,12 @@ export function useSupabaseCompanies() {
 				search?: string
 				includeUnverified?: boolean
 			},
-	): Promise<CompaniesResponse> => {
+	): Promise<CompaniesPageResponse> => {
 		const limit = options?.limit || 10
 		const page = options?.offset ? Math.floor(options.offset / limit) + 1 : 1
 
 		try {
-			return await $fetch<CompaniesResponse>('/api/companies/paginated', {
+			return await $fetch<CompaniesPageResponse>('/api/companies/paginated', {
 				headers:
 					options?.includeUnverified || options?.verified === false
 						? await requireAuthHeadersFromSession()
@@ -186,13 +179,7 @@ export function useSupabaseCompanies() {
 
 	// Statistiques the companies
 	const getCompaniesStats = async () => {
-		return $fetch<{
-			total: number
-			verified: number
-			totalRelations: number
-			activeRelations: number
-			typeDistribution: Record<string, number>
-		}>('/api/companies/stats', {
+		return $fetch<CompaniesStatsResponse>('/api/companies/stats', {
 			headers: await requireAuthHeadersFromSession(),
 		})
 	}

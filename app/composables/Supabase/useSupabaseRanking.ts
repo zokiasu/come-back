@@ -4,13 +4,9 @@ import type {
 	UserRankingWithItems,
 	UserRankingWithPreview,
 } from '~/types'
+import type { RankingListResponse, SuccessResponse } from '~/types/api'
 
 type RankingUpdates = Partial<Pick<UserRanking, 'name' | 'description' | 'is_public'>>
-
-type RankingListResponse = {
-	rankings: UserRankingWithPreview[]
-	total: number
-}
 
 const getErrorStatus = (error: unknown): number | undefined => {
 	if (typeof error !== 'object' || error === null) return undefined
@@ -131,7 +127,7 @@ export function useSupabaseRanking() {
 	const deleteRanking = async (id: string): Promise<boolean> => {
 		try {
 			await runMutation(
-				$fetch<{ success: boolean }>(`/api/rankings/${id}`, {
+				$fetch<SuccessResponse>(`/api/rankings/${id}`, {
 					method: 'DELETE',
 					headers: await requireAuthHeadersFromSession(),
 				}),
@@ -187,7 +183,7 @@ export function useSupabaseRanking() {
 	): Promise<boolean> => {
 		try {
 			await runMutation(
-				$fetch<{ success: boolean }>(`/api/rankings/${rankingId}/items/${musicId}`, {
+				$fetch<SuccessResponse>(`/api/rankings/${rankingId}/items/${musicId}`, {
 					method: 'DELETE',
 					headers: await requireAuthHeadersFromSession(),
 				}),
@@ -207,7 +203,7 @@ export function useSupabaseRanking() {
 	): Promise<boolean> => {
 		try {
 			await runMutation(
-				$fetch<{ success: boolean }>(`/api/rankings/${rankingId}/items/reorder`, {
+				$fetch<SuccessResponse>(`/api/rankings/${rankingId}/items/reorder`, {
 					method: 'PUT',
 					headers: await requireAuthHeadersFromSession(),
 					body: { items },

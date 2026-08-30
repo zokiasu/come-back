@@ -151,30 +151,24 @@ export const useArtistEditorForm = (options: UseArtistEditorFormOptions = {}) =>
 	})
 
 	const stylesForMenu = computed(() => {
-		return stylesList.value.map(
-			(style): MenuItem<MusicStyle> => ({
-				...style,
-				label: style.name,
-			}),
-		)
+		return stylesList.value.map((style): MenuItem<MusicStyle> => ({
+			...style,
+			label: style.name,
+		}))
 	})
 
 	const tagsForMenu = computed(() => {
-		return tagsList.value.map(
-			(tag): MenuItem<GeneralTag> => ({
-				...tag,
-				label: tag.name,
-			}),
-		)
+		return tagsList.value.map((tag): MenuItem<GeneralTag> => ({
+			...tag,
+			label: tag.name,
+		}))
 	})
 
 	const nationalitiesForMenu = computed(() => {
-		return nationalitiesList.value.map(
-			(nationality): MenuItem<Nationality> => ({
-				...nationality,
-				label: nationality.name,
-			}),
-		)
+		return nationalitiesList.value.map((nationality): MenuItem<Nationality> => ({
+			...nationality,
+			label: nationality.name,
+		}))
 	})
 
 	const companiesForMenu = computed((): CompanyMenuItem[] => {
@@ -372,15 +366,13 @@ export const useArtistEditorForm = (options: UseArtistEditorFormOptions = {}) =>
 	const buildCompanyRelationsPayload = () => {
 		return artistCompanies.value
 			.filter((relation) => Boolean(relation.company))
-			.map(
-				(relation): Omit<TablesInsert<'artist_companies'>, 'artist_id'> => ({
-					company_id: relation.company!.id,
-					relationship_type: relation.relationship_type,
-					start_date: relation.start_date,
-					end_date: relation.end_date,
-					is_current: relation.is_current,
-				}),
-			)
+			.map((relation): Omit<TablesInsert<'artist_companies'>, 'artist_id'> => ({
+				company_id: relation.company!.id,
+				relationship_type: relation.relationship_type,
+				start_date: relation.start_date,
+				end_date: relation.end_date,
+				is_current: relation.is_current,
+			}))
 	}
 
 	const addCompanyRelation = () => {

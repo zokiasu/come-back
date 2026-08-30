@@ -16,7 +16,7 @@ export default defineNuxtPlugin(() => {
 		const app = useNuxtApp()
 		app.hook('vue:error', (error, context) => {
 			// Serialize context safely
-			let contextStr = 'unknown'
+			let contextStr: string
 			try {
 				contextStr = typeof context === 'string' ? context : JSON.stringify(context)
 			} catch (_e) {

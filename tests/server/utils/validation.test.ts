@@ -8,6 +8,8 @@ import {
 	validateOrderDirection,
 	validatePageParam,
 	validateSearchParam,
+	toJsonValue,
+	toOptionalJsonValue,
 	VALIDATION_LIMITS,
 } from '#server/utils/validation'
 import {
@@ -108,6 +110,29 @@ describe('order validators', () => {
 		expect(validateOrderBy('date', allowedColumns, 'name')).toBe('date')
 		expect(validateOrderBy('created_at', allowedColumns, 'name')).toBe('name')
 		expect(validateOrderBy(undefined, allowedColumns, 'name')).toBe('name')
+	})
+})
+
+describe('JSON conversion', () => {
+	it('recursively converts validated objects and omits undefined properties', () => {
+		expect(
+			toJsonValue({
+				name: 'aespa',
+				active: true,
+				links: ['official', null],
+				omitted: undefined,
+			}),
+		).toEqual({
+			name: 'aespa',
+			active: true,
+			links: ['official', null],
+		})
+		expect(toOptionalJsonValue(undefined)).toBeUndefined()
+	})
+
+	it('rejects values that JSON cannot represent safely', () => {
+		expectBadRequest(() => toJsonValue(Number.NaN))
+		expectBadRequest(() => toJsonValue(Symbol('invalid')))
 	})
 })
 

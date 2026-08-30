@@ -37,23 +37,11 @@ export type Nationality = Tables<'nationalities'>
 export type Company = Tables<'companies'>
 
 // Types for the rankings user
-export interface UserRanking {
-	id: string
-	user_id: string
-	name: string
-	description: string | null
+export type UserRanking = Omit<Tables<'user_rankings'>, 'is_public'> & {
 	is_public: boolean
-	created_at: string | null
-	updated_at: string | null
 }
 
-export interface UserRankingItem {
-	id: string
-	ranking_id: string
-	music_id: string
-	position: number
-	added_at: string | null
-}
+export type UserRankingItem = Tables<'user_ranking_items'>
 
 export interface UserRankingWithItems extends UserRanking {
 	items: (UserRankingItem & { music: Music })[]
@@ -101,13 +89,7 @@ export type ArtistEditorModel = {
 export type ReleaseType = Database['public']['Enums']['release_type']
 export type MusicType = Database['public']['Enums']['music_type']
 export type CompanyType =
-	| 'LABEL'
-	| 'PUBLISHER'
-	| 'DISTRIBUTOR'
-	| 'MANAGER'
-	| 'AGENCY'
-	| 'STUDIO'
-	| 'OTHER'
+	'LABEL' | 'PUBLISHER' | 'DISTRIBUTOR' | 'MANAGER' | 'AGENCY' | 'STUDIO' | 'OTHER'
 
 // Extended types for relations
 export type CompanyArtist = Tables<'artist_companies'> & {
@@ -156,14 +138,6 @@ declare global {
 	}
 }
 
-export interface PaginatedResponse<T> {
-	items: T[]
-	total: number
-	page: number
-	limit: number
-	totalPages: number
-}
-
 /**
  * Type for artist menu items, compatible with `UInputMenu`
  * Extracts only the required fields to avoid type conflicts
@@ -206,12 +180,10 @@ export interface PushPayload {
 	tag?: string
 }
 
-export interface NotificationPreferences {
-	user_id: string
-	push_enabled: boolean
-	daily_comeback: boolean
-	weekly_comeback: boolean
-	followed_artist_alerts: boolean
+export type NotificationPreferences = Omit<
+	Tables<'notification_preferences'>,
+	'updated_at'
+> & {
 	updated_at: string | null
 }
 

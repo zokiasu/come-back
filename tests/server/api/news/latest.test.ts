@@ -12,7 +12,10 @@ const loadHandler = async () => {
 }
 
 const setupSupabase = (result: { data?: unknown[] | null; error?: unknown }) => {
-	const query = createSupabaseQueryMock({ data: result.data ?? null, error: result.error ?? null })
+	const query = createSupabaseQueryMock({
+		data: result.data ?? null,
+		error: result.error ?? null,
+	})
 	const supabase = {
 		from: vi.fn(() => query),
 	}

@@ -16,18 +16,13 @@ export default defineEventHandler(async (event) => {
 
 	const supabase = useServerSupabase()
 
-	// ignored_artists is not in the generated Database types yet, so we cast to query it
-	const supabaseUntyped = supabase as unknown as {
-		from: (table: string) => ReturnType<typeof supabase.from>
-	}
-
 	const [artistResult, ignoredResult] = await Promise.all([
 		supabase
 			.from('artists')
 			.select('id, name')
 			.eq('id_youtube_music', sanitizedId)
 			.maybeSingle(),
-		supabaseUntyped
+		supabase
 			.from('ignored_artists')
 			.select('id, reason')
 			.eq('id_youtube_music', sanitizedId)
@@ -42,7 +37,7 @@ export default defineEventHandler(async (event) => {
 		throw handleSupabaseError(ignoredResult.error, 'check-youtube-id.ignored_artists')
 	}
 
-	const ignoredData = ignoredResult.data as { id: string; reason: string | null } | null
+	const ignoredData = ignoredResult.data
 	const artistData = artistResult.data
 
 	if (ignoredData) {

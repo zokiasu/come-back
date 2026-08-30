@@ -67,8 +67,17 @@ describe('notification list/read API', () => {
 			count: 31,
 			error: null,
 		})
+		const unreadQuery = createSupabaseQueryMock({
+			data: null,
+			count: 4,
+			error: null,
+		})
+		const from = vi
+			.fn()
+			.mockReturnValueOnce(notificationsQuery)
+			.mockReturnValueOnce(unreadQuery)
 		vi.stubGlobal('useServerSupabase', () => ({
-			from: vi.fn(() => notificationsQuery),
+			from,
 		}))
 
 		const handler = await loadListHandler()
@@ -89,9 +98,15 @@ describe('notification list/read API', () => {
 		expect(result).toEqual({
 			notifications,
 			total: 31,
+			unread: 4,
 			page: 2,
 			limit: 30,
 		})
+		expect(unreadQuery.calls).toEqual([
+			{ method: 'select', args: ['id', { count: 'exact', head: true }] },
+			{ method: 'eq', args: ['user_id', 'user-id'] },
+			{ method: 'eq', args: ['read', false] },
+		])
 	})
 
 	it('should clamp invalid notification pages to page 1', async () => {
@@ -106,8 +121,16 @@ describe('notification list/read API', () => {
 			count: 0,
 			error: null,
 		})
+		const unreadQuery = createSupabaseQueryMock({
+			data: null,
+			count: 0,
+			error: null,
+		})
 		vi.stubGlobal('useServerSupabase', () => ({
-			from: vi.fn(() => notificationsQuery),
+			from: vi
+				.fn()
+				.mockReturnValueOnce(notificationsQuery)
+				.mockReturnValueOnce(unreadQuery),
 		}))
 
 		const handler = await loadListHandler()

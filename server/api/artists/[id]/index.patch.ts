@@ -1,5 +1,9 @@
-import type { Json } from '~/types/supabase'
-import { assertCanSetVerified, validateBody } from '../../../utils/validation'
+import {
+	assertCanSetVerified,
+	toJsonValue,
+	toOptionalJsonValue,
+	validateBody,
+} from '../../../utils/validation'
 import { updateArtistBodySchema } from '../../../utils/schemas'
 
 export default defineEventHandler(async (event) => {
@@ -37,13 +41,13 @@ export default defineEventHandler(async (event) => {
 		p_artist_id: artistId,
 		p_updates:
 			body.updates && Object.keys(body.updates).length > 0
-				? (body.updates as unknown as Json)
+				? toJsonValue(body.updates)
 				: undefined,
-		p_social_links: body.socialLinks as unknown as Json | undefined,
-		p_platform_links: body.platformLinks as unknown as Json | undefined,
-		p_group_ids: body.groupIds as unknown as Json | undefined,
-		p_member_ids: body.memberIds as unknown as Json | undefined,
-		p_companies: body.companies as unknown as Json | undefined,
+		p_social_links: toOptionalJsonValue(body.socialLinks),
+		p_platform_links: toOptionalJsonValue(body.platformLinks),
+		p_group_ids: toOptionalJsonValue(body.groupIds),
+		p_member_ids: toOptionalJsonValue(body.memberIds),
+		p_companies: toOptionalJsonValue(body.companies),
 	})
 
 	if (error) throw handleSupabaseError(error, 'artists.update')

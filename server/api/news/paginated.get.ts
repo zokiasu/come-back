@@ -1,4 +1,5 @@
 import type { Tables } from '../../types/api'
+import type { NewsPageResponse } from '~/types/api'
 import { validateIntegerParam } from '../../utils/validation'
 
 const NEWS_ORDER_COLUMNS = ['date', 'created_at', 'message', 'verified'] as const
@@ -8,7 +9,7 @@ type RawNews = Tables<'news'> & {
 	contributions?: { user: Tables<'users'> | null }[]
 }
 
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async (event): Promise<NewsPageResponse> => {
 	await requireContributor(event)
 	setHeader(event, 'Cache-Control', 'private, no-store')
 

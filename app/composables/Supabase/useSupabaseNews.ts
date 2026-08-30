@@ -1,13 +1,6 @@
 import type { News, QueryOptions, FilterOptions } from '~/types'
+import type { NewsPageResponse } from '~/types/api'
 import type { TablesInsert, TablesUpdate } from '~/types/supabase'
-
-interface NewsResponse {
-	news: News[]
-	total: number
-	page: number
-	limit: number
-	totalPages: number
-}
 
 export function useSupabaseNews() {
 	const toast = useToast()
@@ -118,7 +111,7 @@ export function useSupabaseNews() {
 	// Fetch all news
 	const getAllNews = async (
 		options?: QueryOptions & FilterOptions,
-	): Promise<NewsResponse> => {
+	): Promise<NewsPageResponse> => {
 		const query: Record<string, string | number | boolean> = {}
 		if (options?.search) query.search = options.search
 		if (options?.startDate) query.startDate = options.startDate
@@ -129,7 +122,7 @@ export function useSupabaseNews() {
 		if (options?.limit) query.limit = options.limit
 		if (options?.offset !== undefined) query.offset = options.offset
 
-		return $fetch<NewsResponse>('/api/news/paginated', {
+		return $fetch<NewsPageResponse>('/api/news/paginated', {
 			query,
 			headers: getAuthHeaders(),
 		})

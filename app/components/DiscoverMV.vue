@@ -245,11 +245,7 @@
 	const getYouTubeThumbnail = (
 		videoId: string,
 		quality:
-			| 'default'
-			| 'mqdefault'
-			| 'hqdefault'
-			| 'sddefault'
-			| 'maxresdefault' = 'hqdefault',
+			'default' | 'mqdefault' | 'hqdefault' | 'sddefault' | 'maxresdefault' = 'hqdefault',
 	) => {
 		return `https://img.youtube.com/vi/${videoId}/${quality}.jpg`
 	}

@@ -1,5 +1,6 @@
 import type { Database } from '~/types/supabase'
 import type { Artist } from '~/types'
+import type { ArtistsPageResponse } from '~/types/api'
 import { checkRateLimit, RATE_LIMIT_PRESETS } from '../../utils/rateLimit'
 
 type ArtistType = Database['public']['Enums']['artist_type']
@@ -28,7 +29,7 @@ const asBool = (value: unknown): boolean => value === 'true' || value === true
  * the ordered page of ids + the full filtered count; we then hydrate those ids
  * with their relations in a second query and restore the RPC order.
  */
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async (event): Promise<ArtistsPageResponse> => {
 	checkRateLimit(event, RATE_LIMIT_PRESETS.paginated)
 
 	// This endpoint is auth-gated for non-public listings and returns
@@ -60,10 +61,17 @@ export default defineEventHandler(async (event) => {
 		const page = validatePageParam(Number(query.page))
 		const limit = validateLimitParam(Number(query.limit), 20)
 		const search = validateSearchParam(query.search as string | undefined)
-		const orderBy = validateOrderBy(query.orderBy as string, ALLOWED_ORDER_COLUMNS, 'name')
+		const orderBy = validateOrderBy(
+			query.orderBy as string,
+			ALLOWED_ORDER_COLUMNS,
+			'name',
+		)
 		const orderDirection = validateOrderDirection(query.orderDirection as string, 'asc')
 		const generalTags = validateArrayParam(query.general_tags as string, 'general_tags')
-		const nationalities = validateArrayParam(query.nationalities as string, 'nationalities')
+		const nationalities = validateArrayParam(
+			query.nationalities as string,
+			'nationalities',
+		)
 		const styles = validateArrayParam(query.styles as string, 'styles')
 		const type = query.type as ArtistType | undefined
 		const gender = query.gender as string | undefined

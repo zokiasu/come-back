@@ -1,4 +1,6 @@
-export default defineEventHandler(async (event) => {
+import type { NotificationsResponse } from '~/types/api'
+
+export default defineEventHandler(async (event): Promise<NotificationsResponse> => {
 	const user = await requireAuth(event)
 	setHeader(event, 'Cache-Control', 'no-store')
 	const query = getQuery(event)
@@ -8,16 +10,34 @@ export default defineEventHandler(async (event) => {
 
 	const supabase = useServerSupabase()
 
-	const { data, error, count } = await supabase
-		.from('user_notifications')
-		.select('id, type, title, message, artist_id, release_id, read, created_at', {
-			count: 'exact',
-		})
-		.eq('user_id', user.id)
-		.order('created_at', { ascending: false })
-		.range(offset, offset + limit - 1)
+	const [notificationsResult, unreadResult] = await Promise.all([
+		supabase
+			.from('user_notifications')
+			.select('id, type, title, message, artist_id, release_id, read, created_at', {
+				count: 'exact',
+			})
+			.eq('user_id', user.id)
+			.order('created_at', { ascending: false })
+			.range(offset, offset + limit - 1),
+		supabase
+			.from('user_notifications')
+			.select('id', { count: 'exact', head: true })
+			.eq('user_id', user.id)
+			.eq('read', false),
+	])
 
-	if (error) throw handleSupabaseError(error, 'user_notifications.select')
+	if (notificationsResult.error) {
+		throw handleSupabaseError(notificationsResult.error, 'user_notifications.select')
+	}
+	if (unreadResult.error) {
+		throw handleSupabaseError(unreadResult.error, 'user_notifications.unread-count')
+	}
 
-	return { notifications: data ?? [], total: count ?? 0, page, limit }
+	return {
+		notifications: notificationsResult.data ?? [],
+		total: notificationsResult.count ?? 0,
+		unread: unreadResult.count ?? 0,
+		page,
+		limit,
+	}
 })

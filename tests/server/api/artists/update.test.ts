@@ -112,7 +112,10 @@ describe('PATCH /api/artists/[id]', () => {
 	})
 
 	it('omits p_updates when the updates object is empty', async () => {
-		setupGlobals({ updates: {}, companies: [{ company_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a13' }] })
+		setupGlobals({
+			updates: {},
+			companies: [{ company_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a13' }],
+		})
 		const { rpc } = setupSupabase()
 
 		const handler = await loadHandler()
@@ -120,7 +123,9 @@ describe('PATCH /api/artists/[id]', () => {
 
 		const [, args] = rpc.mock.calls[0] as unknown as [string, Record<string, unknown>]
 		expect(args.p_updates).toBeUndefined()
-		expect(args.p_companies).toEqual([{ company_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a13' }])
+		expect(args.p_companies).toEqual([
+			{ company_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a13' },
+		])
 	})
 
 	it('returns 409 on a YouTube Music ID conflict before calling the RPC', async () => {

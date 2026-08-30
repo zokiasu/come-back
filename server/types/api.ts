@@ -13,23 +13,6 @@ export type TablesUpdate<T extends keyof Database['public']['Tables']> =
 	Database['public']['Tables'][T]['Update']
 
 /**
- * Common API response structures
- */
-
-/**
- * Paginated response wrapper
- */
-export interface PaginatedResponse<T> {
-	data: T[]
-	pagination: {
-		page: number
-		limit: number
-		total: number
-		totalPages: number
-	}
-}
-
-/**
  * Artist with full relations
  */
 export interface ArtistWithRelations extends Tables<'artists'> {
@@ -59,5 +42,3 @@ export interface MusicWithRelations extends Tables<'musics'> {
 	artists?: Tables<'artists'>[]
 	releases?: Tables<'releases'>[]
 }
-
-

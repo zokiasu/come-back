@@ -1,5 +1,5 @@
 <script setup lang="ts">
-	import type { AppNotification } from '~/composables/useNotifications'
+	import type { AppNotification } from '~/types/api'
 
 	const {
 		notifications,

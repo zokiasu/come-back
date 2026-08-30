@@ -1,4 +1,5 @@
 import type { Artist, ArtistType } from '~/types'
+import type { ArtistsPageResponse } from '~/types/api'
 
 export interface ArtistPageOptions {
 	search?: string
@@ -19,10 +20,4 @@ export interface ArtistPageOptions {
 	skipYoutubeMusicFilter?: boolean
 }
 
-export interface ArtistPageResult {
-	artists: Artist[]
-	total: number
-	page: number
-	limit: number
-	totalPages: number
-}
+export type ArtistPageResult = ArtistsPageResponse

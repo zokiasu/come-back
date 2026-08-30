@@ -214,7 +214,9 @@
 	const { getMusicsByPage } = useSupabaseMusic()
 	const loadMoreTrigger = ref<HTMLElement | null>(null)
 
-	const mvs = ref<Music[]>([])
+	// Relation-rich Supabase types are recursive (music -> releases -> musics).
+	// A shallow ref avoids Vue trying to deeply unwrap that graph at type level.
+	const mvs = shallowRef<Music[]>([])
 	const currentPage = ref(1)
 	const totalPages = ref(1)
 	const totalMvs = ref(0)

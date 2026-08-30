@@ -1,13 +1,6 @@
 import type { MusicType, Music } from '~/types'
+import type { MusicsPageResponse } from '~/types/api'
 import type { TablesUpdate } from '~/types/supabase'
-
-interface PaginatedMusicsResponse {
-	musics: Music[]
-	total: number
-	page: number
-	limit: number
-	totalPages: number
-}
 
 export function useSupabaseMusic() {
 	const toast = useToast()
@@ -15,10 +8,7 @@ export function useSupabaseMusic() {
 	const { runMutation } = useMutationTimeout()
 
 	// Updates a music
-	const updateMusic = async (
-		id: string,
-		updates: Partial<TablesUpdate<'musics'>>,
-	) => {
+	const updateMusic = async (id: string, updates: Partial<TablesUpdate<'musics'>>) => {
 		try {
 			const data = await runMutation(
 				$fetch<Music>(`/api/musics/${id}`, {
@@ -158,7 +148,7 @@ export function useSupabaseMusic() {
 			}
 
 			// Call the optimized API endpoint
-			const result = await $fetch<PaginatedMusicsResponse>('/api/musics/paginated', {
+			const result = await $fetch<MusicsPageResponse>('/api/musics/paginated', {
 				params,
 				headers: params.verified === 'true' ? undefined : requireAuthHeaders(),
 			})

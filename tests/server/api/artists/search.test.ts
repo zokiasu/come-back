@@ -46,6 +46,7 @@ const createFallbackQuery = (result: {
 		select: vi.fn(() => query),
 		eq: vi.fn(() => query),
 		ilike: vi.fn(() => query),
+		in: vi.fn(() => query),
 		order: vi.fn(() => query),
 		limit: vi.fn(() => query),
 		then: (resolve: (value: typeof result) => unknown) =>
@@ -55,13 +56,16 @@ const createFallbackQuery = (result: {
 	return query
 }
 
-	describe('GET /api/artists/search', () => {
+describe('GET /api/artists/search', () => {
 	beforeEach(() => {
 		vi.resetModules()
 		vi.unstubAllGlobals()
 		vi.clearAllMocks()
 		vi.spyOn(console, 'warn').mockImplementation(() => undefined)
-		vi.stubGlobal('getRequestIP', vi.fn(() => '127.0.0.1'))
+		vi.stubGlobal(
+			'getRequestIP',
+			vi.fn(() => '127.0.0.1'),
+		)
 	})
 
 	it('should return no artists for searches shorter than two characters', async () => {
@@ -86,8 +90,10 @@ const createFallbackQuery = (result: {
 			},
 		]
 		setupGlobals({ search: '  new   jeans  ', limit: '5', type: 'group' })
+		const hydrateQuery = createFallbackQuery({ data: artists, error: null })
 		const supabase = {
 			rpc: vi.fn(async () => ({ data: artists, error: null })),
+			from: vi.fn(() => hydrateQuery),
 		}
 		mockSupabaseModule(supabase)
 
@@ -99,6 +105,8 @@ const createFallbackQuery = (result: {
 			result_limit: 5,
 			artist_type: 'GROUP',
 		})
+		expect(hydrateQuery.select).toHaveBeenCalledWith('*')
+		expect(hydrateQuery.in).toHaveBeenCalledWith('id', ['artist-id'])
 		expect(result).toEqual({ artists })
 	})
 
@@ -125,9 +133,7 @@ const createFallbackQuery = (result: {
 		const result = await handler({})
 
 		expect(supabase.from).toHaveBeenCalledWith('artists')
-		expect(fallbackQuery.select).toHaveBeenCalledWith(
-			'id, name, image, description, verified',
-		)
+		expect(fallbackQuery.select).toHaveBeenCalledWith('*')
 		expect(fallbackQuery.eq).toHaveBeenCalledWith('verified', true)
 		expect(fallbackQuery.eq).toHaveBeenCalledWith('type', 'SOLO')
 		expect(fallbackQuery.ilike).toHaveBeenCalledWith('name', '%aespa%')

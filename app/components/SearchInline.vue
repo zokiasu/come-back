@@ -1,6 +1,7 @@
 <script setup lang="ts">
 	import { onClickOutside, useMediaQuery } from '@vueuse/core'
 	import type { Artist } from '~/types'
+	import type { SearchMusic, SearchRelease } from '~/types/api'
 
 	const props = withDefaults(
 		defineProps<{
@@ -24,25 +25,8 @@
 	const containerRef = ref<HTMLElement | null>(null)
 	const searchInput = ref('')
 	const artists = ref<Artist[]>([])
-	const releases = ref<
-		Array<{
-			id: string
-			name: string
-			image?: string | null
-			artists?: Artist[]
-			musics?: Array<{ id_youtube_music?: string | null; name?: string | null }>
-		}>
-	>([])
-	const musics = ref<
-		Array<{
-			id: string
-			name: string
-			thumbnails?: unknown
-			artists?: Artist[]
-			releases?: Array<{ id: string; name: string; image?: string | null }>
-			id_youtube_music?: string | null
-		}>
-	>([])
+	const releases = ref<SearchRelease[]>([])
+	const musics = ref<SearchMusic[]>([])
 	const isLoading = ref(false)
 	const isOpen = ref(false)
 	const activeIndex = ref(-1)
@@ -217,11 +201,7 @@
 		}
 	}
 
-	const getReleasePreview = (release: {
-		musics?: Array<{ id_youtube_music?: string | null; name?: string | null }>
-		artists?: Artist[]
-		name: string
-	}) => {
+	const getReleasePreview = (release: SearchRelease) => {
 		const withMv = release.musics?.find((m) => m?.id_youtube_music)
 		const fallback = release.musics?.[0]
 		const preview = withMv || fallback
@@ -495,12 +475,8 @@
 					>
 						<div class="bg-cb-quinary-900 h-8 w-8 overflow-hidden rounded">
 							<NuxtImg
-								v-if="
-									music.thumbnails &&
-									Array.isArray(music.thumbnails) &&
-									music.thumbnails[0]
-								"
-								:src="(music.thumbnails[0] as { url?: string }).url"
+								v-if="music.thumbnailUrl"
+								:src="music.thumbnailUrl"
 								:alt="music.name"
 								format="webp"
 								class="h-full w-full object-cover"

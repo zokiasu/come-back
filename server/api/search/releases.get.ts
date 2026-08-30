@@ -1,4 +1,6 @@
-export default defineEventHandler(async (event) => {
+import type { SearchReleaseResponse } from '~/types/api'
+
+export default defineEventHandler(async (event): Promise<SearchReleaseResponse> => {
 	checkRateLimit(event, RATE_LIMIT_PRESETS.search)
 	setHeader(event, 'Cache-Control', 'public, max-age=60, stale-while-revalidate=300')
 

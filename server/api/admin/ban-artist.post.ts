@@ -30,12 +30,7 @@ export default defineEventHandler(async (event) => {
 		throw createBadRequestError('Cannot ban an artist without a YouTube Music ID')
 	}
 
-	// Insert into ignored_artists (not in generated types, use untyped cast)
-	const supabaseUntyped = supabase as unknown as {
-		from: (table: string) => ReturnType<typeof supabase.from>
-	}
-
-	const { error: upsertError } = await supabaseUntyped
+	const { error: upsertError } = await supabase
 		.from('ignored_artists')
 		.upsert(
 			{ id_youtube_music: artist.id_youtube_music, reason },
