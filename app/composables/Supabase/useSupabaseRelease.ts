@@ -5,6 +5,8 @@ export function useSupabaseRelease() {
 	const toast = useToast()
 	const { requireAuthHeaders } = useApiAuthHeaders()
 	const { runMutation } = useMutationTimeout()
+	const releaseEndpoint = (id: string): '/api/releases/:id' =>
+		`/api/releases/${id}` as '/api/releases/:id'
 
 	// Updates a release
 	const updateRelease = async (
@@ -14,7 +16,7 @@ export function useSupabaseRelease() {
 	): Promise<Release | null> => {
 		try {
 			const data = await runMutation(
-				$fetch<Release>(`/api/releases/${id}`, {
+				$fetch<Release, '/api/releases/:id'>(releaseEndpoint(id), {
 					method: 'PATCH',
 					headers: requireAuthHeaders(),
 					body: {
@@ -43,7 +45,7 @@ export function useSupabaseRelease() {
 	const deleteRelease = async (id: string) => {
 		try {
 			await runMutation(
-				$fetch(`/api/releases/${id}`, {
+				$fetch<unknown, '/api/releases/:id'>(releaseEndpoint(id), {
 					method: 'DELETE',
 					headers: requireAuthHeaders(),
 				}),

@@ -20,7 +20,6 @@
 	const currentTime = ref(0)
 	const duration = ref(0)
 	const globalPlayerContainer = useTemplateRef('globalPlayerContainer')
-	// @ts-expect-error - YT namespace from YouTube IFrame API
 	const player = ref<YT.Player | null>(null)
 	const volumeOn = ref(true)
 	const volume = ref(20)
@@ -82,7 +81,6 @@
 		}
 	}
 
-	// @ts-expect-error - YT namespace from YouTube IFrame API
 	const onPlayerReady = async (event: YT.PlayerEvent) => {
 		logPlayerTrace('Player ready')
 		isPlayerReady.value = true
@@ -92,7 +90,6 @@
 		errorMessage.value = ''
 	}
 
-	// @ts-expect-error - YT namespace from YouTube IFrame API
 	const onPlayerStateChange = (event: YT.OnStateChangeEvent) => {
 		if (!import.meta.client) return
 
@@ -100,7 +97,7 @@
 		if (isPlaying.value) {
 			errorDetected.value = false
 			errorMessage.value = ''
-			duration.value = player.value?.getDuration()
+			duration.value = player.value?.getDuration() ?? 0
 		}
 
 		// Handle playlist end-of-video events
@@ -130,7 +127,6 @@
 		logPlayerTrace('Player state', states[event.data] || event.data)
 	}
 
-	// @ts-expect-error - YT namespace from YouTube IFrame API
 	const onPlayerError = (event: YT.OnErrorEvent) => {
 		console.error('[YoutubePlayer] YouTube player error', event.data)
 		errorDetected.value = true
@@ -582,8 +578,7 @@
 							:ui="{
 								track: 'h-1 rounded-full',
 								thumb: 'h-3 w-3 rounded-full focus:outline-none',
-								// @ts-expect-error - USlider ui accepts progress but types don't include it
-								progress: 'h-1 rounded-full',
+								range: 'h-1 rounded-full',
 							}"
 							@update:model-value="setVolume"
 						/>
@@ -703,8 +698,7 @@
 					:ui="{
 						track: 'h-1.5 rounded-full cursor-pointer',
 						thumb: 'h-3 w-3 rounded-full cursor-pointer focus:outline-none',
-						// @ts-expect-error - USlider ui accepts progress but types don't include it
-						progress: 'h-1.5 rounded-full',
+						range: 'h-1.5 rounded-full',
 					}"
 					@update:model-value="onSeekEnd"
 					@mousedown="onSeekStart"

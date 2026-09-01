@@ -17,7 +17,6 @@
 	const showThumbnail = ref(true)
 	const isThumbsScrolling = ref(false)
 	let thumbsScrollTimeout: ReturnType<typeof setTimeout> | null = null
-	// @ts-expect-error - YT namespace from YouTube IFrame API
 	const player = ref<YT.Player | null>(null)
 	const playerContainer = useTemplateRef('playerContainer')
 	const isPlayerReady = ref(false)
@@ -163,13 +162,11 @@
 					origin: import.meta.client ? window.location.origin : 'https://localhost',
 				},
 				events: {
-					// @ts-expect-error - YT namespace from YouTube IFrame API
 					onReady: (_event: YT.PlayerEvent) => {
 						logDiscoverTrace('YouTube player ready')
 						isPlayerReady.value = true
 						isPlaying.value = true
 					},
-					// @ts-expect-error - YT namespace from YouTube IFrame API
 					onStateChange: (event: YT.OnStateChangeEvent) => {
 						logDiscoverTrace('Player state changed', event.data)
 						if (event.data === window.YT.PlayerState.ENDED) {

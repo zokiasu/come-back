@@ -1082,6 +1082,10 @@ export type Database = {
 					isSetofReturn: false
 				}
 			}
+			create_confirmed_release_atomic: {
+				Args: { p_artist_id: string; p_release: Json; p_tracks: Json }
+				Returns: Json
+			}
 			delete_artist_safely: { Args: { artist_id_param: string }; Returns: Json }
 			delete_artist_simple: { Args: { artist_id_param: string }; Returns: Json }
 			firebase_id_to_uuid: { Args: { firebase_id: string }; Returns: string }
