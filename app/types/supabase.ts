@@ -1181,6 +1181,12 @@ export type Database = {
 					verified: boolean
 				}[]
 			}
+			get_random_discover_music_ids: {
+				Args: { count_param: number }
+				Returns: {
+					id: string
+				}[]
+			}
 			get_random_music_ids: {
 				Args: { count_param: number }
 				Returns: {

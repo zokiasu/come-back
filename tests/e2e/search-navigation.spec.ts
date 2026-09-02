@@ -18,9 +18,62 @@ const artist = {
 	companies: [],
 }
 
+const createDiscoverMusic = (
+	id: string,
+	name: string,
+	artistName: string,
+	date: string,
+) => ({
+	id: `music-${id}`,
+	name,
+	id_youtube_music: `youtube-${id}`,
+	duration: 180,
+	thumbnails: [
+		{ url: `/slider-placeholder.webp?music=${id}&size=small` },
+		{ url: `/slider-placeholder.webp?music=${id}&size=large` },
+	],
+	type: 'SONG',
+	date,
+	artists: [
+		{
+			id: `artist-${artistName.toLowerCase().replaceAll(' ', '-')}`,
+			name: artistName,
+			image: null,
+		},
+	],
+	releases: [{ id: `release-${id}`, name: `${name} - Single` }],
+})
+
+const initialDiscoverMusics = [
+	createDiscoverMusic('supernova', 'Supernova', 'aespa', '2026-08-29'),
+	createDiscoverMusic('heya', 'HEYA', 'IVE', '2026-08-28'),
+	createDiscoverMusic('easy', 'EASY', 'LE SSERAFIM', '2026-08-27'),
+	createDiscoverMusic('magnetic', 'Magnetic', 'ILLIT', '2026-08-26'),
+	createDiscoverMusic('sheesh', 'SHEESH', 'BABYMONSTER', '2026-08-25'),
+	createDiscoverMusic('how-sweet', 'How Sweet', 'NewJeans', '2026-08-24'),
+	createDiscoverMusic('abcd', 'ABCD', 'NAYEON', '2026-08-23'),
+	createDiscoverMusic('cosmic', 'Cosmic', 'Red Velvet', '2026-08-22'),
+	createDiscoverMusic('sticky', 'Sticky', 'KISS OF LIFE', '2026-08-21'),
+]
+
+const refreshedDiscoverMusics = [
+	createDiscoverMusic('whiplash', 'Whiplash', 'aespa', '2026-09-01'),
+	createDiscoverMusic('rebel-heart', 'REBEL HEART', 'IVE', '2026-08-31'),
+	createDiscoverMusic('crazy', 'CRAZY', 'LE SSERAFIM', '2026-08-30'),
+	createDiscoverMusic('cherish', 'Cherish', 'ILLIT', '2026-08-29'),
+	createDiscoverMusic('drip', 'DRIP', 'BABYMONSTER', '2026-08-28'),
+	createDiscoverMusic('supernatural', 'Supernatural', 'NewJeans', '2026-08-27'),
+	createDiscoverMusic('run-away', 'Run Away', 'TZUYU', '2026-08-26'),
+	createDiscoverMusic('strategy', 'Strategy', 'TWICE', '2026-08-25'),
+	createDiscoverMusic('midas-touch', 'Midas Touch', 'KISS OF LIFE', '2026-08-24'),
+]
+
 async function mockApi(page: Page) {
+	const discoverMusicRequests: string[] = []
+
 	await page.route('**/api/**', async (route) => {
-		const pathname = new URL(route.request().url()).pathname
+		const requestUrl = new URL(route.request().url())
+		const { pathname } = requestUrl
 
 		if (pathname === '/api/news/latest') {
 			await route.fulfill({
@@ -32,6 +85,32 @@ async function mockApi(page: Page) {
 						artists: [artist],
 					},
 				],
+			})
+			return
+		}
+
+		if (pathname === '/api/releases/latest') {
+			await route.fulfill({ json: [] })
+			return
+		}
+
+		if (pathname === '/api/artists/latest') {
+			await route.fulfill({ json: [] })
+			return
+		}
+
+		if (pathname === '/api/musics/latest-mvs') {
+			await route.fulfill({ json: [] })
+			return
+		}
+
+		if (pathname === '/api/musics/random') {
+			discoverMusicRequests.push(requestUrl.toString())
+			await route.fulfill({
+				json:
+					discoverMusicRequests.length === 1
+						? initialDiscoverMusics
+						: refreshedDiscoverMusics,
 			})
 			return
 		}
@@ -72,6 +151,8 @@ async function mockApi(page: Page) {
 
 		await route.continue()
 	})
+
+	return { discoverMusicRequests }
 }
 
 test('opens an artist page from the global search', async ({ page }) => {
@@ -116,5 +197,56 @@ test('renders the homepage slider after the Swiper upgrade', async ({ page }) =>
 	await expect(
 		page.getByRole('link', { name: 'aespa', exact: true }).first(),
 	).toBeVisible()
+	expect(pageErrors).toEqual([])
+})
+
+test('reloads all nine Discover Music tracks with one fresh request', async ({
+	page,
+}) => {
+	const pageErrors: string[] = []
+	page.on('pageerror', (error) => pageErrors.push(error.message))
+	const { discoverMusicRequests } = await mockApi(page)
+
+	const response = await page.goto('/mvs')
+	expect(response?.status()).toBe(200)
+	await expect(page.getByRole('heading', { name: 'MV releases by day' })).toBeVisible()
+
+	await page.getByRole('link', { name: 'Home', exact: true }).click()
+	await expect(page).toHaveURL('/')
+
+	const discoverHeading = page.getByRole('heading', {
+		name: 'Discover Music',
+		exact: true,
+	})
+	await expect(discoverHeading).toBeVisible()
+	const discoverSection = discoverHeading.locator('xpath=../..')
+	const visibleTrackActions = discoverSection.getByRole('button', { name: /^Play / })
+
+	await expect(visibleTrackActions).toHaveCount(9)
+	await expect(
+		discoverSection.getByRole('button', { name: 'Play Supernova', exact: true }),
+	).toBeVisible()
+	await expect.poll(() => discoverMusicRequests.length).toBe(1)
+
+	const initialRequestUrl = new URL(discoverMusicRequests[0]!)
+	expect(initialRequestUrl.searchParams.get('limit')).toBe('9')
+	expect(initialRequestUrl.searchParams.get('fresh')).toBeNull()
+	expect(initialRequestUrl.searchParams.get('_t')).toBeNull()
+
+	await discoverSection.getByRole('button', { name: 'Reload', exact: true }).click()
+
+	await expect(
+		discoverSection.getByRole('button', { name: 'Play Whiplash', exact: true }),
+	).toBeVisible()
+	await expect(visibleTrackActions).toHaveCount(9)
+	await expect(
+		discoverSection.getByRole('button', { name: 'Play Supernova', exact: true }),
+	).toHaveCount(0)
+	await expect.poll(() => discoverMusicRequests.length).toBe(2)
+
+	const refreshedRequestUrl = new URL(discoverMusicRequests[1]!)
+	expect(refreshedRequestUrl.searchParams.get('limit')).toBe('9')
+	expect(refreshedRequestUrl.searchParams.get('fresh')).toBe('true')
+	expect(refreshedRequestUrl.searchParams.get('_t')).toBeNull()
 	expect(pageErrors).toEqual([])
 })

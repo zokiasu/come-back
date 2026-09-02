@@ -12,8 +12,13 @@
 		albumName,
 		albumId,
 		musicImage,
+		musicImageSrcset,
+		musicImageSizes,
+		musicImageWidth,
+		musicImageHeight,
 		ismv,
 		horizontalMode,
+		responsiveArtwork,
 		artists,
 		releases,
 	} = defineProps({
@@ -49,6 +54,18 @@
 			type: String,
 			required: true,
 		},
+		musicImageSrcset: {
+			type: String,
+		},
+		musicImageSizes: {
+			type: String,
+		},
+		musicImageWidth: {
+			type: Number,
+		},
+		musicImageHeight: {
+			type: Number,
+		},
 		musicId: {
 			type: String,
 			required: true,
@@ -60,6 +77,9 @@
 			type: Boolean,
 		},
 		horizontalMode: {
+			type: Boolean,
+		},
+		responsiveArtwork: {
 			type: Boolean,
 		},
 	})
@@ -75,6 +95,14 @@
 		if (hasMusicImageError.value) return fallbackMusicImage
 		if (typeof musicImage === 'string' && musicImage.trim().length > 0) return musicImage
 		return fallbackMusicImage
+	})
+	const resolvedMusicImageSrcset = computed(() => {
+		if (hasMusicImageError.value) return undefined
+		return musicImageSrcset || undefined
+	})
+	const resolvedMusicImageSizes = computed(() => {
+		if (!resolvedMusicImageSrcset.value) return undefined
+		return musicImageSizes || undefined
 	})
 
 	const { addToPlaylist, playNow, stopMusic, isCurrentlyPlaying } = useYouTube()
@@ -144,26 +172,60 @@
 	>
 		<div
 			v-if="musicId"
-			class="bg-cb-quaternary-950 col-span-1 flex w-full items-center gap-3 rounded p-2 px-3"
-			:class="{
-				'ring-cb-primary-900/40 ring-1': idYoutubeVideo === musicId,
-				'col-span-4': ismv && horizontalMode,
-			}"
+			class="bg-cb-quaternary-950 col-span-1 flex w-full rounded"
+			:class="[
+				{
+					'ring-cb-primary-900/40 ring-1': idYoutubeVideo === musicId,
+					'col-span-4': ismv && horizontalMode,
+				},
+				responsiveArtwork
+					? 'relative aspect-square items-end overflow-hidden md:aspect-auto md:items-center md:gap-3 md:p-2 md:px-3'
+					: 'items-center gap-3 p-2 px-3',
+			]"
 		>
-			<div class="hidden shrink-0 md:block">
+			<div
+				class="shrink-0"
+				:class="
+					responsiveArtwork ? 'absolute inset-0 md:static md:size-10' : 'hidden md:block'
+				"
+			>
+				<img
+					v-if="responsiveArtwork"
+					:alt="musicName"
+					:src="resolvedMusicImage"
+					:srcset="resolvedMusicImageSrcset"
+					:sizes="resolvedMusicImageSizes"
+					:width="musicImageWidth"
+					:height="musicImageHeight"
+					loading="lazy"
+					decoding="async"
+					class="shadow-cb-secondary-950 h-full w-full rounded object-cover shadow md:size-10"
+					@error="onMusicImageError"
+				/>
 				<NuxtImg
+					v-else
 					format="webp"
 					:alt="musicName"
 					:src="resolvedMusicImage"
-					class="shadow-cb-secondary-950 h-10 w-10 rounded shadow"
+					class="shadow-cb-secondary-950 size-10 rounded object-cover shadow"
 					@error="onMusicImageError"
 				/>
 			</div>
 
-			<div class="min-w-0 flex-1 overflow-hidden">
+			<div
+				class="min-w-0 flex-1 overflow-hidden"
+				:class="
+					responsiveArtwork
+						? 'absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-black/80 via-black/40 to-transparent px-2 pt-8 pb-2 text-white md:static md:bg-none md:p-0'
+						: ''
+				"
+			>
 				<div v-if="musicName">
 					<p class="flex w-full items-center gap-2 text-start">
-						<span class="truncate text-sm font-semibold">
+						<span
+							class="truncate font-semibold"
+							:class="responsiveArtwork ? 'text-xs md:text-sm' : 'text-sm'"
+						>
 							{{ musicName }}
 						</span>
 						<span class="hidden md:block">-</span>
@@ -171,7 +233,13 @@
 							{{ convertDuration(duration ?? 0) }}
 						</span>
 					</p>
-					<div class="flex items-center gap-1 text-xs">
+					<div
+						:class="
+							responsiveArtwork
+								? 'hidden items-center gap-1 text-xs md:flex'
+								: 'flex items-center gap-1 text-xs'
+						"
+					>
 						<template v-if="artists && artists.length > 0">
 							<div
 								v-for="artist in artists"
@@ -252,7 +320,23 @@
 				</div>
 			</div>
 
-			<div class="flex shrink-0 items-center gap-2">
+			<button
+				v-if="responsiveArtwork"
+				type="button"
+				class="absolute inset-0 z-20 flex cursor-pointer items-start justify-end rounded p-2 text-white transition-colors hover:bg-black/10 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none focus-visible:ring-inset md:hidden"
+				:aria-label="primaryActionLabel"
+				@click.stop="handlePlayMusic"
+			>
+				<UIcon
+					:name="isCurrentTrackPlaying ? 'i-lucide-pause' : 'i-lucide-play'"
+					class="bg-cb-primary-900/90 box-content size-4 rounded-full p-2 shadow"
+				/>
+			</button>
+
+			<div
+				class="shrink-0 items-center gap-2"
+				:class="responsiveArtwork ? 'hidden md:flex' : 'flex'"
+			>
 				<button
 					type="button"
 					class="flex size-8 cursor-pointer items-center justify-center rounded-full text-white transition-colors md:size-9"
@@ -284,6 +368,7 @@
 
 		<button
 			v-if="ismv"
+			type="button"
 			class="bg-cb-primary-900 hover:bg-cb-primary-900/50 flex w-full cursor-pointer items-center justify-center rounded px-2 py-1 text-xs font-semibold tracking-widest uppercase"
 			:class="horizontalMode ? 'w-fit' : 'w-full'"
 			@click="displayVideo = true"
