@@ -30,7 +30,7 @@
 		"check": "npm run format:check && npm run lint:check && npm run typecheck && npm run test:typecheck && npm run test:run"
 	},
 	"devDependencies": {
-		"@iconify-json/lucide": "^1.2.127",
+		"@iconify-json/lucide": "^1.2.128",
 		"@iconify-json/material-symbols-light": "^1.2.90",
 		"@nuxt/devtools": "^3.2.3",
 		"@nuxt/eslint": "^1.17.0",

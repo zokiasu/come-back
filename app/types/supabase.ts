@@ -1082,6 +1082,10 @@ export type Database = {
 					isSetofReturn: false
 				}
 			}
+			create_confirmed_release_atomic: {
+				Args: { p_artist_id: string; p_release: Json; p_tracks: Json }
+				Returns: Json
+			}
 			delete_artist_safely: { Args: { artist_id_param: string }; Returns: Json }
 			delete_artist_simple: { Args: { artist_id_param: string }; Returns: Json }
 			firebase_id_to_uuid: { Args: { firebase_id: string }; Returns: string }
@@ -1175,6 +1179,12 @@ export type Database = {
 					type: Database['public']['Enums']['music_type']
 					updated_at: string
 					verified: boolean
+				}[]
+			}
+			get_random_discover_music_ids: {
+				Args: { count_param: number }
+				Returns: {
+					id: string
 				}[]
 			}
 			get_random_music_ids: {

@@ -6,12 +6,14 @@ export function useSupabaseMusic() {
 	const toast = useToast()
 	const { requireAuthHeaders } = useApiAuthHeaders()
 	const { runMutation } = useMutationTimeout()
+	const musicEndpoint = (id: string): '/api/musics/:id' =>
+		`/api/musics/${id}` as '/api/musics/:id'
 
 	// Updates a music
 	const updateMusic = async (id: string, updates: Partial<TablesUpdate<'musics'>>) => {
 		try {
 			const data = await runMutation(
-				$fetch<Music>(`/api/musics/${id}`, {
+				$fetch<Music, '/api/musics/:id'>(musicEndpoint(id), {
 					method: 'PATCH',
 					headers: requireAuthHeaders(),
 					body: { updates },
@@ -36,7 +38,7 @@ export function useSupabaseMusic() {
 	const updateMusicReleases = async (id: string, releaseIds?: string[]) => {
 		try {
 			await runMutation(
-				$fetch(`/api/musics/${id}`, {
+				$fetch<unknown, '/api/musics/:id'>(musicEndpoint(id), {
 					method: 'PATCH',
 					headers: requireAuthHeaders(),
 					body: { releaseIds },
@@ -62,7 +64,7 @@ export function useSupabaseMusic() {
 	const deleteMusic = async (id: string) => {
 		try {
 			await runMutation(
-				$fetch(`/api/musics/${id}`, {
+				$fetch<unknown, '/api/musics/:id'>(musicEndpoint(id), {
 					method: 'DELETE',
 					headers: requireAuthHeaders(),
 				}),

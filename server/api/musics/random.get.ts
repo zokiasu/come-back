@@ -2,42 +2,62 @@ import type { PostgrestError } from '@supabase/supabase-js'
 import { isError as isH3Error } from 'h3'
 import { validateIntegerParam } from '../../utils/validation'
 
+const OVERSAMPLE_FACTOR = 3
+const MAX_SAMPLE_SIZE = 60
+const CACHED_RESPONSE_CONTROL =
+	'public, max-age=60, s-maxage=300, stale-while-revalidate=300'
+
+const parseFreshParam = (value: unknown): boolean => {
+	if (value === undefined || value === 'false') return false
+	if (value === 'true') return true
+
+	throw createError({
+		statusCode: 400,
+		statusMessage: 'Bad Request',
+		message: "Parameter 'fresh' must be a boolean",
+	})
+}
+
 export default defineEventHandler(async (event) => {
-	const supabase = useServerSupabase()
 	const query = getQuery(event)
 	const limit = validateIntegerParam(query.limit, 'limit', {
 		min: 1,
 		max: 20,
 		defaultValue: 4,
 	})
+	const isFresh = parseFreshParam(query.fresh)
+
+	const supabase = useServerSupabase()
+	const sampleSize = Math.min(limit * OVERSAMPLE_FACTOR, MAX_SAMPLE_SIZE)
+	const sampleOrder = new Map<string, number>()
 
 	try {
-		// Optimized strategy: use a single simple query with a random offset
-		// Avoid complex joins that can cause timeouts
+		const fetchCandidates = async () => {
+			const { data: randomIds, error: rpcError } = await supabase.rpc(
+				'get_random_discover_music_ids',
+				{ count_param: sampleSize },
+			)
 
-		// 1. Fetch an estimated count (very fast)
-		// Exclude instrumental, sped-up, and live versions based on the title
-		const { count } = await supabase
-			.from('musics')
-			.select('*', { count: 'estimated', head: true })
-			.eq('verified', true)
-			.not('id_youtube_music', 'is', null)
-			.not('name', 'ilike', '%Inst.%')
-			.not('name', 'ilike', '%Instrumental%')
-			.not('name', 'ilike', '%Sped Up%')
-			.not('name', 'ilike', '%(live)%')
-			.not('name', 'ilike', '%[live]%')
-			.not('name', 'ilike', '% - Live%')
+			if (rpcError) {
+				throw handleSupabaseError(rpcError, 'musics.random.rpc')
+			}
 
-		if (!count || count === 0) {
-			return []
-		}
+			const musicIds: string[] = []
+			const attemptIds = new Set<string>()
+			for (const row of randomIds || []) {
+				const id = row.id
+				if (typeof id === 'string' && id.length > 0 && !attemptIds.has(id)) {
+					musicIds.push(id)
+					attemptIds.add(id)
+				}
+			}
 
-		// 2. Generate a random offset
-		const maxOffset = Math.max(0, count - limit * 3)
-		const randomOffset = maxOffset > 0 ? Math.floor(Math.random() * (maxOffset + 1)) : 0
+			for (const id of musicIds) {
+				sampleOrder.set(id, sampleOrder.size)
+			}
 
-		const fetchChunk = async (offset: number) => {
+			if (musicIds.length === 0) return []
+
 			const { data, error } = await supabase
 				.from('musics')
 				.select(
@@ -52,11 +72,12 @@ export default defineEventHandler(async (event) => {
 					artists:music_artists!inner(
 						artist:artists!inner(id, name, image)
 					),
-					releases:music_releases(
+					releases:music_releases!inner(
 						release:releases!inner(id, name)
 					)
 				`,
 				)
+				.in('id', musicIds)
 				.not('id_youtube_music', 'is', null)
 				.eq('verified', true)
 				.eq('artists.artist.verified', true)
@@ -67,84 +88,59 @@ export default defineEventHandler(async (event) => {
 				.not('name', 'ilike', '%(live)%')
 				.not('name', 'ilike', '%[live]%')
 				.not('name', 'ilike', '% - Live%')
-				.range(offset, offset + limit * 3 - 1)
-				.order('date', { ascending: false })
 
 			if (error) {
-				console.error('Error fetching random musics:', error)
 				throw handleSupabaseError(error, 'musics.random')
 			}
 
 			return data || []
 		}
 
-		// 3. Primary query more an offset 0 fallback to avoid empty windows.
-		let data = await fetchChunk(randomOffset)
-		if (data.length === 0 && randomOffset > 0) {
-			data = await fetchChunk(0)
-		}
+		const candidates = (await fetchCandidates())
+			.sort(
+				(left, right) =>
+					(sampleOrder.get(left.id) ?? Number.MAX_SAFE_INTEGER) -
+					(sampleOrder.get(right.id) ?? Number.MAX_SAFE_INTEGER),
+			)
+			.map((music) => ({
+				...music,
+				artists: music.artists.map(({ artist }) => artist).filter(Boolean),
+				releases: music.releases.map(({ release }) => release).filter(Boolean),
+			}))
 
-		if (data.length === 0) {
-			return []
-		}
-
-		// 4. Transform the data
-		const transformedData = data.map((music) => ({
-			...music,
-			artists:
-				music.artists
-					?.map(
-						(a: { artist: { id: string; name: string; image: string | null } | null }) =>
-							a.artist,
-					)
-					.filter(Boolean) || [],
-			releases:
-				music.releases
-					?.map((r: { release: { id: string; name: string } | null }) => r.release)
-					.filter(Boolean) || [],
-		}))
-
-		// 5. Shuffle results and diversify by artist
-		const shuffleArray = <T>(array: T[]): T[] => {
-			const shuffled = [...array]
-			for (let i = shuffled.length - 1; i > 0; i--) {
-				const j = Math.floor(Math.random() * (i + 1))
-				const current = shuffled[i]
-				const random = shuffled[j]
-				if (current !== undefined && random !== undefined) {
-					shuffled[i] = random
-					shuffled[j] = current
-				}
-			}
-			return shuffled
-		}
-
-		const shuffled = shuffleArray(transformedData)
-		const result: typeof transformedData = []
+		const result: typeof candidates = []
 		const usedArtistIds = new Set<string>()
 
-		// Prefer artist diversity
-		for (const music of shuffled) {
+		// First pass favors tracks whose artists are not represented yet.
+		for (const music of candidates) {
 			if (result.length >= limit) break
-			const artistId = music.artists?.[0]?.id
-			if (!artistId || !usedArtistIds.has(artistId)) {
-				result.push(music)
-				if (artistId) usedArtistIds.add(artistId)
+			const artistIds = music.artists.map((artist) => artist.id)
+			if (artistIds.length > 0 && artistIds.some((id) => usedArtistIds.has(id))) {
+				continue
 			}
+
+			result.push(music)
+			for (const id of artistIds) usedArtistIds.add(id)
 		}
 
-		// Backfill if needed
+		// If the catalog cannot provide enough distinct artists, fill the remainder.
 		if (result.length < limit) {
-			for (const music of shuffled) {
+			const selectedIds = new Set(result.map((music) => music.id))
+			for (const music of candidates) {
 				if (result.length >= limit) break
-				if (!result.find((m) => m.id === music.id)) {
+				if (!selectedIds.has(music.id)) {
 					result.push(music)
+					selectedIds.add(music.id)
 				}
 			}
 		}
+
+		setHeader(event, 'Cache-Control', isFresh ? 'no-store' : CACHED_RESPONSE_CONTROL)
 
 		return result
 	} catch (error) {
+		// Never let an upstream/database failure inherit the public success cache policy.
+		setHeader(event, 'Cache-Control', 'no-store')
 		if (isH3Error(error)) {
 			throw error
 		}

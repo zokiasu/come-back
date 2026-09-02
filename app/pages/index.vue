@@ -4,20 +4,93 @@
 	type ReleaseListItem = Release
 	type ArtistListItem = Artist
 	type MusicListItem = Music
+	type DiscoverMusicThumbnail = {
+		url: string
+		width?: number
+		height?: number
+	}
+	type SizedDiscoverMusicThumbnail = DiscoverMusicThumbnail & {
+		width: number
+		height: number
+	}
+	type DiscoverMusicImage = {
+		src: string
+		srcset?: string
+		width: number
+		height: number
+	}
 
 	// Force cache-busting refreshes when realtime updates arrive.
 	const refreshTimestamp = ref(Date.now())
-	const musicsTimestamp = ref(Date.now())
 	const fallbackDiscoverMusicImage = '/slider-placeholder.webp'
-	const failedDiscoverMusicImages = ref<Record<string, boolean>>({})
+	const discoverMusicReloading = ref(false)
+	const discoverMusicReloadError = ref(false)
 
-	// Run the four SSR fetches in parallel so the homepage blocks on the slowest
+	const sortDiscoverMusics = (items: MusicListItem[]) =>
+		[...items].sort(
+			(a, b) => new Date(b.date || '').getTime() - new Date(a.date || '').getTime(),
+		)
+
+	const isDiscoverMusicThumbnail = (value: unknown): value is DiscoverMusicThumbnail => {
+		if (typeof value !== 'object' || value === null || Array.isArray(value)) return false
+
+		const thumbnail = value as Record<string, unknown>
+		return typeof thumbnail.url === 'string' && thumbnail.url.length > 0
+	}
+
+	const isSizedDiscoverMusicThumbnail = (
+		thumbnail: DiscoverMusicThumbnail,
+	): thumbnail is SizedDiscoverMusicThumbnail =>
+		typeof thumbnail.width === 'number' &&
+		thumbnail.width > 0 &&
+		typeof thumbnail.height === 'number' &&
+		thumbnail.height > 0
+
+	const getDiscoverMusicImage = (music: Music): DiscoverMusicImage => {
+		const thumbnails = Array.isArray(music.thumbnails)
+			? music.thumbnails.filter(isDiscoverMusicThumbnail)
+			: []
+		const sizedThumbnails = thumbnails
+			.filter(isSizedDiscoverMusicThumbnail)
+			.sort((a, b) => a.width - b.width)
+		const defaultThumbnail =
+			sizedThumbnails.find((thumbnail) => thumbnail.width >= 320) ||
+			sizedThumbnails[sizedThumbnails.length - 1] ||
+			thumbnails[0]
+
+		if (!defaultThumbnail) {
+			return {
+				src: fallbackDiscoverMusicImage,
+				width: 1536,
+				height: 864,
+			}
+		}
+
+		const uniqueSizedThumbnails = Array.from(
+			new Map(
+				sizedThumbnails.map((thumbnail) => [thumbnail.width, thumbnail] as const),
+			).values(),
+		)
+		const srcset = uniqueSizedThumbnails
+			.map((thumbnail) => `${thumbnail.url} ${thumbnail.width}w`)
+			.join(', ')
+
+		return {
+			src: defaultThumbnail.url,
+			srcset: srcset || undefined,
+			width: defaultThumbnail.width || 320,
+			height: defaultThumbnail.height || 180,
+		}
+	}
+
+	// Run the SSR fetches in parallel so the homepage blocks on the slowest
 	// request, not the sum of all of them.
 	const [
 		{ data: comebacks, pending: newsFetching },
 		{ data: releases, pending: releasesFetching },
 		{ data: artists, pending: artistsFetching },
 		{ data: mvs, pending: mvsFetching },
+		{ data: musics, pending: musicsFetching, error: musicsError },
 	] = await Promise.all([
 		// The API already returns news sorted by ascending comeback date.
 		useFetch(() => `/api/news/latest?_t=${refreshTimestamp.value}`, {
@@ -50,25 +123,27 @@
 			server: true,
 			query: { limit: 14 },
 		}),
+		// Keep this URL stable so the initial random selection is part of the ISR payload.
+		useFetch<MusicListItem[]>('/api/musics/random', {
+			default: () => [],
+			server: true,
+			query: { limit: 9 },
+			transform: sortDiscoverMusics,
+		}),
 	])
 
-	// Keep discovery tracks client-only so each visit can return different results.
-	const {
-		data: musics,
-		pending: musicsFetching,
-		error: musicsError,
-	} = await useFetch(() => `/api/musics/random?_t=${musicsTimestamp.value}`, {
-		default: () => [],
-		server: false,
-		query: { limit: 9 },
-		watch: [musicsTimestamp],
-		transform: (data: unknown[]) =>
-			(data as MusicListItem[]).sort(
-				(a, b) => new Date(b.date || '').getTime() - new Date(a.date || '').getTime(),
-			),
-	})
-
-	const discoverMusicAutoRetried = ref(false)
+	const discoverMusicPending = computed(
+		() => musicsFetching.value || discoverMusicReloading.value,
+	)
+	const discoverMusicHasError = computed(
+		() => Boolean(musicsError.value) || discoverMusicReloadError.value,
+	)
+	const discoverMusicItems = computed(() =>
+		musics.value.map((music) => ({
+			music,
+			image: getDiscoverMusicImage(music),
+		})),
+	)
 
 	const getUtcDayTimestamp = (dateValue: string | Date) => {
 		const date = dateValue instanceof Date ? dateValue : new Date(dateValue)
@@ -115,53 +190,26 @@
 		})),
 	)
 
-	const reloadDiscoverMusic = () => {
-		failedDiscoverMusicImages.value = {}
-		musicsTimestamp.value = Date.now()
-	}
+	const reloadDiscoverMusic = async (): Promise<void> => {
+		if (discoverMusicReloading.value) return
 
-	const getDiscoverMusicKey = (music: Music) =>
-		String(music.id_youtube_music ?? music.id ?? music.name ?? '')
+		discoverMusicReloading.value = true
+		discoverMusicReloadError.value = false
 
-	const getDiscoverMusicImage = (music: Music): string => {
-		const key = getDiscoverMusicKey(music)
-		if (failedDiscoverMusicImages.value[key]) return fallbackDiscoverMusicImage
-		return getMusicThumbnail(music) || fallbackDiscoverMusicImage
-	}
-
-	const onDiscoverMusicImageError = (music: Music) => {
-		failedDiscoverMusicImages.value[getDiscoverMusicKey(music)] = true
-	}
-
-	watch(
-		() => [musicsFetching.value, musics.value?.length ?? 0] as const,
-		([isPending, musicsCount]) => {
-			if (isPending) return
-			if (discoverMusicAutoRetried.value) return
-			if (musicsCount > 0) return
-			discoverMusicAutoRetried.value = true
-			reloadDiscoverMusic()
-		},
-	)
-
-	const getMusicThumbnail = (music: Music): string => {
-		const thumbnails = music.thumbnails
-		if (!Array.isArray(thumbnails) || thumbnails.length === 0) return ''
-		const last = thumbnails[thumbnails.length - 1]
-		if (!last || typeof last !== 'object' || !('url' in last)) return ''
-		const url = (last as { url?: unknown }).url
-		return typeof url === 'string' ? url : ''
-	}
-
-	const { addToPlaylist, isCurrentlyPlaying } = useYouTube()
-
-	const playDiscoverMusic = (music: Music) => {
-		const videoId = (music as Music & { id_youtube_music?: string | null })
-			.id_youtube_music
-		if (!videoId) return
-		const artistName =
-			(music as Music & { artists?: Array<{ name?: string }> }).artists?.[0]?.name || ''
-		addToPlaylist(videoId, music.name ?? '', artistName, getMusicThumbnail(music))
+		try {
+			const freshMusics = await $fetch<MusicListItem[]>('/api/musics/random', {
+				query: {
+					limit: 9,
+					fresh: true,
+				},
+			})
+			musics.value = sortDiscoverMusics(freshMusics)
+		} catch (error) {
+			discoverMusicReloadError.value = true
+			console.error('Error reloading Discover Music:', error)
+		} finally {
+			discoverMusicReloading.value = false
+		}
 	}
 
 	// Refresh homepage feeds from realtime Supabase channels after hydration.
@@ -365,145 +413,88 @@
 					</div>
 				</div>
 
-				<ClientOnly>
-					<div class="space-y-4">
-						<div class="flex flex-wrap items-center justify-between gap-3">
-							<h2 class="text-xl font-semibold">Discover Music</h2>
-							<UButton
-								label="Reload"
-								variant="ghost"
-								color="neutral"
-								class="text-cb-tertiary-300 hover:text-white"
-								icon="i-material-symbols-refresh"
-								:loading="musicsFetching"
-								@click="reloadDiscoverMusic"
-							/>
-						</div>
-						<div v-if="musics.length > 0" class="space-y-5">
-							<div class="grid grid-cols-3 gap-2 md:hidden">
-								<button
-									v-for="music in musics"
-									:key="music.id_youtube_music ?? music.id"
-									type="button"
-									class="bg-cb-quinary-900 relative aspect-square overflow-hidden rounded-lg"
-									@click="playDiscoverMusic(music)"
-								>
-									<NuxtImg
-										:src="getDiscoverMusicImage(music)"
-										:alt="music.name ?? ''"
-										format="webp"
-										class="h-full w-full object-cover"
-										@error="onDiscoverMusicImageError(music)"
-									/>
-									<div
-										class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent px-2 pt-6 pb-2"
-									>
-										<p class="truncate text-xs font-semibold text-white">
-											{{ music.name }}
-										</p>
-									</div>
-									<span
-										v-if="
-											music.id_youtube_music && isCurrentlyPlaying(music.id_youtube_music)
-										"
-										class="bg-cb-primary-900/90 absolute top-2 right-2 rounded-full px-2 py-1 text-[10px] font-semibold text-white"
-									>
-										Playing
-									</span>
-								</button>
-							</div>
-
-							<div class="hidden grid-cols-1 gap-3 md:grid md:grid-cols-2 lg:grid-cols-3">
-								<MusicDisplay
-									v-for="music in musics"
-									:key="music.id_youtube_music ?? music.id"
-									:artist-id="music.artists?.[0]?.id ?? ''"
-									:artist-name="music.artists?.[0]?.name ?? ''"
-									:music-id="music.id_youtube_music ?? ''"
-									:music-name="music.name ?? ''"
-									:music-image="getDiscoverMusicImage(music)"
-									:duration="music?.duration?.toString() || '0'"
-									class="bg-cb-quinary-900 w-full"
-									:class="{
-										'opacity-50 transition-opacity duration-300': musicsFetching,
-									}"
-								/>
-							</div>
-						</div>
-						<template v-else-if="musicsFetching">
-							<!-- Mobile: square grid, matching the loaded mobile layout -->
-							<div class="grid grid-cols-3 gap-2 md:hidden">
-								<SkeletonDefault
-									v-for="i in 9"
-									:key="`discover-loading-m-${i}`"
-									class="aspect-square w-full rounded-lg"
-								/>
-							</div>
-							<!-- Desktop: compact cards, matching the loaded desktop layout -->
-							<div class="hidden grid-cols-1 gap-3 md:grid md:grid-cols-2 lg:grid-cols-3">
-								<SkeletonDefault
-									v-for="i in 9"
-									:key="`discover-loading-d-${i}`"
-									class="h-16 w-full rounded-lg"
-								/>
-							</div>
-						</template>
-						<div
-							v-else
-							class="border-cb-quinary-900 bg-cb-quinary-900/60 rounded-2xl border p-4 text-center"
-						>
-							<p class="text-cb-tertiary-100 text-sm font-semibold">
-								Unable to load Discover Music.
-							</p>
-							<p class="text-cb-tertiary-300 mt-1 text-xs">
-								{{
-									musicsError
-										? 'A temporary error occurred.'
-										: 'No music available right now.'
-								}}
-							</p>
-							<UButton
-								label="Retry"
-								variant="soft"
-								size="sm"
-								class="bg-cb-quinary-900 hover:bg-cb-quinary-900/80 mt-3 text-white"
-								icon="i-material-symbols-refresh"
-								@click="reloadDiscoverMusic"
-							/>
-						</div>
+				<div
+					class="space-y-4"
+					:aria-busy="discoverMusicPending"
+					aria-labelledby="discover-music-title"
+				>
+					<div class="flex flex-wrap items-center justify-between gap-3">
+						<h2 id="discover-music-title" class="text-xl font-semibold">
+							Discover Music
+						</h2>
+						<UButton
+							label="Reload"
+							variant="ghost"
+							color="neutral"
+							class="text-cb-tertiary-300 hover:text-white"
+							icon="i-material-symbols-refresh"
+							:loading="discoverMusicPending"
+							@click="reloadDiscoverMusic"
+						/>
 					</div>
-					<template #fallback>
-						<div class="space-y-4">
-							<div class="flex flex-wrap items-center justify-between gap-3">
-								<h2 class="text-xl font-semibold">Discover Music</h2>
-								<UButton
-									label="Reload"
-									variant="ghost"
-									color="neutral"
-									class="text-cb-tertiary-300 hover:text-white"
-									icon="i-material-symbols-refresh"
-									disabled
-								/>
-							</div>
-							<!-- Mobile: square grid, matching the loaded mobile layout -->
-							<div class="grid grid-cols-3 gap-2 md:hidden">
-								<SkeletonDefault
-									v-for="i in 9"
-									:key="`discover-skeleton-m-${i}`"
-									class="aspect-square w-full rounded-lg"
-								/>
-							</div>
-							<!-- Desktop: compact cards, matching the loaded desktop layout -->
-							<div class="hidden grid-cols-1 gap-3 md:grid md:grid-cols-2 lg:grid-cols-3">
-								<SkeletonDefault
-									v-for="i in 9"
-									:key="`discover-skeleton-d-${i}`"
-									class="h-16 w-full rounded-lg"
-								/>
-							</div>
-						</div>
-					</template>
-				</ClientOnly>
+
+					<div
+						v-if="discoverMusicItems.length > 0"
+						class="grid grid-cols-3 gap-2 md:grid-cols-2 md:gap-3 lg:grid-cols-3"
+					>
+						<MusicDisplay
+							v-for="item in discoverMusicItems"
+							:key="item.music.id_youtube_music ?? item.music.id"
+							:artists="item.music.artists"
+							:artist-id="item.music.artists?.[0]?.id ?? ''"
+							:artist-name="item.music.artists?.[0]?.name ?? ''"
+							:music-id="item.music.id_youtube_music ?? ''"
+							:music-name="item.music.name ?? ''"
+							:music-image="item.image.src"
+							:music-image-srcset="item.image.srcset"
+							music-image-sizes="(max-width: 767px) calc((100vw - 3rem) / 3), 40px"
+							:music-image-width="item.image.width"
+							:music-image-height="item.image.height"
+							:duration="item.music.duration?.toString() || '0'"
+							responsive-artwork
+							class="bg-cb-quinary-900 w-full transition-opacity duration-300"
+							:class="{ 'opacity-50': discoverMusicReloading }"
+						/>
+					</div>
+
+					<div
+						v-else-if="discoverMusicPending"
+						class="grid grid-cols-3 gap-2 md:grid-cols-2 md:gap-3 lg:grid-cols-3"
+						aria-label="Loading Discover Music"
+					>
+						<SkeletonDefault
+							v-for="i in 9"
+							:key="`discover-loading-${i}`"
+							class="aspect-square w-full rounded-lg md:aspect-auto md:h-16"
+						/>
+					</div>
+
+					<div
+						v-else
+						class="border-cb-quinary-900 bg-cb-quinary-900/60 rounded-2xl border p-4 text-center"
+						role="status"
+					>
+						<p class="text-cb-tertiary-100 text-sm font-semibold">
+							Unable to load Discover Music.
+						</p>
+						<p class="text-cb-tertiary-300 mt-1 text-xs">
+							{{
+								discoverMusicHasError
+									? 'A temporary error occurred.'
+									: 'No music available right now.'
+							}}
+						</p>
+						<UButton
+							label="Retry"
+							variant="soft"
+							size="sm"
+							class="bg-cb-quinary-900 hover:bg-cb-quinary-900/80 mt-3 text-white"
+							icon="i-material-symbols-refresh"
+							:loading="discoverMusicReloading"
+							@click="reloadDiscoverMusic"
+						/>
+					</div>
+				</div>
 
 				<div class="space-y-4">
 					<div class="flex flex-wrap items-center justify-between gap-3">

@@ -8,10 +8,9 @@ export default defineNuxtPlugin(() => {
 			logError(error, `ssr-vue-error-${String(context)}`)
 		})
 
-		// Capture rendering errors
-		// @ts-expect-error - render:error hook exists but not in types
-		app.hook('render:error', (error, context) => {
-			logError(error, `ssr-render-error-${String(context)}`)
+		// Capture fatal Nuxt application errors during SSR.
+		app.hook('app:error', (error) => {
+			logError(error, 'ssr-app-error')
 		})
 	}
 })
