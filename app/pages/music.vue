@@ -639,11 +639,13 @@
 		await refreshMusicPage(options)
 	}
 
+	let musicRequestVersion = 0
+
 	const loadMusics = async (
 		isFirstCall = false,
 		options?: { force?: boolean },
 	): Promise<void> => {
-		if (loading.value) return
+		if (loading.value && !isFirstCall) return
 
 		const requestKey = buildMusicRequestKey(isFirstCall ? 1 : currentPage.value)
 		if (
@@ -655,6 +657,7 @@
 			return
 		}
 
+		const requestVersion = ++musicRequestVersion
 		loading.value = true
 		musicsLoadError.value = null
 
@@ -676,6 +679,9 @@
 				orderDirection: orderDirection.value,
 				ismv: isMv.value === true ? true : undefined,
 			})
+
+			// A filter change supersedes any page that was already loading.
+			if (requestVersion !== musicRequestVersion) return
 
 			totalMusics.value = result.total
 			totalPages.value = result.totalPages
@@ -700,10 +706,11 @@
 				currentPage.value++
 			}
 		} catch (error) {
+			if (requestVersion !== musicRequestVersion) return
 			console.error('Error loading music:', error)
 			musicsLoadError.value = 'Unable to load music.'
 		} finally {
-			loading.value = false
+			if (requestVersion === musicRequestVersion) loading.value = false
 		}
 	}
 
