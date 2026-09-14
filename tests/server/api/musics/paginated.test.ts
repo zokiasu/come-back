@@ -118,7 +118,7 @@ describe('GET /api/musics/paginated', () => {
 			},
 		]
 		const dataQuery = createSupabaseQueryMock({
-			data: rawMusics,
+			data: [rawMusics[1], rawMusics[0]],
 			error: null,
 		})
 		const countQuery = createSupabaseQueryMock({ count: 2, error: null })
@@ -204,6 +204,37 @@ describe('GET /api/musics/paginated', () => {
 			limit: 2,
 			totalPages: 1,
 		})
+	})
+
+	it('should keep equal-date pagination stable without loading entire date groups', async () => {
+		setupGlobals({ page: '2', limit: '2', verified: 'true' })
+		const rawMusics = [
+			{ id: 'c', name: 'Same title', date: '2026-09-10', artists: [], releases: [] },
+			{ id: 'd', name: 'Same title', date: '2026-09-10', artists: [], releases: [] },
+		]
+		const dataQuery = createSupabaseQueryMock({ data: rawMusics, error: null })
+		const countQuery = createSupabaseQueryMock({ count: 6, error: null })
+		const supabase = {
+			from: vi.fn().mockReturnValueOnce(dataQuery).mockReturnValueOnce(countQuery),
+		}
+		vi.stubGlobal('useServerSupabase', () => supabase)
+		const handler = await loadHandler()
+		expect(await handler({})).toEqual({
+			musics: rawMusics,
+			total: 6,
+			page: 2,
+			limit: 2,
+			totalPages: 3,
+		})
+		expect(supabase.from).toHaveBeenCalledTimes(2)
+		expect(
+			dataQuery.calls.filter(({ method }) => method === 'order' || method === 'range'),
+		).toEqual([
+			{ method: 'order', args: ['date', { ascending: false }] },
+			{ method: 'order', args: ['name', { ascending: true }] },
+			{ method: 'order', args: ['id', { ascending: true }] },
+			{ method: 'range', args: [2, 3] },
+		])
 	})
 
 	it('should use the optimized style RPC path and fetch relations for returned ids', async () => {

@@ -315,6 +315,9 @@ export default defineEventHandler(async (event): Promise<MusicsPageResponse> => 
 
 		const pageQuery = buildDataQuery()
 			.order(orderBy, { ascending: orderDirection === 'asc' })
+			// Resolve ties before pagination without fetching entire date groups.
+			.order('name', { ascending: true })
+			.order('id', { ascending: true })
 			.range(offset, offset + limit - 1)
 
 		const [countResult, dataResult] = await Promise.all([buildCountQuery(), pageQuery])
@@ -327,120 +330,7 @@ export default defineEventHandler(async (event): Promise<MusicsPageResponse> => 
 		const pageMusics = (dataResult.data || []) as MusicWithRelations[]
 		const transformedPageMusics = transformMusics(pageMusics)
 
-		if (orderBy !== 'date' || transformedPageMusics.length === 0) {
-			return {
-				musics: sortTransformedMusics(transformedPageMusics, orderBy, orderDirection),
-				total,
-				page,
-				limit,
-				totalPages,
-			}
-		}
-
-		if (transformedPageMusics.some((music) => !music.date)) {
-			return {
-				musics: sortTransformedMusics(transformedPageMusics, orderBy, orderDirection),
-				total,
-				page,
-				limit,
-				totalPages,
-			}
-		}
-
-		const orderedPageDates: string[] = []
-		const seenDates = new Set<string>()
-		for (const music of transformedPageMusics) {
-			if (music.date && !seenDates.has(music.date)) {
-				seenDates.add(music.date)
-				orderedPageDates.push(music.date)
-			}
-		}
-
-		const firstDate = orderedPageDates[0]
-		const lastDate = orderedPageDates[orderedPageDates.length - 1]
-
-		if (!firstDate || !lastDate) {
-			return {
-				musics: sortTransformedMusics(transformedPageMusics, orderBy, orderDirection),
-				total,
-				page,
-				limit,
-				totalPages,
-			}
-		}
-
-		const boundaryDates = [...new Set([firstDate, lastDate])]
-		const boundaryDateSet = new Set(boundaryDates)
-		const pageStart = offset
-		const pageEnd = offset + limit
-
-		const boundaryGroups = await Promise.all(
-			boundaryDates.map(async (date) => {
-				const fullGroupQuery = buildDataQuery().eq('date', date)
-				const beforeGroupQuery =
-					orderDirection === 'asc'
-						? buildCountQuery().lt('date', date)
-						: buildCountQuery().gt('date', date)
-
-				const [groupResult, beforeCountResult] = await Promise.all([
-					fullGroupQuery,
-					beforeGroupQuery,
-				])
-
-				if (groupResult.error) throw groupResult.error
-				if (beforeCountResult.error) throw beforeCountResult.error
-
-				return {
-					date,
-					groupStart: beforeCountResult.count || 0,
-					musics: sortTransformedMusics(
-						transformMusics((groupResult.data || []) as MusicWithRelations[]),
-						orderBy,
-						orderDirection,
-					),
-				}
-			}),
-		)
-
-		const boundaryGroupMap = new Map(boundaryGroups.map((group) => [group.date, group]))
-		const pageGroups = new Map<string, TransformedMusic[]>()
-
-		for (const music of transformedPageMusics) {
-			if (!music.date) continue
-			const group = pageGroups.get(music.date) || []
-			group.push(music)
-			pageGroups.set(music.date, group)
-		}
-
-		const stablePageMusics: TransformedMusic[] = []
-		for (const date of orderedPageDates) {
-			if (boundaryDateSet.has(date)) {
-				const boundaryGroup = boundaryGroupMap.get(date)
-				if (!boundaryGroup) continue
-
-				const sliceStart = Math.max(0, pageStart - boundaryGroup.groupStart)
-				const sliceEnd = Math.min(
-					boundaryGroup.musics.length,
-					pageEnd - boundaryGroup.groupStart,
-				)
-
-				if (sliceStart < sliceEnd) {
-					stablePageMusics.push(...boundaryGroup.musics.slice(sliceStart, sliceEnd))
-				}
-				continue
-			}
-
-			const pageGroup = pageGroups.get(date) || []
-			stablePageMusics.push(...sortTransformedMusics(pageGroup, orderBy, orderDirection))
-		}
-
-		return {
-			musics: stablePageMusics,
-			total,
-			page,
-			limit,
-			totalPages,
-		}
+		return { musics: transformedPageMusics, total, page, limit, totalPages }
 	} catch (error) {
 		console.error('Error fetching paginated musics:', error)
 
