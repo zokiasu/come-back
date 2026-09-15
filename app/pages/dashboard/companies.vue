@@ -1,8 +1,7 @@
 <script setup lang="ts">
-	import { useDebounce } from '~/composables/useDebounce'
 	import { useSupabaseCompanies } from '~/composables/Supabase/useSupabaseCompanies'
 	import type { Company } from '~/types'
-	import { useInfiniteScroll } from '@vueuse/core'
+	import { useDebounceFn, useInfiniteScroll } from '@vueuse/core'
 
 	interface FilterState {
 		onlyUnverified: boolean
@@ -245,7 +244,7 @@
 	/**
 	 * Debounced search
 	 */
-	const performSearch = useDebounce(async () => {
+	const performSearch = useDebounceFn(async () => {
 		await getCompanies(true)
 	}, 300)
 

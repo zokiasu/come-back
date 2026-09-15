@@ -69,7 +69,10 @@ export default defineNuxtConfig({
 		secretKey: supabaseSecretKey,
 		redirect: false,
 		types: '~/types/supabase.ts',
-		// Enable SSR cookie handling to persist the session
+		// Enable SSR cookie handling to persist the session.
+		// httpOnly must stay false: the @supabase/ssr browser client reads the
+		// session with document.cookie and cannot authenticate with an httpOnly
+		// cookie. XSS exposure is mitigated by the global security headers below.
 		cookieOptions: {
 			secure: process.env.NODE_ENV === 'production',
 			sameSite: 'lax',

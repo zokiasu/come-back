@@ -276,11 +276,7 @@
 							</NuxtLink>
 							<span class="hidden md:block">-</span>
 							<span class="hidden whitespace-nowrap md:block">
-								{{
-									releases[0]?.date
-										? new Date(releases[0].date).toLocaleDateString('sv-SE')
-										: ''
-								}}
+								{{ releases[0]?.date ? formatDate(releases[0].date) : '' }}
 							</span>
 						</div>
 					</div>

@@ -14,7 +14,7 @@
 	}>()
 
 	const todayDate = new Date()
-	const todayDateFormatted = todayDate.toLocaleDateString('sv-SE')
+	const todayDateFormatted = formatDate(todayDate)
 
 	// Disable loop when there are fewer than 2 slides to avoid Swiper warnings
 	const enableLoop = computed(() => props.newsToday.length >= 2)

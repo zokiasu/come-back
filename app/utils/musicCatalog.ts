@@ -1,4 +1,5 @@
 import type { LocationQuery, LocationQueryValue } from 'vue-router'
+import { formatDate } from './date'
 
 export interface MusicCatalogItem {
 	id: string
@@ -60,8 +61,7 @@ export const formatMusicDuration = (seconds: number): string => {
 }
 
 export const formatMusicDate = (dateString: string | null | undefined): string => {
-	if (!dateString) return ''
-	return new Date(dateString).toLocaleDateString('sv-SE')
+	return formatDate(dateString)
 }
 
 const getThumbnailUrl = (thumbnail: unknown): string => {

@@ -398,7 +398,7 @@
 				{{ displayedMV.name }}
 			</h4>
 			<p v-if="displayedMV.date" class="text-cb-tertiary-500 min-h-[1rem] text-xs">
-				Released: {{ new Date(displayedMV.date).toLocaleDateString('sv-SE') }}
+				Released: {{ formatDate(displayedMV.date) }}
 			</p>
 			<div
 				class="text-cb-tertiary-400 text-xs italic"

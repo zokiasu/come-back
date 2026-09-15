@@ -1,4 +1,5 @@
 import type { Tables } from '../../types/api'
+import { checkRateLimit, RATE_LIMIT_PRESETS } from '../../utils/rateLimit'
 
 type ArtistRow = Tables<'artists'>
 type MusicFilterRow = {
@@ -31,6 +32,9 @@ const sortArtists = (artists: ArtistRow[]) =>
 	[...artists].sort((left, right) => left.name.localeCompare(right.name, 'fr-FR'))
 
 export default defineEventHandler(async (event) => {
+	await checkRateLimit(event, RATE_LIMIT_PRESETS.catalogScan)
+	setHeader(event, 'Cache-Control', 'public, max-age=300, stale-while-revalidate=60')
+
 	const supabase = useServerSupabase()
 
 	try {

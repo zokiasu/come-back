@@ -9,6 +9,7 @@
 		ArtistMenuItem,
 		MenuItem,
 	} from '~/types'
+	import { useDebounceFn } from '@vueuse/core'
 
 	import { useSupabaseArtist } from '~/composables/Supabase/useSupabaseArtist'
 	import { useYoutubeMusicIdCheck } from '~/composables/useYoutubeMusicIdCheck'
@@ -147,7 +148,7 @@
 		)
 	})
 
-	const debouncedGroupSearch = useDebounce(async (query: string) => {
+	const debouncedGroupSearch = useDebounceFn(async (query: string) => {
 		if (!query || query.trim().length < 2) {
 			groupSearchResults.value = []
 			isSearchingGroups.value = false
@@ -174,7 +175,7 @@
 		}
 	}, 300)
 
-	const debouncedMemberSearch = useDebounce(async (query: string) => {
+	const debouncedMemberSearch = useDebounceFn(async (query: string) => {
 		if (!query || query.trim().length < 2) {
 			memberSearchResults.value = []
 			isSearchingMembers.value = false

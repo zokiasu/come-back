@@ -6,26 +6,32 @@ export default defineEventHandler(async (event) => {
 	const query = getQuery(event)
 	const limit = validateLimitParam(Number(query.limit), 14)
 
-	const { data, error } = await supabase
+	const { data: page, error: pageError } = await supabase
 		.from('musics')
-		.select(
-			`
-			*,
-			artists:music_artists!inner(
-				artist:artists!inner(*)
-			)
-		`,
-		)
-		.eq('ismv', true) // only the clips musicaux
+		.select('id, artists:music_artists!inner(artist:artists!inner())')
+		.eq('ismv', true)
 		.eq('verified', true)
 		.eq('artists.artist.verified', true)
 		.order('date', { ascending: false })
 		.order('id', { ascending: false })
 		.limit(limit)
 
-	if (error) {
-		throw handleSupabaseError(error, 'musics.latest-mvs')
-	}
+	if (pageError) throw handleSupabaseError(pageError, 'musics.latest-mvs.ids')
+	const ids = (page || []).map((music) => music.id)
+	if (ids.length === 0) return []
+
+	const { data, error } = await supabase
+		.from('musics')
+		.select('*, artists:music_artists!inner(artist:artists!inner(*))')
+		.in('id', ids)
+		.eq('ismv', true)
+		.eq('verified', true)
+		.eq('artists.artist.verified', true)
+	if (error) throw handleSupabaseError(error, 'musics.latest-mvs.details')
+	const positions = new Map(ids.map((id, index) => [id, index]))
+	data?.sort(
+		(left, right) => (positions.get(left.id) ?? 0) - (positions.get(right.id) ?? 0),
+	)
 
 	// Transform the data for extraire the artists the junction
 	const transformedData = (data || []).map((music) => ({

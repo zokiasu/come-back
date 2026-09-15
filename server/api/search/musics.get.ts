@@ -20,7 +20,7 @@ const getThumbnailUrl = (value: Json | null): string | null => {
 }
 
 export default defineEventHandler(async (event): Promise<SearchMusicResponse> => {
-	checkRateLimit(event, RATE_LIMIT_PRESETS.search)
+	await checkRateLimit(event, RATE_LIMIT_PRESETS.search)
 	setHeader(event, 'Cache-Control', 'public, max-age=60, stale-while-revalidate=300')
 
 	const query = getQuery(event)

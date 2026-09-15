@@ -1,6 +1,7 @@
 <script setup lang="ts">
 	import type { Release, ReleaseType, ArtistMenuItem } from '~/types'
 	import { useSupabaseRelease } from '~/composables/Supabase/useSupabaseRelease'
+	import { formatDate as formatDateValue } from '~/utils/date'
 
 	const { deleteRelease: deleteReleaseFunction, getReleasesByPage } = useSupabaseRelease()
 	const toast = useToast()
@@ -35,11 +36,6 @@
 
 	const sortColumn = ref<keyof Release>('date')
 	const sortDirection = ref<'asc' | 'desc'>('desc')
-
-	// Pagination state
-	const currentPage = ref(1)
-	const pageSizeValue = ref(20)
-	const totalPages = computed(() => Math.ceil(totalReleases.value / pageSizeValue.value))
 
 	// Edit modal state
 	const isEditModalOpen = ref(false)
@@ -185,10 +181,24 @@
 		}
 	}
 
+	const { currentPage, pageSizeValue } = useDashboardTable({
+		fetch: fetchReleases,
+		filterSources: [
+			typeFilter,
+			verifiedFilter,
+			selectedArtists,
+			sortColumn,
+			sortDirection,
+		],
+		searchSource: search,
+	})
+
+	const totalPages = computed(() => Math.ceil(totalReleases.value / pageSizeValue.value))
+
 	// Format date
 	const formatDate = (dateString: string | null) => {
 		if (!dateString) return '-'
-		return new Date(dateString).toLocaleDateString('sv-SE')
+		return formatDateValue(dateString)
 	}
 
 	// Format artists
@@ -294,51 +304,6 @@
 	// Sync selectedArtistsWithLabel with selectedArtists
 	watch(selectedArtistsWithLabel, (newVal: ArtistMenuItem[]) => {
 		selectedArtists.value = newVal.map((artist) => artist.id)
-	})
-
-	// Track if filter change triggered the page reset
-	const isFilterChange = ref(false)
-
-	// Debounced search
-	const debouncedFetch = useDebounce(() => {
-		isFilterChange.value = true
-		currentPage.value = 1
-		fetchReleases()
-	}, 300)
-
-	watch(search, () => {
-		debouncedFetch()
-	})
-
-	watch(
-		[
-			typeFilter,
-			verifiedFilter,
-			selectedArtists,
-			sortColumn,
-			sortDirection,
-			pageSizeValue,
-		],
-		async () => {
-			isFilterChange.value = true
-			currentPage.value = 1
-			await nextTick()
-			fetchReleases()
-		},
-	)
-
-	// Watch page changes from pagination
-	watch(currentPage, () => {
-		if (isFilterChange.value) {
-			isFilterChange.value = false
-			return
-		}
-		fetchReleases()
-	})
-
-	// Initial load
-	onMounted(async () => {
-		fetchReleases()
 	})
 
 	definePageMeta({

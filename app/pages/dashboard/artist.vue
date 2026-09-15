@@ -2,6 +2,7 @@
 	import type { Artist, ArtistType, Nationality } from '~/types'
 	import { useSupabaseArtist } from '~/composables/Supabase/useSupabaseArtist'
 	import { useSupabaseNationalities } from '~/composables/Supabase/useSupabaseNationalities'
+	import { formatDate as formatDateValue } from '~/utils/date'
 
 	const toast = useToast()
 	const { getArtistsByPage } = useSupabaseArtist()
@@ -26,11 +27,6 @@
 
 	const sortColumn = ref<keyof Artist>('name')
 	const sortDirection = ref<'asc' | 'desc'>('asc')
-
-	// Pagination state
-	const currentPage = ref(1)
-	const pageSizeValue = ref(20)
-	const totalPages = computed(() => Math.ceil(totalArtists.value / pageSizeValue.value))
 
 	// Delete modal state
 	const isDeleteModalOpen = ref(false)
@@ -166,6 +162,23 @@
 		}
 	}
 
+	const { currentPage, pageSizeValue } = useDashboardTable({
+		fetch: fetchArtists,
+		filterSources: [
+			typeFilter,
+			genderFilter,
+			styleFilter,
+			nationalityFilter,
+			careerFilter,
+			missingFilter,
+			sortColumn,
+			sortDirection,
+		],
+		searchSource: search,
+	})
+
+	const totalPages = computed(() => Math.ceil(totalArtists.value / pageSizeValue.value))
+
 	const loadNationalities = async () => {
 		try {
 			nationalitiesList.value = await getAllNationalities()
@@ -185,7 +198,7 @@
 	// Format date
 	const formatDate = (dateString: string | null) => {
 		if (!dateString) return '-'
-		return new Date(dateString).toLocaleDateString('sv-SE', {
+		return formatDateValue(dateString, {
 			day: '2-digit',
 			month: '2-digit',
 			year: '2-digit',
@@ -264,48 +277,6 @@
 		fetchArtists()
 	}
 
-	// Track if filter change triggered the page reset
-	const isFilterChange = ref(false)
-
-	// Debounced search
-	const debouncedFetch = useDebounce(() => {
-		isFilterChange.value = true
-		currentPage.value = 1
-		fetchArtists()
-	}, 300)
-
-	watch(search, () => {
-		debouncedFetch()
-	})
-
-	watch(
-		[
-			typeFilter,
-			genderFilter,
-			styleFilter,
-			nationalityFilter,
-			careerFilter,
-			missingFilter,
-			sortColumn,
-			sortDirection,
-			pageSizeValue,
-		],
-		() => {
-			isFilterChange.value = true
-			currentPage.value = 1
-			fetchArtists()
-		},
-	)
-
-	// Watch page changes from pagination
-	watch(currentPage, () => {
-		if (isFilterChange.value) {
-			isFilterChange.value = false
-			return
-		}
-		fetchArtists()
-	})
-
 	const isTypingTarget = (target: EventTarget | null) => {
 		if (!(target instanceof HTMLElement)) return false
 		const tagName = target.tagName.toLowerCase()
@@ -330,10 +301,8 @@
 		}
 	}
 
-	// Initial load
 	onMounted(async () => {
 		await loadNationalities()
-		await fetchArtists()
 		if (import.meta.client) {
 			window.addEventListener('keydown', onPageNavigationKeydown)
 		}

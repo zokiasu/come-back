@@ -42,6 +42,10 @@ const setupGlobals = () => {
 		'getRouterParam',
 		vi.fn(() => 'artist-id'),
 	)
+	vi.stubGlobal(
+		'getRequestIP',
+		vi.fn(() => '127.0.0.1'),
+	)
 	vi.stubGlobal('createError', createError)
 	vi.stubGlobal('handleSupabaseError', handleSupabaseError)
 	vi.stubGlobal('transformJunction', transformJunction)

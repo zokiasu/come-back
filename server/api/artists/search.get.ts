@@ -5,7 +5,7 @@ import type { ArtistType } from '~/types'
 import type { ArtistSearchResponse } from '~/types/api'
 
 export default defineEventHandler(async (event): Promise<ArtistSearchResponse> => {
-	checkRateLimit(event, RATE_LIMIT_PRESETS.search)
+	await checkRateLimit(event, RATE_LIMIT_PRESETS.search)
 
 	const query = getQuery(event)
 	const search = validateSearchParam(query.search as string | undefined)

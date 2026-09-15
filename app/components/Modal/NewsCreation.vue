@@ -133,7 +133,7 @@
 	})
 	watch(newsDate, (newVal) => {
 		if (newVal) {
-			newsMessage.value = `Next comeback on ${newVal.toLocaleDateString('sv-SE')}`
+			newsMessage.value = `Next comeback on ${formatDate(newVal)}`
 		}
 	})
 </script>

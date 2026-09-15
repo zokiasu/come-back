@@ -284,9 +284,7 @@
 						<p class="text-cb-tertiary-200 text-sm">{{ news.message }}</p>
 						<div class="mt-2 flex items-center gap-2 text-xs text-gray-400">
 							<span v-if="news.artists?.[0]">{{ news.artists[0].name }}</span>
-							<span v-if="news.date">
-								• {{ new Date(news.date).toLocaleDateString('sv-SE') }}
-							</span>
+							<span v-if="news.date">• {{ formatDate(news.date) }}</span>
 						</div>
 					</div>
 				</div>

@@ -1,4 +1,5 @@
 import { CalendarDate } from '@internationalized/date'
+import { useDebounceFn } from '@vueuse/core'
 import type {
 	Artist,
 	ArtistEditorModel,
@@ -232,7 +233,7 @@ export const useArtistEditorForm = (options: UseArtistEditorFormOptions = {}) =>
 		},
 	})
 
-	const debouncedGroupSearch = useDebounce(async (query: string) => {
+	const debouncedGroupSearch = useDebounceFn(async (query: string) => {
 		if (!query || query.length < 2) {
 			groupSearchResults.value = []
 			isSearchingGroups.value = false
@@ -259,7 +260,7 @@ export const useArtistEditorForm = (options: UseArtistEditorFormOptions = {}) =>
 		}
 	}, 300)
 
-	const debouncedMemberSearch = useDebounce(async (query: string) => {
+	const debouncedMemberSearch = useDebounceFn(async (query: string) => {
 		if (!query || query.length < 2) {
 			memberSearchResults.value = []
 			isSearchingMembers.value = false
@@ -285,7 +286,7 @@ export const useArtistEditorForm = (options: UseArtistEditorFormOptions = {}) =>
 		}
 	}, 300)
 
-	const debouncedCompanySearch = useDebounce(async (query: string) => {
+	const debouncedCompanySearch = useDebounceFn(async (query: string) => {
 		if (!query || query.trim().length < 2) {
 			companySearchResults.value = []
 			isSearchingCompanies.value = false

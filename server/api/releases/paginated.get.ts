@@ -15,7 +15,7 @@ export default defineEventHandler(async (event): Promise<ReleasesPageResponse> =
 	// This endpoint backs the contributor dashboard and can expose pending releases.
 	// Keep authentication unconditional even when the request filters verified rows.
 	await requireContributor(event)
-	checkRateLimit(event, RATE_LIMIT_PRESETS.paginated)
+	await checkRateLimit(event, RATE_LIMIT_PRESETS.paginated)
 	setHeader(event, 'Cache-Control', 'private, no-store')
 
 	const supabase = useServerSupabase()

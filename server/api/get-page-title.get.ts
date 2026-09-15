@@ -72,7 +72,7 @@ function assertUrlAllowed(target: URL): void {
 }
 
 export default defineEventHandler(async (event) => {
-	checkRateLimit(event, RATE_LIMIT_PRESETS.externalFetch)
+	await checkRateLimit(event, RATE_LIMIT_PRESETS.externalFetch)
 
 	const query = getQuery(event)
 	const url = query.url

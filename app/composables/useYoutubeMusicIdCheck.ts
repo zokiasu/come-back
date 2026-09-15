@@ -1,4 +1,4 @@
-import { useDebounce } from '~/composables/useDebounce'
+import { useDebounceFn } from '@vueuse/core'
 import { useMutationTimeout } from '~/composables/useMutationTimeout'
 
 type YtmIdStatus = 'idle' | 'checking' | 'available' | 'exists' | 'blacklisted' | 'error'
@@ -74,7 +74,7 @@ export function useYoutubeMusicIdCheck() {
 		}
 	}
 
-	const debouncedCheck = useDebounce(checkId, 500)
+	const debouncedCheck = useDebounceFn(checkId, 500)
 
 	return {
 		status: readonly(status),

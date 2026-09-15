@@ -27,10 +27,6 @@
 	const imageLoaded = ref(false)
 	const router = useRouter()
 
-	const formatDate = (date: string) => {
-		return new Date(date).toLocaleDateString('sv-SE')
-	}
-
 	const navigateToArtist = async () => {
 		if (!props.artistId) return
 

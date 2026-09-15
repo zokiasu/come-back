@@ -1,5 +1,6 @@
 <script setup lang="ts">
 	import type { MusicType } from '~/types'
+	import { formatDate as formatDateValue } from '~/utils/date'
 
 	type MatchArtist = {
 		id: string
@@ -119,7 +120,7 @@
 
 	const formatDate = (value: string | null | undefined) => {
 		if (!value) return '-'
-		return new Date(value).toLocaleDateString('sv-SE')
+		return formatDateValue(value)
 	}
 
 	const formatArtists = (artists: MatchArtist[]) => {

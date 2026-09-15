@@ -74,4 +74,36 @@ describe('GET /api/musics/latest-mvs', () => {
 			},
 		])
 	})
+	it('preserves the selected page order when details arrive in reverse order', async () => {
+		setupGlobals()
+		const page = createSupabaseQueryMock({
+			data: [{ id: 'b' }, { id: 'a' }],
+			error: null,
+		})
+		const details = createSupabaseQueryMock({
+			data: [
+				{ id: 'a', artists: [] },
+				{ id: 'b', artists: [] },
+			],
+			error: null,
+		})
+		const from = vi.fn().mockReturnValueOnce(page).mockReturnValueOnce(details)
+		vi.stubGlobal('useServerSupabase', () => ({ from }))
+		const handler = await loadHandler()
+		expect(await handler({})).toEqual([
+			{ id: 'b', artists: [] },
+			{ id: 'a', artists: [] },
+		])
+		expect(details.in).toHaveBeenCalledWith('id', ['b', 'a'])
+		expect(page.limit).toHaveBeenCalledWith(14)
+		expect(from).toHaveBeenCalledTimes(2)
+	})
+
+	it('does not load details for an empty page', async () => {
+		setupGlobals()
+		const { supabase } = setupSupabase({ data: [] })
+		const handler = await loadHandler()
+		expect(await handler({})).toEqual([])
+		expect(supabase.from).toHaveBeenCalledTimes(1)
+	})
 })

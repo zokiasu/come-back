@@ -1,6 +1,7 @@
 <script setup lang="ts">
 	import type { Artist, ArtistMenuItem, Music, Release } from '~/types'
 	import { useSupabaseMusic } from '~/composables/Supabase/useSupabaseMusic'
+	import { formatDate as formatDateValue } from '~/utils/date'
 
 	type DashboardMusic = Music & {
 		artists: Artist[]
@@ -32,10 +33,6 @@
 
 	const sortColumn = ref<'date' | 'name' | 'release_year' | 'created_at'>('date')
 	const sortDirection = ref<'asc' | 'desc'>('desc')
-
-	const currentPage = ref(1)
-	const pageSizeValue = ref(20)
-	const totalPages = computed(() => Math.ceil(totalMusics.value / pageSizeValue.value))
 
 	const isEditModalOpen = ref(false)
 	const editingMusic = shallowRef<DashboardMusic | null>(null)
@@ -140,7 +137,7 @@
 
 	const formatDate = (dateString: string | null) => {
 		if (!dateString) return '-'
-		return new Date(dateString).toLocaleDateString('sv-SE')
+		return formatDateValue(dateString)
 	}
 
 	const formatDuration = (duration: number | null) => {
@@ -157,7 +154,7 @@
 
 	const formatReleaseDate = (dateString: string | null) => {
 		if (!dateString) return ''
-		return new Date(dateString).toLocaleDateString('sv-SE')
+		return formatDateValue(dateString)
 	}
 
 	const getMusicDestination = (music: DashboardMusic) => {
@@ -201,6 +198,21 @@
 			isLoading.value = false
 		}
 	}
+
+	const { currentPage, pageSizeValue } = useDashboardTable({
+		fetch: fetchMusics,
+		filterSources: [
+			() => selectedArtistFilter.value?.id || '',
+			yearFilter,
+			mvFilter,
+			verifiedFilter,
+			sortColumn,
+			sortDirection,
+		],
+		searchSource: search,
+	})
+
+	const totalPages = computed(() => Math.ceil(totalMusics.value / pageSizeValue.value))
 
 	const formatDateForInput = (dateString: string | null) => {
 		if (!dateString) return ''
@@ -426,48 +438,6 @@
 	const clearArtistFilter = () => {
 		selectedArtistFilter.value = undefined
 	}
-
-	const isFilterChange = ref(false)
-
-	const debouncedFetch = useDebounce(() => {
-		isFilterChange.value = true
-		currentPage.value = 1
-		fetchMusics()
-	}, 300)
-
-	watch(search, () => {
-		debouncedFetch()
-	})
-
-	watch(
-		[
-			() => selectedArtistFilter.value?.id || '',
-			yearFilter,
-			mvFilter,
-			verifiedFilter,
-			sortColumn,
-			sortDirection,
-			pageSizeValue,
-		],
-		async () => {
-			isFilterChange.value = true
-			currentPage.value = 1
-			await nextTick()
-			fetchMusics()
-		},
-	)
-
-	watch(currentPage, () => {
-		if (isFilterChange.value) {
-			isFilterChange.value = false
-			return
-		}
-		fetchMusics()
-	})
-
-	onMounted(async () => {
-		await fetchMusics()
-	})
 
 	definePageMeta({
 		middleware: ['admin'],

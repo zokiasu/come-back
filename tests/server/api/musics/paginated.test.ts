@@ -126,7 +126,7 @@ describe('GET /api/musics/paginated', () => {
 			from: vi.fn((table: string) => {
 				if (table !== 'musics') throw new Error(`Unexpected table: ${table}`)
 
-				return supabase.from.mock.calls.length === 1 ? dataQuery : countQuery
+				return supabase.from.mock.calls.length === 2 ? countQuery : dataQuery
 			}),
 		}
 		vi.stubGlobal('useServerSupabase', () => supabase)
@@ -215,7 +215,13 @@ describe('GET /api/musics/paginated', () => {
 		const dataQuery = createSupabaseQueryMock({ data: rawMusics, error: null })
 		const countQuery = createSupabaseQueryMock({ count: 6, error: null })
 		const supabase = {
-			from: vi.fn().mockReturnValueOnce(dataQuery).mockReturnValueOnce(countQuery),
+			from: vi
+				.fn()
+				.mockReturnValueOnce(dataQuery)
+				.mockReturnValueOnce(countQuery)
+				.mockReturnValueOnce(
+					createSupabaseQueryMock({ data: [...rawMusics].reverse(), error: null }),
+				),
 		}
 		vi.stubGlobal('useServerSupabase', () => supabase)
 		const handler = await loadHandler()
@@ -226,7 +232,7 @@ describe('GET /api/musics/paginated', () => {
 			limit: 2,
 			totalPages: 3,
 		})
-		expect(supabase.from).toHaveBeenCalledTimes(2)
+		expect(supabase.from).toHaveBeenCalledTimes(3)
 		expect(
 			dataQuery.calls.filter(({ method }) => method === 'order' || method === 'range'),
 		).toEqual([

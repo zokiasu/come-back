@@ -89,7 +89,7 @@ const transformMusics = (musics: MusicWithRelations[]): TransformedMusic[] => {
 }
 
 export default defineEventHandler(async (event): Promise<MusicsPageResponse> => {
-	checkRateLimit(event, RATE_LIMIT_PRESETS.paginated)
+	await checkRateLimit(event, RATE_LIMIT_PRESETS.paginated)
 	setHeader(event, 'Cache-Control', 'public, max-age=60, stale-while-revalidate=300')
 
 	const supabase = useServerSupabase()
@@ -265,7 +265,7 @@ export default defineEventHandler(async (event): Promise<MusicsPageResponse> => 
 		const countSelect = `
 			id,
 			artists:music_artists!inner(
-				artist:artists!inner(id)
+				artist:artists!inner()
 			)
 		`
 		const dataSelect = `
@@ -313,7 +313,7 @@ export default defineEventHandler(async (event): Promise<MusicsPageResponse> => 
 		const buildDataQuery = () =>
 			applySharedMusicFilters(supabase.from('musics').select(dataSelect))
 
-		const pageQuery = buildDataQuery()
+		const pageQuery = applySharedMusicFilters(supabase.from('musics').select(countSelect))
 			.order(orderBy, { ascending: orderDirection === 'asc' })
 			// Resolve ties before pagination without fetching entire date groups.
 			.order('name', { ascending: true })
@@ -322,12 +322,30 @@ export default defineEventHandler(async (event): Promise<MusicsPageResponse> => 
 
 		const [countResult, dataResult] = await Promise.all([buildCountQuery(), pageQuery])
 
-		if (countResult.error) throw countResult.error
-		if (dataResult.error) throw dataResult.error
+		if (countResult.error) {
+			console.error('Music pagination count failed:', countResult.error)
+			throw countResult.error
+		}
+		if (dataResult.error) {
+			console.error('Music pagination IDs failed:', dataResult.error)
+			throw dataResult.error
+		}
 
 		const total = countResult.count || 0
 		const totalPages = Math.ceil(total / limit)
-		const pageMusics = (dataResult.data || []) as MusicWithRelations[]
+		const ids = (dataResult.data || []).map((music) => music.id)
+		if (ids.length === 0) return { musics: [], total, page, limit, totalPages }
+
+		// Hydrate only the selected page, retaining the database pagination order.
+		const detailsResult = await buildDataQuery().in('id', ids)
+		if (detailsResult.error) {
+			console.error('Music pagination details failed:', detailsResult.error)
+			throw detailsResult.error
+		}
+		const positions = new Map(ids.map((id, index) => [id, index]))
+		const pageMusics = ((detailsResult.data || []) as MusicWithRelations[]).sort(
+			(left, right) => (positions.get(left.id) ?? 0) - (positions.get(right.id) ?? 0),
+		)
 		const transformedPageMusics = transformMusics(pageMusics)
 
 		return { musics: transformedPageMusics, total, page, limit, totalPages }

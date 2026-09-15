@@ -1,7 +1,10 @@
 import type { PostgrestError } from '@supabase/supabase-js'
 import { isError as isH3Error } from 'h3'
+import { checkRateLimit, RATE_LIMIT_PRESETS } from '../../../utils/rateLimit'
 
 export default defineEventHandler(async (event) => {
+	await checkRateLimit(event, RATE_LIMIT_PRESETS.publicRead)
+
 	const supabase = useServerSupabase()
 
 	const companyId = getRouterParam(event, 'id')

@@ -1,7 +1,7 @@
 import { validateIntegerParam } from '../../utils/validation'
 
 export default defineEventHandler(async (event) => {
-	checkRateLimit(event, RATE_LIMIT_PRESETS.paginated)
+	await checkRateLimit(event, RATE_LIMIT_PRESETS.paginated)
 	setHeader(event, 'Cache-Control', 'public, max-age=300, stale-while-revalidate=60')
 
 	const query = getQuery(event)

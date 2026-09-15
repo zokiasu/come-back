@@ -115,7 +115,7 @@
 
 	const formatValue = (value: number | string) => {
 		if (typeof value === 'number') {
-			return value.toLocaleString('sv-SE')
+			return formatNumber(value)
 		}
 		return value
 	}

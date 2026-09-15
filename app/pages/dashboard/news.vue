@@ -4,6 +4,8 @@
 	import { useSupabaseNews } from '~/composables/Supabase/useSupabaseNews'
 	import { useSupabaseSearch } from '~/composables/useSupabaseSearch'
 	import { CalendarDate } from '@internationalized/date'
+	import { useDebounceFn } from '@vueuse/core'
+	import { formatDate as formatDateValue } from '~/utils/date'
 
 	const toast = useToast()
 	const {
@@ -170,7 +172,7 @@
 	// Format date for display
 	const formatDate = (dateString: string | null) => {
 		if (!dateString) return '-'
-		return new Date(dateString).toLocaleDateString('sv-SE')
+		return formatDateValue(dateString)
 	}
 
 	// Format artists for display
@@ -225,7 +227,7 @@
 	}
 
 	// Debounced artist search
-	const debouncedSearch = useDebounce(async (query: string) => {
+	const debouncedSearch = useDebounceFn(async (query: string) => {
 		try {
 			const result = await searchArtistsFullText({ query, limit: 10 })
 			artistListSearched.value = result.artists

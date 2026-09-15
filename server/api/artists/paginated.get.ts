@@ -30,7 +30,7 @@ const asBool = (value: unknown): boolean => value === 'true' || value === true
  * with their relations in a second query and restore the RPC order.
  */
 export default defineEventHandler(async (event): Promise<ArtistsPageResponse> => {
-	checkRateLimit(event, RATE_LIMIT_PRESETS.paginated)
+	await checkRateLimit(event, RATE_LIMIT_PRESETS.paginated)
 
 	// This endpoint is auth-gated for non-public listings and returns
 	// per-request results; never let it sit in a shared/CDN cache (overrides the

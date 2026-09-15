@@ -191,7 +191,7 @@
 		switch (selectedPeriod.value) {
 			case 'week': {
 				const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-				return `From ${oneWeekAgo.toLocaleDateString('sv-SE')} to ${now.toLocaleDateString('sv-SE')}`
+				return `From ${formatDate(oneWeekAgo)} to ${formatDate(now)}`
 			}
 			case 'month': {
 				const displayedMonth = selectedMonth.value ?? currentMonth

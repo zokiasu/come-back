@@ -179,6 +179,57 @@ describe('server auth utils', () => {
 				role: 'CONTRIBUTOR',
 			})
 		})
+
+		it('should reject regular users from contributor actions', async () => {
+			const { requireContributor } = await loadAuthModule()
+			vi.mocked(serverSupabaseUser).mockResolvedValue({ id: 'user-id' })
+			setupSupabase({
+				dbUser: {
+					id: 'user-id',
+					email: 'user@example.com',
+					role: 'USER',
+				},
+			})
+
+			await expect(requireContributor({} as never)).rejects.toMatchObject({
+				statusCode: 403,
+				statusMessage: 'Forbidden',
+			})
+		})
+
+		it('should accept admins for admin actions', async () => {
+			const { requireAdmin } = await loadAuthModule()
+			vi.mocked(serverSupabaseUser).mockResolvedValue({ id: 'admin-id' })
+			setupSupabase({
+				dbUser: {
+					id: 'admin-id',
+					email: 'admin@example.com',
+					role: 'ADMIN',
+				},
+			})
+
+			await expect(requireAdmin({} as never)).resolves.toMatchObject({
+				id: 'admin-id',
+				role: 'ADMIN',
+			})
+		})
+
+		it('should resolve an authenticated user for auth-only actions', async () => {
+			const { requireAuth } = await loadAuthModule()
+			vi.mocked(serverSupabaseUser).mockResolvedValue({ id: 'user-id' })
+			setupSupabase({
+				dbUser: {
+					id: 'user-id',
+					email: 'user@example.com',
+					role: 'USER',
+				},
+			})
+
+			await expect(requireAuth({} as never)).resolves.toMatchObject({
+				id: 'user-id',
+				role: 'USER',
+			})
+		})
 	})
 
 	describe('requireCronSecret', () => {
