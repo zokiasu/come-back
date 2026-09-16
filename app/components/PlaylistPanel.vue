@@ -1,6 +1,7 @@
 <script setup lang="ts">
 	import draggable from 'vuedraggable'
 	import { usePlaylist, type PlaylistItem } from '~/composables/usePlaylist'
+	import { formatDateTime } from '~/utils/date'
 
 	const {
 		playlist,
@@ -54,13 +55,8 @@
 		isOpen.value = false
 	}
 
-	const formatAddedTime = (date: Date) => {
-		return new Intl.DateTimeFormat('en-US', {
-			hour: '2-digit',
-			minute: '2-digit',
-			hour12: true,
-		}).format(date)
-	}
+	const formatAddedTime = (date: Date) =>
+		formatDateTime(date, { hour: '2-digit', minute: '2-digit', hour12: true }, 'en-US')
 </script>
 
 <template>

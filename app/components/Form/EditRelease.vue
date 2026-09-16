@@ -2,6 +2,7 @@
 	import type { Music, Release, ReleaseType } from '~/types'
 	import { useSupabaseMusic } from '~/composables/Supabase/useSupabaseMusic'
 	import { useSupabaseRelease } from '~/composables/Supabase/useSupabaseRelease'
+	import { formatDate as formatDateValue, formatDateForInput } from '~/utils/date'
 
 	type ReleaseFormType = NonNullable<ReleaseType> | 'COMPILATION'
 	type EditableMusic = {
@@ -59,27 +60,11 @@
 	const formatDisplayDate = (dateString: string) => {
 		const normalized = formatDateForInput(dateString)
 		if (!normalized) return 'Not set'
-		return new Intl.DateTimeFormat('en-GB', {
-			day: '2-digit',
-			month: 'short',
-			year: 'numeric',
-		}).format(new Date(normalized))
-	}
-
-	// Function to format date to YYYY-MM-DD format for date input
-	const formatDateForInput = (dateString: string) => {
-		if (!dateString) return ''
-
-		try {
-			const date = new Date(dateString)
-			if (isNaN(date.getTime())) return ''
-
-			// Format as YYYY-MM-DD
-			return date.toISOString().split('T')[0]
-		} catch (error) {
-			console.error('Error formatting date:', error)
-			return ''
-		}
+		return formatDateValue(
+			normalized,
+			{ day: '2-digit', month: 'short', year: 'numeric' },
+			'en-GB',
+		)
 	}
 
 	// Reactive form data

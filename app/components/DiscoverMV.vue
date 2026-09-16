@@ -1,6 +1,7 @@
 <script setup lang="ts">
 	import type { PropType } from 'vue'
 	import type { Music } from '~/types'
+	import { formatArtistNames } from '~/utils/artist'
 
 	const props = defineProps({
 		mvs: {
@@ -21,7 +22,7 @@
 	const playerContainer = useTemplateRef('playerContainer')
 	const isPlayerReady = ref(false)
 
-	const { trace: logDiscoverTrace } = useDevLogger('DiscoverMV')
+	const { trace: logDiscoverTrace } = useLogger('DiscoverMV')
 
 	// Currently displayed music video
 	const currentMV = computed(() => props.mvs[currentMVIndex.value])
@@ -233,11 +234,6 @@
 		isPlaying.value = false
 	}
 
-	// Format artist names
-	const formatArtists = (artists: Array<{ name?: string }>) => {
-		return artists?.map((artist) => artist.name).join(', ') || ''
-	}
-
 	// Generate YouTube thumbnail URLs
 	const getYouTubeThumbnail = (
 		videoId: string,
@@ -315,7 +311,7 @@
 							{{ currentMV.name }}
 						</h3>
 						<p v-if="currentMV.artists && currentMV.artists.length > 0" class="text-lg">
-							{{ formatArtists(currentMV.artists) }}
+							{{ formatArtistNames(currentMV.artists, '') }}
 						</p>
 					</div>
 					<div class="flex justify-end">
@@ -392,7 +388,7 @@
 			class="min-h-[5.5rem] space-y-1 text-center transition-all duration-200"
 		>
 			<p class="text-cb-tertiary-400 min-h-[1.25rem] text-sm">
-				{{ formatArtists(displayedMV.artists || []) }}
+				{{ formatArtistNames(displayedMV.artists || [], '') }}
 			</p>
 			<h4 class="min-h-[1.75rem] text-lg font-semibold">
 				{{ displayedMV.name }}

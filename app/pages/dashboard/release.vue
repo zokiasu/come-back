@@ -1,12 +1,14 @@
 <script setup lang="ts">
 	import type { Release, ReleaseType, ArtistMenuItem } from '~/types'
 	import { useSupabaseRelease } from '~/composables/Supabase/useSupabaseRelease'
+	import { formatArtistNames } from '~/utils/artist'
+	import { DASHBOARD_PAGE_SIZE_OPTIONS } from '~/constants/dashboard'
 	import { formatDate as formatDateValue } from '~/utils/date'
 
 	const { deleteRelease: deleteReleaseFunction, getReleasesByPage } = useSupabaseRelease()
 	const toast = useToast()
 
-	const { trace: logDashboardReleaseTrace } = useDevLogger('DashboardRelease')
+	const { trace: logDashboardReleaseTrace } = useLogger('DashboardRelease')
 
 	type DashboardRelease = {
 		id: string
@@ -65,12 +67,6 @@
 		{ label: 'Type', id: 'type' },
 		{ label: 'Year', id: 'year' },
 		{ label: 'Created date', id: 'created_at' },
-	]
-
-	const pageSizeOptions: { label: string; id: number }[] = [
-		{ label: '20 per page', id: 20 },
-		{ label: '50 per page', id: 50 },
-		{ label: '100 per page', id: 100 },
 	]
 
 	const stats = computed(() => {
@@ -201,12 +197,6 @@
 		return formatDateValue(dateString)
 	}
 
-	// Format artists
-	const formatArtists = (artists: Array<{ name: string }> | undefined) => {
-		if (!artists || artists.length === 0) return '-'
-		return artists.map((a) => a.name).join(', ')
-	}
-
 	// Get type badge color
 	const getTypeBadgeColor = (type: string | null) => {
 		switch (type) {
@@ -234,11 +224,6 @@
 		year: number | null
 	}) => {
 		return !release.verified || hasYearMismatch(release)
-	}
-
-	// Toggle sort direction
-	const toggleSortDirection = () => {
-		sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc'
 	}
 
 	// Edit modal
@@ -393,13 +378,13 @@
 						"
 						color="neutral"
 						variant="ghost"
-						@click="toggleSortDirection"
+						@click="sortDirection = toggledSortDirection(sortDirection)"
 					/>
 				</div>
 
 				<USelectMenu
 					v-model="pageSizeValue"
-					:items="pageSizeOptions"
+					:items="DASHBOARD_PAGE_SIZE_OPTIONS"
 					value-key="id"
 					class="w-full md:w-36"
 					:ui="{ base: 'bg-cb-quinary-900' }"
@@ -497,7 +482,7 @@
 							</UBadge>
 						</div>
 						<p class="text-cb-tertiary-400 truncate text-sm">
-							{{ formatArtists(release.artists) }}
+							{{ formatArtistNames(release.artists) }}
 						</p>
 						<div class="text-cb-tertiary-500 mt-1 flex items-center gap-3 text-xs">
 							<span>{{ formatDate(release.date) }}</span>
@@ -612,7 +597,7 @@
 								</div>
 								<p class="truncate text-sm font-medium">{{ editingRelease.name }}</p>
 								<p class="text-cb-tertiary-500 text-sm">
-									{{ formatArtists(editingRelease.artists) }}
+									{{ formatArtistNames(editingRelease.artists) }}
 								</p>
 								<div
 									class="text-cb-tertiary-500 flex flex-wrap items-center gap-3 text-xs"

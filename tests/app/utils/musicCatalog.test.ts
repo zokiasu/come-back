@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
 	formatMusicArtists,
-	formatMusicDuration,
 	getMusicThumbnailUrl,
 	normalizeMusicQuery,
 	parseMusicQueryList,
@@ -39,9 +38,8 @@ describe('music catalog helpers', () => {
 		expect(getMusicThumbnailUrl({ url: 'not-an-array.webp' })).toBe('')
 	})
 
-	it('formats artist and duration fallbacks consistently', () => {
+	it('formats artist fallbacks consistently', () => {
 		expect(formatMusicArtists([{ name: 'aespa' }, { name: 'IVE' }])).toBe('aespa, IVE')
 		expect(formatMusicArtists()).toBe('Unknown artist')
-		expect(formatMusicDuration(185)).toBe('3:05')
 	})
 })

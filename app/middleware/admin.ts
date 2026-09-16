@@ -1,4 +1,9 @@
-import { ADMIN_AUTH_INIT_TIMEOUT_MS, AUTH_MAX_WAIT_TIME_MS } from '~/constants/auth'
+import { ADMIN_AUTH_INIT_TIMEOUT_MS } from '~/constants/auth'
+import {
+	resolveAuthSession,
+	waitForAuthInitialization,
+	waitForUserData,
+} from '~/utils/authSession'
 
 export default defineNuxtRouteMiddleware(async (_to, _from) => {
 	const user = useSupabaseUser()
@@ -14,50 +19,17 @@ export default defineNuxtRouteMiddleware(async (_to, _from) => {
 	// client-side checks
 	const { ensureAuthInitialized, userData } = useAuth()
 
-	// Wait for the initialisation the auth (restauration session + localStorage)
-	try {
-		await Promise.race([
-			ensureAuthInitialized(),
-			new Promise((_, reject) =>
-				setTimeout(() => reject(new Error('Auth timeout')), ADMIN_AUTH_INIT_TIMEOUT_MS),
-			),
-		])
-	} catch {
-		// On timeout, continue with the remaining checks
-	}
+	await waitForAuthInitialization(ensureAuthInitialized, ADMIN_AUTH_INIT_TIMEOUT_MS)
 
 	// Wait until user data is available (from Supabase sync or from localStorage
 	// through Pinia). Reactive wait: resolves as soon as the data lands instead of
 	// polling on a fixed interval, and is capped so a stuck sync cannot hang the route.
-	if (!userData.value && !userStore.userDataStore) {
-		await new Promise<void>((resolve) => {
-			const stop = watch(
-				() => userData.value || userStore.userDataStore,
-				(value) => {
-					if (value) {
-						stop()
-						resolve()
-					}
-				},
-			)
-			setTimeout(() => {
-				stop()
-				resolve()
-			}, AUTH_MAX_WAIT_TIME_MS)
-		})
-	}
+	await waitForUserData(() => userData.value || userStore.userDataStore)
 
-	let sessionUserId = user.value?.id ?? null
-	let sessionCheckFailed = false
-
-	if (!sessionUserId) {
-		try {
-			const { data } = await supabase.auth.getSession()
-			sessionUserId = data.session?.user?.id ?? null
-		} catch {
-			sessionCheckFailed = true
-		}
-	}
+	const { sessionUserId, sessionCheckFailed } = await resolveAuthSession(
+		user.value?.id,
+		() => supabase.auth.getSession(),
+	)
 
 	// Persisted state is only a fallback when the session service is temporarily
 	// unavailable. A successful empty session check invalidates stale local data.

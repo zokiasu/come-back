@@ -127,7 +127,7 @@
 					<div class="min-w-0 flex-1">
 						<p class="truncate text-sm font-medium">{{ music.name }}</p>
 						<p class="text-cb-tertiary-500 truncate text-xs">
-							{{ formatArtists(music.artists) }}
+							{{ formatArtistNames(music.artists, 'Unknown artist') }}
 						</p>
 						<div class="mt-1 flex items-center gap-2">
 							<span v-if="music.date" class="text-cb-tertiary-400 text-xs">
@@ -325,7 +325,7 @@
 							<div class="min-w-0 flex-1">
 								<p class="truncate text-xs font-medium">{{ item.music.name }}</p>
 								<p class="text-cb-tertiary-500 truncate text-xs">
-									{{ formatArtists(item.music.artists || []) }}
+									{{ formatArtistNames(item.music.artists || [], 'Unknown artist') }}
 								</p>
 								<p v-if="item.music.date" class="text-cb-tertiary-400 truncate text-xs">
 									{{ formatDate(item.music.date) }}
@@ -412,6 +412,8 @@
 	} from '~/types'
 	import { useDebounceFn } from '@vueuse/core'
 	import draggable from 'vuedraggable'
+	import { formatArtistNames } from '~/utils/artist'
+	import { formatDate as formatDateValue, formatDuration } from '~/utils/date'
 
 	type YearMenuItem = { value: number; label: string }
 	type StyleMenuItem = { value: string; label: string }
@@ -644,25 +646,12 @@
 		}
 	})
 
-	const formatArtists = (artists: { name: string }[] = []) => {
-		return artists.map((a) => a.name).join(', ') || 'Unknown artist'
-	}
-
-	const formatDuration = (seconds: number): string => {
-		const mins = Math.floor(seconds / 60)
-		const secs = seconds % 60
-		return `${mins}:${secs.toString().padStart(2, '0')}`
-	}
-
-	const formatDate = (dateString: string | null | undefined): string => {
-		if (!dateString) return ''
-		const date = new Date(dateString)
-		return date.toLocaleDateString('en-US', {
-			day: 'numeric',
-			month: 'short',
-			year: 'numeric',
-		})
-	}
+	const formatDate = (dateString: string | null | undefined): string =>
+		formatDateValue(
+			dateString,
+			{ day: 'numeric', month: 'short', year: 'numeric' },
+			'en-US',
+		)
 
 	const getMusicThumbnail = (music: Music): string => {
 		if (music.thumbnails && Array.isArray(music.thumbnails)) {
@@ -746,7 +735,7 @@
 		playNow(
 			music.id_youtube_music,
 			music.title || music.name || '',
-			formatArtists(music.artists || []),
+			formatArtistNames(music.artists || [], 'Unknown artist'),
 			getMusicThumbnail(music),
 			music.ismv === true,
 		)

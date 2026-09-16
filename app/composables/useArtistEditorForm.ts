@@ -10,6 +10,7 @@ import type {
 	MusicStyle,
 	Nationality,
 } from '~/types'
+import { formatDate } from '~/utils/date'
 import type { TablesInsert } from '~/types/supabase'
 
 export type CompanyMenuItem = {
@@ -193,18 +194,9 @@ export const useArtistEditorForm = (options: UseArtistEditorFormOptions = {}) =>
 		)
 	})
 
-	const formatDisplayDate = (value: Date | string | null | undefined) => {
-		if (!value) return 'Not set'
-
-		const date = value instanceof Date ? value : new Date(value)
-		if (Number.isNaN(date.getTime())) return 'Not set'
-
-		return new Intl.DateTimeFormat('en-GB', {
-			day: '2-digit',
-			month: 'short',
-			year: 'numeric',
-		}).format(date)
-	}
+	const formatDisplayDate = (value: Date | string | null | undefined) =>
+		formatDate(value, { day: '2-digit', month: 'short', year: 'numeric' }, 'en-GB') ||
+		'Not set'
 
 	const toCalendarDate = (date: Date | null | undefined): CalendarDate | undefined => {
 		if (!date) return undefined

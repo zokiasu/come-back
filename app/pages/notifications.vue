@@ -1,4 +1,5 @@
 <script setup lang="ts">
+	import { formatTimeAgo } from '~/utils/date'
 	import type { AppNotification } from '~/types/api'
 
 	const {
@@ -17,22 +18,6 @@
 
 	const notificationIcon = (type: string) =>
 		type === 'followed_artist' ? 'i-lucide-bell-ring' : 'i-lucide-music'
-
-	const timeAgo = (dateStr: string) => {
-		const diff = Date.now() - new Date(dateStr).getTime()
-		const mins = Math.floor(diff / 60000)
-		if (mins < 1) return 'just now'
-		if (mins < 60) return `${mins}m ago`
-		const hours = Math.floor(mins / 60)
-		if (hours < 24) return `${hours}h ago`
-		const days = Math.floor(hours / 24)
-		if (days < 30) return `${days}d ago`
-		return new Date(dateStr).toLocaleDateString('en-US', {
-			day: 'numeric',
-			month: 'long',
-			year: 'numeric',
-		})
-	}
 
 	const groupByDate = (notifs: AppNotification[]) => {
 		const groups: { label: string; items: AppNotification[] }[] = []
@@ -159,7 +144,7 @@
 								{{ notification.message }}
 							</p>
 							<p class="mt-1 text-xs text-zinc-600">
-								{{ timeAgo(notification.created_at) }}
+								{{ formatTimeAgo(notification.created_at) }}
 							</p>
 						</div>
 						<div

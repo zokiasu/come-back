@@ -1,6 +1,10 @@
 <script setup lang="ts">
 	import type { User as SupabaseAuthUser } from '@supabase/supabase-js'
 	import { storeToRefs } from 'pinia'
+	import {
+		formatDate as formatDateValue,
+		formatDateTime as formatDateTimeValue,
+	} from '~/utils/date'
 	import type { User } from '~/types'
 
 	type SecurityActivitySummary = {
@@ -56,33 +60,25 @@
 		return 'Something went wrong while preparing this security workspace.'
 	}
 
-	const formatDate = (value: string | null | undefined) => {
-		if (!value) return 'Not available'
+	const formatDate = (value: string | null | undefined) =>
+		formatDateValue(
+			value,
+			{ day: '2-digit', month: 'short', year: 'numeric' },
+			'en-GB',
+		) || 'Not available'
 
-		const date = new Date(value)
-		if (Number.isNaN(date.getTime())) return 'Not available'
-
-		return new Intl.DateTimeFormat('en-GB', {
-			day: '2-digit',
-			month: 'short',
-			year: 'numeric',
-		}).format(date)
-	}
-
-	const formatDateTime = (value: string | null | undefined) => {
-		if (!value) return 'Not available'
-
-		const date = new Date(value)
-		if (Number.isNaN(date.getTime())) return 'Not available'
-
-		return new Intl.DateTimeFormat('en-GB', {
-			day: '2-digit',
-			month: 'short',
-			year: 'numeric',
-			hour: '2-digit',
-			minute: '2-digit',
-		}).format(date)
-	}
+	const formatDateTime = (value: string | null | undefined) =>
+		formatDateTimeValue(
+			value,
+			{
+				day: '2-digit',
+				month: 'short',
+				year: 'numeric',
+				hour: '2-digit',
+				minute: '2-digit',
+			},
+			'en-GB',
+		) || 'Not available'
 
 	const formatMetric = (value: number | null) => {
 		if (value === null) return 'Unavailable'

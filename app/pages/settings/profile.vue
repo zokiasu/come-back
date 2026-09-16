@@ -2,6 +2,7 @@
 	import { useDebounceFn } from '@vueuse/core'
 	import { useSupabaseFunction } from '~/composables/useSupabaseFunction'
 	import { useUserStore } from '~/stores/user'
+	import { formatDate } from '~/utils/date'
 	import type { User } from '~/types'
 
 	type ArtistPhotoOption = {
@@ -53,18 +54,9 @@
 	const canLoadMorePhotos = ref(false)
 	const latestPhotoRequestId = ref(0)
 
-	const formatDisplayDate = (value: string | null | undefined) => {
-		if (!value) return 'Not set'
-
-		const date = new Date(value)
-		if (Number.isNaN(date.getTime())) return 'Not set'
-
-		return new Intl.DateTimeFormat('en-GB', {
-			day: '2-digit',
-			month: 'short',
-			year: 'numeric',
-		}).format(date)
-	}
+	const formatDisplayDate = (value: string | null | undefined) =>
+		formatDate(value, { day: '2-digit', month: 'short', year: 'numeric' }, 'en-GB') ||
+		'Not set'
 
 	const formatElapsedDays = (value: string | null | undefined) => {
 		if (!value) return 'Timeline unavailable'

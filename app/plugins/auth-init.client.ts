@@ -44,7 +44,7 @@ export default defineNuxtPlugin(async () => {
 				}
 			})
 		} catch (error) {
-			const { logError } = useErrorLogger()
+			const { error: logError } = useLogger('auth-init')
 			logError(error, 'auth-init-plugin')
 
 			if (import.meta.dev) {

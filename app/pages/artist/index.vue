@@ -334,7 +334,7 @@
 	const { getAllMusicStyles } = useSupabaseMusicStyles()
 	const toast = useToast()
 
-	const { trace: logArtistIndexTrace } = useDevLogger('ArtistIndex')
+	const { trace: logArtistIndexTrace } = useLogger('ArtistIndex')
 
 	// Enum values for template usage
 	const artistTypes: ArtistType[] = ['SOLO', 'GROUP']

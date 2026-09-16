@@ -2,13 +2,22 @@
 	import type { Artist, ArtistType, Nationality } from '~/types'
 	import { useSupabaseArtist } from '~/composables/Supabase/useSupabaseArtist'
 	import { useSupabaseNationalities } from '~/composables/Supabase/useSupabaseNationalities'
+	import {
+		ARTIST_GENDER_FILTER_OPTIONS,
+		ARTIST_TYPE_FILTER_OPTIONS,
+		getArtistGenderBadgeColor,
+		getArtistMissingData,
+		getArtistMissingLabels,
+		getArtistTypeBadgeColor,
+	} from '~/utils/artist'
+	import { DASHBOARD_PAGE_SIZE_OPTIONS } from '~/constants/dashboard'
 	import { formatDate as formatDateValue } from '~/utils/date'
 
 	const toast = useToast()
 	const { getArtistsByPage } = useSupabaseArtist()
 	const { getAllNationalities } = useSupabaseNationalities()
 
-	const { trace: logDashboardArtistTrace } = useDevLogger('DashboardArtist')
+	const { trace: logDashboardArtistTrace } = useLogger('DashboardArtist')
 
 	const artistsList = ref<Artist[]>([])
 	const isLoading = ref(false)
@@ -37,20 +46,6 @@
 	const banningArtist = ref<Artist | null>(null)
 
 	// Select menu options
-	const typeOptions: { label: string; id: string }[] = [
-		{ label: 'All types', id: 'ALL' },
-		{ label: 'Solo', id: 'SOLO' },
-		{ label: 'Group', id: 'GROUP' },
-	]
-
-	const genderOptions: { label: string; id: string }[] = [
-		{ label: 'All genders', id: 'ALL' },
-		{ label: 'Male', id: 'MALE' },
-		{ label: 'Female', id: 'FEMALE' },
-		{ label: 'Mixed', id: 'MIXTE' },
-		{ label: 'Unknown', id: 'UNKNOWN' },
-	]
-
 	const styleOptions: { label: string; id: string }[] = [
 		{ label: 'All styles', id: 'ALL' },
 		{ label: 'K-Pop', id: 'K-Pop' },
@@ -95,12 +90,6 @@
 		{ label: 'Type', id: 'type' },
 		{ label: 'Created date', id: 'created_at' },
 		{ label: 'Updated date', id: 'updated_at' },
-	]
-
-	const pageSizeOptions: { label: string; id: number }[] = [
-		{ label: '20 per page', id: 20 },
-		{ label: '50 per page', id: 50 },
-		{ label: '100 per page', id: 100 },
 	]
 
 	// Fetch artists
@@ -205,52 +194,6 @@
 		})
 	}
 
-	// Get type badge color
-	const getTypeBadgeColor = (type: string | null) => {
-		return type === 'SOLO' ? 'primary' : 'info'
-	}
-
-	// Get gender badge color
-	const getGenderBadgeColor = (gender: string | null) => {
-		switch (gender) {
-			case 'MALE':
-				return 'info'
-			case 'FEMALE':
-				return 'error'
-			case 'MIXTE':
-				return 'warning'
-			default:
-				return 'neutral'
-		}
-	}
-
-	// Check missing data
-	const getMissingData = (artist: Artist) => {
-		const missing = []
-		if (!artist.description) missing.push('desc')
-		if (!artist.social_links || artist.social_links.length === 0) missing.push('socials')
-		if (!artist.platform_links || artist.platform_links.length === 0)
-			missing.push('platforms')
-		if (!artist.styles || artist.styles.length === 0) missing.push('styles')
-		return missing
-	}
-
-	const getMissingLabels = (artist: Artist) => {
-		const missing = getMissingData(artist)
-		const labelMap: Record<string, string> = {
-			desc: 'description',
-			socials: 'socials',
-			platforms: 'platforms',
-			styles: 'styles',
-		}
-		return missing.map((key) => labelMap[key]).filter(Boolean)
-	}
-
-	// Toggle sort direction
-	const toggleSortDirection = () => {
-		sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc'
-	}
-
 	// Delete modal
 	const openDeleteModal = (artist: Artist) => {
 		deletingArtist.value = artist
@@ -277,41 +220,10 @@
 		fetchArtists()
 	}
 
-	const isTypingTarget = (target: EventTarget | null) => {
-		if (!(target instanceof HTMLElement)) return false
-		const tagName = target.tagName.toLowerCase()
-		return (
-			tagName === 'input' ||
-			tagName === 'textarea' ||
-			tagName === 'select' ||
-			target.isContentEditable
-		)
-	}
-
-	const onPageNavigationKeydown = (event: KeyboardEvent) => {
-		if (isTypingTarget(event.target)) return
-		if (event.key === 'ArrowLeft' && currentPage.value > 1) {
-			event.preventDefault()
-			currentPage.value -= 1
-			return
-		}
-		if (event.key === 'ArrowRight' && currentPage.value < totalPages.value) {
-			event.preventDefault()
-			currentPage.value += 1
-		}
-	}
+	useDashboardPaginationKeyboard(currentPage, totalPages)
 
 	onMounted(async () => {
 		await loadNationalities()
-		if (import.meta.client) {
-			window.addEventListener('keydown', onPageNavigationKeydown)
-		}
-	})
-
-	onBeforeUnmount(() => {
-		if (import.meta.client) {
-			window.removeEventListener('keydown', onPageNavigationKeydown)
-		}
 	})
 
 	definePageMeta({
@@ -346,7 +258,7 @@
 
 				<USelectMenu
 					v-model="typeFilter"
-					:items="typeOptions"
+					:items="ARTIST_TYPE_FILTER_OPTIONS"
 					value-key="id"
 					class="w-full md:w-36"
 					:ui="{ base: 'bg-cb-quinary-900' }"
@@ -354,7 +266,7 @@
 
 				<USelectMenu
 					v-model="genderFilter"
-					:items="genderOptions"
+					:items="ARTIST_GENDER_FILTER_OPTIONS"
 					value-key="id"
 					class="w-full md:w-40"
 					:ui="{ base: 'bg-cb-quinary-900' }"
@@ -410,13 +322,13 @@
 						"
 						color="neutral"
 						variant="ghost"
-						@click="toggleSortDirection"
+						@click="sortDirection = toggledSortDirection(sortDirection)"
 					/>
 				</div>
 
 				<USelectMenu
 					v-model="pageSizeValue"
-					:items="pageSizeOptions"
+					:items="DASHBOARD_PAGE_SIZE_OPTIONS"
 					value-key="id"
 					class="w-full md:w-36"
 					:ui="{ base: 'bg-cb-quinary-900' }"
@@ -455,7 +367,7 @@
 					v-for="artist in artistsList"
 					:key="artist.id"
 					class="hover:bg-cb-quinary-900/30 group flex items-center gap-4 p-3 transition-colors"
-					:class="{ 'bg-gray-900/20': getMissingData(artist).length > 0 }"
+					:class="{ 'bg-gray-900/20': getArtistMissingData(artist).length > 0 }"
 				>
 					<NuxtLink :to="`/artist/${artist.id}`" class="shrink-0">
 						<NuxtImg
@@ -481,11 +393,15 @@
 							>
 								{{ artist.name }}
 							</NuxtLink>
-							<UBadge :color="getTypeBadgeColor(artist.type)" variant="subtle" size="xs">
+							<UBadge
+								:color="getArtistTypeBadgeColor(artist.type)"
+								variant="subtle"
+								size="xs"
+							>
 								{{ artist.type || 'N/A' }}
 							</UBadge>
 							<UBadge
-								:color="getGenderBadgeColor(artist.gender)"
+								:color="getArtistGenderBadgeColor(artist.gender)"
 								variant="subtle"
 								size="xs"
 							>
@@ -542,7 +458,7 @@
 
 						<div class="mt-1 flex flex-wrap items-center gap-2">
 							<span
-								v-if="getMissingData(artist).includes('desc')"
+								v-if="getArtistMissingData(artist).includes('desc')"
 								class="text-xs text-gray-400"
 								title="No description"
 							>
@@ -550,7 +466,7 @@
 								desc
 							</span>
 							<span
-								v-if="getMissingData(artist).includes('styles')"
+								v-if="getArtistMissingData(artist).includes('styles')"
 								class="text-xs text-gray-400"
 								title="No styles"
 							>
@@ -583,9 +499,9 @@
 							</span>
 						</div>
 						<span
-							v-if="getMissingData(artist).length > 0"
+							v-if="getArtistMissingData(artist).length > 0"
 							class="mt-1 inline-flex rounded bg-gray-500/10 px-1.5 py-0.5 text-[11px] font-semibold tracking-wide text-gray-300 uppercase"
-							:title="`Missing fields: ${getMissingLabels(artist).join(', ')}`"
+							:title="`Missing fields: ${getArtistMissingLabels(artist).join(', ')}`"
 						>
 							Incomplete
 						</span>

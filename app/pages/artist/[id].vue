@@ -4,6 +4,10 @@
 	import type { Music } from '~/types'
 	import CreateMultipleArtists from '@/components/Modal/CreateMultipleArtists.vue'
 	import { useAuthModal } from '@/composables/useAuthModal'
+	import { formatDate } from '~/utils/date'
+
+	const formatLongDate = (value: string | null | undefined): string =>
+		formatDate(value, { day: 'numeric', month: 'long', year: 'numeric' }, 'en-US')
 
 	const userStore = useUserStore()
 	const { isLoginStore, isAdminStore } = storeToRefs(userStore)
@@ -228,30 +232,14 @@
 							class="bg-cb-quaternary-950 w-fit rounded px-3 py-1 text-xs font-semibold whitespace-nowrap uppercase"
 						>
 							Birthday :
-							{{
-								artist.birth_date
-									? new Date(artist.birth_date).toLocaleDateString('en-US', {
-											day: 'numeric',
-											month: 'long',
-											year: 'numeric',
-										})
-									: 'Unknown'
-							}}
+							{{ artist.birth_date ? formatLongDate(artist.birth_date) : 'Unknown' }}
 						</p>
 						<p
 							v-if="artist.debut_date"
 							class="bg-cb-quaternary-950 w-fit rounded px-3 py-1 text-xs font-semibold whitespace-nowrap uppercase"
 						>
 							Debut Date :
-							{{
-								artist.debut_date
-									? new Date(artist.debut_date).toLocaleDateString('en-US', {
-											day: 'numeric',
-											month: 'long',
-											year: 'numeric',
-										})
-									: 'Unknown'
-							}}
+							{{ artist.debut_date ? formatLongDate(artist.debut_date) : 'Unknown' }}
 						</p>
 					</div>
 					<div v-if="!isFetchingArtist" class="flex flex-wrap gap-2">

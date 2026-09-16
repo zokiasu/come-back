@@ -1,7 +1,9 @@
 <script setup lang="ts">
 	import type { Artist, ArtistMenuItem, Music, Release } from '~/types'
 	import { useSupabaseMusic } from '~/composables/Supabase/useSupabaseMusic'
-	import { formatDate as formatDateValue } from '~/utils/date'
+	import { formatArtistNames } from '~/utils/artist'
+	import { DASHBOARD_PAGE_SIZE_OPTIONS } from '~/constants/dashboard'
+	import { formatDate as formatDateValue, formatDateForInput } from '~/utils/date'
 
 	type DashboardMusic = Music & {
 		artists: Artist[]
@@ -78,12 +80,6 @@
 		{ label: 'Created date', id: 'created_at' },
 	]
 
-	const pageSizeOptions: { label: string; id: number }[] = [
-		{ label: '20 per page', id: 20 },
-		{ label: '50 per page', id: 50 },
-		{ label: '100 per page', id: 100 },
-	]
-
 	const artistFilterModel = computed<Artist | ArtistMenuItem | null>({
 		get: () => selectedArtistFilter.value ?? null,
 		set: (nextArtist) => {
@@ -147,11 +143,6 @@
 		return `${minutes}:${seconds.toString().padStart(2, '0')}`
 	}
 
-	const formatArtists = (artists: Artist[]) => {
-		if (!artists.length) return '-'
-		return artists.map((artist) => artist.name).join(', ')
-	}
-
 	const formatReleaseDate = (dateString: string | null) => {
 		if (!dateString) return ''
 		return formatDateValue(dateString)
@@ -213,18 +204,6 @@
 	})
 
 	const totalPages = computed(() => Math.ceil(totalMusics.value / pageSizeValue.value))
-
-	const formatDateForInput = (dateString: string | null) => {
-		if (!dateString) return ''
-
-		try {
-			const date = new Date(dateString)
-			if (Number.isNaN(date.getTime())) return ''
-			return date.toISOString().split('T')[0] || ''
-		} catch {
-			return ''
-		}
-	}
 
 	const syncEditForm = (music: DashboardMusic) => {
 		editForm.name = music.name || ''
@@ -431,10 +410,6 @@
 		}
 	}
 
-	const toggleSortDirection = () => {
-		sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc'
-	}
-
 	const clearArtistFilter = () => {
 		selectedArtistFilter.value = undefined
 	}
@@ -551,13 +526,13 @@
 						"
 						color="neutral"
 						variant="ghost"
-						@click="toggleSortDirection"
+						@click="sortDirection = toggledSortDirection(sortDirection)"
 					/>
 				</div>
 
 				<USelectMenu
 					v-model="pageSizeValue"
-					:items="pageSizeOptions"
+					:items="DASHBOARD_PAGE_SIZE_OPTIONS"
 					value-key="id"
 					class="w-full md:w-36"
 					:ui="{ base: 'bg-cb-quinary-900' }"
@@ -633,7 +608,7 @@
 						</div>
 
 						<p class="text-cb-tertiary-400 truncate text-sm">
-							{{ formatArtists(music.artists) }}
+							{{ formatArtistNames(music.artists) }}
 						</p>
 
 						<div
@@ -757,7 +732,7 @@
 								</div>
 								<p class="truncate text-sm font-medium">{{ editingMusic.name }}</p>
 								<p class="text-cb-tertiary-500 text-sm">
-									{{ formatArtists(editingMusic.artists) }}
+									{{ formatArtistNames(editingMusic.artists) }}
 								</p>
 								<div
 									class="text-cb-tertiary-500 flex flex-wrap items-center gap-3 text-xs"
@@ -936,7 +911,7 @@
 											v-if="!searchAllReleases && editingMusic.artists.length > 0"
 											class="text-cb-tertiary-500 text-right"
 										>
-											Default scope: {{ formatArtists(editingMusic.artists) }}
+											Default scope: {{ formatArtistNames(editingMusic.artists) }}
 										</p>
 									</div>
 
@@ -984,7 +959,7 @@
 														<p class="text-cb-tertiary-500 truncate text-xs">
 															{{ formatReleaseDate(release.date || null) }}
 															<span v-if="release.artists?.length">
-																· {{ formatArtists(release.artists) }}
+																· {{ formatArtistNames(release.artists) }}
 															</span>
 														</p>
 													</div>
@@ -1071,7 +1046,7 @@
 														<p class="text-cb-tertiary-500 truncate text-xs">
 															{{ formatReleaseDate(release.date || null) }}
 															<span v-if="release.artists?.length">
-																· {{ formatArtists(release.artists) }}
+																· {{ formatArtistNames(release.artists) }}
 															</span>
 														</p>
 													</div>

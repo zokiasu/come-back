@@ -132,7 +132,7 @@
 										{{ music.name }}
 									</p>
 									<p class="text-cb-tertiary-500 mt-1 truncate text-xs">
-										{{ formatArtists(music.artists) }}
+										{{ formatArtistNames(music.artists, 'Unknown artist') }}
 									</p>
 								</div>
 							</div>
@@ -196,6 +196,8 @@
 	import { useIntersectionObserver } from '@vueuse/core'
 	import type { Music } from '~/types'
 	import { useSupabaseMusic } from '~/composables/Supabase/useSupabaseMusic'
+	import { formatArtistNames } from '~/utils/artist'
+	import { formatDate } from '~/utils/date'
 
 	type Thumbnail = {
 		url?: string | null
@@ -273,29 +275,14 @@
 		const date = parseDateKey(dateKey)
 		if (!date) return 'Undated'
 
-		return new Intl.DateTimeFormat('en-US', {
-			day: 'numeric',
-			month: 'long',
-			year: 'numeric',
-		}).format(date)
+		return formatDate(date, { day: 'numeric', month: 'long', year: 'numeric' }, 'en-US')
 	}
 
 	const formatDaySubtitle = (dateKey: string): string => {
 		const date = parseDateKey(dateKey)
 		if (!date) return 'No release date'
 
-		return new Intl.DateTimeFormat('en-US', {
-			weekday: 'long',
-		}).format(date)
-	}
-
-	const formatArtists = (artists: Music['artists'] = []): string => {
-		return (
-			artists
-				.map((artist) => artist.name.trim())
-				.filter(Boolean)
-				.join(', ') || 'Unknown artist'
-		)
+		return formatDate(date, { weekday: 'long' }, 'en-US')
 	}
 
 	const isThumbnail = (value: unknown): value is Thumbnail => {

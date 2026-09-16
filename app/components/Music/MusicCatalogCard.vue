@@ -2,10 +2,10 @@
 	import {
 		formatMusicArtists,
 		formatMusicDate,
-		formatMusicDuration,
 		getMusicThumbnailUrl,
 		type MusicCatalogItem,
 	} from '~/utils/musicCatalog'
+	import { formatDuration } from '~/utils/date'
 
 	defineProps<{
 		music: MusicCatalogItem
@@ -65,7 +65,7 @@
 					@click.stop="$emit('preview', music)"
 				/>
 				<span v-if="music.duration" class="text-cb-tertiary-500 text-xs">
-					{{ formatMusicDuration(music.duration) }}
+					{{ formatDuration(music.duration) }}
 				</span>
 			</div>
 		</div>

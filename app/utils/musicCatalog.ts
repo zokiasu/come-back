@@ -1,4 +1,5 @@
 import type { LocationQuery, LocationQueryValue } from 'vue-router'
+import { formatArtistNames } from './artist'
 import { formatDate } from './date'
 
 export interface MusicCatalogItem {
@@ -50,15 +51,8 @@ export const stringifyMusicQuery = (query: Record<string, string>): string => {
 	)
 }
 
-export const formatMusicArtists = (artists: { name: string }[] = []): string => {
-	return artists.map((artist) => artist.name).join(', ') || 'Unknown artist'
-}
-
-export const formatMusicDuration = (seconds: number): string => {
-	const minutes = Math.floor(seconds / 60)
-	const remainingSeconds = seconds % 60
-	return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
-}
+export const formatMusicArtists = (artists: { name: string }[] = []): string =>
+	formatArtistNames(artists, 'Unknown artist')
 
 export const formatMusicDate = (dateString: string | null | undefined): string => {
 	return formatDate(dateString)

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 	import { useSupabaseCompanies } from '~/composables/Supabase/useSupabaseCompanies'
 	import type { Company } from '~/types'
-	import { useDebounceFn, useInfiniteScroll } from '@vueuse/core'
 
 	interface FilterState {
 		onlyUnverified: boolean
@@ -17,14 +16,10 @@
 	const companiesFetch = ref<Company[]>([])
 	const search = ref('')
 	const invertSort = ref(false)
-	const page = ref(1)
-	const currentPage = ref(1)
-	const totalPages = ref(1)
 	const totalCompanies = ref(0)
 
 	const scrollContainer = useTemplateRef('scrollContainer')
 	const sort = ref<keyof Company>('name')
-	const limitFetch = ref(48)
 	const typeFilter = ref<NonNullable<Company['type']> | ''>('')
 	const verifiedFilter = ref<'all' | 'verified' | 'unverified'>('all')
 	const isLoading = ref(false)
@@ -44,8 +39,6 @@
 		onlyWithoutLogo: false,
 		onlyWithoutDescription: false,
 	})
-
-	const observerTarget = useTemplateRef('observerTarget')
 
 	const deleteModal = reactive({
 		isOpen: false,
@@ -175,27 +168,21 @@
 	 */
 	const onCompanyUpdated = async (): Promise<void> => {
 		closeEditModal()
-		await getCompanies(true)
+		await resetAndLoad()
 		await loadStats()
 	}
 
 	/**
 	 * Fetch companies from Supabase
 	 */
-	const getCompanies = async (firstCall = false): Promise<void> => {
-		if (isLoading.value) return
+	const getCompanies = async (): Promise<void> => {
 		isLoading.value = true
 
 		try {
-			if (firstCall) {
-				currentPage.value = 1
-				companiesFetch.value = []
-			}
-
 			const result = await getAllCompanies({
 				includeUnverified: verifiedFilter.value === 'all',
-				limit: limitFetch.value,
-				offset: firstCall ? 0 : (currentPage.value - 1) * limitFetch.value,
+				limit: pageSizeValue.value,
+				offset: (currentPage.value - 1) * pageSizeValue.value,
 				search: search.value || undefined,
 				type: typeFilter.value || undefined,
 				verified:
@@ -207,15 +194,7 @@
 			})
 
 			totalCompanies.value = result.total
-			totalPages.value = result.totalPages
-
-			if (firstCall) {
-				companiesFetch.value = result.companies
-			} else {
-				companiesFetch.value = [...companiesFetch.value, ...result.companies]
-			}
-
-			currentPage.value++
+			companiesFetch.value = result.companies
 		} catch (error) {
 			console.error('Error while fetching companies:', error)
 			toast.add({
@@ -227,6 +206,24 @@
 			isLoading.value = false
 		}
 	}
+
+	// Pagination: refetches on page changes, resets to page 1 on filters/search
+	const { currentPage, pageSizeValue, resetAndLoad } = useDashboardTable({
+		fetch: getCompanies,
+		filterSources: [
+			typeFilter,
+			verifiedFilter,
+			invertSort,
+			sort,
+			() => filterState.onlyUnverified,
+			() => filterState.onlyWithoutWebsite,
+			() => filterState.onlyWithoutLogo,
+			() => filterState.onlyWithoutDescription,
+		],
+		searchSource: search,
+		pageSize: 48,
+	})
+	const totalPages = computed(() => Math.ceil(totalCompanies.value / pageSizeValue.value))
 
 	/**
 	 * Toggle the "only without" filters
@@ -242,23 +239,7 @@
 	}
 
 	/**
-	 * Debounced search
-	 */
-	const performSearch = useDebounceFn(async () => {
-		await getCompanies(true)
-	}, 300)
-
-	/**
-	 * Load all remaining companies
-	 */
-	const loadAllCompanies = async (): Promise<void> => {
-		while (currentPage.value <= totalPages.value && !isLoading.value) {
-			await getCompanies(false)
-		}
-	}
-
-	/**
-	 * Sort the companies list based on the selected criteria
+	 * Apply the quick filters on the loaded page
 	 */
 	const filteredCompaniesList = computed(() => {
 		if (!companiesFetch.value) return companiesFetch.value
@@ -278,77 +259,12 @@
 			companies = companies.filter((company) => !company.description)
 		}
 
-		return companies.sort((a, b) => {
-			if (sort.value === 'created_at') {
-				return invertSort.value
-					? new Date(b.created_at ?? '').getTime() -
-							new Date(a.created_at ?? '').getTime()
-					: new Date(a.created_at ?? '').getTime() -
-							new Date(b.created_at ?? '').getTime()
-			}
-			if (sort.value === 'updated_at') {
-				return invertSort.value
-					? new Date(b.updated_at ?? '').getTime() -
-							new Date(a.updated_at ?? '').getTime()
-					: new Date(a.updated_at ?? '').getTime() -
-							new Date(b.updated_at ?? '').getTime()
-			}
-			if (sort.value === 'type') {
-				return invertSort.value
-					? (b.type || '').localeCompare(a.type || '')
-					: (a.type || '').localeCompare(b.type || '')
-			}
-			if (sort.value === 'founded_year') {
-				return invertSort.value
-					? (b.founded_year || 0) - (a.founded_year || 0)
-					: (a.founded_year || 0) - (b.founded_year || 0)
-			}
-			return invertSort.value
-				? (b.name || '').localeCompare(a.name || '')
-				: (a.name || '').localeCompare(b.name || '')
-		})
-	})
-
-	const loadMore = async () => {
-		if (isLoading.value || currentPage.value > totalPages.value) return
-		await getCompanies(false)
-	}
-
-	useInfiniteScroll(scrollContainer, loadMore, {
-		distance: 200,
-		canLoadMore: () => currentPage.value <= totalPages.value && !isLoading.value,
+		return companies
 	})
 
 	// Lifecycle hooks
-	onMounted(async () => {
-		await Promise.all([getCompanies(true), loadStats()])
-	})
-
-	watch(
-		[
-			limitFetch,
-			typeFilter,
-			verifiedFilter,
-			() => filterState.onlyUnverified,
-			() => filterState.onlyWithoutWebsite,
-			() => filterState.onlyWithoutLogo,
-			() => filterState.onlyWithoutDescription,
-			sort,
-		],
-		async () => {
-			try {
-				await getCompanies(true)
-			} catch (error) {
-				console.error('Error in watcher:', error)
-			}
-		},
-	)
-
-	// Watcher for search input
-	watch(search, () => {
-		// Reset page to 1 when search changes
-		if (page.value !== 1) page.value = 1
-		performSearch()
+	onMounted(() => {
+		void loadStats()
 	})
 
 	definePageMeta({
@@ -490,13 +406,11 @@
 			description="Try adjusting the search or filters."
 		/>
 
-		<div ref="observerTarget" class="mb-4 h-4 w-full"></div>
-
-		<DashboardLoadMoreFooter
-			:loaded="companiesFetch.length"
+		<DashboardPaginationBar
+			v-model:page="currentPage"
+			:total-pages="totalPages"
 			:total="totalCompanies"
-			:loading="isLoading"
-			@load-all="loadAllCompanies"
+			:items-per-page="pageSizeValue"
 		/>
 
 		<UModal v-model:open="deleteModal.isOpen">

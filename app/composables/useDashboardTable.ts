@@ -9,6 +9,9 @@ interface UseDashboardTableOptions {
 	debounceMs?: number
 }
 
+export const toggledSortDirection = (direction: 'asc' | 'desc'): 'asc' | 'desc' =>
+	direction === 'asc' ? 'desc' : 'asc'
+
 export const useDashboardTable = (options: UseDashboardTableOptions) => {
 	const currentPage = ref(1)
 	const pageSizeValue = ref(options.pageSize ?? 20)

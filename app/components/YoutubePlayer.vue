@@ -35,7 +35,7 @@
 	let originalConsoleError: typeof console.error | null = null
 	let youtubeErrorHandler: ((event: ErrorEvent) => void) | null = null
 
-	const { trace: logPlayerTrace } = useDevLogger('YoutubePlayer')
+	const { trace: logPlayerTrace } = useLogger('YoutubePlayer')
 
 	// Create the YouTube player
 	const createPlayer = () => {

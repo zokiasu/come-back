@@ -1,6 +1,6 @@
 export default defineNuxtPlugin(() => {
 	if (import.meta.server) {
-		const { logError } = useErrorLogger()
+		const { error: logError } = useLogger('error-handler')
 
 		// Capture Vue errors server-side
 		const app = useNuxtApp()

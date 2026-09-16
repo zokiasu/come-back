@@ -23,7 +23,7 @@
 	const supabase = useSupabaseClient()
 	const supabaseUser = useSupabaseUser()
 	const { getTrustedAuthUser, syncUserProfileFromAuthUser, syncError } = useAuth()
-	const { trace: log } = useDevLogger('AuthCallback')
+	const { trace: log } = useLogger('AuthCallback')
 
 	const firstQueryValue = (value: unknown): string | undefined => {
 		if (typeof value === 'string') return value

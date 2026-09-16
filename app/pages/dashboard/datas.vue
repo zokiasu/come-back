@@ -12,7 +12,7 @@
 	const { createNationality, getAllNationalities, deleteNationality } =
 		useSupabaseNationalities()
 
-	const { trace: logDashboardDatasTrace } = useDevLogger('DashboardDatas')
+	const { trace: logDashboardDatasTrace } = useLogger('DashboardDatas')
 
 	const styleFetch = ref<MusicStyle[]>([])
 	const newStyle = ref('')

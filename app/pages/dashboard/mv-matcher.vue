@@ -1,5 +1,6 @@
 <script setup lang="ts">
 	import type { MusicType } from '~/types'
+	import { formatArtistNames } from '~/utils/artist'
 	import { formatDate as formatDateValue } from '~/utils/date'
 
 	type MatchArtist = {
@@ -121,10 +122,6 @@
 	const formatDate = (value: string | null | undefined) => {
 		if (!value) return '-'
 		return formatDateValue(value)
-	}
-
-	const formatArtists = (artists: MatchArtist[]) => {
-		return artists.map((artist) => artist.name).join(', ') || 'Unknown artist'
 	}
 
 	const getReleaseLine = (suggestion: MusicMatchSuggestion) => {
@@ -495,7 +492,7 @@
 													</UBadge>
 												</div>
 												<p class="text-cb-tertiary-400 truncate text-xs">
-													{{ formatArtists(suggestion.artists) }}
+													{{ formatArtistNames(suggestion.artists, 'Unknown artist') }}
 												</p>
 												<p class="text-cb-tertiary-500 text-xs">
 													{{ getReleaseLine(suggestion) }}
@@ -579,7 +576,7 @@
 													{{ suggestion.musicName }}
 												</p>
 												<p class="text-cb-tertiary-400 truncate text-xs">
-													{{ formatArtists(suggestion.artists) }}
+													{{ formatArtistNames(suggestion.artists, 'Unknown artist') }}
 												</p>
 												<p class="text-cb-tertiary-500 text-xs">
 													{{ getReleaseLine(suggestion) }}

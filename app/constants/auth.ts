@@ -3,8 +3,8 @@
  */
 
 /**
- * Maximum timeout for auth initialization (ms)
- * Used by the `auth.ts` middleware
+ * Default timeout for the auth initialization (ms)
+ * Used by `waitForAuthInitialization` in `app/utils/authSession.ts`
  */
 export const AUTH_INIT_TIMEOUT_MS = 5000
 
@@ -16,19 +16,7 @@ export const AUTH_INIT_TIMEOUT_MS = 5000
 export const ADMIN_AUTH_INIT_TIMEOUT_MS = 6000
 
 /**
- * Maximum number of attempts to fetch user data
- * Used by the `admin.ts` middleware
+ * Maximum total wait for user data (ms)
+ * Used by `waitForUserData` in `app/utils/authSession.ts`
  */
-export const AUTH_MAX_RETRY_ATTEMPTS = 30
-
-/**
- * Delay between user data fetch attempts (ms)
- * Used by the `admin.ts` middleware
- */
-export const AUTH_RETRY_DELAY_MS = 100
-
-/**
- * Maximum total wait time for user data (ms)
- * Calculated as `AUTH_MAX_RETRY_ATTEMPTS * AUTH_RETRY_DELAY_MS = 3000ms`
- */
-export const AUTH_MAX_WAIT_TIME_MS = AUTH_MAX_RETRY_ATTEMPTS * AUTH_RETRY_DELAY_MS
+export const AUTH_MAX_WAIT_TIME_MS = 3000

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 	import { useAuthModal } from '@/composables/useAuthModal'
+	import { formatTimeAgo } from '~/utils/date'
 	import type { AppNotification } from '~/types/api'
 
 	const isMobileNavDocked = useState<boolean>('mobileNavDocked', () => false)
@@ -32,21 +33,6 @@
 
 	const notificationIcon = (type: string) =>
 		type === 'followed_artist' ? 'i-lucide-bell-ring' : 'i-lucide-music'
-
-	const timeAgo = (dateStr: string) => {
-		const diff = Date.now() - new Date(dateStr).getTime()
-		const mins = Math.floor(diff / 60000)
-		if (mins < 1) return 'just now'
-		if (mins < 60) return `${mins}m ago`
-		const hours = Math.floor(mins / 60)
-		if (hours < 24) return `${hours}h ago`
-		const days = Math.floor(hours / 24)
-		if (days < 30) return `${days}d ago`
-		return new Date(dateStr).toLocaleDateString('en-US', {
-			day: 'numeric',
-			month: 'short',
-		})
-	}
 
 	const handleNotificationClick = async (notification: AppNotification) => {
 		await markAsRead(notification.id)
@@ -351,7 +337,12 @@
 										{{ notification.message }}
 									</p>
 									<p class="mt-0.5 text-[10px] text-zinc-600">
-										{{ timeAgo(notification.created_at) }}
+										{{
+											formatTimeAgo(notification.created_at, {
+												day: 'numeric',
+												month: 'short',
+											})
+										}}
 									</p>
 								</div>
 								<div

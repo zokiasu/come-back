@@ -1,4 +1,4 @@
-import { AUTH_INIT_TIMEOUT_MS } from '~/constants/auth'
+import { resolveAuthSession, waitForAuthInitialization } from '~/utils/authSession'
 
 export default defineNuxtRouteMiddleware(async (_to, _from) => {
 	const user = useSupabaseUser()
@@ -10,32 +10,15 @@ export default defineNuxtRouteMiddleware(async (_to, _from) => {
 		return
 	}
 
-	// Client: Wait for the initialisation
+	// Client: Wait for the initialisation the auth (restauration session + localStorage)
 	const { ensureAuthInitialized, userData } = useAuth()
 
-	// Wait for the initialisation the auth (restauration session + localStorage)
-	try {
-		await Promise.race([
-			ensureAuthInitialized(),
-			new Promise((_, reject) =>
-				setTimeout(() => reject(new Error('Auth timeout')), AUTH_INIT_TIMEOUT_MS),
-			),
-		])
-	} catch {
-		// On timeout, continue with the remaining checks
-	}
+	await waitForAuthInitialization(ensureAuthInitialized)
 
-	let sessionUserId = user.value?.id ?? null
-	let sessionCheckFailed = false
-
-	if (!sessionUserId) {
-		try {
-			const { data } = await supabase.auth.getSession()
-			sessionUserId = data.session?.user?.id ?? null
-		} catch {
-			sessionCheckFailed = true
-		}
-	}
+	const { sessionUserId, sessionCheckFailed } = await resolveAuthSession(
+		user.value?.id,
+		() => supabase.auth.getSession(),
+	)
 
 	const hasUserProfile = !!userData.value || !!userStore.userDataStore || !!sessionUserId
 	const hasPersistedSession =

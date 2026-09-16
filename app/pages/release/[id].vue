@@ -2,6 +2,7 @@
 	import { storeToRefs } from 'pinia'
 
 	import { useUserStore } from '@/stores/user'
+	import { formatDate as formatDateValue } from '~/utils/date'
 	import type { Release } from '~/types'
 
 	const userStore = useUserStore()
@@ -39,13 +40,8 @@
 	const imageLoaded = ref<boolean>(false)
 	const isLoading = computed(() => isFetchingRelease.value)
 
-	const formatDate = (date: string) => {
-		const dateObject = new Date(date)
-		const day = dateObject.getDate().toString().padStart(2, '0')
-		const month = (dateObject.getMonth() + 1).toString().padStart(2, '0')
-		const year = dateObject.getFullYear()
-		return `${day}/${month}/${year}`
-	}
+	const formatDate = (date: string) =>
+		formatDateValue(date, { day: '2-digit', month: '2-digit', year: 'numeric' }, 'en-GB')
 
 	const handleReleaseSaved = (updatedRelease: Release) => {
 		if (!release.value) return

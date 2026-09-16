@@ -208,6 +208,7 @@
 </template>
 
 <script setup lang="ts">
+	import { formatDate as formatDateValue, formatDuration } from '~/utils/date'
 	import type { Music } from '~/types'
 
 	const route = useRoute()
@@ -264,22 +265,12 @@
 	}
 
 	// Format date
-	const formatDate = (dateString: string | null | undefined): string => {
-		if (!dateString) return ''
-		const date = new Date(dateString)
-		return date.toLocaleDateString('en-US', {
-			day: 'numeric',
-			month: 'short',
-			year: 'numeric',
-		})
-	}
-
-	// Format duration
-	const formatDuration = (seconds: number): string => {
-		const mins = Math.floor(seconds / 60)
-		const secs = seconds % 60
-		return `${mins}:${secs.toString().padStart(2, '0')}`
-	}
+	const formatDate = (dateString: string | null | undefined): string =>
+		formatDateValue(
+			dateString,
+			{ day: 'numeric', month: 'short', year: 'numeric' },
+			'en-US',
+		)
 
 	// Play all musics in the ranking
 	const playAllMusics = () => {

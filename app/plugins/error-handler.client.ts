@@ -1,6 +1,6 @@
 export default defineNuxtPlugin(() => {
 	if (import.meta.client) {
-		const { logError } = useErrorLogger()
+		const { error: logError } = useLogger('error-handler')
 
 		// Capture global JavaScript errors
 		window.addEventListener('error', (event) => {

@@ -3,6 +3,8 @@
 	import type { TableColumn } from '@nuxt/ui'
 	import { useSupabaseNews } from '~/composables/Supabase/useSupabaseNews'
 	import { useSupabaseSearch } from '~/composables/useSupabaseSearch'
+	import { formatArtistNames } from '~/utils/artist'
+	import { DASHBOARD_PAGE_SIZE_OPTIONS } from '~/constants/dashboard'
 	import { CalendarDate } from '@internationalized/date'
 	import { useDebounceFn } from '@vueuse/core'
 	import { formatDate as formatDateValue } from '~/utils/date'
@@ -28,11 +30,6 @@
 	const sortColumn = ref<'date' | 'created_at' | 'artist'>('date')
 	const sortDirection = ref<'asc' | 'desc'>('desc')
 
-	// Pagination state
-	const currentPage = ref(1)
-	const pageSizeValue = ref(20)
-	const totalPages = computed(() => Math.ceil(totalNews.value / pageSizeValue.value))
-
 	// Select menu items
 	const verifiedOptions: { label: string; id: string }[] = [
 		{ label: 'All statuses', id: 'all' },
@@ -45,12 +42,6 @@
 		{ label: 'This week', id: 'week' },
 		{ label: 'This month', id: 'month' },
 	]
-	const pageSizeOptions: { label: string; id: number }[] = [
-		{ label: '20 per page', id: 20 },
-		{ label: '50 per page', id: 50 },
-		{ label: '100 per page', id: 100 },
-	]
-
 	// Edit modal state
 	const isEditModalOpen = ref(false)
 	const editingNews = ref<News | null>(null)
@@ -169,16 +160,18 @@
 		}
 	}
 
+	// Pagination: refetches on page changes, resets to page 1 on filters/search
+	const { currentPage, pageSizeValue } = useDashboardTable({
+		fetch: fetchNews,
+		filterSources: [filterVerifiedValue, filterPeriodValue, sortColumn, sortDirection],
+		searchSource: search,
+	})
+	const totalPages = computed(() => Math.ceil(totalNews.value / pageSizeValue.value))
+
 	// Format date for display
 	const formatDate = (dateString: string | null) => {
 		if (!dateString) return '-'
 		return formatDateValue(dateString)
-	}
-
-	// Format artists for display
-	const formatArtists = (artists: Artist[] | null | undefined) => {
-		if (!artists || artists.length === 0) return '-'
-		return artists.map((a) => a.name).join(', ')
 	}
 
 	// Sort handler
@@ -189,8 +182,6 @@
 			sortColumn.value = column
 			sortDirection.value = 'desc'
 		}
-		currentPage.value = 1
-		fetchNews()
 	}
 
 	// Edit modal functions
@@ -331,29 +322,6 @@
 		}
 	})
 
-	// Track if filter change triggered the page reset to avoid double fetch
-	const isFilterChange = ref(false)
-
-	watch([search, filterVerifiedValue, filterPeriodValue, pageSizeValue], () => {
-		isFilterChange.value = true
-		currentPage.value = 1
-		fetchNews()
-	})
-
-	// Watch page changes from pagination (only if not from filter change)
-	watch(currentPage, () => {
-		if (isFilterChange.value) {
-			isFilterChange.value = false
-			return
-		}
-		fetchNews()
-	})
-
-	// Initial load
-	onMounted(() => {
-		fetchNews()
-	})
-
 	definePageMeta({
 		middleware: ['admin'],
 		layout: 'dashboard',
@@ -413,7 +381,7 @@
 
 			<USelectMenu
 				v-model="pageSizeValue"
-				:items="pageSizeOptions"
+				:items="DASHBOARD_PAGE_SIZE_OPTIONS"
 				value-key="id"
 				class="w-full md:w-36"
 				:ui="{ base: 'bg-cb-quinary-900' }"
@@ -470,7 +438,7 @@
 							/>
 						</div>
 						<span class="max-w-[200px] truncate">
-							{{ formatArtists(row.original.artists) }}
+							{{ formatArtistNames(row.original.artists) }}
 						</span>
 					</div>
 				</template>
