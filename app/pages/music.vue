@@ -332,12 +332,20 @@
 	const artistsList = ref<Artist[]>([])
 	const musicsList = ref<MusicCatalogItem[]>([])
 
+	const oldestYear = ref<number | null>(null)
+	const newestYear = ref<number | null>(null)
+
 	const hasMore = computed(() => currentPage.value <= totalPages.value)
 
-	const availableYears = Array.from(
-		{ length: currentYear - 2020 + 1 },
-		(_, index) => 2020 + index,
-	)
+	const FALLBACK_FIRST_YEAR = 2020
+	const availableYears = computed(() => {
+		const firstYear = oldestYear.value ?? FALLBACK_FIRST_YEAR
+		const lastYear = Math.max(currentYear, newestYear.value ?? currentYear)
+		return Array.from(
+			{ length: lastYear - firstYear + 1 },
+			(_, index) => firstYear + index,
+		)
+	})
 	const availableStyles = [
 		'K-Pop',
 		'K-Hiphop',
@@ -374,7 +382,7 @@
 		}))
 	})
 
-	const yearChips = computed(() => [...availableYears].reverse())
+	const yearChips = computed(() => [...availableYears.value].reverse())
 
 	const stylesForMenu = computed(() => {
 		return availableStyles.map((style) => ({
@@ -503,6 +511,18 @@
 			console.error('Error loading filtered artists:', error)
 		} finally {
 			artistsLoading.value = false
+		}
+	}
+
+	const loadYearRange = async (): Promise<void> => {
+		try {
+			const range = await $fetch<{ minYear: number | null; maxYear: number | null }>(
+				'/api/musics/year-range',
+			)
+			oldestYear.value = range.minYear
+			newestYear.value = range.maxYear
+		} catch (error) {
+			console.error('Error loading music year range:', error)
 		}
 	}
 
@@ -917,6 +937,7 @@
 		isApplyingFilterState.value = false
 		lastSyncedQuery.value = stringifyMusicQuery(normalizeMusicQuery(route.query))
 
+		void loadYearRange()
 		await Promise.all([loadAvailableArtists(), loadMusics(true)])
 		isInitialized.value = true
 		isReady.value = true
