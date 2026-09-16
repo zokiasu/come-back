@@ -26,6 +26,10 @@ const setupGlobals = (routeId = PROFILE_ID) => {
 	vi.stubGlobal('createError', createError)
 	vi.stubGlobal('createNotFoundError', createNotFoundError)
 	vi.stubGlobal('handleSupabaseError', handleSupabaseError)
+	vi.stubGlobal(
+		'getRequestIP',
+		vi.fn(() => '127.0.0.1'),
+	)
 }
 
 const setupSupabase = (result: { data?: unknown; error?: unknown }) => {

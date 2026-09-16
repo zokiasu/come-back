@@ -1,6 +1,9 @@
 import type { Tables } from '#server/types/api'
+import { checkRateLimit, RATE_LIMIT_PRESETS } from '../../utils/rateLimit'
 
 export default defineEventHandler(async (event) => {
+	await checkRateLimit(event, RATE_LIMIT_PRESETS.paginated)
+
 	// Cache for 1 hour, stale-while-revalidate for 5 minutes
 	setHeader(event, 'Cache-Control', 'public, max-age=3600, stale-while-revalidate=300')
 

@@ -1,5 +1,6 @@
 import type { PostgrestError } from '@supabase/supabase-js'
 import { isError as isH3Error } from 'h3'
+import { checkRateLimit, RATE_LIMIT_PRESETS } from '../../utils/rateLimit'
 import { validateIntegerParam } from '../../utils/validation'
 
 const OVERSAMPLE_FACTOR = 3
@@ -19,6 +20,8 @@ const parseFreshParam = (value: unknown): boolean => {
 }
 
 export default defineEventHandler(async (event) => {
+	await checkRateLimit(event, RATE_LIMIT_PRESETS.catalogScan)
+
 	const query = getQuery(event)
 	const limit = validateIntegerParam(query.limit, 'limit', {
 		min: 1,

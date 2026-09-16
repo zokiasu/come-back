@@ -83,6 +83,10 @@ const setupGlobals = (query: Record<string, unknown> = {}) => {
 	vi.stubGlobal('setHeader', setHeader)
 	vi.stubGlobal('createError', createError)
 	vi.stubGlobal('handleSupabaseError', handleSupabaseError)
+	vi.stubGlobal(
+		'getRequestIP',
+		vi.fn(() => '127.0.0.1'),
+	)
 
 	return { setHeader }
 }

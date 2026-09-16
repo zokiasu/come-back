@@ -1,7 +1,10 @@
+import { checkRateLimit, RATE_LIMIT_PRESETS } from '../../utils/rateLimit'
 import { uuidSchema } from '../../utils/schemas'
 import { validateIntegerParam } from '../../utils/validation'
 
 export default defineEventHandler(async (event) => {
+	await checkRateLimit(event, RATE_LIMIT_PRESETS.paginated)
+
 	setHeader(event, 'Cache-Control', 'public, max-age=300, stale-while-revalidate=60')
 
 	const query = getQuery(event)

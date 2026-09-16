@@ -1,4 +1,8 @@
+import { checkRateLimit, RATE_LIMIT_PRESETS } from '../../utils/rateLimit'
+
 export default defineEventHandler(async (event) => {
+	await checkRateLimit(event, RATE_LIMIT_PRESETS.publicRead)
+
 	const user = await requireAuth(event)
 	setHeader(event, 'Cache-Control', 'private, no-store')
 

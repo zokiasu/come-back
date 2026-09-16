@@ -38,6 +38,10 @@ const setupGlobals = () => {
 	vi.stubGlobal('handleSupabaseError', handleSupabaseError)
 	vi.stubGlobal('transformJunction', transformJunction)
 	vi.stubGlobal('validateLimitParam', validateLimitParam)
+	vi.stubGlobal(
+		'getRequestIP',
+		vi.fn(() => '127.0.0.1'),
+	)
 
 	return { setHeader }
 }
