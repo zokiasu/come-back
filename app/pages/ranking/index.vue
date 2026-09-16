@@ -242,6 +242,9 @@
 	const { getUserRankings, createRanking, updateRanking, deleteRanking } =
 		useSupabaseRanking()
 
+	const route = useRoute()
+	const router = useRouter()
+
 	const rankings = ref<UserRankingWithPreview[]>([])
 	const isLoading = ref(true)
 
@@ -353,6 +356,11 @@
 	// Initial load
 	onMounted(() => {
 		loadRankings()
+
+		if (route.query.create === '1') {
+			openCreateModal()
+			void router.replace({ query: { ...route.query, create: undefined } })
+		}
 	})
 
 	definePageMeta({

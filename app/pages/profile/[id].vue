@@ -33,7 +33,7 @@
 				<h2 class="text-xl font-semibold">Rankings</h2>
 				<NuxtLink
 					v-if="isProfile"
-					to="/ranking/create"
+					to="/ranking?create=1"
 					class="bg-cb-secondary-950 rounded px-2 py-1 text-xs font-semibold uppercase"
 				>
 					Create a Ranking
