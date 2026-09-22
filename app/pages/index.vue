@@ -352,6 +352,7 @@
 		<section class="mx-auto w-full max-w-[100rem] space-y-10 px-4 pt-4 pb-12 lg:px-8">
 			<div class="space-y-12">
 				<div
+					v-if="newsFetching || upcomingComebacks.length > 0"
 					class="border-cb-quinary-900 bg-cb-secondary-950/70 rounded-3xl border p-4 md:p-6"
 				>
 					<div class="space-y-4">
@@ -397,18 +398,6 @@
 							<SkeletonDefault class="h-28 w-full rounded-2xl" />
 							<SkeletonDefault class="h-28 w-full rounded-2xl" />
 							<SkeletonDefault class="h-28 w-full rounded-2xl" />
-						</div>
-
-						<div
-							v-else
-							class="border-cb-quinary-900 bg-cb-quinary-900/60 rounded-2xl border p-6 text-center"
-						>
-							<p class="text-cb-tertiary-100 text-sm font-semibold">
-								No comebacks reported yet.
-							</p>
-							<p class="text-cb-tertiary-300 mt-1 text-xs">
-								New community updates will appear here automatically.
-							</p>
 						</div>
 					</div>
 				</div>
